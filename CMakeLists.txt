@@ -7,14 +7,26 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_INTERPROCEDURAL_OPTIMIZATION ON)
 set(CMAKE_INTERPROCEDURAL_OPTIMIZATION_DEBUG OFF)
 
-set(
-  headers
-	inc/PCH.h
-    )
+configure_file(
+	${CMAKE_CURRENT_SOURCE_DIR}/cmake/version.rc.in
+	${CMAKE_CURRENT_BINARY_DIR}/version.rc
+	@ONLY
+)
 
 set(
-  sources
-    src/Main.cpp
+	headers
+	inc/PCH.h
+)
+
+set(
+	sources
+	src/Main.cpp
+	${CMAKE_CURRENT_BINARY_DIR}/version.rc
+)
+
+source_group(
+  TREE ${CMAKE_CURRENT_SOURCE_DIR}
+  FILES ${headers} ${sources}
 )
 
 find_package(CommonLibSSE CONFIG REQUIRED)
@@ -30,9 +42,36 @@ add_library("${PROJECT_NAME}::${PROJECT_NAME}" ALIAS "${PROJECT_NAME}")
 target_precompile_headers(
 	${PROJECT_NAME}
 	PRIVATE
-		inc/PCH.h
-	)
+	inc/PCH.h
+)
 
-file(GLOB_RECURSE OUTPUT_DLLS "${CMAKE_CURRENT_SOURCE_DIR}/out/**/*.dll")
-file(GLOB_RECURSE OUTPUT_PDBS "${CMAKE_CURRENT_SOURCE_DIR}/out/**/*.pdb")
+add_custom_command(
+  TARGET ${PROJECT_NAME}
+  POST_BUILD
+  COMMAND
+    ${CMAKE_COMMAND} -E make_directory "${CMAKE_CURRENT_SOURCE_DIR}/out/${BUILD_NAME}/skse/plugins"
+)
+add_custom_command(
+  TARGET ${PROJECT_NAME}
+  POST_BUILD
+  COMMAND
+    ${CMAKE_COMMAND} -E copy $<TARGET_FILE:${PROJECT_NAME}> "${CMAKE_CURRENT_SOURCE_DIR}/out/${BUILD_NAME}/skse/plugins"
+)
+add_custom_command(
+  TARGET ${PROJECT_NAME}
+  POST_BUILD
+  COMMAND
+    ${CMAKE_COMMAND} -E copy $<TARGET_PDB_FILE:${PROJECT_NAME}> "${CMAKE_CURRENT_SOURCE_DIR}/out/${BUILD_NAME}/skse/plugins"
+)
 
+set(OUTPUT_DLLS "${CMAKE_CURRENT_SOURCE_DIR}/out/${BUILD_NAME}/skse/plugins/TheNewGenital.dll")
+set(OUTPUT_PDBS "${CMAKE_CURRENT_SOURCE_DIR}/out/${BUILD_NAME}/skse/plugins/TheNewGenital.pdb")
+
+set_property(
+  TARGET ${PROJECT_NAME}
+  APPEND PROPERTY ADDITIONAL_CLEAN_FILES "${OUTPUT_DLLS}"
+)
+set_property(
+  TARGET ${PROJECT_NAME}
+  APPEND PROPERTY ADDITIONAL_CLEAN_FILES "${OUTPUT_PDBS}"
+)
