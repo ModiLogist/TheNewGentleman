@@ -2,7 +2,7 @@
   "version": 6,
   "cmakeMinimumRequired": {
     "major": 3,
-    "minor": 22,
+    "minor": 27,
     "patch": 0
   },
   "configurePresets": [
@@ -21,6 +21,7 @@
       "cacheVariables": {
         "CMAKE_TOOLCHAIN_FILE": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
         "VCPKG_TARGET_TRIPLET": "x64-windows-custom",
+        "VCPKG_HOST_TRIPLET": "x64-windows-custom",
         "VCPKG_OVERLAY_TRIPLETS": "${sourceDir}/cmake"
       }
     },
@@ -70,24 +71,38 @@
       }
     },
     {
-      "name": "release-vcpkg-msvc",
+      "name": "build-release-msvc",
       "inherits": [ "base", "vcpkg", "win32-unicode", "x64", "msvc" ],
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "RelWithDebInfo"
       },
-      "displayName": "Release(vcpkg)",
+      "displayName": "Release",
       "description": "Optimized release build.",
       "binaryDir": "${sourceDir}/build/release"
     },
     {
-      "name": "debug-vcpkg-msvc",
+      "name": "build-debug-msvc",
       "inherits": [ "base", "vcpkg", "win32-unicode", "x64", "msvc" ],
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug"
       },
-      "displayName": "Debug(vcpkg)",
+      "displayName": "Debug",
       "description": "Debug build.",
       "binaryDir": "${sourceDir}/build/debug"
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "release-tng",
+      "displayName": "Release (TNG)",
+      "configurePreset": "build-release-msvc",
+      "description": "Optimized release build."
+    },
+    {
+      "name": "debug-tng",
+      "displayName": "Debug (TNG)",
+      "configurePreset": "build-debug-msvc",
+      "description": "Debug build."
     }
   ]
 }
