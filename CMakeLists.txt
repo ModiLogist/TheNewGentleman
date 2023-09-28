@@ -32,7 +32,6 @@ set(
   sources
     src/Main.cpp
     src/Hooks.cpp
-
     ${CMAKE_CURRENT_BINARY_DIR}/version.rc
 )
 
@@ -41,6 +40,9 @@ source_group(
   FILES ${headers} ${sources}
 )
 
+########################################################################################################################
+## Configure target DLL
+########################################################################################################################
 find_package(CommonLibSSE CONFIG REQUIRED)
 
 add_commonlibsse_plugin(
@@ -51,12 +53,15 @@ add_commonlibsse_plugin(
 
 add_library("${PROJECT_NAME}::${PROJECT_NAME}" ALIAS "${PROJECT_NAME}")
 
+find_path(SIMPLEINI_INCLUDE_DIRS "SimpleIni.h")
+
 target_include_directories(
   ${PROJECT_NAME}
   PRIVATE
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
     $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/src>
     $<INSTALL_INTERFACE:src>
+    ${SIMPLEINI_INCLUDE_DIRS}
 )
 
 target_include_directories(
@@ -69,6 +74,7 @@ target_precompile_headers(
 	${PROJECT_NAME}
 	PRIVATE
 	inc/PCH.h
+    ${SIMPLEINI_INCLUDE_DIRS}/SimpleIni.h
 )
 
 install(
@@ -80,7 +86,9 @@ install(
   TARGETS ${PROJECT_NAME}
   DESTINATION "${CMAKE_INSTALL_LIBDIR}"
 )
-
+########################################################################################################################
+## Automatic plugin deployment
+########################################################################################################################
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
   set(BUILD_NAME "Debug")
 else()

@@ -20,8 +20,8 @@
       "hidden": true,
       "cacheVariables": {
         "CMAKE_TOOLCHAIN_FILE": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
-        "VCPKG_TARGET_TRIPLET": "x64-windows-custom",
-        "VCPKG_HOST_TRIPLET": "x64-windows-custom",
+        "VCPKG_TARGET_TRIPLET": "x64-windows-skse",
+        "VCPKG_HOST_TRIPLET": "x64-windows-skse",
         "VCPKG_OVERLAY_TRIPLETS": "${sourceDir}/cmake"
       }
     },
@@ -77,7 +77,7 @@
         "CMAKE_BUILD_TYPE": "RelWithDebInfo"
       },
       "displayName": "Release",
-      "description": "Optimized release build.",
+      "description": "Release build.",
       "binaryDir": "${sourceDir}/build/release"
     },
     {
@@ -96,7 +96,7 @@
       "name": "release-tng",
       "displayName": "Release (TNG)",
       "configurePreset": "build-release-msvc",
-      "description": "Optimized release build."
+      "description": "Release build."
     },
     {
       "name": "debug-tng",
