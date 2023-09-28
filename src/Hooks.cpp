@@ -12,9 +12,6 @@ namespace Hooks {
         inline RE::BGSKeyword* kwNPC{nullptr};
     }
     void Install() noexcept {
-        stl::write_vfunc<RE::Character, AddWornItem>();
-        logger::info("Installed Character::AddWornItem hook");
-
         stl::write_vfunc<RE::Character, Load3D>();
         logger::info("Installed Character::Load3D hook");
 
@@ -22,11 +19,6 @@ namespace Hooks {
         logger::info("Manakin race recognized: {}", rcMkn->GetFormEditorID());
         kwNPC = RE::TESForm::LookupByID(kwNPCID)->As<RE::BGSKeyword>();
         logger::info("Actor type NPC keyword recognized: {}", kwNPC->GetFormEditorID());
-    }
-
-    bool AddWornItem::Thunk(RE::Character* a_this, RE::TESBoundObject* a_item, std::int32_t a_count, bool a_forceEquip, std::uint32_t a_arg4, std::uint32_t a_arg5) noexcept {
-        const auto result{func(a_this, a_item, a_count, a_forceEquip, a_arg4, a_arg5)};
-        return result;
     }
 
     RE::NiAVObject* Load3D::Thunk(RE::Character* a_this, bool a_arg1) noexcept {
