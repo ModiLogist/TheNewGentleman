@@ -1,24 +1,15 @@
 #include "Hooks.h"
 
 namespace Hooks {
-    namespace
-    {
-        inline constexpr RE::FormID rcMknID{0x10760A};
-        inline constexpr RE::FormID kwNPCID{0x13794};
-        inline constexpr RE::BGSBipedObjectForm::BipedObjectSlot slotBody{RE::BGSBipedObjectForm::BipedObjectSlot::kBody};
-        inline constexpr RE::BGSBipedObjectForm::BipedObjectSlot slotGenital{RE::BGSBipedObjectForm::BipedObjectSlot::kModPelvisSecondary};
-
-        inline RE::TESRace* rcMkn{nullptr};
-        inline RE::BGSKeyword* kwNPC{nullptr};
-    }
     void Install() noexcept {
+        
+
         stl::write_vfunc<RE::Character, Load3D>();
         logger::info("Installed Character::Load3D hook");
 
         rcMkn = RE::TESForm::LookupByID(rcMknID)->As<RE::TESRace>();
-        logger::info("Manakin race recognized: {}", rcMkn->GetFormEditorID());
         kwNPC = RE::TESForm::LookupByID(kwNPCID)->As<RE::BGSKeyword>();
-        logger::info("Actor type NPC keyword recognized: {}", kwNPC->GetFormEditorID());
+        kwSKR = RE::TESForm::LookupByID(kwSKRID)->As<RE::BGSKeyword>();
     }
 
     RE::NiAVObject* Load3D::Thunk(RE::Character* a_this, bool a_arg1) noexcept {
@@ -31,14 +22,32 @@ namespace Hooks {
             return result;
         };
         RE::TESObjectARMO* l_skin = l_race->skin;
-        if (l_skin)
-        {
-            if (!l_skin->HasPartOf(slotGenital))
-            {
+        if (l_skin) {
+            if (!l_skin->HasPartOf(slotGenital)) {
                 l_skin->AddSlotToMask(slotGenital);
-                RE::TESObjectARMA* l_genital = RE::TESForm::LookupByID(0x166d5)->As<RE::TESObjectARMA>();
-                l_skin->armorAddons.push_back(l_genital);
-                logger::info("Added a genital to race {}", l_race->GetName());
+                if (l_race->HasKeyword(kwSKR)) {          
+                    for (const auto l_genitalID : beast_genitals) {
+                        logger::info("Looking for the genital {} ", l_genitalID);     
+                        RE::TESForm* l_genitalForm = RE::TESForm::LookupByEditorID(l_genitalID);
+                        if (!l_genitalForm) continue;
+                        logger::info("Got genital {} ", l_genitalForm->GetFormID());   
+                        RE::TESObjectARMA* l_genital = RE::TESForm::LookupByEditorID(l_genitalID)->As<RE::TESObjectARMA>();                        
+                        l_skin->armorAddons.push_back(l_genital);
+                        logger::info("Added a genital to race {}", l_race->GetName());
+                    }
+                }
+                else {              
+                    for (const auto l_genitalID : manmer_genitals) {
+                        logger::info("Looking for the genital {} ", l_genitalID);
+                        RE::TESForm* l_genitalForm = RE::TESForm::LookupByEditorID(l_genitalID);
+                        if (!l_genitalForm) continue;
+                        logger::info("Got genital {} ", l_genitalForm->GetFormID());
+                        RE::TESObjectARMA* l_genital = RE::TESForm::LookupByEditorID(l_genitalID)->As<RE::TESObjectARMA>();
+                        logger::info("Got genital {} ", l_genital->GetFormID());   
+                        l_skin->armorAddons.push_back(l_genital);
+                        logger::info("Added a genital to race {}", l_race->GetName());
+                    }
+                }
             }
         }
 

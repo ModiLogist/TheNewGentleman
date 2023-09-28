@@ -5,7 +5,7 @@ message("Using toolchain file ${CMAKE_TOOLCHAIN_FILE}.")
 ## Define project
 ########################################################################################################################
 project(
-  TheNewGenital
+  TheNewGentleman
   VERSION 1.0.0
   LANGUAGES CXX
 )
@@ -114,8 +114,8 @@ add_custom_command(
     ${CMAKE_COMMAND} -E copy $<TARGET_PDB_FILE:${PROJECT_NAME}> "${CMAKE_CURRENT_SOURCE_DIR}/out/${BUILD_NAME}/skse/plugins"
 )
 
-set(OUTPUT_DLLS "${CMAKE_CURRENT_SOURCE_DIR}/out/${BUILD_NAME}/skse/plugins/TheNewGenital.dll")
-set(OUTPUT_PDBS "${CMAKE_CURRENT_SOURCE_DIR}/out/${BUILD_NAME}/skse/plugins/TheNewGenital.pdb")
+set(OUTPUT_DLLS "${CMAKE_CURRENT_SOURCE_DIR}/out/${BUILD_NAME}/skse/plugins/TheNewGentleman.dll")
+set(OUTPUT_PDBS "${CMAKE_CURRENT_SOURCE_DIR}/out/${BUILD_NAME}/skse/plugins/TheNewGentleman.pdb")
 
 set_property(
   TARGET ${PROJECT_NAME}
