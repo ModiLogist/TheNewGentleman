@@ -1,17 +1,12 @@
 #include <stddef.h>
-#include <Hooks.h>
-
-using namespace SKSE;
-using namespace SKSE::log;
-using namespace SKSE::stl;
-
+#include <TngUtil.h>
 
 void InitializeLogging() {
     auto path{SKSE::log::log_directory()};
     if (!path) {
-        report_and_fail("Unable to lookup SKSE logs directory.");
+        SKSE::stl::report_and_fail("Unable to lookup SKSE logs directory.");
     }
-    *path /= PluginDeclaration::GetSingleton()->GetName();
+    *path /= SKSE::PluginDeclaration::GetSingleton()->GetName();
     *path += L".log";
 
     std::shared_ptr<spdlog::logger> log;
@@ -27,26 +22,23 @@ void InitializeLogging() {
     spdlog::set_pattern("[%H:%M:%S.%e] [%n] [%l] %v");
 }
 
+void EventListener(SKSE::MessagingInterface::Message* aMessage) noexcept {
+    if (aMessage->type == SKSE::MessagingInterface::kDataLoaded) {
+        gLogger::info("{} is now obtaining the genitals.", TngUtil::fTNGName);
+        TngUtil::Initialize();
+        TngUtil::ObtainGenitas();
+        TngUtil::GenitalizeRaces();
+    }
+}
 
-
-SKSEPluginLoad(const SKSE::LoadInterface *skse) {
-
+SKSEPluginLoad(const SKSE::LoadInterface* skse) {
     InitializeLogging();
 
     const auto plugin{SKSE::PluginDeclaration::GetSingleton()};
     const auto version{plugin->GetVersion()};
-    
+    ;
     SKSE::Init(skse);
-
-    if(!SKSE::GetMessagingInterface()->RegisterListener([](SKSE::MessagingInterface::Message *message) {
-        if (message->type == SKSE::MessagingInterface::kDataLoaded)
-        {
-            Hooks::Install();
-        }
-            
-    })) {
-        return false;
-    };
-
+    const auto lMsgInterface{SKSE::GetMessagingInterface()};
+    if (!lMsgInterface->RegisterListener(EventListener)) return false;
     return true;
 }

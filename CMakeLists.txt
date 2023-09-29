@@ -31,9 +31,8 @@ set(
 set(
   sources
     src/Main.cpp
-    src/Hooks.cpp
-    ${CMAKE_CURRENT_BINARY_DIR}/version.rc
-)
+    src/TngUtil.cpp
+    ${CMAKE_CURRENT_BINARY_DIR}/version.rc)
 
 source_group(
   TREE ${CMAKE_CURRENT_SOURCE_DIR}
@@ -56,25 +55,25 @@ add_library("${PROJECT_NAME}::${PROJECT_NAME}" ALIAS "${PROJECT_NAME}")
 find_path(SIMPLEINI_INCLUDE_DIRS "SimpleIni.h")
 
 target_include_directories(
-  ${PROJECT_NAME}
-  PRIVATE
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/src>
-    $<INSTALL_INTERFACE:src>
-    ${SIMPLEINI_INCLUDE_DIRS}
+    ${PROJECT_NAME}
+    PRIVATE
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/src>
+        $<INSTALL_INTERFACE:src>
+        ${SIMPLEINI_INCLUDE_DIRS}
 )
 
 target_include_directories(
-  ${PROJECT_NAME}
-  PUBLIC
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/inc>
+    ${PROJECT_NAME}
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/inc>
 )
 
 target_precompile_headers(
-	${PROJECT_NAME}
-	PRIVATE
-	inc/PCH.h
-    ${SIMPLEINI_INCLUDE_DIRS}/SimpleIni.h
+    ${PROJECT_NAME}
+    PRIVATE
+        inc/PCH.h
+        ${SIMPLEINI_INCLUDE_DIRS}/SimpleIni.h
 )
 
 install(

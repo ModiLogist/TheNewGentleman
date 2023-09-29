@@ -1,7 +1,22 @@
 {
   "$schema": "https://raw.githubusercontent.com/microsoft/vcpkg-tool/main/docs/vcpkg.schema.json",
   "name": "thenewgentleman",
-  "version-semver": "0.0.1",
+  "version-semver": "1.0.0",
   "dependencies": [ "commonlibsse-ng", "simpleini" ],
-  "license": "MIT"
+  "license": "MIT",
+  "vcpkg-configuration": {
+    "default-registry": {
+      "kind": "git",
+      "repository": "https://github.com/microsoft/vcpkg",
+      "baseline": "42ee04ed4525b833c03b14657e020ee6426fe864"
+    },
+    "registries": [
+      {
+        "kind": "git",
+        "repository": "https://gitlab.com/colorglass/vcpkg-colorglass",
+        "baseline": "6309841a1ce770409708a67a9ba5c26c537d2937",
+        "packages": [ "commonlibsse-ng" ]
+      }
+    ]
+  }
 }
