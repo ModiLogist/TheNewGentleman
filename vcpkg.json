@@ -1,6 +1,6 @@
 {
   "$schema": "https://raw.githubusercontent.com/microsoft/vcpkg-tool/main/docs/vcpkg.schema.json",
-  "name": "TheNewGentleman",
+  "name": "thenewgentleman",
   "version-semver": "0.0.1",
   "dependencies": [ "commonlibsse-ng", "simpleini" ],
   "license": "MIT"
