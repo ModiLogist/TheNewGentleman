@@ -1,21 +1,20 @@
 #pragma once
 
 namespace TngUtil {
-
     void Initialize() noexcept;
     void ObtainGenitas() noexcept;
     void GenitalizeRaces() noexcept;
 
     namespace {
-        //SKSE stuff
-        inline RE::TESDataHandler* fHandler{nullptr};
+        // SKSE stuff
+        inline RE::TESDataHandler* fDataHandler{nullptr};
         // Skyrim fixed stuff
         inline constexpr RE::FormID fMnkRaceID{0x10760A};
         inline constexpr RE::FormID fNPCKeywID{0x13794};
         inline constexpr RE::FormID fBstKeywID{0xD61D1};
         inline constexpr RE::BGSBipedObjectForm::BipedObjectSlot fSlotBody{RE::BGSBipedObjectForm::BipedObjectSlot::kBody};
         inline constexpr RE::BGSBipedObjectForm::BipedObjectSlot fSlotGenital{RE::BGSBipedObjectForm::BipedObjectSlot::kModPelvisSecondary};
-        //Skyrim stuff needing load
+        // Skyrim stuff needing load
         inline RE::TESRace* fManakinRace{nullptr};
         inline RE::BGSKeyword* fNPCKey{nullptr};
         inline RE::BGSKeyword* fBeastKey{nullptr};
@@ -41,8 +40,7 @@ namespace TngUtil {
         inline constexpr RE::FormID fDefGenitalID = 0x8ff;  //"TNG_GenitalDefault"
 
         // Needs loading stuff
-        
-        
+
         inline std::vector<RE::TESObjectARMA*> fManMerGenitals;
         inline std::vector<RE::TESObjectARMA*> fBeastGenitals;
         inline std::set<RE::TESObjectARMO*> fHandledSkins;
@@ -52,6 +50,5 @@ namespace TngUtil {
     }
 
     inline constexpr std::string_view fTNGName = "TheNewGentleman.esp";
-
 
 }

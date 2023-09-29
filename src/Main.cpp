@@ -24,7 +24,6 @@ void InitializeLogging() {
 
 void EventListener(SKSE::MessagingInterface::Message* aMessage) noexcept {
     if (aMessage->type == SKSE::MessagingInterface::kDataLoaded) {
-        gLogger::info("{} is now obtaining the genitals.", TngUtil::fTNGName);
         TngUtil::Initialize();
         TngUtil::ObtainGenitas();
         TngUtil::GenitalizeRaces();
