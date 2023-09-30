@@ -50,6 +50,7 @@ namespace TngUtil {
         inline std::vector<RE::TESObjectARMA*> fManMerGenitals;
         inline std::vector<RE::TESObjectARMA*> fBeastGenitals;
         inline std::set<RE::TESObjectARMO*> fHandledSkins;
+        inline std::set<RE::TESObjectARMA*> fSkinAAs;
         inline std::set<RE::TESRace*> fAllRaces;
         inline std::set<RE::TESObjectARMA*> fHandledArma;
         inline RE::TESObjectARMA* fDefGenital{nullptr};

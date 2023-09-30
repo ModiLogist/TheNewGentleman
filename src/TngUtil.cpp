@@ -78,6 +78,9 @@ namespace TngUtil {
                     }
                     lGenitalized++;
                 }
+                for (const auto lSkinAA : lSkin->armorAddons) {
+                    fSkinAAs.insert(lSkinAA);
+                }
                 fHandledSkins.insert(lSkin);
             } else {
                 gLogger::info("The skin {} belonging to race {} already has something on slot 52!", lSkin->GetFormEditorID(), lRace->GetName());
@@ -105,7 +108,12 @@ namespace TngUtil {
                     continue;
                 }
                 bool lCoversGenital = false;
+                bool lShouldReveal = false;
                 for (const auto lAA : lArmor->armorAddons) {
+                    if (fSkinAAs.find(lAA) != fSkinAAs.end()) {
+                        lShouldReveal = true;
+                        break;
+                    }
                     if (lAA->HasPartOf(cSlotGenital)) {
                         if (fHandledArma.find(lAA) != fHandledArma.end()) {
                             lCCount++;
@@ -116,7 +124,13 @@ namespace TngUtil {
                         break;
                     }
                 }
-                
+                if (lShouldReveal) {
+                    lArmor->AddKeyword(fRevealingKey);
+                    gLogger::warn("The armor {} from file {} was apparently designed to be revealing. The revealing keyword was added to it. If this is a mistake please let me know!",
+                                  lArmor->GetName(), lArmor->GetFile()->GetFilename());
+                    lRCount++;
+                    continue;
+                }
                 if (!lCoversGenital) {
                     lArmor->armorAddons[0]->AddSlotToMask(cSlotGenital);
                     fHandledArma.insert(lArmor->armorAddons[0]);
