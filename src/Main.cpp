@@ -19,7 +19,7 @@ void InitializeLogging() {
     log->flush_on(spdlog::level::level_enum::trace);
 
     spdlog::set_default_logger(std::move(log));
-    spdlog::set_pattern("[%H:%M:%S.%e] [%n] [%l] %v");
+    spdlog::set_pattern("[%H:%M:%S] [%l] %v");
 }
 
 void EventListener(SKSE::MessagingInterface::Message* aMessage) noexcept {
@@ -27,6 +27,7 @@ void EventListener(SKSE::MessagingInterface::Message* aMessage) noexcept {
         TngUtil::Initialize();
         TngUtil::ObtainGenitas();
         TngUtil::GenitalizeRaces();
+        TngUtil::MakeArmorCovering();
     }
 }
 
