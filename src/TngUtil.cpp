@@ -1,6 +1,30 @@
 #include <TngUtil.h>
 
 namespace TngUtil {
+    int HandleCustomRaces(RE::TESObjectARMA* aGenital) noexcept {
+        int res = 0;
+        for (const auto lRace : aGenital->additionalRaces) {
+            lRace->AddSlotToMask(cSlotGenital);
+            const auto lSkin = lRace->skin;
+            if (fHandledSkins.find(lSkin) != fHandledSkins.end()) {
+                res++;
+                continue;
+            };
+            if (!lSkin->HasPartOf(cSlotGenital)) {
+                lSkin->AddSlotToMask(cSlotGenital);
+                lSkin->armorAddons.push_back(aGenital);
+                res++;
+                for (const auto lSkinAA : lSkin->armorAddons) {
+                    fSkinAAs.insert(lSkinAA);
+                }
+                fHandledSkins.insert(lSkin);
+            } else {
+                gLogger::info("The skin [0x{:x}] belonging to race {} already has something on slot 52!", lSkin->GetFormID(), lRace->GetFormEditorID());
+            }
+        }
+        return res;
+    }
+
     void Initialize() noexcept {
         gLogger::info("Initializing TheNewGentleman!");
         fDataHandler = RE::TESDataHandler::GetSingleton();
@@ -138,7 +162,7 @@ namespace TngUtil {
                 }
                 fHandledSkins.insert(lSkin);
             } else {
-                gLogger::info("The skin [{}] belonging to race {} already has something on slot 52!", lSkin->GetFormID(), lRace->GetFormEditorID());
+                gLogger::info("The skin [0x{:x}] belonging to race {} already has something on slot 52!", lSkin->GetFormID(), lRace->GetFormEditorID());
             }
         }
         lGenitalized += HandleCustomRaces(fDefMnmGenital);
@@ -170,7 +194,7 @@ namespace TngUtil {
             lHdr--;
             if (!lSkin->HasPartOf(cSlotBody)) continue;
             if (lSkin->HasPartOf(cSlotGenital)) {
-                gLogger::info("The skin [{}] used in NPC {} from file {} cannot have a male genital. If this is wrong, a patch is required.",
+                gLogger::info("The skin [0x{:x}] used in NPC {} from file {} cannot have a male genital. If this is wrong, a patch is required.",
                               lSkin->GetFormID(), lNPC->GetName(), lNPC->GetFile()->GetFilename());
                 continue;
             }
@@ -188,7 +212,7 @@ namespace TngUtil {
         gLogger::info("Out of the {} NPCs:", lAllNPCs.size());
         gLogger::info("\t{} NPCs are not adult humanoids,", lIrr);
         gLogger::info("\t{} NPCs' skins are already handled with races,", lHdr - lIrr);
-        gLogger::info("\t{} NPCs's skins don't have body slot or already have genital slot.", lNob - (lIrr + lHdr));
+        gLogger::info("\t{} NPCs's skins don't have body slot or already have genital slot.", lNob - lHdr);
         gLogger::info("\t{} handled {} custom skins.", cTNGName, lC);
     }
 
@@ -203,7 +227,7 @@ namespace TngUtil {
 
             if (lArmor->HasPartOf(cSlotGenital) && !lArmor->HasKeyword(fUnderwearKey)) {
                 const auto lID = (std::string(lArmor->GetName()).empty()) ? lArmor->GetFormEditorID() : lArmor->GetName();
-                gLogger::warn("The armor [{:x}]{} from file {} has a conflict with {}. If it is an underwear add {} to it.", lArmor->GetFormID(),
+                gLogger::warn("The armor [0x{:x}]{} from file {} has a conflict with {}. If it is an underwear add {} to it.", lArmor->GetFormID(),
                               lID, lArmor->GetFile()->GetFilename(), cTNGName, fUnderwearKey->GetFormEditorID());
             }
             if (lArmor->HasPartOf(cSlotBody)) {
@@ -248,27 +272,6 @@ namespace TngUtil {
         gLogger::info("\t[{}]: updated to cover genitals", lCCount);
     }    
 
-    int HandleCustomRaces(RE::TESObjectARMA* aGenital) {
-        int res = 0;
-        for (const auto lRace : aGenital->additionalRaces) {
-            lRace->AddSlotToMask(cSlotGenital);
-            const auto lSkin = lRace->skin;
-            if (fHandledSkins.find(lSkin) != fHandledSkins.end()) {
-                res++;
-                continue;
-            };
-            if (!lSkin->HasPartOf(cSlotGenital)) {
-                lSkin->AddSlotToMask(cSlotGenital);
-                lSkin->armorAddons.push_back(aGenital);
-                res++;
-                for (const auto lSkinAA : lSkin->armorAddons) {
-                    fSkinAAs.insert(lSkinAA);
-                }
-                fHandledSkins.insert(lSkin);
-            } else {
-                gLogger::info("The skin [{}] belonging to race {} already has something on slot 52!", lSkin->GetFormID(), lRace->GetFormEditorID());
-            }
-        }
-    }
+    
 
 }
