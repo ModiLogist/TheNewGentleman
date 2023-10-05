@@ -107,6 +107,29 @@ namespace TngUtil {
         }
     }
 
+    int HandleCustomRaces(RE::TESObjectARMA* aGenital) {
+        int res = 0;
+        for (const auto lRace : aGenital->additionalRaces) {
+            lRace->AddSlotToMask(cSlotGenital);
+            const auto lSkin = lRace->skin;
+            if (fHandledSkins.find(lSkin) != fHandledSkins.end()) {
+                res++;
+                continue;
+            };
+            if (!lSkin->HasPartOf(cSlotGenital)) {
+                lSkin->AddSlotToMask(cSlotGenital);
+                lSkin->armorAddons.push_back(aGenital);
+                res++;
+                for (const auto lSkinAA : lSkin->armorAddons) {
+                    fSkinAAs.insert(lSkinAA);
+                }
+                fHandledSkins.insert(lSkin);
+            } else {
+                gLogger::info("The skin [{}] belonging to race {} already has something on slot 52!", lSkin->GetFormID(), lRace->GetFormEditorID());
+            }
+        }
+    }
+
     void GenitalizeRaces() noexcept {
         gLogger::info(
             "Checking races: There are {} races with assigned genital and {} recognized races without assigned genital(custom races). Starting to add genital "
@@ -141,63 +164,9 @@ namespace TngUtil {
                 gLogger::info("The skin [{}] belonging to race {} already has something on slot 52!", lSkin->GetFormID(), lRace->GetFormEditorID());
             }
         }
-        for (const auto lRace : fDefMnmGenital->additionalRaces) {
-            lRace->AddSlotToMask(cSlotGenital);
-            const auto lSkin = lRace->skin;
-            if (fHandledSkins.find(lSkin) != fHandledSkins.end()) {
-                lGenitalized++;
-                continue;
-            };
-            if (!lSkin->HasPartOf(cSlotGenital)) {
-                lSkin->AddSlotToMask(cSlotGenital);
-                lSkin->armorAddons.push_back(fDefMnmGenital);
-                lGenitalized++;
-                for (const auto lSkinAA : lSkin->armorAddons) {
-                    fSkinAAs.insert(lSkinAA);
-                }
-                fHandledSkins.insert(lSkin);
-            } else {
-                gLogger::info("The skin [{}] belonging to race {} already has something on slot 52!", lSkin->GetFormID(), lRace->GetFormEditorID());
-            }
-        }
-        for (const auto lRace : fDefKhaGenital->additionalRaces) {
-            lRace->AddSlotToMask(cSlotGenital);
-            const auto lSkin = lRace->skin;
-            if (fHandledSkins.find(lSkin) != fHandledSkins.end()) {
-                lGenitalized++;
-                continue;
-            };
-            if (!lSkin->HasPartOf(cSlotGenital)) {
-                lSkin->AddSlotToMask(cSlotGenital);
-                lSkin->armorAddons.push_back(fDefKhaGenital);
-                lGenitalized++;
-                for (const auto lSkinAA : lSkin->armorAddons) {
-                    fSkinAAs.insert(lSkinAA);
-                }
-                fHandledSkins.insert(lSkin);
-            } else {
-                gLogger::info("The skin [{}] belonging to race {} already has something on slot 52!", lSkin->GetFormID(), lRace->GetFormEditorID());
-            }
-        }
-        for (const auto lRace : fDefSaxGenital->additionalRaces) {
-            lRace->AddSlotToMask(cSlotGenital);
-            const auto lSkin = lRace->skin;
-            if (fHandledSkins.find(lSkin) != fHandledSkins.end()) {
-                lGenitalized++;
-                continue;
-            };
-            if (!lSkin->HasPartOf(cSlotGenital)) {
-                lSkin->AddSlotToMask(cSlotGenital);
-                lSkin->armorAddons.push_back(fDefSaxGenital);
-                lGenitalized++;
-                for (const auto lSkinAA : lSkin->armorAddons) {
-                    fSkinAAs.insert(lSkinAA);
-                }
-                fHandledSkins.insert(lSkin);
-            } else {
-                gLogger::info("The skin [{}] belonging to race {} already has something on slot 52!", lSkin->GetFormID(), lRace->GetFormEditorID());
-            }
-        }
+        lGenitalized += HandleCustomRaces(fDefMnmGenital);
+        lGenitalized += HandleCustomRaces(fDefKhaGenital);
+        lGenitalized += HandleCustomRaces(fDefSaxGenital);
         gLogger::info("Genital added to the body of {} out of {}.", lGenitalized, fAllRaces.size() + fPotentialRaces.size());
         gLogger::info("Custom races:");
         for (const auto lRace : fPotentialRaces) {
