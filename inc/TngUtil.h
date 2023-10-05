@@ -4,7 +4,8 @@ namespace TngUtil {
     void Initialize() noexcept;
     void ObtainGenitas() noexcept;
     void GenitalizeRaces() noexcept;
-    void MakeArmorCovering() noexcept;
+    void GenitalizeSkins() noexcept;
+    void MakeArmorCovering() noexcept;    
 
     namespace {
         // SKSE stuff
@@ -47,8 +48,9 @@ namespace TngUtil {
             0x808,  // TNG_GenitalSaxhleel
             0x809,  // TNG_GenitalKhajiit
         };
-        inline constexpr RE::FormID cDefGenitalID = 0x8ff;  //TNG_GenitalDefault
-
+        inline constexpr RE::FormID cDefGenitalSaxID = 0x8fd;  // TNG_GenitalDefaultSaxhleel
+        inline constexpr RE::FormID cDefGenitalKhaID = 0x8fe;  // TNG_GenitalDefaultKhajiit
+        inline constexpr RE::FormID cDefGenitalMnmID = 0x8ff;  // TNG_GenitalDefaultManMer
         // TNG stuff needing load
         inline RE::BGSKeyword* fRevealingKey{nullptr};
         inline RE::BGSKeyword* fUnderwearKey{nullptr};
@@ -59,6 +61,9 @@ namespace TngUtil {
         inline std::set<RE::TESRace*> fAllRaces;
         inline std::set<RE::TESRace*> fPotentialRaces;
         inline std::set<RE::TESObjectARMA*> fHandledArma;
+        inline RE::TESObjectARMA* fDefSaxGenital{nullptr};
+        inline RE::TESObjectARMA* fDefKhaGenital{nullptr};
+        inline RE::TESObjectARMA* fDefMnmGenital{nullptr};
 
     }
 
