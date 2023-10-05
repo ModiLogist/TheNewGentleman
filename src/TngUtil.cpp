@@ -30,7 +30,7 @@ namespace TngUtil {
     }
 
     void ObtainGenitas() noexcept {
-        gLogger::info("{} is now obtaining the genitals.", TngUtil::cTNGName);
+        gLogger::info("{} is now obtaining the genitals.", cTNGName);
         for (const auto lGenitalID : cManMerGenitalIDs) {
             const auto lGenital = fDataHandler->LookupForm<RE::TESObjectARMA>(lGenitalID, cTNGName);
             if (!lGenital) {
@@ -87,15 +87,15 @@ namespace TngUtil {
                     const auto lRaceName = std::string(lRace->GetFormEditorID()) + std::string(lRace->GetName());
                     if ((lRaceName.find("Khajiit") != std::string::npos) || (lRaceName.find("Rhat") != std::string::npos)) {
                         fDefKhaGenital->additionalRaces.emplace_back(lRace);
-                        gLogger::info("The race 0x{:x}:{} from file {} was recognized as Khajiit. If this is wrong, a patch is required.", lRace->GetFormID(),
+                        gLogger::info("The race [0x{:x}]{} from file {} was recognized as Khajiit. If this is wrong, a patch is required.", lRace->GetFormID(),
                                       lRace->GetFormEditorID(), lRace->GetFile()->GetFilename());
                     } else {
                         if ((lRaceName.find("Argonian") != std::string::npos) || (lRaceName.find("Saxhleel") != std::string::npos)) {
                             fDefSaxGenital->additionalRaces.emplace_back(lRace);
-                            gLogger::info("The race 0x{:x}:{} from file {} was recognized as Saxhleel(Argonian). If this is wrong, a patch is required.",
+                            gLogger::info("The race [0x{:x}]{} from file {} was recognized as Saxhleel(Argonian). If this is wrong, a patch is required.",
                                           lRace->GetFormID(), lRace->GetFormEditorID(), lRace->GetFile()->GetFilename());
                         } else {
-                            gLogger::warn("The race 0x{:x}:{} from file {} did not receive any genital. If they should, a patch is required.",
+                            gLogger::warn("The race [0x{:x}]{} from file {} did not receive any genital. If they should, a patch is required.",
                                           lRace->GetFormID(), lRace->GetFormEditorID(), lRace->GetFile()->GetFilename());
                         }
                     }
@@ -103,29 +103,6 @@ namespace TngUtil {
                 } else {
                     fDefMnmGenital->additionalRaces.emplace_back(lRace);
                 }
-            }
-        }
-    }
-
-    int HandleCustomRaces(RE::TESObjectARMA* aGenital) {
-        int res = 0;
-        for (const auto lRace : aGenital->additionalRaces) {
-            lRace->AddSlotToMask(cSlotGenital);
-            const auto lSkin = lRace->skin;
-            if (fHandledSkins.find(lSkin) != fHandledSkins.end()) {
-                res++;
-                continue;
-            };
-            if (!lSkin->HasPartOf(cSlotGenital)) {
-                lSkin->AddSlotToMask(cSlotGenital);
-                lSkin->armorAddons.push_back(aGenital);
-                res++;
-                for (const auto lSkinAA : lSkin->armorAddons) {
-                    fSkinAAs.insert(lSkinAA);
-                }
-                fHandledSkins.insert(lSkin);
-            } else {
-                gLogger::info("The skin [{}] belonging to race {} already has something on slot 52!", lSkin->GetFormID(), lRace->GetFormEditorID());
             }
         }
     }
@@ -269,6 +246,29 @@ namespace TngUtil {
         gLogger::info("\t[{}]: already covering genitals", lQCount);
         gLogger::info("\t[{}]: revealing", lRCount);
         gLogger::info("\t[{}]: updated to cover genitals", lCCount);
+    }    
+
+    int HandleCustomRaces(RE::TESObjectARMA* aGenital) {
+        int res = 0;
+        for (const auto lRace : aGenital->additionalRaces) {
+            lRace->AddSlotToMask(cSlotGenital);
+            const auto lSkin = lRace->skin;
+            if (fHandledSkins.find(lSkin) != fHandledSkins.end()) {
+                res++;
+                continue;
+            };
+            if (!lSkin->HasPartOf(cSlotGenital)) {
+                lSkin->AddSlotToMask(cSlotGenital);
+                lSkin->armorAddons.push_back(aGenital);
+                res++;
+                for (const auto lSkinAA : lSkin->armorAddons) {
+                    fSkinAAs.insert(lSkinAA);
+                }
+                fHandledSkins.insert(lSkin);
+            } else {
+                gLogger::info("The skin [{}] belonging to race {} already has something on slot 52!", lSkin->GetFormID(), lRace->GetFormEditorID());
+            }
+        }
     }
 
 }
