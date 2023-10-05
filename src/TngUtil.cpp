@@ -18,6 +18,19 @@ namespace TngUtil {
         if (!(fRevealingKey && fUnderwearKey)) {
             gLogger::error("The original TNG keywords could not be found!");
         }
+        fAllRaces.insert(RE::TESForm::LookupByID(cDefRaceID)->As<RE::TESRace>());
+        fAstridRace = RE::TESForm::LookupByID(cAstRaceID)->As<RE::TESRace>();
+        fManakinRace = RE::TESForm::LookupByID(cMnkRaceID)->As<RE::TESRace>();
+        fTestRace = fDataHandler->LookupForm<RE::TESRace>(cTstRaceID, "Dawnguard.esm");
+        fNPCKey = RE::TESForm::LookupByID(cNPCKeywID)->As<RE::BGSKeyword>();
+        fCreatureKey = RE::TESForm::LookupByID(cCrtKeywID)->As<RE::BGSKeyword>();
+        auto& lAllRacesArray = fDataHandler->GetFormArray<RE::TESRace>();
+        for (const auto lRace : lAllRacesArray) {
+            if (lRace->HasKeyword(fNPCKey) && !lRace->HasKeyword(fCreatureKey) && lRace->HasPartOf(cSlotBody) && !lRace->IsChildRace() &&
+                !(lRace == fManakinRace) && !(lRace == fAstridRace) && !(lRace == fTestRace)) {
+                fPotentialRaces.insert(lRace);
+            }
+        }
     }
 
     void ObtainGenitas() noexcept {
@@ -25,26 +38,38 @@ namespace TngUtil {
         for (const auto lGenitalID : cManMerGenitalIDs) {
             const auto lGenital = fDataHandler->LookupForm<RE::TESObjectARMA>(lGenitalID, cTNGName);
             if (!lGenital) {
-                gLogger::error("Original genital [{}] cannot be found!", lGenitalID);
+                gLogger::error("Original genital [{:x}] cannot be found!", lGenitalID);
                 return;
             }
             fManMerGenitals.emplace_back(lGenital);
             fAllRaces.insert(lGenital->race);
+            if (fPotentialRaces.find(lGenital->race) != fPotentialRaces.end()) {
+                fPotentialRaces.erase(lGenital->race);
+            }
             for (const auto lAddRace : lGenital->additionalRaces) {
                 fAllRaces.insert(lAddRace);
+                if (fPotentialRaces.find(lAddRace) != fPotentialRaces.end()) {
+                    fPotentialRaces.erase(lAddRace);
+                }
             }
         }
 
         for (const auto lGenitalID : cBeastGenitalIDs) {
             const auto lGenital = fDataHandler->LookupForm<RE::TESObjectARMA>(lGenitalID, cTNGName);
             if (!lGenital) {
-                gLogger::error("Original genital [{}] cannot be found!", lGenitalID);
+                gLogger::error("Original genital [{:x}] cannot be found!", lGenitalID);
                 return;
             }
             fBeastGenitals.emplace_back(lGenital);
             fAllRaces.insert(lGenital->race);
+            if (fPotentialRaces.find(lGenital->race) != fPotentialRaces.end()) {
+                fPotentialRaces.erase(lGenital->race);
+            }
             for (const auto lAddRace : lGenital->additionalRaces) {
                 fAllRaces.insert(lAddRace);
+                if (fPotentialRaces.find(lAddRace) != fPotentialRaces.end()) {
+                    fPotentialRaces.erase(lAddRace);
+                }
             }
         }
 
