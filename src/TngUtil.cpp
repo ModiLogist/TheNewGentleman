@@ -196,6 +196,7 @@ namespace TngUtil {
             if (lSkin->HasPartOf(cSlotGenital)) {
                 gLogger::info("The skin [0x{:x}] used in NPC {} from file {} cannot have a male genital. If this is wrong, a patch is required.",
                               lSkin->GetFormID(), lNPC->GetName(), lNPC->GetFile()->GetFilename());
+                fHandledSkins.insert(lSkin);
                 continue;
             }
             lNob--;
