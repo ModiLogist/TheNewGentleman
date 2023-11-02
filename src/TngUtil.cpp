@@ -210,8 +210,9 @@ namespace TngUtil {
             fHandledSkins.insert(lSkin);
             lC++;
         }
-        gLogger::info("Out of the {} NPCs:", lAllNPCs.size());
-        gLogger::info("\t{} NPCs are not adult humanoids,", lIrr);
+
+        gLogger::info("Out of the {} NPCs:", lAllCount);
+        gLogger::info("\t{} NPCs do not have a custom skin (WNAM) or are not adult humanoids,", lIrr);
         gLogger::info("\t{} NPCs' skins are already handled with races,", lHdr - lIrr);
         gLogger::info("\t{} NPCs's skins don't have body slot or already have genital slot.", lNob - lHdr);
         gLogger::info("\t{} handled {} custom skins.", cTNGName, lC);
