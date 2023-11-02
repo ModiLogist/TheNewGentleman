@@ -177,14 +177,15 @@ namespace TngUtil {
 
     void GenitalizeSkins() noexcept {
         auto& lAllNPCs = fDataHandler->GetFormArray<RE::TESNPC>();
-        gLogger::info("Checking NPCs for custom skins: There are {} NPCs.", lAllNPCs.size());
-        int lIrr = lAllNPCs.size();
-        int lHdr = lAllNPCs.size();
-        int lNob = lAllNPCs.size();
+        const int lAllCount = lAllNPCs.size();
+        gLogger::info("Checking NPCs for custom skins: There are {} NPCs.", lAllCount);
+        int lIrr = lAllCount;
+        int lHdr = lAllCount;
+        int lNob = lAllCount;
         int lC = 0;
         for (const auto lNPC : lAllNPCs) {
             const auto lSkin = lNPC->skin;
-            if (!lSkin) continue;
+            if (!lSkin) continue;            
             const auto lNPCRace = lNPC->race;
             if (!lNPCRace->HasKeyword(fNPCKey) || lNPCRace->HasKeyword(fCreatureKey) || lNPCRace->IsChildRace() || (lNPCRace == fManakinRace) ||
                 (lNPCRace == fAstridRace) || (lNPCRace == fTestRace))
@@ -226,14 +227,15 @@ namespace TngUtil {
         for (const auto lArmor : lAllArmorArray) {
             if (fHandledSkins.find(lArmor) != fHandledSkins.end()) continue;
             if (fAllRaces.find(lArmor->race) == fAllRaces.end()) continue;
-
+            if (lArmor->armorAddons.size() == 0) continue;
             if (lArmor->HasPartOf(cSlotGenital) && !lArmor->HasKeyword(fUnderwearKey)) {
                 const auto lID = (std::string(lArmor->GetName()).empty()) ? lArmor->GetFormEditorID() : lArmor->GetName();
-                gLogger::warn("The armor [0x{:x}]{} from file {} would cover genitals and be covered by chest armor pieces. If it is wrong, a patch is required.", lArmor->GetFormID(), lID,
+                gLogger::warn("The armor [0x{:x}]{} from file {} would cover genitals and be covered by chest armor pieces (like an underwear). If it is wrong, a patch is required.", lArmor->GetFormID(), lID,
                               lArmor->GetFile()->GetFilename(), cTNGName, fUnderwearKey->GetFormEditorID());
+                continue;
             }
             if (lArmor->HasPartOf(cSlotBody)) {
-                if (lArmor->HasKeyword(fRevealingKey)) {
+                if (lArmor->HasKeyword(fRevealingKey) || lArmor->HasPartOf(cSlotGenital)) {
                     lRCount++;
                     continue;
                 }
