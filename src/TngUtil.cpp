@@ -229,8 +229,8 @@ namespace TngUtil {
 
             if (lArmor->HasPartOf(cSlotGenital) && !lArmor->HasKeyword(fUnderwearKey)) {
                 const auto lID = (std::string(lArmor->GetName()).empty()) ? lArmor->GetFormEditorID() : lArmor->GetName();
-                gLogger::warn("The armor [0x{:x}]{} from file {} has a conflict with {}. If it is an underwear add {} to it.", lArmor->GetFormID(),
-                              lID, lArmor->GetFile()->GetFilename(), cTNGName, fUnderwearKey->GetFormEditorID());
+                gLogger::warn("The armor [0x{:x}]{} from file {} would cover genitals and be covered by chest armor pieces. If it is wrong, a patch is required.", lArmor->GetFormID(), lID,
+                              lArmor->GetFile()->GetFilename(), cTNGName, fUnderwearKey->GetFormEditorID());
             }
             if (lArmor->HasPartOf(cSlotBody)) {
                 if (lArmor->HasKeyword(fRevealingKey)) {
