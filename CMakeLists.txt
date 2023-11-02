@@ -6,15 +6,14 @@ message("Using toolchain file ${CMAKE_TOOLCHAIN_FILE}.")
 ########################################################################################################################
 project(
   TheNewGentleman
-  VERSION 0.1.2
+  VERSION 0.2.0
   LANGUAGES CXX
 )
+
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_INTERPROCEDURAL_OPTIMIZATION ON)
 set(CMAKE_INTERPROCEDURAL_OPTIMIZATION_DEBUG OFF)
-
-include(GNUInstallDirs)
 
 configure_file(
   ${CMAKE_CURRENT_SOURCE_DIR}/cmake/version.rc.in
@@ -32,7 +31,8 @@ set(
   sources
     src/Main.cpp
     src/TngUtil.cpp
-    ${CMAKE_CURRENT_BINARY_DIR}/version.rc)
+    ${CMAKE_CURRENT_BINARY_DIR}/version.rc
+)
 
 source_group(
   TREE ${CMAKE_CURRENT_SOURCE_DIR}
@@ -45,49 +45,40 @@ source_group(
 find_package(CommonLibSSE CONFIG REQUIRED)
 
 add_commonlibsse_plugin(
-	${PROJECT_NAME} 
-	AUTHOR ModiLogist 
-	SOURCES ${headers} ${sources}
+  ${PROJECT_NAME}
+  AUTHOR ModiLogist 
+  SOURCES ${headers} ${sources}
 )
 
 add_library("${PROJECT_NAME}::${PROJECT_NAME}" ALIAS "${PROJECT_NAME}")
 
-find_path(SIMPLEINI_INCLUDE_DIRS "SimpleIni.h")
-
+find_path(SIMPLEINI_INCLUDE_DIRS "ConvertUTF.c")
 target_include_directories(
-    ${PROJECT_NAME}
-    PRIVATE
-        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
-        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/src>
-        $<INSTALL_INTERFACE:src>
-        ${SIMPLEINI_INCLUDE_DIRS}
+  ${PROJECT_NAME}
+    PRIVATE 
+    ${SIMPLEINI_INCLUDE_DIRS}
 )
 
 target_include_directories(
-    ${PROJECT_NAME}
-    PUBLIC
-        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/inc>
+  ${PROJECT_NAME}
+  PRIVATE
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/src>
+    $<INSTALL_INTERFACE:src>
+)
+
+target_include_directories(
+  ${PROJECT_NAME}
+  PRIVATE
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/inc>
 )
 
 target_precompile_headers(
-    ${PROJECT_NAME}
-    PRIVATE
-        inc/PCH.h
-        ${SIMPLEINI_INCLUDE_DIRS}/SimpleIni.h
+  ${PROJECT_NAME}
+  PRIVATE
+    inc/PCH.h
 )
 
-install(
-    DIRECTORY "${PUBLIC_HEADER_DIR}"
-    DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}"
-)
-
-install(
-  TARGETS ${PROJECT_NAME}
-  DESTINATION "${CMAKE_INSTALL_LIBDIR}"
-)
-########################################################################################################################
-## Automatic plugin deployment
-########################################################################################################################
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
   set(BUILD_NAME "Debug")
 else()
@@ -113,8 +104,9 @@ add_custom_command(
     ${CMAKE_COMMAND} -E copy $<TARGET_PDB_FILE:${PROJECT_NAME}> "${CMAKE_CURRENT_SOURCE_DIR}/out/${BUILD_NAME}/skse/plugins"
 )
 
-set(OUTPUT_DLLS "${CMAKE_CURRENT_SOURCE_DIR}/out/${BUILD_NAME}/skse/plugins/TheNewGentleman.dll")
-set(OUTPUT_PDBS "${CMAKE_CURRENT_SOURCE_DIR}/out/${BUILD_NAME}/skse/plugins/TheNewGentleman.pdb")
+
+file(GLOB_RECURSE OUTPUT_DLLS "${CMAKE_CURRENT_SOURCE_DIR}/out/**/*.dll")
+file(GLOB_RECURSE OUTPUT_PDBS "${CMAKE_CURRENT_SOURCE_DIR}/out/**/*.pdb")
 
 set_property(
   TARGET ${PROJECT_NAME}

@@ -26,17 +26,10 @@
       }
     },
     {
-      "name": "win32",
+      "name": "win",
       "hidden": true,
       "environment": {
-        "COMMONLIBSSE_PLATFORM": "-DWIN32_LEAN_AND_MEAN -DNOMINMAX"
-      }
-    },
-    {
-      "name": "win32-unicode",
-      "hidden": true,
-      "inherits": "win32",
-      "environment": {
+        "COMMONLIBSSE_PLATFORM": "-DWIN32_LEAN_AND_MEAN -DNOMINMAX",
         "COMMONLIBSSE_TEXT": "-DUNICODE -D_UNICODE"
       }
     },
@@ -59,8 +52,7 @@
       },
       "cacheVariables": {
         "CMAKE_CXX_FLAGS_RELWITHDEBINFO": "/fp:fast /GR- /Gw /O2 /Ob3 /Qpar",
-        "CMAKE_SHARED_LINKER_FLAGS_RELWITHDEBINFO": "/LTCG:INCREMENTAL /OPT:REF,ICF=4",
-        "CMAKE_SHARED_LINKER_FLAGS_DEBUG": "/DEBUGTYPE:FIXUP"
+        "CMAKE_SHARED_LINKER_FLAGS_RELWITHDEBINFO": "/LTCG:INCREMENTAL /OPT:REF,ICF=4"
       },
       "vendor": {
         "microsoft.com/VisualStudioSettings/CMake/1.0": {
@@ -71,38 +63,26 @@
       }
     },
     {
-      "name": "build-release-msvc",
-      "inherits": [ "base", "vcpkg", "win32-unicode", "x64", "msvc" ],
+      "name": "vcpkg-win-release-x64-msvc",
+      "inherits": [
+        "base",
+        "vcpkg",
+        "win",
+        "x64",
+        "msvc"
+      ],
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "RelWithDebInfo"
       },
       "displayName": "Release",
-      "description": "Release build.",
       "binaryDir": "${sourceDir}/build/release"
-    },
-    {
-      "name": "build-debug-msvc",
-      "inherits": [ "base", "vcpkg", "win32-unicode", "x64", "msvc" ],
-      "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Debug"
-      },
-      "displayName": "Debug",
-      "description": "Debug build.",
-      "binaryDir": "${sourceDir}/build/debug"
     }
   ],
   "buildPresets": [
     {
-      "name": "release-tng",
-      "displayName": "Release (TNG)",
-      "configurePreset": "build-release-msvc",
-      "description": "Release build."
-    },
-    {
-      "name": "debug-tng",
-      "displayName": "Debug (TNG)",
-      "configurePreset": "build-debug-msvc",
-      "description": "Debug build."
+      "name": "vcpkg-win-release-x64",
+      "displayName": "Release",
+      "configurePreset": "vcpkg-win-release-x64-msvc"
     }
   ]
 }
