@@ -1,281 +1,260 @@
+#include <TngInis.h>
 #include <TngUtil.h>
 
-namespace TngUtil {
-    int HandleCustomRaces(RE::TESObjectARMA* aGenital) noexcept {
-        int res = 0;
-        for (const auto lRace : aGenital->additionalRaces) {
-            lRace->AddSlotToMask(cSlotGenital);
-            const auto lSkin = lRace->skin;
-            if (fHandledSkins.find(lSkin) != fHandledSkins.end()) {
-                res++;
-                continue;
-            };
-            if (!lSkin->HasPartOf(cSlotGenital)) {
-                lSkin->AddSlotToMask(cSlotGenital);
-                lSkin->armorAddons.push_back(aGenital);
-                res++;
-                for (const auto lSkinAA : lSkin->armorAddons) {
-                    fSkinAAs.insert(lSkinAA);
-                }
-                fHandledSkins.insert(lSkin);
-            } else {
-                gLogger::info("The skin [0x{:x}] belonging to race {} already has something on slot 52!", lSkin->GetFormID(), lRace->GetFormEditorID());
-            }
-        }
-        return res;
+void TngUtil::AddGenitalToSkin(RE::TESObjectARMO* aSkin, RE::TESObjectARMA* aGenital, bool aIsModed) noexcept {
+  for (const auto lAA : aSkin->armorAddons)
+    if (lAA == aGenital) return;
+  if (fHandledSkins.find(aSkin) != fHandledSkins.end())
+    for (const auto lAA : aSkin->armorAddons)
+      if (lAA->HasPartOf(cSlotBody) && lAA->race->HasKeyword(fNPCKey)) fSkinAAs.insert(lAA);
+  aSkin->AddSlotToMask(cSlotGenital);
+  aSkin->armorAddons.emplace_back(aGenital);
+  fHandledSkins.insert(aSkin);
+  if (aIsModed) {
+    auto lFoundMod =
+        std::find_if(fCustomSkinMods.begin(), fCustomSkinMods.end(), [&aSkin](const std::pair<std::string_view, int>& p) { return p.first == aSkin->GetFile()->GetFilename(); });
+    if (lFoundMod == fCustomSkinMods.end()) {
+      fCustomSkinMods.insert(std::make_pair(aSkin->GetFile()->GetFilename(), 1));
+    } else {
+      fCustomSkinMods.insert(std::make_pair(aSkin->GetFile()->GetFilename(), (*lFoundMod).second + 1));
+      fCustomSkinMods.erase(lFoundMod);
     }
+  }
+}
 
-    void Initialize() noexcept {
-        gLogger::info("Initializing TheNewGentleman!");
-        fDataHandler = RE::TESDataHandler::GetSingleton();
-        if (!fDataHandler->LookupModByName(cTNGName)) {
-            gLogger::error("Mod {} was not found!", cTNGName);
-            return;
-        }
-        fBeastKey = RE::TESForm::LookupByID(cBstKeywID)->As<RE::BGSKeyword>();
-        fRevealingKey = fDataHandler->LookupForm<RE::BGSKeyword>(cRevealingKeyID, cTNGName);
-        fUnderwearKey = fDataHandler->LookupForm<RE::BGSKeyword>(cUnderwearKeyID, cTNGName);
-        if (!(fRevealingKey && fUnderwearKey)) {
-            gLogger::error("The original TNG keywords could not be found!");
-        }
-        fAllRaces.insert(RE::TESForm::LookupByID(cDefRaceID)->As<RE::TESRace>());
-        fAstridRace = RE::TESForm::LookupByID(cAstRaceID)->As<RE::TESRace>();
-        fManakinRace = RE::TESForm::LookupByID(cMnkRaceID)->As<RE::TESRace>();
-        fTestRace = fDataHandler->LookupForm<RE::TESRace>(cTstRaceID, "Dawnguard.esm");
-        fNPCKey = RE::TESForm::LookupByID(cNPCKeywID)->As<RE::BGSKeyword>();
-        fCreatureKey = RE::TESForm::LookupByID(cCrtKeywID)->As<RE::BGSKeyword>();
-        auto& lAllRacesArray = fDataHandler->GetFormArray<RE::TESRace>();
-        for (const auto lRace : lAllRacesArray) {
-            if (lRace->HasKeyword(fNPCKey) && !lRace->HasKeyword(fCreatureKey) && lRace->HasPartOf(cSlotBody) && !lRace->IsChildRace() &&
-                !(lRace == fManakinRace) && !(lRace == fAstridRace) && !(lRace == fTestRace)) {
-                fPotentialRaces.insert(lRace);
-            }
-        }
+void TngUtil::AddRace(RE::TESRace* aRace, RE::TESObjectARMA* aGenital, const bool aIsModed) noexcept {
+  if (aRace->HasPartOf(cSlotGenital)) {
+    gLogger::info("The race {} seems to be ready for TNG. It was not modified.", aRace->GetFormEditorID());
+    for (const auto lAA : aRace->skin->armorAddons) {
+      if (lAA->HasPartOf(cSlotGenital)) {
+        fExtrRaceGens.insert(std::make_pair(aRace, lAA));
+        break;
+      }
     }
-
-    void ObtainGenitas() noexcept {
-        gLogger::info("{} is now obtaining the genitals.", cTNGName);
-        for (const auto lGenitalID : cManMerGenitalIDs) {
-            const auto lGenital = fDataHandler->LookupForm<RE::TESObjectARMA>(lGenitalID, cTNGName);
-            if (!lGenital) {
-                gLogger::error("Original genital [{:x}] cannot be found!", lGenitalID);
-                return;
-            }
-            fManMerGenitals.emplace_back(lGenital);
-            fAllRaces.insert(lGenital->race);
-            if (fPotentialRaces.find(lGenital->race) != fPotentialRaces.end()) {
-                fPotentialRaces.erase(lGenital->race);
-            }
-            for (const auto lAddRace : lGenital->additionalRaces) {
-                fAllRaces.insert(lAddRace);
-                if (fPotentialRaces.find(lAddRace) != fPotentialRaces.end()) {
-                    fPotentialRaces.erase(lAddRace);
-                }
-            }
-        }
-
-        for (const auto lGenitalID : cBeastGenitalIDs) {
-            const auto lGenital = fDataHandler->LookupForm<RE::TESObjectARMA>(lGenitalID, cTNGName);
-            if (!lGenital) {
-                gLogger::error("Original genital [{:x}] cannot be found!", lGenitalID);
-                return;
-            }
-            fBeastGenitals.emplace_back(lGenital);
-            fAllRaces.insert(lGenital->race);
-            if (fPotentialRaces.find(lGenital->race) != fPotentialRaces.end()) {
-                fPotentialRaces.erase(lGenital->race);
-            }
-            for (const auto lAddRace : lGenital->additionalRaces) {
-                fAllRaces.insert(lAddRace);
-                if (fPotentialRaces.find(lAddRace) != fPotentialRaces.end()) {
-                    fPotentialRaces.erase(lAddRace);
-                }
-            }
-        }
-        fDefSaxGenital = fDataHandler->LookupForm<RE::TESObjectARMA>(cDefGenitalSaxID, cTNGName);
-        fDefKhaGenital = fDataHandler->LookupForm<RE::TESObjectARMA>(cDefGenitalKhaID, cTNGName);
-        fDefMnmGenital = fDataHandler->LookupForm<RE::TESObjectARMA>(cDefGenitalMnmID, cTNGName);
-        if (!fDefMnmGenital || !fDefKhaGenital || !fDefSaxGenital) {
-            gLogger::error("The original TNG Default-genitals cannot be found!");
-            return;
-        }
-        fManMerGenitals.emplace_back(fDefMnmGenital);
-        fBeastGenitals.emplace_back(fDefSaxGenital);
-        fBeastGenitals.emplace_back(fDefKhaGenital);
-        for (const auto lRace : fPotentialRaces) {
-            if (lRace->HasPartOf(cSlotGenital)) {
-                fPotentialRaces.erase(lRace);
-                gLogger::info("The race {} seems to be ready for TNG. It won't be modified.", lRace->GetFormEditorID());
-            } else {
-                if (lRace->HasKeyword(fBeastKey)) {
-                    const auto lRaceName = std::string(lRace->GetFormEditorID()) + std::string(lRace->GetName());
-                    if ((lRaceName.find("Khajiit") != std::string::npos) || (lRaceName.find("Rhat") != std::string::npos)) {
-                        fDefKhaGenital->additionalRaces.emplace_back(lRace);
-                        gLogger::info("The race [0x{:x}]{} from file {} was recognized as Khajiit. If this is wrong, a patch is required.", lRace->GetFormID(),
-                                      lRace->GetFormEditorID(), lRace->GetFile()->GetFilename());
-                    } else {
-                        if ((lRaceName.find("Argonian") != std::string::npos) || (lRaceName.find("Saxhleel") != std::string::npos)) {
-                            fDefSaxGenital->additionalRaces.emplace_back(lRace);
-                            gLogger::info("The race [0x{:x}]{} from file {} was recognized as Saxhleel(Argonian). If this is wrong, a patch is required.",
-                                          lRace->GetFormID(), lRace->GetFormEditorID(), lRace->GetFile()->GetFilename());
-                        } else {
-                            gLogger::warn("The race [0x{:x}]{} from file {} did not receive any genital. If they should, a patch is required.",
-                                          lRace->GetFormID(), lRace->GetFormEditorID(), lRace->GetFile()->GetFilename());
-                        }
-                    }
-
-                } else {
-                    fDefMnmGenital->additionalRaces.emplace_back(lRace);
-                }
-            }
-        }
+    fRacialSkins.insert(aRace->skin);
+    return;
+  }
+  if (aGenital) {
+    aRace->AddSlotToMask(cSlotGenital);
+    AddGenitalToSkin(aRace->skin, aGenital, aIsModed);
+    fRacialSkins.insert(aRace->skin);
+    fHandledRaces.insert(aRace);
+    return;
+  }
+  if (aRace->HasKeyword(fBeastKey)) {
+    const auto lRaceDesc = std::string(aRace->GetFormEditorID()) + std::string(aRace->GetName());
+    if ((lRaceDesc.find("Khajiit") != std::string::npos) || (lRaceDesc.find("Rhat") != std::string::npos)) {
+      fDefKhaGenital->additionalRaces.emplace_back(aRace);
+      gLogger::info("The race [0x{:x}]{} from file {} was recognized as Khajiit. If this is wrong, a patch is required.", aRace->GetFormID(), aRace->GetFormEditorID(),
+                    aRace->GetFile()->GetFilename());
+      AddRace(aRace, fDefKhaGenital, TRUE);
+    } else {
+      if ((lRaceDesc.find("Argonian") != std::string::npos) || (lRaceDesc.find("Saxhleel") != std::string::npos)) {
+        fDefSaxGenital->additionalRaces.emplace_back(aRace);
+        gLogger::info("The race [0x{:x}]{} from file {} was recognized as Saxhleel(Argonian). If this is wrong, a patch is required.", aRace->GetFormID(), aRace->GetFormEditorID(),
+                      aRace->GetFile()->GetFilename());
+        AddRace(aRace, fDefSaxGenital, TRUE);
+      } else {
+        gLogger::warn("The race [0x{:x}]{} from file {} did not receive any genital. If they should, a patch is required.", aRace->GetFormID(), aRace->GetFormEditorID(),
+                      aRace->GetFile()->GetFilename());
+        fHandledRaces.insert(aRace);
+        for (const auto lAA : aRace->skin->armorAddons)
+          if (lAA->HasPartOf(cSlotBody)) fSkinAAs.insert(lAA);
+      }
     }
+  } else {
+    fDefMnmGenital->additionalRaces.emplace_back(aRace);
+    gLogger::info("The race [0x{:x}]{} from file {} received the default genital for man and mer races. If this is wrong, a patch is required.", aRace->GetFormID(),
+                  aRace->GetFormEditorID(), aRace->GetFile()->GetFilename());
+    AddRace(aRace, fDefMnmGenital, TRUE);
+  }
+}
 
-    void GenitalizeRaces() noexcept {
-        gLogger::info(
-            "Checking races: There are {} races with assigned genital and {} recognized races without assigned genital(custom races). Starting to add genital "
-            "to them.",
-            fAllRaces.size(), fPotentialRaces.size());
-        int lGenitalized = 0;
-        for (const auto lRace : fAllRaces) {
-            lRace->AddSlotToMask(cSlotGenital);
-            const auto lSkin = lRace->skin;
-            if (fHandledSkins.find(lSkin) != fHandledSkins.end()) {
-                lGenitalized++;
-                continue;
-            };
-            if (!lSkin->HasPartOf(cSlotGenital)) {
-                lSkin->AddSlotToMask(cSlotGenital);
-                if (lRace->HasKeyword(fBeastKey)) {
-                    for (const auto lGenital : fBeastGenitals) {
-                        lSkin->armorAddons.push_back(lGenital);
-                    }
-                    lGenitalized++;
-                } else {
-                    for (const auto lGenital : fManMerGenitals) {
-                        lSkin->armorAddons.push_back(lGenital);
-                    }
-                    lGenitalized++;
-                }
-                for (const auto lSkinAA : lSkin->armorAddons) {
-                    fSkinAAs.insert(lSkinAA);
-                }
-                fHandledSkins.insert(lSkin);
-            } else {
-                gLogger::info("The skin [0x{:x}] belonging to race {} already has something on slot 52!", lSkin->GetFormID(), lRace->GetFormEditorID());
-            }
-        }
-        lGenitalized += HandleCustomRaces(fDefMnmGenital);
-        lGenitalized += HandleCustomRaces(fDefKhaGenital);
-        lGenitalized += HandleCustomRaces(fDefSaxGenital);
-        gLogger::info("Genital added to the body of {} out of {}.", lGenitalized, fAllRaces.size() + fPotentialRaces.size());
-        gLogger::info("Custom races:");
-        for (const auto lRace : fPotentialRaces) {
-            gLogger::info("\t{}", lRace->GetFormEditorID());
-        }
+bool TngUtil::Initialize() noexcept {
+  gLogger::info("Initializing TheNewGentleman!");
+  fDataHandler = RE::TESDataHandler::GetSingleton();
+  if (!fDataHandler->LookupModByName(cTNGName)) {
+    gLogger::error("Mod {} was not found!", cTNGName);
+    return FALSE;
+  }
+  fBeastKey = RE::TESForm::LookupByID<RE::BGSKeyword>(cBstKeywID);
+  fRevealingKey = fDataHandler->LookupForm<RE::BGSKeyword>(cRevealingKeyID, cTNGName);
+  fUnderwearKey = fDataHandler->LookupForm<RE::BGSKeyword>(cUnderwearKeyID, cTNGName);
+  if (!(fRevealingKey && fUnderwearKey)) {
+    gLogger::error("The original TNG keywords could not be found!");
+    return FALSE;
+  }
+  fDefRace = RE::TESForm::LookupByID<RE::TESRace>(cDefRaceID);
+
+  gLogger::info("Finding the genitals to respective races...");
+  for (int i = 0; i < cRaceTypes; i++) {
+    const auto lRace = RE::TESForm::LookupByID<RE::TESRace>(cBaseRaceIDs[i]);
+    const auto lGenital = fDataHandler->LookupForm<RE::TESObjectARMA>(cGenitalIDs[i], cTNGName);
+    if (!(lRace && lGenital)) {
+      gLogger::error("Original information cannot be found!");
+      return FALSE;
     }
-
-    void GenitalizeSkins() noexcept {
-        auto& lAllNPCs = fDataHandler->GetFormArray<RE::TESNPC>();
-        const int lAllCount = lAllNPCs.size();
-        gLogger::info("Checking NPCs for custom skins: There are {} NPCs.", lAllCount);
-        int lIrr = lAllCount;
-        int lHdr = lAllCount;
-        int lNob = lAllCount;
-        int lC = 0;
-        for (const auto lNPC : lAllNPCs) {
-            const auto lSkin = lNPC->skin;
-            if (!lSkin) continue;            
-            const auto lNPCRace = lNPC->race;
-            if (!lNPCRace->HasKeyword(fNPCKey) || lNPCRace->HasKeyword(fCreatureKey) || lNPCRace->IsChildRace() || (lNPCRace == fManakinRace) ||
-                (lNPCRace == fAstridRace) || (lNPCRace == fTestRace))
-                continue;
-            lIrr--;
-            if (fHandledSkins.find(lSkin) != fHandledSkins.end()) continue;
-            lHdr--;
-            if (!lSkin->HasPartOf(cSlotBody)) continue;
-            if (lSkin->HasPartOf(cSlotGenital)) {
-                gLogger::info("The skin [0x{:x}] used in NPC {} from file {} cannot have a male genital. If this is wrong, a patch is required.",
-                              lSkin->GetFormID(), lNPC->GetName(), lNPC->GetFile()->GetFilename());
-                fHandledSkins.insert(lSkin);
-                continue;
-            }
-            lNob--;
-            if (lNPC->HasKeyword(fBeastKey)) {
-                for (const auto lGenital : fBeastGenitals) lSkin->armorAddons.push_back(lGenital);
-
-            } else {
-                for (const auto lGenital : fManMerGenitals) lSkin->armorAddons.push_back(lGenital);
-            }
-            for (const auto lSkinAA : lSkin->armorAddons) fSkinAAs.insert(lSkinAA);
-            fHandledSkins.insert(lSkin);
-            lC++;
-        }
-
-        gLogger::info("Out of the {} NPCs:", lAllCount);
-        gLogger::info("\t{} NPCs do not have a custom skin (WNAM) or are not adult humanoids,", lIrr);
-        gLogger::info("\t{} NPCs' skins are already handled with races,", lHdr - lIrr);
-        gLogger::info("\t{} NPCs's skins don't have body slot or already have genital slot.", lNob - lHdr);
-        gLogger::info("\t{} handled {} custom skins.", cTNGName, lC);
+    fBaseRaceGens.insert(std::make_pair(lRace, lGenital));
+  }
+  for (const auto lRaceID : cEquiRaceIDs) {
+    const auto lRace = RE::TESForm::LookupByID<RE::TESRace>(lRaceID.first);
+    const auto lGenital = fDataHandler->LookupForm<RE::TESObjectARMA>(cGenitalIDs[lRaceID.second], cTNGName);
+    if (!(lRace && lGenital)) {
+      gLogger::error("Original information cannot be found!");
+      return FALSE;
     }
+    fEquiRaceGens.insert(std::make_pair(lRace, lGenital));
+  }
+  fDefSaxGenital = fDataHandler->LookupForm<RE::TESObjectARMA>(cDefGenitalSaxID, cTNGName);
+  fDefKhaGenital = fDataHandler->LookupForm<RE::TESObjectARMA>(cDefGenitalKhaID, cTNGName);
+  fDefMnmGenital = fDataHandler->LookupForm<RE::TESObjectARMA>(cDefGenitalMnmID, cTNGName);
+  if (!fDefMnmGenital || !fDefKhaGenital || !fDefSaxGenital) {
+    gLogger::error("The original TNG Default-genitals cannot be found!");
+  }
+  for (const auto lID : cExclRaceIDs) fExclRaces.insert(RE::TESForm::LookupByID<RE::TESRace>(lID));
+  fNPCKey = RE::TESForm::LookupByID<RE::BGSKeyword>(cNPCKeywID);
+  fCreatureKey = RE::TESForm::LookupByID<RE::BGSKeyword>(cCrtKeywID);
+  return TRUE;
+}
 
-    void MakeArmorCovering() noexcept {
-        auto& lAllArmorArray = fDataHandler->GetFormArray<RE::TESObjectARMO>();
-        int lRCount = 0;
-        int lCCount = 0;
-        int lQCount = 0;
-        for (const auto lArmor : lAllArmorArray) {
-            if (fHandledSkins.find(lArmor) != fHandledSkins.end()) continue;
-            if (fAllRaces.find(lArmor->race) == fAllRaces.end()) continue;
-            if (lArmor->armorAddons.size() == 0) continue;
-            if (lArmor->HasPartOf(cSlotGenital) && !lArmor->HasKeyword(fUnderwearKey)) {
-                const auto lID = (std::string(lArmor->GetName()).empty()) ? lArmor->GetFormEditorID() : lArmor->GetName();
-                gLogger::warn("The armor [0x{:x}]{} from file {} would cover genitals and be covered by chest armor pieces (like an underwear). If it is wrong, a patch is required.", lArmor->GetFormID(), lID,
-                              lArmor->GetFile()->GetFilename(), cTNGName, fUnderwearKey->GetFormEditorID());
-                continue;
-            }
-            if (lArmor->HasPartOf(cSlotBody)) {
-                if (lArmor->HasKeyword(fRevealingKey) || lArmor->HasPartOf(cSlotGenital)) {
-                    lRCount++;
-                    continue;
-                }
-                bool lCoversGenital = false;
-                bool lShouldReveal = false;
-                for (const auto lAA : lArmor->armorAddons) {
-                    if (fSkinAAs.find(lAA) != fSkinAAs.end()) {
-                        lShouldReveal = true;
-                        break;
-                    }
-                    if (lAA->HasPartOf(cSlotGenital)) {
-                        if (fHandledArma.find(lAA) != fHandledArma.end()) {
-                            lCCount++;
-                        } else {
-                            lQCount++;
-                        }
-                        lCoversGenital = true;
-                        break;
-                    }
-                }
-                if (lShouldReveal) {
-                    lArmor->AddKeyword(fRevealingKey);
-                    gLogger::warn("The armor 0x{:x}:{} from file {} is markerd revealing. If this is a mistake, a patch is required!", lArmor->GetFormID(),
-                                  lArmor->GetFormEditorID(), lArmor->GetFile()->GetFilename());
-                    lRCount++;
-                    continue;
-                }
-                if (!lCoversGenital) {
-                    lArmor->armorAddons[0]->AddSlotToMask(cSlotGenital);
-                    fHandledArma.insert(lArmor->armorAddons[0]);
-                    lCCount++;
-                }
-            }
+void TngUtil::GenitalizeRaces() noexcept {
+  gLogger::info("Assigning genitals to races...");
+  for (const auto lRaceGen : fBaseRaceGens) AddRace(lRaceGen.first, lRaceGen.second);
+  for (const auto lRaceGen : fEquiRaceGens) AddRace(lRaceGen.first, lRaceGen.second);
+  auto& lAllRacesArray = fDataHandler->GetFormArray<RE::TESRace>();
+  for (const auto lRace : lAllRacesArray) {
+    if (fHandledRaces.find(lRace) != fHandledRaces.end()) continue;
+    if (fExclRaces.find(lRace) != fExclRaces.end()) continue;
+    if (lRace->HasKeyword(fNPCKey) && !lRace->HasKeyword(fCreatureKey) && lRace->HasPartOf(cSlotBody) && !lRace->IsChildRace()) {
+      AddRace(lRace, nullptr);
+    }
+  }
+  fAllRaceGens.insert(fBaseRaceGens.begin(), fBaseRaceGens.end());
+  fAllRaceGens.insert(fEquiRaceGens.begin(), fEquiRaceGens.end());
+  fAllRaceGens.insert(fExtrRaceGens.begin(), fExtrRaceGens.end());
+  gLogger::info("{} recognized assigned genitals to {} races: {} from base-game races and {} from other mods.", cTNGName, fAllRaceGens.size(),
+                fBaseRaceGens.size() + fEquiRaceGens.size(), fExtrRaceGens.size());
+}
+
+void TngUtil::GenitalizeNPCSkins() noexcept {
+  auto& lAllNPCs = fDataHandler->GetFormArray<RE::TESNPC>();
+  int lAllCount = lAllNPCs.size();
+  gLogger::info("Checking NPCs for custom skins: There are {} NPC records.", lAllCount);
+  int lIrr = lAllCount;
+  int lHdr = lAllCount;
+  int lNob = lAllCount;
+  int lC = 0;
+  for (const auto lNPC : lAllNPCs) {
+    const auto lSkin = lNPC->skin;
+    if (!lSkin) continue;
+    const auto lNPCRace = lNPC->race;
+    if (!lNPCRace->HasKeyword(fNPCKey) || lNPCRace->HasKeyword(fCreatureKey) || lNPCRace->IsChildRace()) continue;
+    if (fExclRaces.find(lNPCRace) != fExclRaces.end()) continue;
+    lIrr--;
+    if (fRacialSkins.find(lSkin) != fRacialSkins.end()) continue;
+    lHdr--;
+    if (fHandledSkins.find(lSkin) != fHandledSkins.end()) {
+      lC++;
+      lNob--;
+      continue;
+    }
+    if (!lSkin->HasPartOf(cSlotBody)) continue;
+    if (lSkin->HasPartOf(cSlotGenital)) {
+      gLogger::info("The skin [0x{:x}] used in NPC {} from file {} cannot have a male genital. If this is wrong, a patch is required.", lSkin->GetFormID(), lNPC->GetName(),
+                    lNPC->GetFile()->GetFilename());
+      continue;
+    }
+    lNob--;
+    auto lRaceGen = std::find_if(fAllRaceGens.begin(), fAllRaceGens.end(), [&lNPC](const std::pair<RE::TESRace*, RE::TESObjectARMA*>& p) { return p.first == lNPC->race; });
+    if (lRaceGen != fAllRaceGens.end()) {
+      AddGenitalToSkin(lSkin, (*lRaceGen).second, TRUE);
+      lC++;
+      continue;
+    }
+    gLogger::warn("The skin [0x{:x}] used in NPC {} from file {} cannot have a male genital. If this is wrong, a patch is required.", lSkin->GetFormID(), lNPC->GetName(),
+                  lNPC->GetFile()->GetFilename());
+  }
+  gLogger::info("Out of the {} NPCs:", lAllCount);
+  gLogger::info("\t{} NPCs do not have a custom skin (WNAM) or are not adult humanoids,", lIrr);
+  gLogger::info("\t{} NPCs' skins are already handled with races,", lHdr - lIrr);
+  if ((lNob - lHdr) > 0) gLogger::info("\t{} NPCs's skins don't have body slot or already have genital slot.", lNob - lHdr);
+  if (lC > 0) {
+    gLogger::info("\t{} handled custom skins for {} NPCs from following mod(s):", cTNGName, lC);
+    for (const auto& lMod : fCustomSkinMods) gLogger::info("\t\t{} skins from [{}]", lMod.second, lMod.first);
+  }
+}
+
+void TngUtil::CheckArmorPieces() noexcept {
+  gLogger::info("Checking armor pieces...");
+  auto& lAllArmorArray = fDataHandler->GetFormArray<RE::TESObjectARMO>();
+  int lRCount = 0;
+  int lCCount = 0;
+  int lQCount = 0;
+  TngInis::LoadTngInis();
+  bool lCheckSkinMods = (TngInis::fSkinMods.size() > 0);
+  for (const auto lModName : TngInis::fSkinMods)
+    if (fDataHandler->LookupModByName(lModName)) gLogger::info("{} registered as a skin mod.", lModName);
+  for (const auto lArmor : lAllArmorArray) {
+    if (fHandledSkins.find(lArmor) != fHandledSkins.end()) continue;
+    if (lArmor->armorAddons.size() == 0) continue;
+    if (lCheckSkinMods && (TngInis::fSkinMods.find(lArmor->GetFile()->GetFilename()) != TngInis::fSkinMods.end())) {
+      std::set<RE::TESRace*> lSkinRaces;
+      for (const auto lAA : lArmor->armorAddons) {
+        lSkinRaces.insert(lAA->race);
+        lSkinRaces.insert(lAA->additionalRaces.begin(), lAA->additionalRaces.end());
+      }
+      for (const auto lRace : lSkinRaces) {
+        auto lRaceGen = std::find_if(fAllRaceGens.begin(), fAllRaceGens.end(), [&lRace](const std::pair<RE::TESRace*, RE::TESObjectARMA*>& p) { return p.first == lRace; });
+        if (lRaceGen != fAllRaceGens.end()) AddGenitalToSkin(lArmor, (*lRaceGen).second);
+      }
+      const auto lID = (std::string(lArmor->GetName()).empty()) ? lArmor->GetFormEditorID() : lArmor->GetName();
+      gLogger::info("The skin [0x{:x}]{} from file {} added as extra skin", lArmor->GetFormID(), lID, lArmor->GetFile()->GetFilename());
+      continue;
+    }
+    if (lArmor->HasPartOf(cSlotGenital) && !lArmor->HasKeyword(fUnderwearKey)) {
+      const auto lID = (std::string(lArmor->GetName()).empty()) ? lArmor->GetFormEditorID() : lArmor->GetName();
+      gLogger::warn("The armor [0x{:x}]{} from file {} would cover genitals and be covered by chest armor pieces (like an underwear). If it is wrong, a patch is required.",
+                    lArmor->GetFormID(), lID, lArmor->GetFile()->GetFilename());
+      continue;
+    }
+    if (lArmor->HasPartOf(cSlotBody)) {
+      if (lArmor->HasKeyword(fRevealingKey) || lArmor->HasPartOf(cSlotGenital)) {
+        lRCount++;
+        continue;
+      }
+      bool lCoversGenital = false;
+      bool lShouldReveal = false;
+      for (const auto lAA : lArmor->armorAddons) {
+        if (fSkinAAs.find(lAA) != fSkinAAs.end()) {
+          lShouldReveal = true;
+          break;
         }
-        gLogger::info("Processed [{}] body armor pieces:", lCCount + lRCount + lQCount);
-        gLogger::info("\t[{}]: already covering genitals", lQCount);
-        gLogger::info("\t[{}]: revealing", lRCount);
-        gLogger::info("\t[{}]: updated to cover genitals", lCCount);
-    }    
-
-    
-
+        if (lAA->HasPartOf(cSlotGenital)) {
+          if (fHandledArma.find(lAA) != fHandledArma.end()) {
+            lCCount++;
+          } else {
+            lQCount++;
+          }
+          lCoversGenital = true;
+          break;
+        }
+      }
+      if (lShouldReveal) {
+        lArmor->AddKeyword(fRevealingKey);
+        gLogger::warn("The armor 0x{:x}:{} from file {} is markerd revealing. If this is a mistake, a patch is required!", lArmor->GetFormID(), lArmor->GetFormEditorID(),
+                      lArmor->GetFile()->GetFilename());
+        lRCount++;
+        continue;
+      }
+      if (!lCoversGenital) {
+        lArmor->armorAddons[0]->AddSlotToMask(cSlotGenital);
+        fHandledArma.insert(lArmor->armorAddons[0]);
+        lCCount++;
+      }
+    }
+  }
+  gLogger::info("Processed [{}] body armor pieces:", lCCount + lRCount + lQCount);
+  gLogger::info("\t[{}]: already covering genitals", lQCount);
+  gLogger::info("\t[{}]: revealing", lRCount);
+  gLogger::info("\t[{}]: updated to cover genitals", lCCount);
 }

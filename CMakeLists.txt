@@ -6,7 +6,7 @@ message("Using toolchain file ${CMAKE_TOOLCHAIN_FILE}.")
 ########################################################################################################################
 project(
   TheNewGentleman
-  VERSION 0.2.0
+  VERSION 0.3.0
   LANGUAGES CXX
 )
 
@@ -31,6 +31,7 @@ set(
   sources
     src/Main.cpp
     src/TngUtil.cpp
+    src/TngInis.cpp
     ${CMAKE_CURRENT_BINARY_DIR}/version.rc
 )
 
@@ -77,6 +78,7 @@ target_precompile_headers(
   ${PROJECT_NAME}
   PRIVATE
     inc/PCH.h
+    ${SIMPLEINI_INCLUDE_DIRS}/SimpleIni.h
 )
 
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
