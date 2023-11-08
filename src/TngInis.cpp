@@ -16,6 +16,7 @@ bool TngInis::IsTngIni(const std::string aFileName) noexcept {
 }
 
 void TngInis::LoadTngInis() noexcept {
+  if (!std::filesystem::exists(cTngInisPath)) return;
   for (const auto& entry : std::filesystem::directory_iterator(cTngInisPath)) {
     if (IsTngIni(entry.path().filename().string())) {
       CSimpleIniA aIni;
