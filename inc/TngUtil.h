@@ -73,6 +73,7 @@ class TngUtil : public Singleton<TngUtil> {
     inline static constexpr RE::FormID cRevealingKeyID{0xFFF};
     inline static constexpr RE::FormID cUnderwearKeyID{0xFFE};
     inline static constexpr RE::FormID cCoveringKeyID{0xFFD};
+
     // Rquires Load
     inline static RE::TESRace* fDefRace{nullptr};
     inline static std::set<std::pair<RE::TESRace*, RE::TESObjectARMA*>> fBaseRaceGens;
@@ -89,6 +90,7 @@ class TngUtil : public Singleton<TngUtil> {
     inline static RE::BGSKeyword* fCreatureKey{nullptr};
     inline static RE::BGSKeyword* fRevealingKey{nullptr};
     inline static RE::BGSKeyword* fUnderwearKey{nullptr};
+    inline static RE::BGSKeyword* fCoveringKey{nullptr};
     
     inline static std::set<RE::TESRace*> fHandledRaces;
     inline static std::set<RE::TESObjectARMO*> fRacialSkins;
@@ -97,11 +99,17 @@ class TngUtil : public Singleton<TngUtil> {
     inline static std::set<std::pair<std::string_view, int>> fCustomSkinMods;
     inline static std::set<RE::TESObjectARMA*> fSkinAAs;
     inline static std::set<RE::TESObjectARMA*> fHandledArma;
-    enum class TngArmorType { kNone, kSkin, kRevealing, kCovering };
+
+    //Local
+    static int fRCount;
+    static int fCCount;
+    static int fQCount;
+
 
     //Methods
     static void AddGenitalToSkin(RE::TESObjectARMO* aSkin, RE::TESObjectARMA* aGenital, const bool aIsModed = FALSE) noexcept;
     static void AddRace(RE::TESRace* aRace, RE::TESObjectARMA* aGenital, bool aIsModed = FALSE) noexcept;
+    static void HandleArmor(RE::TESObjectARMO* aArmor) noexcept;
 
   public:
     static bool Initialize() noexcept;
