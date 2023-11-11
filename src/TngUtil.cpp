@@ -318,7 +318,7 @@ void TngUtil::CheckArmorPieces() noexcept {
       fQCount++;
       continue;
     }
-    if (lArmor->HasPartOf(cSlotBody)) HandleArmor(lArmor);
+    if (lArmor->HasPartOf(cSlotBody) || lArmor->HasKeyword(fCoveringKey)) HandleArmor(lArmor);
   }
   gLogger::info("Processed [{}] body armor pieces:", fCCount + fRCount + fQCount);
   gLogger::info("\t[{}]: already covering genitals", fQCount);
