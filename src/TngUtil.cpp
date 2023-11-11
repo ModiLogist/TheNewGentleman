@@ -31,6 +31,7 @@ void TngUtil::AddRace(RE::TESRace* aRace, RE::TESObjectARMA* aGenital) noexcept 
   if (aGenital) {
     aRace->AddSlotToMask(cSlotGenital);
     AddGenitalToSkin(aRace->skin, aGenital);
+    fExtrRaceGens.insert(std::make_pair(aRace, aGenital));
     fRacialSkins.insert(aRace->skin);
     fHandledRaces.insert(aRace);
     return;
