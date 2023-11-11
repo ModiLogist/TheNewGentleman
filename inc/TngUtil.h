@@ -95,7 +95,6 @@ class TngUtil : public Singleton<TngUtil> {
     inline static std::set<RE::TESRace*> fHandledRaces;
     inline static std::set<RE::TESObjectARMO*> fRacialSkins;
     inline static std::set<RE::TESObjectARMO*> fHandledSkins;
-    inline static std::set<RE::TESObjectARMO*> fNeglectSkins;
     inline static std::set<std::pair<std::string_view, int>> fCustomSkinMods;
     inline static std::set<RE::TESObjectARMA*> fSkinAAs;
     inline static std::set<RE::TESObjectARMA*> fHandledArma;
