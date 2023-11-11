@@ -9,7 +9,7 @@ int TngUtil::fCCount;
 void TngUtil::AddGenitalToSkin(RE::TESObjectARMO* aSkin, RE::TESObjectARMA* aGenital, bool aIsModed) noexcept {
   for (const auto& lAA : aSkin->armorAddons)
     if (lAA == aGenital) return;
-  if (fHandledSkins.find(aSkin) != fHandledSkins.end())
+  if (fHandledSkins.find(aSkin) == fHandledSkins.end())
     for (const auto& lAA : aSkin->armorAddons)
       if (lAA->HasPartOf(cSlotBody) && lAA->race->HasKeyword(fNPCKey)) fSkinAAs.insert(lAA);
   aSkin->AddSlotToMask(cSlotGenital);
