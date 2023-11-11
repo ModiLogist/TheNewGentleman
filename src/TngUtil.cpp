@@ -5,8 +5,7 @@ int TngUtil::fRCount;
 int TngUtil::fQCount;
 int TngUtil::fCCount;
 
-
-void TngUtil::AddGenitalToSkin(RE::TESObjectARMO* aSkin, RE::TESObjectARMA* aGenital, bool aIsModed) noexcept {
+void TngUtil::AddGenitalToSkin(RE::TESObjectARMO* aSkin, RE::TESObjectARMA* aGenital) noexcept {
   for (const auto& lAA : aSkin->armorAddons)
     if (lAA == aGenital) return;
   if (fHandledSkins.find(aSkin) == fHandledSkins.end())
@@ -15,19 +14,9 @@ void TngUtil::AddGenitalToSkin(RE::TESObjectARMO* aSkin, RE::TESObjectARMA* aGen
   aSkin->AddSlotToMask(cSlotGenital);
   aSkin->armorAddons.emplace_back(aGenital);
   fHandledSkins.insert(aSkin);
-  if (aIsModed) {
-    auto lFoundMod =
-        std::find_if(fCustomSkinMods.begin(), fCustomSkinMods.end(), [&aSkin](const std::pair<std::string_view, int>& p) { return p.first == aSkin->GetFile()->GetFilename(); });
-    if (lFoundMod == fCustomSkinMods.end()) {
-      fCustomSkinMods.insert(std::make_pair(aSkin->GetFile()->GetFilename(), 1));
-    } else {
-      fCustomSkinMods.insert(std::make_pair(aSkin->GetFile()->GetFilename(), (*lFoundMod).second + 1));
-      fCustomSkinMods.erase(lFoundMod);
-    }
-  }
 }
 
-void TngUtil::AddRace(RE::TESRace* aRace, RE::TESObjectARMA* aGenital, const bool aIsModed) noexcept {
+void TngUtil::AddRace(RE::TESRace* aRace, RE::TESObjectARMA* aGenital) noexcept {
   if (aRace->HasPartOf(cSlotGenital)) {
     gLogger::info("The race {} seems to be ready for TNG. It was not modified.", aRace->GetFormEditorID());
     for (const auto& lAA : aRace->skin->armorAddons) {
@@ -41,7 +30,7 @@ void TngUtil::AddRace(RE::TESRace* aRace, RE::TESObjectARMA* aGenital, const boo
   }
   if (aGenital) {
     aRace->AddSlotToMask(cSlotGenital);
-    AddGenitalToSkin(aRace->skin, aGenital, aIsModed);
+    AddGenitalToSkin(aRace->skin, aGenital);
     fRacialSkins.insert(aRace->skin);
     fHandledRaces.insert(aRace);
     return;
@@ -52,13 +41,13 @@ void TngUtil::AddRace(RE::TESRace* aRace, RE::TESObjectARMA* aGenital, const boo
       fDefKhaGenital->additionalRaces.emplace_back(aRace);
       gLogger::info("The race [0x{:x}]{} from file {} was recognized as Khajiit. If this is wrong, a patch is required.", aRace->GetFormID(), aRace->GetFormEditorID(),
                     aRace->GetFile()->GetFilename());
-      AddRace(aRace, fDefKhaGenital, TRUE);
+      AddRace(aRace, fDefKhaGenital);
     } else {
       if ((lRaceDesc.find("Argonian") != std::string::npos) || (lRaceDesc.find("Saxhleel") != std::string::npos)) {
         fDefSaxGenital->additionalRaces.emplace_back(aRace);
         gLogger::info("The race [0x{:x}]{} from file {} was recognized as Saxhleel(Argonian). If this is wrong, a patch is required.", aRace->GetFormID(), aRace->GetFormEditorID(),
                       aRace->GetFile()->GetFilename());
-        AddRace(aRace, fDefSaxGenital, TRUE);
+        AddRace(aRace, fDefSaxGenital);
       } else {
         gLogger::warn("The race [0x{:x}]{} from file {} did not receive any genital. If they should, a patch is required.", aRace->GetFormID(), aRace->GetFormEditorID(),
                       aRace->GetFile()->GetFilename());
@@ -71,7 +60,7 @@ void TngUtil::AddRace(RE::TESRace* aRace, RE::TESObjectARMA* aGenital, const boo
     fDefMnmGenital->additionalRaces.emplace_back(aRace);
     gLogger::info("The race [0x{:x}]{} from file {} received the default genital for man and mer races. If this is wrong, a patch is required.", aRace->GetFormID(),
                   aRace->GetFormEditorID(), aRace->GetFile()->GetFilename());
-    AddRace(aRace, fDefMnmGenital, TRUE);
+    AddRace(aRace, fDefMnmGenital);
   }
 }
 
@@ -178,6 +167,7 @@ void TngUtil::GenitalizeNPCSkins() noexcept {
   int lHdr = lAllCount;
   int lNob = lAllCount;
   int lC = 0;
+  std::set<std::pair<std::string_view, int>> lCustomSkinMods;
   for (const auto& lNPC : lAllNPCs) {
     const auto lSkin = lNPC->skin;
     if (!lSkin) continue;
@@ -201,7 +191,15 @@ void TngUtil::GenitalizeNPCSkins() noexcept {
     lNob--;
     auto lRaceGen = std::find_if(fAllRaceGens.begin(), fAllRaceGens.end(), [&lNPC](const std::pair<RE::TESRace*, RE::TESObjectARMA*>& p) { return p.first == lNPC->race; });
     if (lRaceGen != fAllRaceGens.end()) {
-      AddGenitalToSkin(lSkin, (*lRaceGen).second, TRUE);
+      AddGenitalToSkin(lSkin, (*lRaceGen).second);
+      auto lFoundMod =
+          std::find_if(lCustomSkinMods.begin(), lCustomSkinMods.end(), [&lSkin](const std::pair<std::string_view, int>& p) { return p.first == lSkin->GetFile()->GetFilename(); });
+      if (lFoundMod == lCustomSkinMods.end()) {
+        lCustomSkinMods.insert(std::make_pair(lSkin->GetFile()->GetFilename(), 1));
+      } else {
+        lCustomSkinMods.insert(std::make_pair(lSkin->GetFile()->GetFilename(), (*lFoundMod).second + 1));
+        lCustomSkinMods.erase(lFoundMod);
+      }
       lC++;
       continue;
     }
@@ -214,7 +212,7 @@ void TngUtil::GenitalizeNPCSkins() noexcept {
   if ((lNob - lHdr) > 0) gLogger::info("\t{} NPCs's skins don't have body slot or already have genital slot.", lNob - lHdr);
   if (lC > 0) {
     gLogger::info("\t{} handled custom skins for {} NPCs from following mod(s):", cTNGName, lC);
-    for (const auto& lMod : fCustomSkinMods) gLogger::info("\t\t{} skins from [{}]", lMod.second, lMod.first);
+    for (const auto& lMod : lCustomSkinMods) gLogger::info("\t\t{} skins from [{}]", lMod.second, lMod.first);
   }
 }
 
@@ -226,7 +224,7 @@ void TngUtil::CheckArmorPieces() noexcept {
 
   TngInis::LoadTngInis();
 
-  auto& lAllArmorArray = fDataHandler->GetFormArray<RE::TESObjectARMO>();
+  auto& lAllArmor = fDataHandler->GetFormArray<RE::TESObjectARMO>();
   bool lCheckSkinMods = (TngInis::fSkinMods.size() > 0);
   bool lCheckSkinRecords = (TngInis::fSingleSkinIDs.size() > 0);
   bool lCheckSlotSwap = (TngInis::fSwapMods.size() > 0);
@@ -241,7 +239,7 @@ void TngUtil::CheckArmorPieces() noexcept {
   for (const auto& lRevealMod : TngInis::fRevealingMods)
     if (fDataHandler->LookupModByName(lRevealMod)) gLogger::info("{} registered as a revealing mod.", lRevealMod);
 
-  for (const auto& lArmor : lAllArmorArray) {
+  for (const auto& lArmor : lAllArmor) {
     if (fHandledSkins.find(lArmor) != fHandledSkins.end()) continue;
     if (lArmor->armorAddons.size() == 0) continue;
     if (lCheckSkinMods && (TngInis::fSkinMods.find(lArmor->GetFile()->GetFilename()) != TngInis::fSkinMods.end())) {

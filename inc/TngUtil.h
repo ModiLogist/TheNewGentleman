@@ -95,7 +95,6 @@ class TngUtil : public Singleton<TngUtil> {
     inline static std::set<RE::TESRace*> fHandledRaces;
     inline static std::set<RE::TESObjectARMO*> fRacialSkins;
     inline static std::set<RE::TESObjectARMO*> fHandledSkins;
-    inline static std::set<std::pair<std::string_view, int>> fCustomSkinMods;
     inline static std::set<RE::TESObjectARMA*> fSkinAAs;
     inline static std::set<RE::TESObjectARMA*> fHandledArma;
 
@@ -106,8 +105,8 @@ class TngUtil : public Singleton<TngUtil> {
 
 
     //Methods
-    static void AddGenitalToSkin(RE::TESObjectARMO* aSkin, RE::TESObjectARMA* aGenital, const bool aIsModed = FALSE) noexcept;
-    static void AddRace(RE::TESRace* aRace, RE::TESObjectARMA* aGenital, bool aIsModed = FALSE) noexcept;
+    static void AddGenitalToSkin(RE::TESObjectARMO* aSkin, RE::TESObjectARMA* aGenital) noexcept;
+    static void AddRace(RE::TESRace* aRace, RE::TESObjectARMA* aGenital) noexcept;
     static void HandleArmor(RE::TESObjectARMO* aArmor) noexcept;
 
   public:
