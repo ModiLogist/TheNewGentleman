@@ -80,7 +80,7 @@ void TngInis::LoadSwapMods(CSimpleIniA* aFile) noexcept {
     const std::string_view lModSwap = std::basic_string_view(lEntry.pItem);
     const size_t lSepLoc = lModSwap.find(cColonChar);
     const std::string_view lModName = lModSwap.substr(0, lSepLoc);
-    int lSlotInt = (int) std::pow(2,std::strtol(lModSwap.substr(lSepLoc + 1).data(), nullptr, 0)-30);    
+    int lSlotInt = (int)std::pow(2, std::strtol(lModSwap.substr(lSepLoc + 1).data(), nullptr, 0) - 30);
     RE::BGSBipedObjectForm::BipedObjectSlot lID = static_cast<RE::BIPED_MODEL::BipedObjectSlot>(lSlotInt);
     fSwapMods.insert(std::make_pair(lModName, lID));
   }

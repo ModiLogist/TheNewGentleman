@@ -4,7 +4,7 @@ class TngUtil : public Singleton<TngUtil> {
   private:
     inline static constexpr std::string_view cTNGName = "TheNewGentleman.esp";
     inline static RE::TESDataHandler* fDataHandler{nullptr};
-    // Const    
+    // Const
     inline static constexpr int cRaceTypes{14};
 
     inline static constexpr RE::FormID cDefRaceID = 0x19;
@@ -44,7 +44,7 @@ class TngUtil : public Singleton<TngUtil> {
         {0xA82BA, 11},    // Elder Vampire
         {0x200E88A, 0},   // DLC1 Nord
     };
-    
+
     inline static constexpr RE::FormID cGenitalIDs[cRaceTypes] = {
         0x800,  // TNG_GenitalNord
         0x801,  // TNG_GenitalRedguard
@@ -79,32 +79,31 @@ class TngUtil : public Singleton<TngUtil> {
     inline static std::set<std::pair<RE::TESRace*, RE::TESObjectARMA*>> fBaseRaceGens;
     inline static std::set<std::pair<RE::TESRace*, RE::TESObjectARMA*>> fEquiRaceGens;
     inline static std::set<std::pair<RE::TESRace*, RE::TESObjectARMA*>> fExtrRaceGens;
-    inline static std::set<std::pair<RE::TESRace*, RE::TESObjectARMA*>> fAllRaceGens;    
+    inline static std::set<std::pair<RE::TESRace*, RE::TESObjectARMA*>> fAllRaceGens;
     inline static std::set<RE::TESRace*> fExclRaces;
     inline static RE::TESObjectARMA* fDefSaxGenital{nullptr};
     inline static RE::TESObjectARMA* fDefKhaGenital{nullptr};
     inline static RE::TESObjectARMA* fDefMnmGenital{nullptr};
-    
+
     inline static RE::BGSKeyword* fBeastKey{nullptr};
     inline static RE::BGSKeyword* fNPCKey{nullptr};
     inline static RE::BGSKeyword* fCreatureKey{nullptr};
     inline static RE::BGSKeyword* fRevealingKey{nullptr};
     inline static RE::BGSKeyword* fUnderwearKey{nullptr};
     inline static RE::BGSKeyword* fCoveringKey{nullptr};
-    
+
     inline static std::set<RE::TESRace*> fHandledRaces;
     inline static std::set<RE::TESObjectARMO*> fRacialSkins;
     inline static std::set<RE::TESObjectARMO*> fHandledSkins;
     inline static std::set<RE::TESObjectARMA*> fSkinAAs;
     inline static std::set<RE::TESObjectARMA*> fHandledArma;
 
-    //Local
+    // Local
     static int fRCount;
     static int fCCount;
     static int fQCount;
 
-
-    //Methods
+    // Methods
     static void AddGenitalToSkin(RE::TESObjectARMO* aSkin, RE::TESObjectARMA* aGenital) noexcept;
     static void AddRace(RE::TESRace* aRace, RE::TESObjectARMA* aGenital) noexcept;
     static void HandleArmor(RE::TESObjectARMO* aArmor) noexcept;
