@@ -31,7 +31,6 @@ void TngUtil::AddRace(RE::TESRace* aRace, RE::TESObjectARMA* aGenital) noexcept 
   if (aGenital) {
     aRace->AddSlotToMask(cSlotGenital);
     AddGenitalToSkin(aRace->skin, aGenital);
-    fExtrRaceGens.insert(std::make_pair(aRace, aGenital));
     fRacialSkins.insert(aRace->skin);
     fHandledRaces.insert(aRace);
     return;
@@ -42,12 +41,14 @@ void TngUtil::AddRace(RE::TESRace* aRace, RE::TESObjectARMA* aGenital) noexcept 
       fDefKhaGenital->additionalRaces.emplace_back(aRace);
       gLogger::info("The race [0x{:x}:{}] from file [{}] was recognized as Khajiit. If this is wrong, a patch is required.", aRace->GetFormID(), aRace->GetFormEditorID(),
                     aRace->GetFile()->GetFilename());
+      fExtrRaceGens.insert(std::make_pair(aRace, aGenital));
       AddRace(aRace, fDefKhaGenital);
     } else {
       if ((lRaceDesc.find("Argonian") != std::string::npos) || (lRaceDesc.find("Saxhleel") != std::string::npos)) {
         fDefSaxGenital->additionalRaces.emplace_back(aRace);
         gLogger::info("The race [0x{:x}:{}] from file [{}] was recognized as Saxhleel(Argonian). If this is wrong, a patch is required.", aRace->GetFormID(),
                       aRace->GetFormEditorID(), aRace->GetFile()->GetFilename());
+        fExtrRaceGens.insert(std::make_pair(aRace, aGenital));
         AddRace(aRace, fDefSaxGenital);
       } else {
         gLogger::warn("The race [0x{:x}:{}] from file [{}] did not receive any genital. If they should, a patch is required.", aRace->GetFormID(), aRace->GetFormEditorID(),
@@ -61,6 +62,7 @@ void TngUtil::AddRace(RE::TESRace* aRace, RE::TESObjectARMA* aGenital) noexcept 
     fDefMnmGenital->additionalRaces.emplace_back(aRace);
     gLogger::info("The race [0x{:x}:{}] from file [{}] received the default genital for man and mer races. If this is wrong, a patch is required.", aRace->GetFormID(),
                   aRace->GetFormEditorID(), aRace->GetFile()->GetFilename());
+    fExtrRaceGens.insert(std::make_pair(aRace, aGenital));
     AddRace(aRace, fDefMnmGenital);
   }
 }
