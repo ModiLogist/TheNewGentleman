@@ -20,25 +20,17 @@ class TngInis : public Singleton<TngInis> {
     inline static constexpr const char* cSwapSection{"SwapSlot"};
     inline static constexpr const char* cSwapMod{"SwapSlotMod"};
 
-    static void LoadModRecodPairs(std::list<CSimpleIniA::Entry> aModRecords, std::set<std::pair<std::string_view, RE::FormID>> aField);
+    static void LoadModRecodPairs(CSimpleIniA::TNamesDepend aModRecords, std::set<std::pair<std::string, RE::FormID>> aField);
 
     static bool IsTngIni(const std::string aFileName) noexcept;
-    static void LoadSkinMods(CSimpleIniA* aFile) noexcept;
-    static void LoadSkinRecords(CSimpleIniA* aFile) noexcept;
-
-    static void LoadRevealingMods(CSimpleIniA* aFile) noexcept;
-    static void LoadRevealingRecords(CSimpleIniA* aFile) noexcept;
-    static void LoadCoveringRecords(CSimpleIniA* aFile) noexcept;
-
-    static void LoadSwapMods(CSimpleIniA* aFile) noexcept;
 
   public:
-    inline static std::set<std::string_view> fSkinMods;
-    inline static std::set<std::pair<std::string_view, RE::FormID>> fSingleSkinIDs;
-    inline static std::set<std::string_view> fRevealingMods;
-    inline static std::set<std::pair<std::string_view, RE::FormID>> fSingleRevealingIDs;
-    inline static std::set<std::pair<std::string_view, RE::FormID>> fSingleCoveringIDs;
-    inline static std::set<std::pair<std::string_view, RE::BGSBipedObjectForm::BipedObjectSlot>> fSwapMods;
+    inline static std::set<std::string> fSkinMods;
+    inline static std::set<std::pair<std::string, RE::FormID>> fSingleSkinIDs;
+    inline static std::set<std::string> fRevealingMods;
+    inline static std::set<std::pair<std::string, RE::FormID>> fSingleRevealingIDs;
+    inline static std::set<std::pair<std::string, RE::FormID>> fSingleCoveringIDs;
+    inline static std::set<std::pair<std::string, RE::BGSBipedObjectForm::BipedObjectSlot>> fSwapMods;
 
     static void LoadTngInis() noexcept;
 };

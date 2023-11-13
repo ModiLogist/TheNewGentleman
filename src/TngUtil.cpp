@@ -222,28 +222,35 @@ void TngUtil::CheckArmorPieces() noexcept {
   fRCount = 0;
   fCCount = 0;
   fQCount = 0;
-
   TngInis::LoadTngInis();
+  const std::set<std::string> lSkinMods(TngInis::fSkinMods);
+  const std::set<std::pair<std::string, RE::FormID>> lSingleSkinIDs(TngInis::fSingleSkinIDs);
+  const std::set<std::string> lRevealingMods(TngInis::fRevealingMods);
+  const std::set<std::pair<std::string, RE::FormID>> lSingleRevealingIDs(TngInis::fSingleRevealingIDs);
+  const std::set<std::pair<std::string, RE::FormID>> lSingleCoveringIDs(TngInis::fSingleCoveringIDs);
+  const std::set<std::pair<std::string, RE::BGSBipedObjectForm::BipedObjectSlot>> lSwapMods(TngInis::fSwapMods);
 
   auto& lAllArmor = fDataHandler->GetFormArray<RE::TESObjectARMO>();
-  bool lCheckSkinMods = (TngInis::fSkinMods.size() > 0);
-  bool lCheckSkinRecords = (TngInis::fSingleSkinIDs.size() > 0);
-  bool lCheckSlotSwap = (TngInis::fSwapMods.size() > 0);
-  bool lCheckRevealMods = (TngInis::fRevealingMods.size() > 0);
-  bool lCheckRevealRecords = (TngInis::fSingleRevealingIDs.size() > 0);
-  bool lCheckCoverRecords = (TngInis::fSingleCoveringIDs.size() > 0);
 
-  for (const auto& lModName : TngInis::fSkinMods)
-    if (fDataHandler->LookupModByName(lModName)) gLogger::info("[{}] registered as a skin mod.", lModName);
-  for (const auto& lModSlot : TngInis::fSwapMods)
-    if (fDataHandler->LookupModByName(lModSlot.first)) gLogger::info("[{}] registered to swap default covering slot.", lModSlot.first);
-  for (const auto& lRevealMod : TngInis::fRevealingMods)
-    if (fDataHandler->LookupModByName(lRevealMod)) gLogger::info("[{}] registered as a revealing mod.", lRevealMod);
+  bool lCheckSkinMods = (lSkinMods.size() > 0);
+  bool lCheckSkinRecords = (lSingleSkinIDs.size() > 0);
+  bool lCheckSlotSwap = (lSwapMods.size() > 0);
+  bool lCheckRevealMods = (lRevealingMods.size() > 0);
+  bool lCheckRevealRecords = (lSingleRevealingIDs.size() > 0);
+  bool lCheckCoverRecords = (lSingleCoveringIDs.size() > 0);
+
+  for (const auto& lModName : lSkinMods)
+    if (fDataHandler->LookupModByName(lModName)) gLogger::info("TheNewGentleman keeps an eye for [{}] as a skin mod.", lModName);
+  for (const auto& lModSlot : lSwapMods)
+    if (fDataHandler->LookupModByName(lModSlot.first)) gLogger::info("TheNewGentleman keeps an eye for [{}] as a slot swap mod.", lModSlot.first);
+  for (const auto& lRevealMod : lRevealingMods)
+    if (fDataHandler->LookupModByName(lRevealMod)) gLogger::info("TheNewGentleman keeps an eye for [{}] as a revealing armor mod.", lRevealMod);
 
   for (const auto& lArmor : lAllArmor) {
     if (fHandledSkins.find(lArmor) != fHandledSkins.end()) continue;
     if (lArmor->armorAddons.size() == 0) continue;
-    if (lCheckSkinMods && (TngInis::fSkinMods.find(lArmor->GetFile()->GetFilename()) != TngInis::fSkinMods.end())) {
+    if (lCheckSkinMods && (lSkinMods.find(std::string{lArmor->GetFile()->GetFilename()}) != lSkinMods.end())) {
+      if (!lArmor->HasPartOf(cSlotBody)) continue;
       std::set<RE::TESRace*> lSkinRaces;
       for (const auto& lAA : lArmor->armorAddons) {
         lSkinRaces.insert(lAA->race);
@@ -258,8 +265,8 @@ void TngUtil::CheckArmorPieces() noexcept {
       continue;
     }
     if (lCheckSkinRecords) {
-      const auto lSkinEntry = TngInis::fSingleSkinIDs.find(std::make_pair(lArmor->GetFile()->GetFilename(), lArmor->formID));
-      if (lSkinEntry != TngInis::fSingleSkinIDs.end()) {
+      const auto lSkinEntry = lSingleSkinIDs.find(std::make_pair(std::string{lArmor->GetFile()->GetFilename()}, lArmor->formID));
+      if (lSkinEntry != lSingleSkinIDs.end()) {
         std::set<RE::TESRace*> lSkinRaces;
         for (const auto& lAA : lArmor->armorAddons) {
           lSkinRaces.insert(lAA->race);
@@ -274,7 +281,7 @@ void TngUtil::CheckArmorPieces() noexcept {
         continue;
       }
     }
-    if (lCheckRevealMods && (TngInis::fRevealingMods.find(lArmor->GetFile()->GetFilename()) != TngInis::fRevealingMods.end())) {
+    if (lCheckRevealMods && (lRevealingMods.find(std::string{lArmor->GetFile()->GetFilename()}) != lRevealingMods.end())) {
       if (lArmor->HasPartOf(cSlotBody)) {
         lArmor->AddKeyword(fRevealingKey);
         fRCount++;
@@ -282,25 +289,25 @@ void TngUtil::CheckArmorPieces() noexcept {
       continue;
     }
     if (lCheckRevealRecords) {
-      const auto lRevealEntry = TngInis::fSingleRevealingIDs.find(std::make_pair(lArmor->GetFile()->GetFilename(), lArmor->formID));
-      if (lRevealEntry != TngInis::fSingleRevealingIDs.end()) {
+      const auto lRevealEntry = lSingleRevealingIDs.find(std::make_pair(std::string{lArmor->GetFile()->GetFilename()}, lArmor->formID));
+      if (lRevealEntry != lSingleRevealingIDs.end()) {
         lArmor->AddKeyword(fRevealingKey);
         fRCount++;
         continue;
       }
     }
     if (lCheckSlotSwap) {
-      const auto lSwapEntry =
-          std::find_if(TngInis::fSwapMods.begin(), TngInis::fSwapMods.end(),
-                       [&lArmor](const std::pair<std::string_view, RE::BGSBipedObjectForm::BipedObjectSlot>& p) { return p.first == lArmor->GetFile()->GetFilename(); });
-      if (lSwapEntry != TngInis::fSwapMods.end()) {
+      const auto lSwapEntry = std::find_if(lSwapMods.begin(), lSwapMods.end(), [&lArmor](const std::pair<std::string_view, RE::BGSBipedObjectForm::BipedObjectSlot>& p) {
+        return p.first == lArmor->GetFile()->GetFilename();
+      });
+      if (lSwapEntry != lSwapMods.end()) {
         if (lArmor->HasPartOf((*lSwapEntry).second)) HandleArmor(lArmor);
         continue;
       }
     }
     if (lCheckCoverRecords) {
-      const auto lCoverEntry = TngInis::fSingleCoveringIDs.find(std::make_pair(lArmor->GetFile()->GetFilename(), lArmor->formID));
-      if (lCoverEntry != TngInis::fSingleCoveringIDs.end()) {
+      const auto lCoverEntry = lSingleCoveringIDs.find(std::make_pair(std::string{lArmor->GetFile()->GetFilename()}, lArmor->formID));
+      if (lCoverEntry != lSingleCoveringIDs.end()) {
         lArmor->AddKeyword(fCoveringKey);
         if (fHandledArma.find(lArmor->armorAddons[0]) != fHandledArma.end()) {
           lArmor->armorAddons[0]->AddSlotToMask(cSlotGenital);
