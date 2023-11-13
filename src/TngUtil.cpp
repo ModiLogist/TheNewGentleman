@@ -96,7 +96,6 @@ void TngUtil::HandleArmor(RE::TESObjectARMO* aArmor) noexcept {
 }
 
 bool TngUtil::Initialize() noexcept {
-  gLogger::info("Initializing TheNewGentleman!");
   fDataHandler = RE::TESDataHandler::GetSingleton();
   if (!fDataHandler->LookupModByName(cTNGName)) {
     gLogger::error("Mod [{}] was not found!", cTNGName);
