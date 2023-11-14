@@ -281,6 +281,18 @@ void TngUtil::CheckArmorPieces() noexcept {
         continue;
       }
     }
+    if (lCheckCoverRecords) {
+      const auto lCoverEntry = lSingleCoveringIDs.find(std::make_pair(std::string{lArmor->GetFile()->GetFilename()}, lArmor->formID));
+      if (lCoverEntry != lSingleCoveringIDs.end()) {
+        lArmor->AddKeyword(fCoveringKey);
+        if (fHandledArma.find(lArmor->armorAddons[0]) != fHandledArma.end()) {
+          lArmor->armorAddons[0]->AddSlotToMask(cSlotGenital);
+          fHandledArma.insert(lArmor->armorAddons[0]);
+        }
+        fCCount++;
+        continue;
+      }
+    }
     if (lCheckRevealMods && (lRevealingMods.find(std::string{lArmor->GetFile()->GetFilename()}) != lRevealingMods.end())) {
       if (lArmor->HasPartOf(cSlotBody)) {
         lArmor->AddKeyword(fRevealingKey);
@@ -302,18 +314,6 @@ void TngUtil::CheckArmorPieces() noexcept {
       });
       if (lSwapEntry != lSwapMods.end()) {
         if (lArmor->HasPartOf((*lSwapEntry).second)) HandleArmor(lArmor);
-        continue;
-      }
-    }
-    if (lCheckCoverRecords) {
-      const auto lCoverEntry = lSingleCoveringIDs.find(std::make_pair(std::string{lArmor->GetFile()->GetFilename()}, lArmor->formID));
-      if (lCoverEntry != lSingleCoveringIDs.end()) {
-        lArmor->AddKeyword(fCoveringKey);
-        if (fHandledArma.find(lArmor->armorAddons[0]) != fHandledArma.end()) {
-          lArmor->armorAddons[0]->AddSlotToMask(cSlotGenital);
-          fHandledArma.insert(lArmor->armorAddons[0]);
-        }
-        fCCount++;
         continue;
       }
     }
