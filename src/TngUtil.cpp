@@ -19,6 +19,12 @@ void TngUtil::AddGenitalToSkin(RE::TESObjectARMO* aSkin, RE::TESObjectARMA* aGen
 void TngUtil::AddRace(RE::TESRace* aRace, RE::TESObjectARMA* aGenital) noexcept {
   if (aRace->HasPartOf(cSlotGenital)) {
     gLogger::info("The race [{}] seems to be ready for TNG. It was not modified.", aRace->GetFormEditorID());
+  if (!aRace->skin) {
+    gLogger::warn("The race [0x{:x}:{}] from file [{}] did not receive any genital. If they should, a patch is required.", aRace->GetFormID(), aRace->GetFormEditorID(),
+                      aRace->GetFile()->GetFilename());
+    return;
+  }
+                   
     for (const auto& lAA : aRace->skin->armorAddons) {
       if (lAA->HasPartOf(cSlotGenital)) {
         fExtrRaceGens.insert(std::make_pair(aRace, lAA));
