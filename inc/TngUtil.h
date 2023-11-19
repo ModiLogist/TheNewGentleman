@@ -93,6 +93,7 @@ class TngUtil : public Singleton<TngUtil> {
     inline static RE::BGSKeyword* fCoveringKey{nullptr};
 
     inline static std::set<RE::TESRace*> fHandledRaces;
+    inline static std::set<RE::TESRace*> fIgnoreRaces;
     inline static std::set<RE::TESObjectARMO*> fRacialSkins;
     inline static std::set<RE::TESObjectARMO*> fHandledSkins;
     inline static std::set<RE::TESObjectARMA*> fSkinAAs;
