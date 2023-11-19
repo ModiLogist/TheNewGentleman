@@ -19,19 +19,6 @@ void TngUtil::AddGenitalToSkin(RE::TESObjectARMO* aSkin, RE::TESObjectARMA* aGen
 void TngUtil::AddRace(RE::TESRace* aRace, RE::TESObjectARMA* aGenital) noexcept {
   if (aRace->HasPartOf(cSlotGenital)) {
     gLogger::info("The race [{}] seems to be ready for TNG. It was not modified.", aRace->GetFormEditorID());
-  if (!aRace->skin) {
-    gLogger::warn("The race [0x{:x}:{}] from file [{}] did not receive any genital. If they should, a patch is required.", aRace->GetFormID(), aRace->GetFormEditorID(),
-                      aRace->GetFile()->GetFilename());
-    return;
-  }
-                   
-    for (const auto& lAA : aRace->skin->armorAddons) {
-      if (lAA->HasPartOf(cSlotGenital)) {
-        fExtrRaceGens.insert(std::make_pair(aRace, lAA));
-        break;
-      }
-    }
-    fRacialSkins.insert(aRace->skin);
     return;
   }
   if (aGenital) {
@@ -39,6 +26,11 @@ void TngUtil::AddRace(RE::TESRace* aRace, RE::TESObjectARMA* aGenital) noexcept 
     AddGenitalToSkin(aRace->skin, aGenital);
     fRacialSkins.insert(aRace->skin);
     fHandledRaces.insert(aRace);
+    return;
+  }
+  if (!aRace->skin) {
+    gLogger::warn("The race [0x{:x}:{}] from file [{}] cannot have any genitals since they do not have a skin. If they should, a patch is required.", aRace->GetFormID(),
+                  aRace->GetFormEditorID(), aRace->GetFile(0)->GetFilename());
     return;
   }
   if (aRace->HasKeyword(fBeastKey)) {
