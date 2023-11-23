@@ -72,8 +72,8 @@ void TngUtil::AddRace(RE::TESRace* aRace, RE::TESObjectARMA* aGenital) noexcept 
 }
 
 void TngUtil::HandleArmor(RE::TESObjectARMO* aArmor) noexcept {
-  const auto lAB = std::find_if(aArmor->armorAddons.begin(), aArmor->armorAddons.end(), [](const RE::TESObjectARMA*& p) { return p->HasPartOf(cSlotBody); });
-  const auto lAG = std::find_if(aArmor->armorAddons.begin(), aArmor->armorAddons.end(), [](const RE::TESObjectARMA*& p) { return p->HasPartOf(cSlotGenital); });
+  const auto lAB = std::find_if(aArmor->armorAddons.begin(), aArmor->armorAddons.end(), [](RE::TESObjectARMA*& p) { return p->HasPartOf(cSlotBody); });
+  const auto lAG = std::find_if(aArmor->armorAddons.begin(), aArmor->armorAddons.end(), [](RE::TESObjectARMA*& p) { return p->HasPartOf(cSlotGenital); });
   if (lAG != aArmor->armorAddons.end()) {
     if (lAB == aArmor->armorAddons.end()) {
       fQCount++;
@@ -357,8 +357,9 @@ void TngUtil::CheckArmorPieces() noexcept {
       fQCount++;
       continue;
     }
-    if (lArmor->HasPartOf(cSlotBody) || lArmor->HasKeyword(fCoveringKey)) HandleArmor(lArmor);
   }
+  for (const auto& lArmor : lAllArmor)
+    if (lArmor->HasPartOf(cSlotBody) || lArmor->HasKeyword(fCoveringKey)) HandleArmor(lArmor);
   gLogger::info("Processed {} body armor pieces:", fCCount + fRCount + fQCount);
   gLogger::info("\t{}: already covering genitals", fQCount);
   gLogger::info("\t{}: revealing", fRCount);
