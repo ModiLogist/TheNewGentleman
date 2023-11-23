@@ -64,6 +64,8 @@ class TngUtil : public Singleton<TngUtil> {
     inline static constexpr RE::FormID cDefGenitalMnmID = 0x8ff;  // TNG_GenitalDefaultManMer
     inline static constexpr RE::FormID cDefGenitalSaxID = 0x8fd;  // TNG_GenitalDefaultSaxhleel
     inline static constexpr RE::FormID cDefGenitalKhaID = 0x8fe;  // TNG_GenitalDefaultKhajiit
+    inline static constexpr RE::FormID cTngCoverID = 0x8f0;  // TNG_GenitalCover
+    
 
     inline static constexpr RE::BGSBipedObjectForm::BipedObjectSlot cSlotBody{RE::BGSBipedObjectForm::BipedObjectSlot::kBody};
     inline static constexpr RE::BGSBipedObjectForm::BipedObjectSlot cSlotGenital{RE::BGSBipedObjectForm::BipedObjectSlot::kModPelvisSecondary};
@@ -86,7 +88,7 @@ class TngUtil : public Singleton<TngUtil> {
     inline static RE::TESObjectARMA* fDefSaxGenital{nullptr};
     inline static RE::TESObjectARMA* fDefKhaGenital{nullptr};
     inline static RE::TESObjectARMA* fDefMnmGenital{nullptr};
-
+    inline static RE::TESObjectARMA* fTNGCover{nullptr};
     inline static RE::TESRace* fDefRace{nullptr};
 
     inline static std::set<std::pair<RE::TESRace*, RE::TESObjectARMA*>> fBaseRaceGens;
@@ -100,6 +102,7 @@ class TngUtil : public Singleton<TngUtil> {
     inline static std::set<RE::TESObjectARMO*> fHandledSkins;
     inline static std::set<RE::TESObjectARMA*> fSkinAAs;
     inline static std::set<RE::TESObjectARMA*> fHandledArma;
+    inline static std::set<RE::TESObjectARMA*> fRevealAAs;
 
     // Local
     static int fRCount;
@@ -110,6 +113,7 @@ class TngUtil : public Singleton<TngUtil> {
     static void AddGenitalToSkin(RE::TESObjectARMO* aSkin, RE::TESObjectARMA* aGenital) noexcept;
     static void AddRace(RE::TESRace* aRace, RE::TESObjectARMA* aGenital) noexcept;
     static void HandleArmor(RE::TESObjectARMO* aArmor) noexcept;
+    static void CoverByArmor(RE::TESObjectARMO* aArmor) noexcept;
 
   public:
     static bool Initialize() noexcept;

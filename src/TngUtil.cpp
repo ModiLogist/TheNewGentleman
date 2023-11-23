@@ -72,31 +72,59 @@ void TngUtil::AddRace(RE::TESRace* aRace, RE::TESObjectARMA* aGenital) noexcept 
 }
 
 void TngUtil::HandleArmor(RE::TESObjectARMO* aArmor) noexcept {
-  if (aArmor->HasKeyword(fRevealingKey)) {
-    fRCount++;
-    return;
+  const auto lAB = std::find_if(aArmor->armorAddons.begin(), aArmor->armorAddons.end(), [](const RE::TESObjectARMA*& p) { return p->HasPartOf(cSlotBody); });
+  const auto lAG = std::find_if(aArmor->armorAddons.begin(), aArmor->armorAddons.end(), [](const RE::TESObjectARMA*& p) { return p->HasPartOf(cSlotGenital); });
+  if (lAG != aArmor->armorAddons.end()) {
+    if (lAB == aArmor->armorAddons.end()) {
+      fQCount++;
+      return;
+    }
+    if (fHandledArma.find(*lAB) != fHandledArma.end()) {
+      fCCount++;
+      return;
+    } else {
+      fQCount++;
+      return;
+    }
   }
-  for (const auto& lAA : aArmor->armorAddons) {
-    if (fSkinAAs.find(lAA) != fSkinAAs.end()) {
+  if (lAB != aArmor->armorAddons.end()) {
+    if (aArmor->HasKeyword(fRevealingKey)) {
+      if (fHandledArma.find(*lAB) != fHandledArma.end()) {
+        gLogger::info("There is a conflict about armor [0x{:x}:{}] from file [{}]. It is markerd revealing but at the same time it uses an armor addon that is already covering!",
+                      aArmor->GetFormID(), aArmor->GetFormEditorID(), aArmor->GetFile(0)->GetFilename());
+        fCCount++;
+        return;
+      }
+      fRevealAAs.insert(*lAB);
+      fRCount++;
+      return;
+    }
+    if (fRevealAAs.find(*lAB) != fRevealAAs.end()) {
       aArmor->AddKeyword(fRevealingKey);
+      gLogger::info(
+          "The armor [0x{:x}:{}] from file [{}] is markerd revealing since it shares the body slot with another revealing armor! If it should be covering, a patch is required.",
+          aArmor->GetFormID(), aArmor->GetFormEditorID(), aArmor->GetFile(0)->GetFilename());
+      fRCount++;
+      return;
+    }
+    if (fSkinAAs.find(*lAB) != fSkinAAs.end()) {
+      aArmor->AddKeyword(fRevealingKey);
+      fRevealAAs.insert(*lAB);
       gLogger::info("The armor [0x{:x}:{}] from file [{}] is markerd revealing. If this is a mistake, a patch is required!", aArmor->GetFormID(), aArmor->GetFormEditorID(),
                     aArmor->GetFile(0)->GetFilename());
       fRCount++;
       return;
     }
-    if (lAA->HasPartOf(cSlotGenital)) {
-      if (fHandledArma.find(lAA) != fHandledArma.end()) {
-        fCCount++;
-        return;
-      } else {
-        fQCount++;
-        return;
-      }
-    }
+    fHandledArma.insert(*lAB);
+    fCCount++;
   }
-  aArmor->armorAddons[0]->AddSlotToMask(cSlotGenital);
-  fHandledArma.insert(aArmor->armorAddons[0]);
-  fCCount++;
+}
+
+void TngUtil::CoverByArmor(RE::TESObjectARMO* aArmor) noexcept {
+  aArmor->AddKeyword(fCoveringKey);
+  aArmor->armorAddons.emplace_back(fTNGCover);
+  const auto lID = (std::string(aArmor->GetName()).empty()) ? aArmor->GetFormEditorID() : aArmor->GetName();
+  gLogger::info("The armor [0x{:x}:{}] from file [{}] would cover genitalia and any other armor on slot 52.", aArmor->GetFormID(), lID, aArmor->GetFile(0)->GetFilename());
 }
 
 bool TngUtil::Initialize() noexcept {
@@ -137,6 +165,7 @@ bool TngUtil::Initialize() noexcept {
   fDefSaxGenital = fDataHandler->LookupForm<RE::TESObjectARMA>(cDefGenitalSaxID, cTNGName);
   fDefKhaGenital = fDataHandler->LookupForm<RE::TESObjectARMA>(cDefGenitalKhaID, cTNGName);
   fDefMnmGenital = fDataHandler->LookupForm<RE::TESObjectARMA>(cDefGenitalMnmID, cTNGName);
+  fTNGCover = fDataHandler->LookupForm<RE::TESObjectARMA>(cTngCoverID, cTNGName);
   if (!fDefMnmGenital || !fDefKhaGenital || !fDefSaxGenital) {
     gLogger::error("The original TNG Default-genitals cannot be found!");
   }
@@ -276,7 +305,7 @@ void TngUtil::CheckArmorPieces() noexcept {
         auto lRaceGen = std::find_if(fAllRaceGens.begin(), fAllRaceGens.end(), [&lRace](const std::pair<RE::TESRace*, RE::TESObjectARMA*>& p) { return p.first == lRace; });
         if (lRaceGen != fAllRaceGens.end()) AddGenitalToSkin(lArmor, (*lRaceGen).second);
       }
-      gLogger::info("The skin [0x{:x}:{}] from file [{}] added as extra skin", lArmor->GetFormID(), lID, lArmor->GetFile(0)->GetFilename());
+      gLogger::info("The skin [0x{:x}:{}] from file [{}] added as extra skin.", lArmor->GetFormID(), lID, lArmor->GetFile(0)->GetFilename());
       continue;
     }
     if (lCheckSkinRecords) {
@@ -293,25 +322,21 @@ void TngUtil::CheckArmorPieces() noexcept {
           if (lRaceGen != fAllRaceGens.end()) AddGenitalToSkin(lArmor, (*lRaceGen).second);
         }
         const auto lID = (std::string(lArmor->GetName()).empty()) ? lArmor->GetFormEditorID() : lArmor->GetName();
-        gLogger::info("The skin [0x{:x}:{}] from file [{}] added as extra skin", lArmor->GetFormID(), lID, lArmor->GetFile(0)->GetFilename());
+        gLogger::info("The skin [0x{:x}:{}] from file [{}] added as extra skin.", lArmor->GetFormID(), lID, lArmor->GetFile(0)->GetFilename());
         continue;
       }
     }
     if (lCheckCoverRecords) {
       const auto lCoverEntry = lSingleCoveringIDs.find(std::make_pair(std::string{lArmor->GetFile(0)->GetFilename()}, lArmor->formID));
       if (lCoverEntry != lSingleCoveringIDs.end()) {
-        lArmor->AddKeyword(fCoveringKey);
-        if (fHandledArma.find(lArmor->armorAddons[0]) != fHandledArma.end()) {
-          lArmor->armorAddons[0]->AddSlotToMask(cSlotGenital);
-          fHandledArma.insert(lArmor->armorAddons[0]);
-        }
-        fCCount++;
+        CoverByArmor(lArmor);
         continue;
       }
     }
     if (lCheckRevealMods && (lRevealingMods.find(std::string{lArmor->GetFile(0)->GetFilename()}) != lRevealingMods.end())) {
       if (lArmor->HasPartOf(cSlotBody)) {
         lArmor->AddKeyword(fRevealingKey);
+        HandleArmor(lArmor);
         fRCount++;
       }
       continue;
@@ -320,6 +345,7 @@ void TngUtil::CheckArmorPieces() noexcept {
       const auto lRevealEntry = lSingleRevealingIDs.find(std::make_pair(std::string{lArmor->GetFile(0)->GetFilename()}, lArmor->formID));
       if (lRevealEntry != lSingleRevealingIDs.end()) {
         lArmor->AddKeyword(fRevealingKey);
+        HandleArmor(lArmor);
         fRCount++;
         continue;
       }
