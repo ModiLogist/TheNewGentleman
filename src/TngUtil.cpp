@@ -243,21 +243,17 @@ void TngUtil::CheckArmorPieces() noexcept {
   const std::set<std::string> lRevealingMods(TngInis::fRevealingMods);
   const std::set<std::pair<std::string, RE::FormID>> lSingleRevealingIDs(TngInis::fSingleRevealingIDs);
   const std::set<std::pair<std::string, RE::FormID>> lSingleCoveringIDs(TngInis::fSingleCoveringIDs);
-  const std::set<std::pair<std::string, RE::BGSBipedObjectForm::BipedObjectSlot>> lSwapMods(TngInis::fSwapMods);
 
   auto& lAllArmor = fDataHandler->GetFormArray<RE::TESObjectARMO>();
 
   bool lCheckSkinMods = (lSkinMods.size() > 0);
   bool lCheckSkinRecords = (lSingleSkinIDs.size() > 0);
-  bool lCheckSlotSwap = (lSwapMods.size() > 0);
   bool lCheckRevealMods = (lRevealingMods.size() > 0);
   bool lCheckRevealRecords = (lSingleRevealingIDs.size() > 0);
   bool lCheckCoverRecords = (lSingleCoveringIDs.size() > 0);
 
   for (const auto& lModName : lSkinMods)
     if (fDataHandler->LookupModByName(lModName)) gLogger::info("TheNewGentleman keeps an eye for [{}] as a skin mod.", lModName);
-  for (const auto& lModSlot : lSwapMods)
-    if (fDataHandler->LookupModByName(lModSlot.first)) gLogger::info("TheNewGentleman keeps an eye for [{}] as a slot swap mod.", lModSlot.first);
   for (const auto& lRevealMod : lRevealingMods)
     if (fDataHandler->LookupModByName(lRevealMod)) gLogger::info("TheNewGentleman keeps an eye for [{}] as a revealing armor mod.", lRevealMod);
 
@@ -325,15 +321,6 @@ void TngUtil::CheckArmorPieces() noexcept {
       if (lRevealEntry != lSingleRevealingIDs.end()) {
         lArmor->AddKeyword(fRevealingKey);
         fRCount++;
-        continue;
-      }
-    }
-    if (lCheckSlotSwap) {
-      const auto lSwapEntry = std::find_if(lSwapMods.begin(), lSwapMods.end(), [&lArmor](const std::pair<std::string_view, RE::BGSBipedObjectForm::BipedObjectSlot>& p) {
-        return p.first == lArmor->GetFile(0)->GetFilename();
-      });
-      if (lSwapEntry != lSwapMods.end()) {
-        if (lArmor->HasPartOf((*lSwapEntry).second)) HandleArmor(lArmor);
         continue;
       }
     }

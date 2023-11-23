@@ -61,18 +61,6 @@ void TngInis::LoadTngInis() noexcept {
           LoadModRecodPairs(lModRecords, fSingleCoveringIDs);
         }
       }
-      if (aIni.SectionExists(cSwapSection)) {
-        CSimpleIniA::TNamesDepend lEntries;
-        aIni.GetAllValues(cSwapSection, cSwapMod, lEntries);
-        for (const auto& lEntry : lEntries) {
-          const std::string lModSwap(lEntry.pItem);
-          const size_t lSepLoc = lModSwap.find(cColonChar);
-          const std::string lModName(0, lSepLoc);
-          int lSlotInt = (int)std::pow(2, std::strtol(lModSwap.substr(lSepLoc + 1).data(), nullptr, 0) - 30);
-          RE::BGSBipedObjectForm::BipedObjectSlot lID = static_cast<RE::BIPED_MODEL::BipedObjectSlot>(lSlotInt);
-          fSwapMods.insert(std::make_pair(lModName, lID));
-        }
-      }
     }
   }
 }

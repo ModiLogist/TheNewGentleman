@@ -17,9 +17,6 @@ class TngInis : public Singleton<TngInis> {
     inline static constexpr const char* cRevealingRecord{"RevealingRecord"};
     inline static constexpr const char* cCoveringRecord{"CoveringRecord"};
 
-    inline static constexpr const char* cSwapSection{"SwapSlot"};
-    inline static constexpr const char* cSwapMod{"SwapSlotMod"};
-
     static void LoadModRecodPairs(CSimpleIniA::TNamesDepend aModRecords, std::set<std::pair<std::string, RE::FormID>> aField);
 
     static bool IsTngIni(const std::string aFileName) noexcept;
@@ -30,7 +27,6 @@ class TngInis : public Singleton<TngInis> {
     inline static std::set<std::string> fRevealingMods;
     inline static std::set<std::pair<std::string, RE::FormID>> fSingleRevealingIDs;
     inline static std::set<std::pair<std::string, RE::FormID>> fSingleCoveringIDs;
-    inline static std::set<std::pair<std::string, RE::BGSBipedObjectForm::BipedObjectSlot>> fSwapMods;
 
     static void LoadTngInis() noexcept;
 };
