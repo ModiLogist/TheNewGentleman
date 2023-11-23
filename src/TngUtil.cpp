@@ -16,6 +16,15 @@ void TngUtil::AddGenitalToSkin(RE::TESObjectARMO* aSkin, RE::TESObjectARMA* aGen
   fHandledSkins.insert(aSkin);
 }
 
+bool TngUtil::CheckRace(RE::TESRace* aRace) {
+  if (!aRace->HasKeyword(fNPCKey) || aRace->HasKeyword(fCreatureKey) || !aRace->HasPartOf(cSlotBody) || aRace->IsChildRace()) return false;
+  if (aRace->GetPlayable()) return true;
+  bool lHasMaleNPCs = false;
+  for (const auto& lNPC : fAllNPCs)
+    if (!lNPC->IsFemale() && (lNPC->race == aRace)) lHasMaleNPCs = true;
+  return lHasMaleNPCs;
+}
+
 void TngUtil::AddRace(RE::TESRace* aRace, RE::TESObjectARMA* aGenital) noexcept {
   if (aRace->HasPartOf(cSlotGenital)) {
     gLogger::info("The race [{}] seems to be ready for TNG. It was not modified.", aRace->GetFormEditorID());
@@ -178,6 +187,7 @@ bool TngUtil::Initialize() noexcept {
   }
   fNPCKey = RE::TESForm::LookupByID<RE::BGSKeyword>(cNPCKeywID);
   fCreatureKey = RE::TESForm::LookupByID<RE::BGSKeyword>(cCrtKeywID);
+  fAllNPCs = fDataHandler->GetFormArray<RE::TESNPC>();
   return TRUE;
 }
 
@@ -189,9 +199,7 @@ void TngUtil::GenitalizeRaces() noexcept {
   for (const auto& lRace : lAllRacesArray) {
     if (fHandledRaces.find(lRace) != fHandledRaces.end()) continue;
     if (fExclRaces.find(lRace) != fExclRaces.end()) continue;
-    if (lRace->HasKeyword(fNPCKey) && !lRace->HasKeyword(fCreatureKey) && lRace->HasPartOf(cSlotBody) && !lRace->IsChildRace()) {
-      AddRace(lRace, nullptr);
-    }
+    if (CheckRace(lRace)) AddRace(lRace, nullptr);
   }
   fAllRaceGens.insert(fBaseRaceGens.begin(), fBaseRaceGens.end());
   fAllRaceGens.insert(fEquiRaceGens.begin(), fEquiRaceGens.end());
@@ -201,15 +209,14 @@ void TngUtil::GenitalizeRaces() noexcept {
 }
 
 void TngUtil::GenitalizeNPCSkins() noexcept {
-  auto& lAllNPCs = fDataHandler->GetFormArray<RE::TESNPC>();
-  int lAllCount = lAllNPCs.size();
+  int lAllCount = fAllNPCs.size();
   gLogger::info("Checking NPCs for custom skins: There are {} NPC records.", lAllCount);
   int lIrr = lAllCount;
   int lHdr = lAllCount;
   int lNob = lAllCount;
   int lC = 0;
   std::set<std::pair<std::string_view, int>> lCustomSkinMods;
-  for (const auto& lNPC : lAllNPCs) {
+  for (const auto& lNPC : fAllNPCs) {
     const auto lNPCRace = lNPC->race;
     if (!lNPCRace) {
       gLogger::warn("The NPC [{}] from file [{}] does not have a race! They cannot be modified by TNG.", lNPC->GetName(), lNPC->GetFile(0)->GetFilename());

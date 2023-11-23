@@ -104,6 +104,8 @@ class TngUtil : public Singleton<TngUtil> {
     inline static std::set<RE::TESObjectARMA*> fHandledArma;
     inline static std::set<RE::TESObjectARMA*> fRevealAAs;
 
+    inline static RE::BSTArray<RE::TESNPC*> fAllNPCs;
+
     // Local
     static int fRCount;
     static int fCCount;
@@ -111,6 +113,7 @@ class TngUtil : public Singleton<TngUtil> {
 
     // Methods
     static void AddGenitalToSkin(RE::TESObjectARMO* aSkin, RE::TESObjectARMA* aGenital) noexcept;
+    static bool CheckRace(RE::TESRace* aRace);
     static void AddRace(RE::TESRace* aRace, RE::TESObjectARMA* aGenital) noexcept;
     static void HandleArmor(RE::TESObjectARMO* aArmor) noexcept;
     static void CoverByArmor(RE::TESObjectARMO* aArmor) noexcept;
