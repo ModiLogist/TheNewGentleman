@@ -20,6 +20,10 @@ void TngUtil::AddRace(RE::TESRace* aRace, RE::TESObjectARMA* aGenital) noexcept 
   if (aRace->HasPartOf(cSlotGenital)) {
     gLogger::info("The race [{}] seems to be ready for TNG. It was not modified.", aRace->GetFormEditorID());
     fIgnoreRaces.insert(aRace);
+    if (aRace->skin) {
+      fRacialSkins.insert(aRace->skin);
+      fHandledSkins.insert(aRace->skin);
+    }
     return;
   }
   if (aGenital) {
@@ -54,6 +58,8 @@ void TngUtil::AddRace(RE::TESRace* aRace, RE::TESObjectARMA* aGenital) noexcept 
         gLogger::warn("The race [0x{:x}:{}] from file [{}] could not be recognized and did not receive any genital. If they should, a patch is required.", aRace->GetFormID(),
                       aRace->GetFormEditorID(), aRace->GetFile(0)->GetFilename());
         fIgnoreRaces.insert(aRace);
+        fRacialSkins.insert(aRace->skin);
+        fHandledSkins.insert(aRace->skin);
       }
     }
   } else {
@@ -134,7 +140,13 @@ bool TngUtil::Initialize() noexcept {
   if (!fDefMnmGenital || !fDefKhaGenital || !fDefSaxGenital) {
     gLogger::error("The original TNG Default-genitals cannot be found!");
   }
-  for (const auto& lID : cExclRaceIDs) fExclRaces.insert(RE::TESForm::LookupByID<RE::TESRace>(lID));
+  for (const auto& lID : cExclRaceIDs) {
+    auto lRace = fExclRaces.insert(RE::TESForm::LookupByID<RE::TESRace>(lID));
+    if ((*lRace.first)->skin) {
+      fRacialSkins.insert((*lRace.first)->skin);
+      fHandledSkins.insert((*lRace.first)->skin);
+    }
+  }
   fNPCKey = RE::TESForm::LookupByID<RE::BGSKeyword>(cNPCKeywID);
   fCreatureKey = RE::TESForm::LookupByID<RE::BGSKeyword>(cCrtKeywID);
   return TRUE;

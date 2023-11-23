@@ -75,15 +75,6 @@ class TngUtil : public Singleton<TngUtil> {
     inline static constexpr RE::FormID cCoveringKeyID{0xFFD};
 
     // Rquires Load
-    inline static RE::TESRace* fDefRace{nullptr};
-    inline static std::set<std::pair<RE::TESRace*, RE::TESObjectARMA*>> fBaseRaceGens;
-    inline static std::set<std::pair<RE::TESRace*, RE::TESObjectARMA*>> fEquiRaceGens;
-    inline static std::set<std::pair<RE::TESRace*, RE::TESObjectARMA*>> fExtrRaceGens;
-    inline static std::set<std::pair<RE::TESRace*, RE::TESObjectARMA*>> fAllRaceGens;
-    inline static std::set<RE::TESRace*> fExclRaces;
-    inline static RE::TESObjectARMA* fDefSaxGenital{nullptr};
-    inline static RE::TESObjectARMA* fDefKhaGenital{nullptr};
-    inline static RE::TESObjectARMA* fDefMnmGenital{nullptr};
 
     inline static RE::BGSKeyword* fBeastKey{nullptr};
     inline static RE::BGSKeyword* fNPCKey{nullptr};
@@ -92,6 +83,17 @@ class TngUtil : public Singleton<TngUtil> {
     inline static RE::BGSKeyword* fUnderwearKey{nullptr};
     inline static RE::BGSKeyword* fCoveringKey{nullptr};
 
+    inline static RE::TESObjectARMA* fDefSaxGenital{nullptr};
+    inline static RE::TESObjectARMA* fDefKhaGenital{nullptr};
+    inline static RE::TESObjectARMA* fDefMnmGenital{nullptr};
+
+    inline static RE::TESRace* fDefRace{nullptr};
+
+    inline static std::set<std::pair<RE::TESRace*, RE::TESObjectARMA*>> fBaseRaceGens;
+    inline static std::set<std::pair<RE::TESRace*, RE::TESObjectARMA*>> fEquiRaceGens;
+    inline static std::set<std::pair<RE::TESRace*, RE::TESObjectARMA*>> fExtrRaceGens;
+    inline static std::set<std::pair<RE::TESRace*, RE::TESObjectARMA*>> fAllRaceGens;
+    inline static std::set<RE::TESRace*> fExclRaces;
     inline static std::set<RE::TESRace*> fHandledRaces;
     inline static std::set<RE::TESRace*> fIgnoreRaces;
     inline static std::set<RE::TESObjectARMO*> fRacialSkins;
