@@ -1,9 +1,8 @@
 #include <TngInis.h>
 #include <TngUtil.h>
-#include <stddef.h>
 
 void InitializeLogging(const SKSE::PluginDeclaration* aPlugin) {
-  auto lPath{SKSE::log::log_directory()};
+  auto lPath{gLogger::log_directory()};
   if (!lPath) {
     SKSE::stl::report_and_fail("Unable to lookup SKSE logs directory.");
   }
@@ -33,12 +32,12 @@ void EventListener(SKSE::MessagingInterface::Message* aMessage) noexcept {
   }
 }
 
-SKSEPluginLoad(const SKSE::LoadInterface* skse) {
+SKSEPluginLoad(const SKSE::LoadInterface* aSkse) {
   const auto lPlugin{SKSE::PluginDeclaration::GetSingleton()};
   const auto lVersion{lPlugin->GetVersion()};
   InitializeLogging(lPlugin);
   gLogger::info("Initializing TheNewGentleman {}!", lVersion);
-  SKSE::Init(skse);
+  SKSE::Init(aSkse);
   const auto lMsgInterface{SKSE::GetMessagingInterface()};
   const bool lRegistered = lMsgInterface->RegisterListener(EventListener);  
   return lRegistered;

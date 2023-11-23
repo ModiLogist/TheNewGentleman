@@ -53,6 +53,17 @@ add_commonlibsse_plugin(
 
 add_library("${PROJECT_NAME}::${PROJECT_NAME}" ALIAS "${PROJECT_NAME}")
 
+target_compile_definitions(
+    ${PROJECT_NAME}
+    PUBLIC
+        WINVER=0x0601	# windows 7, minimum supported version by skyrim special edition
+        _WIN32_WINNT=0x0601
+        "$<$<BOOL:${SKSE_SUPPORT_XBYAK}>:SKSE_SUPPORT_XBYAK=1>"
+        "$<$<BOOL:${ENABLE_SKYRIM_SE}>:ENABLE_SKYRIM_SE=1>"
+        "$<$<BOOL:${ENABLE_SKYRIM_AE}>:ENABLE_SKYRIM_AE=1>"
+        "$<$<BOOL:${ENABLE_SKYRIM_VR}>:ENABLE_SKYRIM_VR=1>"
+)
+
 find_path(SIMPLEINI_INCLUDE_DIRS "ConvertUTF.c")
 target_include_directories(
   ${PROJECT_NAME}
