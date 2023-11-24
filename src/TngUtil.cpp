@@ -7,7 +7,10 @@ int TngUtil::fCCount;
 
 void TngUtil::AddGenitalToSkin(RE::TESObjectARMO* aSkin, RE::TESObjectARMA* aGenital, const bool aCheckRace) noexcept {
   for (const auto& lAA : aSkin->armorAddons)
-    if (lAA == aGenital) return;
+    if (lAA == aGenital) {
+      fHandledSkins.insert(aSkin);
+      return;
+    }
   if (fHandledSkins.find(aSkin) == fHandledSkins.end()) {
     const auto lAA = std::find_if(aSkin->armorAddons.begin(), aSkin->armorAddons.end(), [](RE::TESObjectARMA*& p) { return p->HasPartOf(cSlotBody); });
     bool lAdd = (lAA != aSkin->armorAddons.end());
@@ -150,6 +153,7 @@ void TngUtil::HandleArmor(RE::TESObjectARMO* aArmor) noexcept {
       fRCount++;
       return;
     }
+    lAB->AddSlotToMask(cSlotGenital);
     fHandledArma.insert(lAB);
     fCCount++;
   }
