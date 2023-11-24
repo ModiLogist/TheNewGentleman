@@ -26,13 +26,28 @@ void TngUtil::IgnoreRace(RE::TESRace* aRace) {
     fHandledSkins.insert(aRace->skin);
   }
 }
+
 bool TngUtil::CheckRace(RE::TESRace* aRace) {
   if (!aRace->HasKeyword(fNPCKey) || aRace->HasKeyword(fCreatureKey) || !aRace->HasPartOf(cSlotBody) || aRace->IsChildRace()) return false;
   if (aRace->GetPlayable()) return true;
   bool lHasMaleNPCs = false;
-  for (const auto& lNPC : fAllNPCs)
-    if (!lNPC->IsFemale() && (lNPC->race == aRace)) lHasMaleNPCs = true;
-  return lHasMaleNPCs;
+  bool lHasNPCs = false;
+  for (const auto& lNPC : fAllNPCs) {
+    if (lNPC->race == aRace) {
+      if (lNPC->IsFemale())
+        lHasNPCs = true;
+      else
+        lHasMaleNPCs = true;
+      if (lHasMaleNPCs) break;
+    }
+  }
+  bool lAdd = lHasMaleNPCs || (!lHasNPCs);
+  if (!lAdd) {
+    IgnoreRace(aRace);
+    gLogger::info("The race [0x{:x}:{}] from file [{}] has only female NPC references and ignored by TNG.", aRace->GetFormID(), aRace->GetFormEditorID(),
+                  aRace->GetFile(0)->GetFilename());
+  }
+  return lAdd;
 }
 
 void TngUtil::AddRace(RE::TESRace* aRace, RE::TESObjectARMA* aGenital) noexcept {
