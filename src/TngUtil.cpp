@@ -16,6 +16,13 @@ void TngUtil::AddGenitalToSkin(RE::TESObjectARMO* aSkin, RE::TESObjectARMA* aGen
   fHandledSkins.insert(aSkin);
 }
 
+void TngUtil::IgnoreRace(RE::TESRace* aRace) {
+  fIgnoreRaces.insert(aRace);
+  if (aRace->skin) {
+    fRacialSkins.insert(aRace->skin);
+    fHandledSkins.insert(aRace->skin);
+  }
+}
 bool TngUtil::CheckRace(RE::TESRace* aRace) {
   if (!aRace->HasKeyword(fNPCKey) || aRace->HasKeyword(fCreatureKey) || !aRace->HasPartOf(cSlotBody) || aRace->IsChildRace()) return false;
   if (aRace->GetPlayable()) return true;
@@ -28,11 +35,7 @@ bool TngUtil::CheckRace(RE::TESRace* aRace) {
 void TngUtil::AddRace(RE::TESRace* aRace, RE::TESObjectARMA* aGenital) noexcept {
   if (aRace->HasPartOf(cSlotGenital)) {
     gLogger::info("The race [{}] seems to be ready for TNG. It was not modified.", aRace->GetFormEditorID());
-    fIgnoreRaces.insert(aRace);
-    if (aRace->skin) {
-      fRacialSkins.insert(aRace->skin);
-      fHandledSkins.insert(aRace->skin);
-    }
+    IgnoreRace(aRace);
     return;
   }
   if (aGenital) {
@@ -45,7 +48,7 @@ void TngUtil::AddRace(RE::TESRace* aRace, RE::TESObjectARMA* aGenital) noexcept 
   if (!aRace->skin) {
     gLogger::warn("The race [0x{:x}:{}] from file [{}] cannot have any genitals since they do not have a skin. If they should, a patch is required.", aRace->GetFormID(),
                   aRace->GetFormEditorID(), aRace->GetFile(0)->GetFilename());
-    fIgnoreRaces.insert(aRace);
+    IgnoreRace(aRace);
     return;
   }
   if (aRace->HasKeyword(fBeastKey)) {
@@ -66,9 +69,7 @@ void TngUtil::AddRace(RE::TESRace* aRace, RE::TESObjectARMA* aGenital) noexcept 
       } else {
         gLogger::warn("The race [0x{:x}:{}] from file [{}] could not be recognized and did not receive any genital. If they should, a patch is required.", aRace->GetFormID(),
                       aRace->GetFormEditorID(), aRace->GetFile(0)->GetFilename());
-        fIgnoreRaces.insert(aRace);
-        fRacialSkins.insert(aRace->skin);
-        fHandledSkins.insert(aRace->skin);
+        IgnoreRace(aRace);
       }
     }
   } else {
