@@ -5,12 +5,15 @@ int TngUtil::fRCount;
 int TngUtil::fQCount;
 int TngUtil::fCCount;
 
-void TngUtil::AddGenitalToSkin(RE::TESObjectARMO* aSkin, RE::TESObjectARMA* aGenital) noexcept {
+void TngUtil::AddGenitalToSkin(RE::TESObjectARMO* aSkin, RE::TESObjectARMA* aGenital, const bool aCheckRace) noexcept {
   for (const auto& lAA : aSkin->armorAddons)
     if (lAA == aGenital) return;
-  if (fHandledSkins.find(aSkin) == fHandledSkins.end())
-    for (const auto& lAA : aSkin->armorAddons)
-      if (lAA->HasPartOf(cSlotBody) && lAA->race->HasKeyword(fNPCKey)) fSkinAAs.insert(lAA);
+  if (fHandledSkins.find(aSkin) == fHandledSkins.end()) {
+    const auto lAA = std::find_if(aSkin->armorAddons.begin(), aSkin->armorAddons.end(), [](RE::TESObjectARMA*& p) { return p->HasPartOf(cSlotBody); });
+    bool lAdd = (lAA != aSkin->armorAddons.end());
+    if (aCheckRace) lAdd = lAdd && (*lAA)->race->HasKeyword(fNPCKey);
+    if (lAdd) fSkinAAs.insert(*lAA);
+  }
   aSkin->AddSlotToMask(cSlotGenital);
   aSkin->armorAddons.emplace_back(aGenital);
   fHandledSkins.insert(aSkin);
