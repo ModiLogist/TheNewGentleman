@@ -12,12 +12,15 @@ void TngUtil::AddGenitalToSkin(RE::TESObjectARMO* aSkin, RE::TESObjectARMA* aGen
       return;
     }
   if (fHandledSkins.find(aSkin) == fHandledSkins.end()) {
-    const auto lAA = std::find_if(aSkin->armorAddons.begin(), aSkin->armorAddons.end(), [](RE::TESObjectARMA*& p) { return p->HasPartOf(cSlotBody); });
-    bool lAdd = (lAA != aSkin->armorAddons.end());
-    if (aCheckRace) lAdd = lAdd && (*lAA)->race->HasKeyword(fNPCKey);
-    if (lAdd) fSkinAAs.insert(*lAA);
+    for (const auto lAA : aSkin->armorAddons) {
+      if (aCheckRace) {
+        if (lAA->HasPartOf(cSlotBody) && lAA->race->HasKeyword(fNPCKey)) fSkinAAs.insert(lAA);
+      } else {
+        if (lAA->HasPartOf(cSlotBody)) fSkinAAs.insert(lAA);
+      }
+    }
   }
-  aSkin->AddSlotToMask(cSlotGenital);
+  if (!aSkin->HasPartOf(cSlotGenital)) aSkin->AddSlotToMask(cSlotGenital);
   aSkin->armorAddons.emplace_back(aGenital);
   fHandledSkins.insert(aSkin);
 }
@@ -53,7 +56,7 @@ bool TngUtil::CheckRace(RE::TESRace* aRace) {
   return lAdd;
 }
 
-void TngUtil::AddRace(RE::TESRace* aRace, RE::TESObjectARMA* aGenital) noexcept {
+void TngUtil::AddRace(RE::TESRace* aRace, RE::TESObjectARMA* aGenital, const bool aIsBaseGame) noexcept {
   if (aRace->HasPartOf(cSlotGenital)) {
     gLogger::info("The race [{}] seems to be ready for TNG. It was not modified.", aRace->GetFormEditorID());
     IgnoreRace(aRace);
@@ -61,7 +64,7 @@ void TngUtil::AddRace(RE::TESRace* aRace, RE::TESObjectARMA* aGenital) noexcept 
   }
   if (aGenital) {
     aRace->AddSlotToMask(cSlotGenital);
-    AddGenitalToSkin(aRace->skin, aGenital);
+    AddGenitalToSkin(aRace->skin, aGenital, aIsBaseGame);
     fRacialSkins.insert(aRace->skin);
     fHandledRaces.insert(aRace);
     return;
@@ -114,7 +117,7 @@ void TngUtil::HandleArmor(RE::TESObjectARMO* aArmor) noexcept {
     if (lAA->HasPartOf(cSlotGenital)) lAG = lAA;
   }
   if (lAG) {
-    if (lAB) {
+    if (!lAB) {
       fQCount++;
       return;
     }
@@ -223,8 +226,8 @@ bool TngUtil::Initialize() noexcept {
 
 void TngUtil::GenitalizeRaces() noexcept {
   gLogger::info("Assigning genitals to races...");
-  for (const auto& lRaceGen : fBaseRaceGens) AddRace(lRaceGen.first, lRaceGen.second);
-  for (const auto& lRaceGen : fEquiRaceGens) AddRace(lRaceGen.first, lRaceGen.second);
+  for (const auto& lRaceGen : fBaseRaceGens) AddRace(lRaceGen.first, lRaceGen.second, true);
+  for (const auto& lRaceGen : fEquiRaceGens) AddRace(lRaceGen.first, lRaceGen.second, true);
   auto& lAllRacesArray = fDataHandler->GetFormArray<RE::TESRace>();
   for (const auto& lRace : lAllRacesArray) {
     if (fHandledRaces.find(lRace) != fHandledRaces.end()) continue;
@@ -331,6 +334,7 @@ void TngUtil::CheckArmorPieces() noexcept {
       const auto lID = (std::string(lArmor->GetName()).empty()) ? lArmor->GetFormEditorID() : lArmor->GetName();
       if (lArmor->HasPartOf(cSlotGenital)) {
         gLogger::info("The skin [0x{:x}:{}] from file [{}] is ready for TNG!", lArmor->GetFormID(), lID, lArmor->GetFile(0)->GetFilename());
+        fHandledSkins.insert(lArmor);
         continue;
       }
       std::set<RE::TESRace*> lSkinRaces;
@@ -395,8 +399,12 @@ void TngUtil::CheckArmorPieces() noexcept {
       continue;
     }
   }
-  for (const auto& lArmor : lAllArmor)
-    if (lArmor->HasPartOf(cSlotBody) || lArmor->HasKeyword(fCoveringKey)) HandleArmor(lArmor);
+  for (const auto& lArmor : lAllArmor) {
+    if (fHandledSkins.find(lArmor) != fHandledSkins.end()) continue;
+    if (lArmor->armorAddons.size() == 0) continue;
+    if (lArmor->HasKeyword(fRevealingKey)) continue;
+    if (lArmor->HasPartOf(cSlotBody)) HandleArmor(lArmor);
+  }
   gLogger::info("Processed {} body armor pieces:", fCCount + fRCount + fQCount);
   gLogger::info("\t{}: already covering genitals", fQCount);
   gLogger::info("\t{}: revealing", fRCount);
