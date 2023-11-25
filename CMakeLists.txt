@@ -47,7 +47,9 @@ find_package(CommonLibSSE CONFIG REQUIRED)
 
 add_commonlibsse_plugin(
   ${PROJECT_NAME}
-  AUTHOR ModiLogist 
+  AUTHOR ModiLogist
+  USE_ADDRESS_LIBRARY
+  USE_SIGNATURE_SCANNING
   SOURCES ${headers} ${sources}
 )
 
