@@ -8,41 +8,41 @@ class TngUtil : public Singleton<TngUtil> {
     inline static constexpr int cRaceTypes{14};
 
     inline static constexpr RE::FormID cDefRaceID = 0x19;
-    inline static constexpr RE::FormID cBaseRaceIDs[cRaceTypes] = {
-        0x13746,    // Nord
-        0x13748,    // Redguard
-        0x13741,    // Breton
-        0x13744,    // Imperial
-        0x13743,    // Altmer
-        0x13749,    // Bosmer
-        0x13742,    // Dunmer
-        0x13747,    // Orsimer
-        0x13740,    // Saxhleel
-        0x13745,    // Khajiit
-        0x131F0,    // Dremora
-        0x67CD8,    // Elder
-        0x97A3D,    // Afflicted
-        0x200377D,  // SnowElf
+    inline static constexpr std::pair<RE::FormID, std::string_view> cBaseRaceIDs[cRaceTypes] = {
+        {0x13746, "Skyrim.esm"},     // Nord
+        {0x13748, "Skyrim.esm"},     // Redguard
+        {0x13741, "Skyrim.esm"},     // Breton
+        {0x13744, "Skyrim.esm"},     // Imperial
+        {0x13743, "Skyrim.esm"},     // Altmer
+        {0x13749, "Skyrim.esm"},     // Bosmer
+        {0x13742, "Skyrim.esm"},     // Dunmer
+        {0x13747, "Skyrim.esm"},     // Orsimer
+        {0x13740, "Skyrim.esm"},     // Saxhleel
+        {0x13745, "Skyrim.esm"},     // Khajiit
+        {0x131F0, "Skyrim.esm"},     // Dremora
+        {0x67CD8, "Skyrim.esm"},     // Elder
+        {0x97A3D, "Skyrim.esm"},     // Afflicted
+        {0x0377D, "Dawnguard.esm"},  // SnowElf
     };
     inline static constexpr RE::FormID cExclRaceIDs[3] = {
         0x07EAF3,   // AstridRace
         0x10760A,   // ManakinRace
         0x2004D31,  // TestRace
     };
-    inline static constexpr std::pair<RE::FormID, int> cEquiRaceIDs[13] = {
-        {0x88794, 0},     // Nord Vampire
-        {0x88846, 1},     // Redguard Vampire
-        {0x8883C, 2},     // Breton Vampire
-        {0x88844, 3},     // Imperial Vampire
-        {0x88840, 4},     // Altmer Vampire
-        {0x88884, 5},     // Bosmer Vampire
-        {0x8883D, 6},     // Dunmer Vampire
-        {0xA82B9, 7},     // Orsimer Vampire
-        {0x8883A, 8},     // Saxhleel Vampire
-        {0x88845, 9},     // Khajiit Vampire
-        {0x4035538, 10},  // DLC2 Dremora
-        {0xA82BA, 11},    // Elder Vampire
-        {0x200E88A, 0},   // DLC1 Nord
+    inline static constexpr std::pair<std::pair<RE::FormID, std::string_view>, int> cEquiRaceIDs[13] = {
+        {{0x88794, "Skyrim.esm"}, 0},       // Nord Vampire
+        {{0x88846, "Skyrim.esm"}, 1},       // Redguard Vampire
+        {{0x8883C, "Skyrim.esm"}, 2},       // Breton Vampire
+        {{0x88844, "Skyrim.esm"}, 3},       // Imperial Vampire
+        {{0x88840, "Skyrim.esm"}, 4},       // Altmer Vampire
+        {{0x88884, "Skyrim.esm"}, 5},       // Bosmer Vampire
+        {{0x8883D, "Skyrim.esm"}, 6},       // Dunmer Vampire
+        {{0xA82B9, "Skyrim.esm"}, 7},       // Orsimer Vampire
+        {{0x8883A, "Skyrim.esm"}, 8},       // Saxhleel Vampire
+        {{0x88845, "Skyrim.esm"}, 9},       // Khajiit Vampire
+        {{0x35538, "Dragonborn.esm"}, 10},  // DLC2 Dremora
+        {{0xA82BA, "Skyrim.esm"}, 11},      // Elder Vampire
+        {{0x0E88A, "Dawnguard.esm"}, 0},  // DLC1 Nord
     };
 
     inline static constexpr RE::FormID cGenitalIDs[cRaceTypes] = {
@@ -64,8 +64,6 @@ class TngUtil : public Singleton<TngUtil> {
     inline static constexpr RE::FormID cDefGenitalMnmID = 0x8ff;  // TNG_GenitalDefaultManMer
     inline static constexpr RE::FormID cDefGenitalSaxID = 0x8fd;  // TNG_GenitalDefaultSaxhleel
     inline static constexpr RE::FormID cDefGenitalKhaID = 0x8fe;  // TNG_GenitalDefaultKhajiit
-    inline static constexpr RE::FormID cTngCoverID = 0x8f0;  // TNG_GenitalCover
-    
 
     inline static constexpr RE::BGSBipedObjectForm::BipedObjectSlot cSlotBody{RE::BGSBipedObjectForm::BipedObjectSlot::kBody};
     inline static constexpr RE::BGSBipedObjectForm::BipedObjectSlot cSlotGenital{RE::BGSBipedObjectForm::BipedObjectSlot::kModPelvisSecondary};
@@ -88,7 +86,6 @@ class TngUtil : public Singleton<TngUtil> {
     inline static RE::TESObjectARMA* fDefSaxGenital{nullptr};
     inline static RE::TESObjectARMA* fDefKhaGenital{nullptr};
     inline static RE::TESObjectARMA* fDefMnmGenital{nullptr};
-    inline static RE::TESObjectARMA* fTNGCover{nullptr};
     inline static RE::TESRace* fDefRace{nullptr};
 
     inline static std::set<std::pair<RE::TESRace*, RE::TESObjectARMA*>> fBaseRaceGens;

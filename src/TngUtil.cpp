@@ -164,9 +164,13 @@ void TngUtil::HandleArmor(RE::TESObjectARMO* aArmor) noexcept {
 
 void TngUtil::CoverByArmor(RE::TESObjectARMO* aArmor) noexcept {
   aArmor->AddKeyword(fCoveringKey);
-  aArmor->armorAddons.emplace_back(fTNGCover);
   const auto lID = (std::string(aArmor->GetName()).empty()) ? aArmor->GetFormEditorID() : aArmor->GetName();
-  gLogger::info("The armor [0x{:x}:{}] from file [{}] would cover genitalia and any other armor on slot 52.", aArmor->GetFormID(), lID, aArmor->GetFile(0)->GetFilename());
+  if (!(aArmor->HasPartOf(cSlotGenital) || aArmor->armorAddons[0]->HasPartOf(cSlotGenital))) {
+    aArmor->armorAddons[0]->AddSlotToMask(cSlotGenital);
+    gLogger::info("The armor [0x{:x}:{}] from file [{}] would cover genitalia and any other armor on slot 52.", aArmor->GetFormID(), lID, aArmor->GetFile(0)->GetFilename());
+  } else {
+    gLogger::info("The armor [0x{:x}:{}] from file [{}] already covers genitalia and any other armor on slot 52.", aArmor->GetFormID(), lID, aArmor->GetFile(0)->GetFilename());
+  }
 }
 
 bool TngUtil::Initialize() noexcept {
@@ -187,7 +191,7 @@ bool TngUtil::Initialize() noexcept {
 
   gLogger::info("Finding the genitals to respective races...");
   for (int i = 0; i < cRaceTypes; i++) {
-    const auto lRace = RE::TESForm::LookupByID<RE::TESRace>(cBaseRaceIDs[i]);
+    const auto lRace = fDataHandler->LookupForm<RE::TESRace>(cBaseRaceIDs[i].first, cBaseRaceIDs[i].second);
     const auto lGenital = fDataHandler->LookupForm<RE::TESObjectARMA>(cGenitalIDs[i], cTNGName);
     if (!(lRace && lGenital)) {
       gLogger::error("Original information cannot be found!");
@@ -196,7 +200,7 @@ bool TngUtil::Initialize() noexcept {
     fBaseRaceGens.insert(std::make_pair(lRace, lGenital));
   }
   for (const auto& lRaceID : cEquiRaceIDs) {
-    const auto lRace = RE::TESForm::LookupByID<RE::TESRace>(lRaceID.first);
+    const auto lRace = fDataHandler->LookupForm<RE::TESRace>(lRaceID.first.first, lRaceID.first.second);
     const auto lGenital = fDataHandler->LookupForm<RE::TESObjectARMA>(cGenitalIDs[lRaceID.second], cTNGName);
     if (!(lRace && lGenital)) {
       gLogger::error("Original information cannot be found!");
@@ -207,7 +211,6 @@ bool TngUtil::Initialize() noexcept {
   fDefSaxGenital = fDataHandler->LookupForm<RE::TESObjectARMA>(cDefGenitalSaxID, cTNGName);
   fDefKhaGenital = fDataHandler->LookupForm<RE::TESObjectARMA>(cDefGenitalKhaID, cTNGName);
   fDefMnmGenital = fDataHandler->LookupForm<RE::TESObjectARMA>(cDefGenitalMnmID, cTNGName);
-  fTNGCover = fDataHandler->LookupForm<RE::TESObjectARMA>(cTngCoverID, cTNGName);
   if (!fDefMnmGenital || !fDefKhaGenital || !fDefSaxGenital) {
     gLogger::error("The original TNG Default-genitals cannot be found!");
   }
