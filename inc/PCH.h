@@ -21,17 +21,17 @@ namespace gLogger = SKSE::log;
 template <typename T>
 class Singleton {
   protected:
-  constexpr Singleton() noexcept = default;
-  constexpr ~Singleton() noexcept = default;
+    constexpr Singleton() noexcept = default;
+    constexpr ~Singleton() noexcept = default;
 
   public:
-  constexpr Singleton(const Singleton&) = delete;
-  constexpr Singleton(Singleton&&) = delete;
-  constexpr auto operator=(const Singleton&) = delete;
-  constexpr auto operator=(Singleton&&) = delete;
+    constexpr Singleton(const Singleton&) = delete;
+    constexpr Singleton(Singleton&&) = delete;
+    constexpr auto operator=(const Singleton&) = delete;
+    constexpr auto operator=(Singleton&&) = delete;
 
-  [[nodiscard]] static constexpr T* GetSingleton() noexcept {
-    static T singleton;
-    return std::addressof(singleton);
-  }
+    [[nodiscard]] static constexpr T* GetSingleton() noexcept {
+      static T aSingleton;
+      return std::addressof(aSingleton);
+    }
 };

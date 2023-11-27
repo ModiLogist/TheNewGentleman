@@ -214,8 +214,8 @@ bool TngUtil::Initialize() noexcept {
   if (!fDefMnmGenital || !fDefKhaGenital || !fDefSaxGenital) {
     gLogger::error("The original TNG Default-genitals cannot be found!");
   }
-  for (const auto& lID : cExclRaceIDs) {
-    auto lRace = fExclRaces.insert(RE::TESForm::LookupByID<RE::TESRace>(lID));
+  for (const auto& lRaceID : cExclRaceIDs) {
+    auto lRace = fExclRaces.insert(fDataHandler->LookupForm<RE::TESRace>(lRaceID.first, lRaceID.second));
     if ((*lRace.first)->skin) {
       fRacialSkins.insert((*lRace.first)->skin);
       fHandledSkins.insert((*lRace.first)->skin);

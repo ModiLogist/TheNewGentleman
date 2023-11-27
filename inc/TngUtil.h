@@ -24,10 +24,10 @@ class TngUtil : public Singleton<TngUtil> {
         {0x97A3D, "Skyrim.esm"},     // Afflicted
         {0x0377D, "Dawnguard.esm"},  // SnowElf
     };
-    inline static constexpr RE::FormID cExclRaceIDs[3] = {
-        0x07EAF3,   // AstridRace
-        0x10760A,   // ManakinRace
-        0x2004D31,  // TestRace
+    inline static constexpr std::pair<RE::FormID, std::string_view> cExclRaceIDs[3] = {
+        {0x07EAF3, "Skyrim.esm"},     // AstridRace
+        {0x10760A, "Skyrim.esm"},     // ManakinRace
+        {0x004D31, "Dawnguard.esm"},  // TestRace
     };
     inline static constexpr std::pair<std::pair<RE::FormID, std::string_view>, int> cEquiRaceIDs[13] = {
         {{0x88794, "Skyrim.esm"}, 0},       // Nord Vampire
@@ -42,7 +42,7 @@ class TngUtil : public Singleton<TngUtil> {
         {{0x88845, "Skyrim.esm"}, 9},       // Khajiit Vampire
         {{0x35538, "Dragonborn.esm"}, 10},  // DLC2 Dremora
         {{0xA82BA, "Skyrim.esm"}, 11},      // Elder Vampire
-        {{0x0E88A, "Dawnguard.esm"}, 0},  // DLC1 Nord
+        {{0x0E88A, "Dawnguard.esm"}, 0},    // DLC1 Nord
     };
 
     inline static constexpr RE::FormID cGenitalIDs[cRaceTypes] = {
