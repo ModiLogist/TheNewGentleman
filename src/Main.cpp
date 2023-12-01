@@ -2,7 +2,7 @@
 #include <TngUtil.h>
 
 void InitializeLogging(const SKSE::PluginDeclaration* aPlugin) {
-  auto lPath{gLogger::log_directory()};
+  auto lPath{Tng::gLogger::log_directory()};
   if (!lPath) {
     SKSE::stl::report_and_fail("Unable to lookup SKSE logs directory.");
   }
@@ -25,9 +25,9 @@ void EventListener(SKSE::MessagingInterface::Message* aMessage) noexcept {
       TngUtil::GenitalizeRaces();
       TngUtil::GenitalizeNPCSkins();
       TngUtil::CheckArmorPieces();
-      gLogger::info("TheNewGentleman finished its operations.");
+      Tng::gLogger::info("TheNewGentleman finished its operations.");
     } else {
-      gLogger::error("TheNewGentleman did not initialize successfully!");
+      Tng::gLogger::error("TheNewGentleman did not initialize successfully!");
     }
   }
 }
@@ -36,7 +36,7 @@ SKSEPluginLoad(const SKSE::LoadInterface* aSkse) {
   const auto lPlugin{SKSE::PluginDeclaration::GetSingleton()};
   const auto lVersion{lPlugin->GetVersion()};
   InitializeLogging(lPlugin);
-  gLogger::info("Initializing TheNewGentleman {}!", lVersion);
+  Tng::gLogger::info("Initializing TheNewGentleman {}!", lVersion);
   SKSE::Init(aSkse);
   const auto lMsgInterface{SKSE::GetMessagingInterface()};
   const bool lRegistered = lMsgInterface->RegisterListener(EventListener);  

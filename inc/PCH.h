@@ -15,8 +15,19 @@
 
 using namespace std::literals;
 using namespace REL::literals;
+namespace Tng {
+  namespace gLogger = SKSE::log;
 
-namespace gLogger = SKSE::log;
+  inline static constexpr std::string_view cName = "TheNewGentleman.esp";
+  inline static constexpr RE::BGSBipedObjectForm::BipedObjectSlot cSlotBody{RE::BGSBipedObjectForm::BipedObjectSlot::kBody};
+  inline static constexpr RE::BGSBipedObjectForm::BipedObjectSlot cSlotGenital{RE::BGSBipedObjectForm::BipedObjectSlot::kModPelvisSecondary};
+  inline static constexpr RE::FormID cNPCKeywID{0x13794};
+  inline static constexpr RE::FormID cCrtKeywID{0x13795};
+  inline static constexpr RE::FormID cBstKeywID{0xD61D1};
+  inline static constexpr RE::FormID cRevealingKeyID{0xFFF};
+  inline static constexpr RE::FormID cUnderwearKeyID{0xFFE};
+  inline static constexpr RE::FormID cCoveringKeyID{0xFFD};
+}
 
 template <typename T>
 class Singleton {

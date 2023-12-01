@@ -2,7 +2,6 @@
 
 class TngUtil : public Singleton<TngUtil> {
   private:
-    inline static constexpr std::string_view cTNGName = "TheNewGentleman.esp";
     inline static RE::TESDataHandler* fDataHandler{nullptr};
     // Const
     inline static constexpr int cRaceTypes{14};
@@ -65,15 +64,6 @@ class TngUtil : public Singleton<TngUtil> {
     inline static constexpr RE::FormID cDefGenitalSaxID = 0x8fd;  // TNG_GenitalDefaultSaxhleel
     inline static constexpr RE::FormID cDefGenitalKhaID = 0x8fe;  // TNG_GenitalDefaultKhajiit
 
-    inline static constexpr RE::BGSBipedObjectForm::BipedObjectSlot cSlotBody{RE::BGSBipedObjectForm::BipedObjectSlot::kBody};
-    inline static constexpr RE::BGSBipedObjectForm::BipedObjectSlot cSlotGenital{RE::BGSBipedObjectForm::BipedObjectSlot::kModPelvisSecondary};
-    inline static constexpr RE::FormID cNPCKeywID{0x13794};
-    inline static constexpr RE::FormID cCrtKeywID{0x13795};
-    inline static constexpr RE::FormID cBstKeywID{0xD61D1};
-    inline static constexpr RE::FormID cRevealingKeyID{0xFFF};
-    inline static constexpr RE::FormID cUnderwearKeyID{0xFFE};
-    inline static constexpr RE::FormID cCoveringKeyID{0xFFD};
-
     // Rquires Load
 
     inline static RE::BGSKeyword* fBeastKey{nullptr};
@@ -109,10 +99,10 @@ class TngUtil : public Singleton<TngUtil> {
     static int fQCount;
 
     // Methods
-    static void AddGenitalToSkin(RE::TESObjectARMO* aSkin, RE::TESObjectARMA* aGenital, const bool aCheckRace = false) noexcept;
+    static void AddGenitalToSkin(RE::TESObjectARMO* aSkin, RE::TESObjectARMA* aGenital) noexcept;
     static void IgnoreRace(RE::TESRace* aRace);
     static bool CheckRace(RE::TESRace* aRace);
-    static void AddRace(RE::TESRace* aRace, RE::TESObjectARMA* aGenital, const bool aIsBaseGame = false) noexcept;
+    static void AddRace(RE::TESRace* aRace, RE::TESObjectARMA* aGenital) noexcept;
     static void HandleArmor(RE::TESObjectARMO* aArmor) noexcept;
     static void CoverByArmor(RE::TESObjectARMO* aArmor) noexcept;
 
