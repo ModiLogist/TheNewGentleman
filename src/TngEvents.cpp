@@ -1,58 +1,56 @@
 #include <TngEvents.h>
 
-RE::BSEventNotifyControl TngEvents::ProcessEvent(const RE::TESObjectLoadedEvent* aEvent, RE::BSTEventSource<RE::TESObjectLoadedEvent>*) {
-  if (!aEvent) return RE::BSEventNotifyControl::kContinue;
-  const auto lActor = RE::TESForm::LookupByID<RE::Actor>(aEvent->formID);
-  if (!lActor) return RE::BSEventNotifyControl::kContinue;
-  if (lActor->IsPlayerRef()) return RE::BSEventNotifyControl::kContinue;
-  const auto lNpc = lActor ? lActor->GetActorBase() : nullptr;
-  if (lActor && lNpc) {
-    if (lNpc->HasKeyword(fNPCKey)) return RE::BSEventNotifyControl::kContinue;
-    ProcessActor(lActor);
+void TngEvents::MakeArmorRevealing(RE::TESObjectARMO* aArmo) noexcept {
+  if (aArmo->armorAddons.size() == 0) return;
+
+  for (const auto& lAA : aArmo->armorAddons) {
+    if (lAA->HasPartOf(Tng::cSlotGenital) && lAA->HasPartOf(Tng::cSlotBody)) lAA->RemoveSlotFromMask(Tng::cSlotGenital);
+    const auto lID = (std::string(aArmo->GetName()).empty()) ? aArmo->GetFormEditorID() : aArmo->GetName();
+    Tng::gLogger::info("The armor [0x{:x}:{}] from file [{}] was recognized revealing.", aArmo->GetLocalFormID(), lID, aArmo->GetFile(0)->GetFilename());
+    aArmo->AddKeyword(fRevealingKey);
+    return;
   }
-  return RE::BSEventNotifyControl::kContinue;
+}
+
+void TngEvents::CheckActor(RE::Actor* aActor) noexcept {
+  const auto lNpc = aActor ? aActor->GetActorBase() : nullptr;
+  if (!aActor || !lNpc) return;
+  if (!lNpc->race) return;
+  if (!lNpc->race->HasKeyword(fNPCKey)) return;
+  const auto lBArmo = aActor->GetWornArmor(Tng::cSlotBody);
+  const auto lGArmo = aActor->GetWornArmor(Tng::cSlotGenital);
+  if (!lBArmo || !lGArmo) return;
+  if (lBArmo == lGArmo) return;
+  if (lGArmo->HasKeyword(fUnderwearKey)) return;
+  if (lBArmo->HasKeyword(fRevealingKey)) return;
+  if (lBArmo->GetFile(0)->GetFilename() != lGArmo->GetFile(0)->GetFilename()) return;
+  MakeArmorRevealing(lBArmo);
 }
 
 RE::BSEventNotifyControl TngEvents::ProcessEvent(const RE::TESEquipEvent* aEvent, RE::BSTEventSource<RE::TESEquipEvent>*) {
+  if (!aEvent) return RE::BSEventNotifyControl::kContinue;
   const auto lActor = aEvent->actor->As<RE::Actor>();
-  if (!lActor) return RE::BSEventNotifyControl::kContinue;
-  const auto lArmor = RE::TESForm::LookupByID<RE::TESObjectARMO>(aEvent->baseObject);
-  const auto lNpc = lActor ? lActor->GetActorBase() : nullptr;
-  if (!lActor || !lArmor || !lNpc) return RE::BSEventNotifyControl::kContinue;
+  CheckActor(lActor);
   return RE::BSEventNotifyControl::kContinue;
 }
 
-bool TngEvents::IsCovering(const RE::TESBoundObject* aItem, const std::unique_ptr<RE::InventoryEntryData>& aEntry) noexcept {
-  if (!aEntry->IsWorn()) return false;
-  const auto lArmor = aItem->As<RE::TESObjectARMO>();
-  if (!lArmor) return false;
-  if (lArmor->HasPartOf(Tng::cSlotBody)) return true;
-  return false;
-}
-
-void TngEvents::ProcessActor(RE::Actor* aActor) noexcept {
-  const auto lActInv = aActor->GetInventory();
-  Tng::gLogger::info("{} has {} items in inventory.", aActor->GetName(), lActInv.size());
-  for (const auto& [lItem, lData] : lActInv) {
-    if (lItem->Is(RE::FormType::LeveledItem)) continue;
-    const auto& [lCount, lEntry] = lData;
-    if ((lCount > 0) && IsCovering(lItem, lEntry)) {
-      aActor->AddObjectToContainer(fCover, nullptr, 1, nullptr);
-      fEquipManager->EquipObject(aActor, fCover);
-      Tng::gLogger::info("Fixed {}", aActor->GetName());
-      return;
-    }
-  }
-  fWaitingActors.insert(aActor);
+RE::BSEventNotifyControl TngEvents::ProcessEvent(const RE::TESObjectLoadedEvent* aEvent, RE::BSTEventSource<RE::TESObjectLoadedEvent>*) {
+  if (!aEvent) return RE::BSEventNotifyControl::kContinue;
+  const auto lActor = RE::TESForm::LookupByID<RE::Actor>(aEvent->formID);
+  CheckActor(lActor);  
+  return RE::BSEventNotifyControl::kContinue;
 }
 
 void TngEvents::RegisterEvents() noexcept {
   const auto lSourceHolder = RE::ScriptEventSourceHolder::GetSingleton();
-  fEquipManager = RE::ActorEquipManager::GetSingleton();
-  fCover = RE::TESDataHandler::GetSingleton()->LookupForm<RE::TESObjectARMO>(cCoverID, Tng::cName);
-  fNPCKey = RE::TESDataHandler::GetSingleton()->LookupForm<RE::BGSKeyword>(Tng::cNPCKeywID, Tng::cName);
-  if (!lSourceHolder || !fEquipManager) return;
+  fNPCKey = RE::TESForm::LookupByID<RE::BGSKeyword>(Tng::cNPCKeywID);
+  fRevealingKey = RE::TESDataHandler::GetSingleton()->LookupForm<RE::BGSKeyword>(Tng::cRevealingKeyID, Tng::cName);
+  fUnderwearKey = RE::TESDataHandler::GetSingleton()->LookupForm<RE::BGSKeyword>(Tng::cUnderwearKeyID, Tng::cName);
+  if (!lSourceHolder || !fNPCKey || !fRevealingKey || !fUnderwearKey) {
+    Tng::gLogger::error("Mod cannot find necessary info for events, no events registered!");
+    return;
+  }
+  lSourceHolder->AddEventSink<RE::TESEquipEvent>(GetSingleton());
   lSourceHolder->AddEventSink<RE::TESObjectLoadedEvent>(GetSingleton());
-  /*lSourceHolder->AddEventSink<RE::TESEquipEvent>(GetSingleton());*/
   Tng::gLogger::info("Registered for necessary events.");
 }

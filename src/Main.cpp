@@ -1,5 +1,6 @@
 #include <TngInis.h>
 #include <TngUtil.h>
+#include <TngEvents.h>
 
 void InitializeLogging(const SKSE::PluginDeclaration* aPlugin) {
   auto lPath{Tng::gLogger::log_directory()};
@@ -25,7 +26,8 @@ void EventListener(SKSE::MessagingInterface::Message* aMessage) noexcept {
       TngUtil::GenitalizeRaces();
       TngUtil::GenitalizeNPCSkins();
       TngUtil::CheckArmorPieces();
-      Tng::gLogger::info("TheNewGentleman finished its operations.");
+      Tng::gLogger::info("TheNewGentleman finished initialization.");
+      TngEvents::RegisterEvents();
     } else {
       Tng::gLogger::error("TheNewGentleman did not initialize successfully!");
     }

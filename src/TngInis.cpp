@@ -1,6 +1,6 @@
 #include <TngInis.h>
 
-void TngInis::LoadModRecodPairs(CSimpleIniA::TNamesDepend aModRecords, std::set<std::pair<std::string, RE::FormID>> aField) {
+void TngInis::LoadModRecodPairs(CSimpleIniA::TNamesDepend aModRecords, std::set<std::pair<std::string, RE::FormID>>& aField) {
   CSimpleIniA::TNamesDepend::const_iterator lEntry;
   for (lEntry = aModRecords.begin(); lEntry != aModRecords.end(); lEntry++) {
     const std::string lModRecord(lEntry->pItem);
@@ -11,15 +11,18 @@ void TngInis::LoadModRecodPairs(CSimpleIniA::TNamesDepend aModRecords, std::set<
   }
 }
 
-bool TngInis::IsTngIni(const std::string aFileName) noexcept {
+bool TngInis::IsTngIni(const std::string_view aFileName) noexcept {
   if (aFileName.size() < cTngIniEnding.size()) return false;
   return std::equal(cTngIniEnding.rbegin(), cTngIniEnding.rend(), aFileName.rbegin());
 }
 
 void TngInis::LoadTngInis() noexcept {
   if (!std::filesystem::exists(cTngInisPath)) return;
+  Tng::gLogger::info("Loading ini files:");
   for (const auto& entry : std::filesystem::directory_iterator(cTngInisPath)) {
-    if (IsTngIni(entry.path().filename().string())) {
+    std::string lFileName = entry.path().filename().string();
+    if (IsTngIni(lFileName)) {
+      Tng::gLogger::info("\tFound ini file {}:", lFileName);
       CSimpleIniA aIni;
       aIni.SetUnicode();
       aIni.SetMultiKey();
@@ -39,6 +42,7 @@ void TngInis::LoadTngInis() noexcept {
           CSimpleIniA::TNamesDepend lModRecords;
           aIni.GetAllValues(cSkinSection, cSkinRecord, lModRecords);
           LoadModRecodPairs(lModRecords, fSingleSkinIDs);
+          Tng::gLogger::info("\t\t- Found skin records in ini file [{}].", lFileName);
         }
       }
       if (aIni.SectionExists(cArmorSection)) {
@@ -54,13 +58,17 @@ void TngInis::LoadTngInis() noexcept {
           CSimpleIniA::TNamesDepend lModRecords;
           aIni.GetAllValues(cArmorSection, cRevealingMod, lModRecords);
           LoadModRecodPairs(lModRecords, fSingleRevealingIDs);
+          Tng::gLogger::info("\t\t- Found revealing records in ini file [{}].", lFileName);
         }
         if (aIni.KeyExists(cArmorSection, cCoveringRecord)) {
           CSimpleIniA::TNamesDepend lModRecords;
           aIni.GetAllValues(cArmorSection, cCoveringRecord, lModRecords);
           LoadModRecodPairs(lModRecords, fSingleCoveringIDs);
+          Tng::gLogger::info("\t\t- Found covering records in ini file [{}].", lFileName);
         }
       }
+    } else {
+      Tng::gLogger::warn("The file {} in TNG ini folder is not named correctly or is not a TNG ini file.", lFileName);
     }
   }
 }
