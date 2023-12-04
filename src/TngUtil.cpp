@@ -285,9 +285,21 @@ void TngUtil::GenitalizeNPCSkins() noexcept {
       continue;
     }
     lNob--;
-    auto lRaceGen = std::find_if(fAllRaceGens.begin(), fAllRaceGens.end(), [&lNPC](const std::pair<RE::TESRace*, RE::TESObjectARMA*>& p) { return p.first == lNPC->race; });
-    if (lRaceGen != fAllRaceGens.end()) {
-      AddGenitalToSkin(lSkin, (*lRaceGen).second);
+    std::set<RE::TESRace*> lSkinRaces;
+    bool lIsNPCSkin = false;
+    for (const auto& lAA : lSkin->armorAddons) {
+      lSkinRaces.insert(lAA->race);
+      lSkinRaces.insert(lAA->additionalRaces.begin(), lAA->additionalRaces.end());
+    }
+    if (lSkinRaces.find(fDefRace) != lSkinRaces.end()) lSkinRaces.erase(fDefRace);
+    for (const auto& lRace : lSkinRaces) {
+      auto lRaceGen = std::find_if(fAllRaceGens.begin(), fAllRaceGens.end(), [&lRace](const std::pair<RE::TESRace*, RE::TESObjectARMA*>& p) { return p.first == lRace; });
+      if (lRaceGen != fAllRaceGens.end()) {
+        AddGenitalToSkin(lSkin, (*lRaceGen).second);
+        lIsNPCSkin = true;
+      }
+    }
+    if (lIsNPCSkin){
       auto lFoundMod =
           std::find_if(lCustomSkinMods.begin(), lCustomSkinMods.end(), [&lSkin](const std::pair<std::string_view, int>& p) { return p.first == lSkin->GetFile(0)->GetFilename(); });
       if (lFoundMod == lCustomSkinMods.end()) {
