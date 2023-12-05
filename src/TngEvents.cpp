@@ -37,15 +37,17 @@ RE::BSEventNotifyControl TngEvents::ProcessEvent(const RE::TESEquipEvent* aEvent
 RE::BSEventNotifyControl TngEvents::ProcessEvent(const RE::TESObjectLoadedEvent* aEvent, RE::BSTEventSource<RE::TESObjectLoadedEvent>*) {
   if (!aEvent) return RE::BSEventNotifyControl::kContinue;
   const auto lActor = RE::TESForm::LookupByID<RE::Actor>(aEvent->formID);
-  CheckActor(lActor);  
+  CheckActor(lActor);
   return RE::BSEventNotifyControl::kContinue;
 }
 
 void TngEvents::RegisterEvents() noexcept {
   const auto lSourceHolder = RE::ScriptEventSourceHolder::GetSingleton();
+  fEquipManager = RE::ActorEquipManager::GetSingleton();
   fNPCKey = RE::TESForm::LookupByID<RE::BGSKeyword>(Tng::cNPCKeywID);
   fRevealingKey = RE::TESDataHandler::GetSingleton()->LookupForm<RE::BGSKeyword>(Tng::cRevealingKeyID, Tng::cName);
   fUnderwearKey = RE::TESDataHandler::GetSingleton()->LookupForm<RE::BGSKeyword>(Tng::cUnderwearKeyID, Tng::cName);
+  fCoveringKey = RE::TESDataHandler::GetSingleton()->LookupForm<RE::BGSKeyword>(Tng::cCoveringKeyID, Tng::cName);
   if (!lSourceHolder || !fNPCKey || !fRevealingKey || !fUnderwearKey) {
     Tng::gLogger::error("Mod cannot find necessary info for events, no events registered!");
     return;

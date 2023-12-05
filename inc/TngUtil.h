@@ -4,10 +4,8 @@ class TngUtil : public Singleton<TngUtil> {
   private:
     inline static RE::TESDataHandler* fDataHandler{nullptr};
     // Const
-    inline static constexpr int cRaceTypes{14};
-
     inline static constexpr RE::FormID cDefRaceID = 0x19;
-    inline static constexpr std::pair<RE::FormID, std::string_view> cBaseRaceIDs[cRaceTypes] = {
+    inline static constexpr std::pair<RE::FormID, std::string_view> cBaseRaceIDs[Tng::cRaceTypes] = {
         {0x13746, "Skyrim.esm"},     // Nord
         {0x13748, "Skyrim.esm"},     // Redguard
         {0x13741, "Skyrim.esm"},     // Breton
@@ -44,7 +42,7 @@ class TngUtil : public Singleton<TngUtil> {
         {{0x0E88A, "Dawnguard.esm"}, 0},    // DLC1 Nord
     };
 
-    inline static constexpr RE::FormID cGenitalIDs[cRaceTypes] = {
+    inline static constexpr RE::FormID cGenitalIDs[Tng::cRaceTypes] = {
         0x800,  // TNG_GenitalNord
         0x801,  // TNG_GenitalRedguard
         0x802,  // TNG_GenitalBreton

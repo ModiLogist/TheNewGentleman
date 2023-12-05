@@ -17,8 +17,9 @@ using namespace std::literals;
 using namespace REL::literals;
 namespace Tng {
   namespace gLogger = SKSE::log;
-
   inline static constexpr std::string_view cName = "TheNewGentleman.esp";
+  inline static constexpr int cRaceTypes{14};
+
   inline static constexpr RE::BGSBipedObjectForm::BipedObjectSlot cSlotBody{RE::BGSBipedObjectForm::BipedObjectSlot::kBody};
   inline static constexpr RE::BGSBipedObjectForm::BipedObjectSlot cSlotGenital{RE::BGSBipedObjectForm::BipedObjectSlot::kModPelvisSecondary};
   inline static constexpr RE::FormID cNPCKeywID{0x13794};

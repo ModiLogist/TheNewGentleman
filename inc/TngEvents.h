@@ -11,9 +11,11 @@ class TngEvents : public RE::BSTEventSink<RE::TESObjectLoadedEvent>, public RE::
     TngEvents& operator=(const TngEvents&) = delete;
     TngEvents& operator=(TngEvents&&) = delete;
 
+    inline static RE::ActorEquipManager* fEquipManager{nullptr};
     inline static RE::BGSKeyword* fNPCKey{nullptr};
     inline static RE::BGSKeyword* fRevealingKey{nullptr};
     inline static RE::BGSKeyword* fUnderwearKey{nullptr};
+    inline static RE::BGSKeyword* fCoveringKey{nullptr};
 
     static void MakeArmorRevealing(RE::TESObjectARMO* aArmo) noexcept;
     static void CheckActor(RE::Actor* aActor) noexcept;

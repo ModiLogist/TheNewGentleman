@@ -153,6 +153,7 @@ void TngUtil::HandleArmor(RE::TESObjectARMO* aArmor) noexcept {
       return;
     }
     lAB->AddSlotToMask(Tng::cSlotGenital);
+    aArmor->AddKeyword(fCoveringKey);
     fCoveringAAs.insert(lAB);
     fCCount++;
   }
@@ -200,7 +201,7 @@ bool TngUtil::Initialize() noexcept {
   fDefRace = RE::TESForm::LookupByID<RE::TESRace>(cDefRaceID);
 
   Tng::gLogger::info("Finding the genitals to respective races...");
-  for (int i = 0; i < cRaceTypes; i++) {
+  for (int i = 0; i < Tng::cRaceTypes; i++) {
     const auto lRace = fDataHandler->LookupForm<RE::TESRace>(cBaseRaceIDs[i].first, cBaseRaceIDs[i].second);
     const auto lGenital = fDataHandler->LookupForm<RE::TESObjectARMA>(cGenitalIDs[i], Tng::cName);
     if (!(lRace && lGenital)) {
