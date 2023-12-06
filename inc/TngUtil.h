@@ -97,6 +97,7 @@ class TngUtil : public Singleton<TngUtil> {
     static int fQCount;
 
     // Methods
+    static bool FixSkin(RE::TESObjectARMO* aSkin, const char *const aName) noexcept;
     static void AddGenitalToSkin(RE::TESObjectARMO* aSkin, RE::TESObjectARMA* aGenital) noexcept;
     static void IgnoreRace(RE::TESRace* aRace);
     static bool CheckRace(RE::TESRace* aRace);

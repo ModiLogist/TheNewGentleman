@@ -5,6 +5,32 @@ int TngUtil::fRCount;
 int TngUtil::fQCount;
 int TngUtil::fCCount;
 
+bool TngUtil::FixSkin(RE::TESObjectARMO* aSkin, const char* const aName) noexcept {
+  if (!aSkin->HasPartOf(Tng::cSlotBody)) return false;
+  if (aSkin->HasPartOf(Tng::cSlotGenital)) {
+    if (aName) Tng::gLogger::info("The skin [0x{:x}:{}] from file [{}] is ready for TNG!", aSkin->GetFormID(), aName, aSkin->GetFile(0)->GetFilename());
+    fHandledSkins.insert(aSkin);
+    return true;
+  }
+
+  auto lHasGenital = false;
+  std::set<RE::TESRace*> lSkinRaces;
+  for (const auto& lAA : aSkin->armorAddons) {
+    lSkinRaces.insert(lAA->race);
+    lSkinRaces.insert(lAA->additionalRaces.begin(), lAA->additionalRaces.end());
+  }
+  if (lSkinRaces.find(fDefRace) != lSkinRaces.end()) lSkinRaces.erase(fDefRace);
+  for (const auto& lRace : lSkinRaces) {
+    auto lRaceGen = std::find_if(fAllRaceGens.begin(), fAllRaceGens.end(), [&lRace](const std::pair<RE::TESRace*, RE::TESObjectARMA*>& p) { return p.first == lRace; });
+    {
+      if (lRaceGen != fAllRaceGens.end()) AddGenitalToSkin(aSkin, (*lRaceGen).second);
+      lHasGenital = true;
+    }
+  }
+  if (aName) Tng::gLogger::info("The skin [0x{:x}:{}] from file [{}] added as extra skin.", aSkin->GetFormID(), aName, aSkin->GetFile(0)->GetFilename());
+  return lHasGenital;
+}
+
 void TngUtil::AddGenitalToSkin(RE::TESObjectARMO* aSkin, RE::TESObjectARMA* aGenital) noexcept {
   for (const auto& lAA : aSkin->armorAddons)
     if (lAA == aGenital) {
@@ -287,20 +313,8 @@ void TngUtil::GenitalizeNPCSkins() noexcept {
     }
     lNob--;
     std::set<RE::TESRace*> lSkinRaces;
-    bool lIsNPCSkin = false;
-    for (const auto& lAA : lSkin->armorAddons) {
-      lSkinRaces.insert(lAA->race);
-      lSkinRaces.insert(lAA->additionalRaces.begin(), lAA->additionalRaces.end());
-    }
-    if (lSkinRaces.find(fDefRace) != lSkinRaces.end()) lSkinRaces.erase(fDefRace);
-    for (const auto& lRace : lSkinRaces) {
-      auto lRaceGen = std::find_if(fAllRaceGens.begin(), fAllRaceGens.end(), [&lRace](const std::pair<RE::TESRace*, RE::TESObjectARMA*>& p) { return p.first == lRace; });
-      if (lRaceGen != fAllRaceGens.end()) {
-        AddGenitalToSkin(lSkin, (*lRaceGen).second);
-        lIsNPCSkin = true;
-      }
-    }
-    if (lIsNPCSkin){
+    bool lHasGenital = FixSkin(lSkin, nullptr);
+    if (lHasGenital) {
       auto lFoundMod =
           std::find_if(lCustomSkinMods.begin(), lCustomSkinMods.end(), [&lSkin](const std::pair<std::string_view, int>& p) { return p.first == lSkin->GetFile(0)->GetFilename(); });
       if (lFoundMod == lCustomSkinMods.end()) {
@@ -356,38 +370,13 @@ void TngUtil::CheckArmorPieces() noexcept {
     }
     if (!(lArmor->race->HasKeyword(fNPCKey) || (lArmor->race == fDefRace))) continue;
     if (lCheckSkinMods && (TngInis::fSkinMods.find(std::string{lArmor->GetFile(0)->GetFilename()}) != TngInis::fSkinMods.end())) {
-      if (!lArmor->HasPartOf(Tng::cSlotBody)) continue;
-      if (lArmor->HasPartOf(Tng::cSlotGenital)) {
-        Tng::gLogger::info("The skin [0x{:x}:{}] from file [{}] is ready for TNG!", lArmor->GetFormID(), lID, lArmor->GetFile(0)->GetFilename());
-        fHandledSkins.insert(lArmor);
-        continue;
-      }
-      std::set<RE::TESRace*> lSkinRaces;
-      for (const auto& lAA : lArmor->armorAddons) {
-        lSkinRaces.insert(lAA->race);
-        lSkinRaces.insert(lAA->additionalRaces.begin(), lAA->additionalRaces.end());
-      }
-      for (const auto& lRace : lSkinRaces) {
-        auto lRaceGen = std::find_if(fAllRaceGens.begin(), fAllRaceGens.end(), [&lRace](const std::pair<RE::TESRace*, RE::TESObjectARMA*>& p) { return p.first == lRace; });
-        if (lRaceGen != fAllRaceGens.end()) AddGenitalToSkin(lArmor, (*lRaceGen).second);
-      }
-      Tng::gLogger::info("The skin [0x{:x}:{}] from file [{}] added as extra skin.", lArmor->GetFormID(), lID, lArmor->GetFile(0)->GetFilename());
+      FixSkin(lArmor, lID);
       continue;
     }
     if (lCheckSkinRecords) {
       const auto lSkinEntry = TngInis::fSingleSkinIDs.find(std::make_pair(std::string{lArmor->GetFile(0)->GetFilename()}, lArmor->GetLocalFormID()));
       if (lSkinEntry != TngInis::fSingleSkinIDs.end()) {
-        std::set<RE::TESRace*> lSkinRaces;
-        for (const auto& lAA : lArmor->armorAddons) {
-          lSkinRaces.insert(lAA->race);
-          lSkinRaces.insert(lAA->additionalRaces.begin(), lAA->additionalRaces.end());
-        }
-        if (lSkinRaces.find(fDefRace) != lSkinRaces.end()) lSkinRaces.erase(fDefRace);
-        for (const auto& lRace : lSkinRaces) {
-          auto lRaceGen = std::find_if(fAllRaceGens.begin(), fAllRaceGens.end(), [&lRace](const std::pair<RE::TESRace*, RE::TESObjectARMA*>& p) { return p.first == lRace; });
-          if (lRaceGen != fAllRaceGens.end()) AddGenitalToSkin(lArmor, (*lRaceGen).second);
-        }
-        Tng::gLogger::info("The skin [0x{:x}:{}] from file [{}] added as extra skin.", lArmor->GetFormID(), lID, lArmor->GetFile(0)->GetFilename());
+        FixSkin(lArmor, lID);
         continue;
       }
     }
