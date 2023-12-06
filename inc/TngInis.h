@@ -2,10 +2,20 @@
 
 class TngInis : public Singleton<TngInis> {
   private:
-    // TNG stuff
-    inline static std::string cTngInisPath{R"(.\Data\SKSE\Plugins\TNG)"};
     inline static constexpr const char cDelimChar{'~'};
     inline static constexpr const char cColonChar{':'};
+
+    // TNG setting
+    inline static constexpr const char* cSettings{R"(.\Data\SKSE\Plugins\TheNewGentleman.ini)"};
+    inline static constexpr const char* cAutoReveal{"AutoReveal"};
+    inline static constexpr const char* cFAutoReveal{"Female"};
+    inline static constexpr const char* cMAutoReveal{"Male"};
+    inline static constexpr const char* cRacialGenital{"RaceGenital"};
+    inline static constexpr const char* cRaceNames[Tng::cRaceTypes]{"Nord",    "Redguard", "Breton",  "Imperial", "Altmer", "Bosmer",    "Dunmer",
+                                                                    "Orsimer", "Saxhleel", "Khajiit", "Dremora",  "Elder",  "Afflicted", "SnowElf"};
+
+    //Ini files
+    inline static constexpr const char* cTngInisPath{R"(.\Data\SKSE\Plugins\TNG)"};
 
     inline static constexpr std::string cTngIniEnding{"TNG.ini"};
     inline static constexpr const char* cSkinSection{"Skin"};
@@ -16,6 +26,8 @@ class TngInis : public Singleton<TngInis> {
     inline static constexpr const char* cRevealingMod{"RevealingMod"};
     inline static constexpr const char* cRevealingRecord{"RevealingRecord"};
     inline static constexpr const char* cCoveringRecord{"CoveringRecord"};
+
+    
 
     static void LoadModRecodPairs(CSimpleIniA::TNamesDepend aModRecords, std::set<std::pair<std::string, RE::FormID>>& aField);
 
@@ -29,4 +41,5 @@ class TngInis : public Singleton<TngInis> {
     inline static std::set<std::pair<std::string, RE::FormID>> fSingleCoveringIDs;
 
     static void LoadTngInis() noexcept;
+    static void LoadMainIni(bool& aRevealWomen, bool& aRevealMen) noexcept;
 };

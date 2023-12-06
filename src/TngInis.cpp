@@ -72,3 +72,18 @@ void TngInis::LoadTngInis() noexcept {
     }
   }
 }
+
+void TngInis::LoadMainIni(bool& aRevealWomen, bool& aRevealMen) noexcept {
+  if (!std::filesystem::exists(cTngInisPath)) return;
+  Tng::gLogger::info("Loading TNG settings...");
+  CSimpleIniA aIni;
+  aIni.SetUnicode();
+  aIni.LoadFile(cSettings);
+  aRevealWomen = true;
+  aRevealMen = true;
+  if (aIni.KeyExists(cArmorSection, cRevealingMod)) return;
+
+
+
+
+}
