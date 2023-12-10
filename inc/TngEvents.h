@@ -15,14 +15,15 @@ class TngEvents : public RE::BSTEventSink<RE::TESObjectLoadedEvent>, public RE::
     inline static RE::BGSKeyword* fNPCKey{nullptr};
     inline static RE::BGSKeyword* fRevealingKey{nullptr};
     inline static RE::BGSKeyword* fUnderwearKey{nullptr};
+    inline static RE::BGSKeyword* fAutoCoverKey{nullptr};
     inline static RE::BGSKeyword* fCoveringKey{nullptr};
     inline static RE::TESObjectARMO* fCover{nullptr};
     inline static bool fInternal;
     
-
-    static void MakeArmorRevealing(RE::TESObjectARMO* aArmo) noexcept;
-    static void CheckActor(RE::Actor* aActor) noexcept;
-    static void CoverActor(RE::Actor* aActor, RE::TESObjectARMO* aArmor) noexcept;
+    
+    static void CheckForRevealing(RE::TESObjectARMO* aBodyArmor, RE::TESObjectARMO* aPelvisArmor) noexcept;
+    static void CheckForClipping(RE::Actor* aActor, RE::TESObjectARMO* aArmor) noexcept;
+    static void CheckActor(RE::Actor* aActor, RE::TESObjectARMO* aArmor = nullptr) noexcept;
 
   protected:
     RE::BSEventNotifyControl ProcessEvent(const RE::TESEquipEvent* aEvent, RE::BSTEventSource<RE::TESEquipEvent>*) override;

@@ -27,7 +27,8 @@ namespace Tng {
   inline static constexpr RE::FormID cBstKeywID{0xD61D1};
   inline static constexpr RE::FormID cRevealingKeyID{0xFFF};
   inline static constexpr RE::FormID cUnderwearKeyID{0xFFE};
-  inline static constexpr RE::FormID cCoveringKeyID{0xFFD};
+  inline static constexpr RE::FormID cAutoCoverKeyID{0xFFC};
+  inline static constexpr RE::FormID cCoveringKeyID{0xFFD};  
   inline static constexpr RE::FormID cCoverID{0xA00};
 }
 

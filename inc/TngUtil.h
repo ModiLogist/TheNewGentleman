@@ -69,6 +69,7 @@ class TngUtil : public Singleton<TngUtil> {
     inline static RE::BGSKeyword* fCreatureKey{nullptr};
     inline static RE::BGSKeyword* fRevealingKey{nullptr};
     inline static RE::BGSKeyword* fUnderwearKey{nullptr};
+    inline static RE::BGSKeyword* fAutoCoverKey{nullptr};
     inline static RE::BGSKeyword* fCoveringKey{nullptr};
 
     inline static RE::TESObjectARMA* fDefSaxGenital{nullptr};

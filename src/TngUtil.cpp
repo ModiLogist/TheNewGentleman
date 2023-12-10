@@ -179,7 +179,7 @@ void TngUtil::HandleArmor(RE::TESObjectARMO* aArmor) noexcept {
       return;
     }
     lAB->AddSlotToMask(Tng::cSlotGenital);
-    aArmor->AddKeyword(fCoveringKey);
+    aArmor->AddKeyword(fAutoCoverKey);
     fCoveringAAs.insert(lAB);
     fCCount++;
   }
@@ -219,8 +219,9 @@ bool TngUtil::Initialize() noexcept {
   fBeastKey = RE::TESForm::LookupByID<RE::BGSKeyword>(Tng::cBstKeywID);
   fRevealingKey = fDataHandler->LookupForm<RE::BGSKeyword>(Tng::cRevealingKeyID, Tng::cName);
   fUnderwearKey = fDataHandler->LookupForm<RE::BGSKeyword>(Tng::cUnderwearKeyID, Tng::cName);
+  fAutoCoverKey = fDataHandler->LookupForm<RE::BGSKeyword>(Tng::cAutoCoverKeyID, Tng::cName);
   fCoveringKey = fDataHandler->LookupForm<RE::BGSKeyword>(Tng::cCoveringKeyID, Tng::cName);
-  if (!(fRevealingKey && fUnderwearKey)) {
+  if (!(fRevealingKey && fUnderwearKey && fAutoCoverKey && fCoveringKey)) {
     Tng::gLogger::error("The original TNG keywords could not be found!");
     return FALSE;
   }
