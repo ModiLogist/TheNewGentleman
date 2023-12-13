@@ -24,11 +24,11 @@ void TngEvents::CheckForClipping(RE::Actor* aActor, RE::TESObjectARMO* aArmor) n
 }
 
 void TngEvents::CheckActor(RE::Actor* aActor, RE::TESObjectARMO* aArmor) noexcept {
-  const auto lNpc = aActor ? aActor->GetActorBase() : nullptr;
-  if (!aActor || !lNpc) return;
-  if (!lNpc->race) return;
-  if (!lNpc->race->HasKeyword(fNPCKey)) return;
-  if (!lNpc->race->HasPartOf(Tng::cSlotGenital)) return;
+  const auto lNPC = aActor ? aActor->GetActorBase() : nullptr;
+  if (!aActor || !lNPC) return;
+  if (!lNPC->race) return;
+  if (!lNPC->race->HasKeyword(fNPCKey)) return;
+  if (!lNPC->race->HasPartOf(Tng::cSlotGenital)) return;
   const auto lGArmo = aActor->GetWornArmor(Tng::cSlotGenital);
   if (aArmor && !lGArmo) {
     if (aArmor->HasKeyword(fCoveringKey) || aArmor->HasKeyword(fAutoCoverKey)) CheckForClipping(aActor, aArmor);
@@ -60,7 +60,7 @@ RE::BSEventNotifyControl TngEvents::ProcessEvent(const RE::TESObjectLoadedEvent*
 void TngEvents::RegisterEvents() noexcept {
   const auto lSourceHolder = RE::ScriptEventSourceHolder::GetSingleton();
   fEquipManager = RE::ActorEquipManager::GetSingleton();
-  fNPCKey = RE::TESForm::LookupByID<RE::BGSKeyword>(Tng::cNPCKeywID);
+  fNPCKey = RE::TESDataHandler::GetSingleton()->LookupForm<RE::BGSKeyword>(Tng::cBstKeywID, Tng::cSkyrim);
   fRevealingKey = RE::TESDataHandler::GetSingleton()->LookupForm<RE::BGSKeyword>(Tng::cRevealingKeyID, Tng::cName);
   fUnderwearKey = RE::TESDataHandler::GetSingleton()->LookupForm<RE::BGSKeyword>(Tng::cUnderwearKeyID, Tng::cName);
   fAutoCoverKey = RE::TESDataHandler::GetSingleton()->LookupForm<RE::BGSKeyword>(Tng::cAutoCoverKeyID, Tng::cName);
