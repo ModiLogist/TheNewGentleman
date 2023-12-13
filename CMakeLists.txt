@@ -31,8 +31,9 @@ set(
   sources
     src/Main.cpp
     src/TngEvents.cpp
+    src/TngSizeDistr.cpp
     src/TngUtil.cpp
-    src/TngInis.cpp
+    src/TngInis.cpp    
     ${CMAKE_CURRENT_BINARY_DIR}/version.rc
 )
 

@@ -1,4 +1,5 @@
 #include <TngEvents.h>
+#include<TngSizeDistr.h>
 
 void TngEvents::CheckForRevealing(RE::TESObjectARMO* aBodyArmor, RE::TESObjectARMO* aPelvisArmor) noexcept {
   if (!aBodyArmor || !aPelvisArmor) return;
@@ -53,11 +54,13 @@ RE::BSEventNotifyControl TngEvents::ProcessEvent(const RE::TESEquipEvent* aEvent
 RE::BSEventNotifyControl TngEvents::ProcessEvent(const RE::TESObjectLoadedEvent* aEvent, RE::BSTEventSource<RE::TESObjectLoadedEvent>*) {
   if (!aEvent || fInternal) return RE::BSEventNotifyControl::kContinue;
   const auto lActor = RE::TESForm::LookupByID<RE::Actor>(aEvent->formID);
+  TngSizeDistr::RandomizeScale(lActor);
   CheckActor(lActor);
   return RE::BSEventNotifyControl::kContinue;
 }
 
 void TngEvents::RegisterEvents() noexcept {
+  TngSizeDistr::InitSizes();
   const auto lSourceHolder = RE::ScriptEventSourceHolder::GetSingleton();
   fEquipManager = RE::ActorEquipManager::GetSingleton();
   fNPCKey = RE::TESDataHandler::GetSingleton()->LookupForm<RE::BGSKeyword>(Tng::cBstKeywID, Tng::cSkyrim);

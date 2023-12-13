@@ -11,8 +11,11 @@ class TngInis : public Singleton<TngInis> {
     inline static constexpr const char* cFAutoReveal{"Female"};
     inline static constexpr const char* cMAutoReveal{"Male"};
     inline static constexpr const char* cRacialGenital{"RaceGenital"};
+    inline static constexpr const char* cRacialSize{"RaceSizeMultplier"};
     inline static constexpr const char* cRaceNames[Tng::cRaceTypes]{"Nord",    "Redguard", "Breton",  "Imperial", "Altmer", "Bosmer",    "Dunmer",
                                                                     "Orsimer", "Saxhleel", "Khajiit", "Dremora",  "Elder",  "Afflicted", "SnowElf"};
+    inline static constexpr const char* cNPCSizeSection{"NPCGenitalSize"};
+    inline static constexpr const char* cNPCSizeEntry{"NPC_ID"};
 
     //Ini files
     inline static constexpr const char* cTngInisPath{R"(.\Data\SKSE\Plugins\TNG)"};

@@ -109,18 +109,26 @@ void TngUtil::AddRace(RE::TESRace* aRace, RE::TESObjectARMA* aGenital, RE::TESRa
   if (aRace->HasKeyword(fBeastKey)) {
     const auto lRaceDesc = std::string(aRace->GetFormEditorID()) + std::string(aRace->GetName());
     if ((lRaceDesc.find("Khajiit") != std::string::npos) || (lRaceDesc.find("Rhat") != std::string::npos)) {
-      fDefKhaGenital->additionalRaces.emplace_back(aRace);
+      RE::TESRace* lRNAM = (aRace->armorParentRace && aRace->armorParentRace != fDefRace) ? aRace->armorParentRace : aRace;
+      int aChoice = fGenitalChoices[Tng::cRaceTypes + 2];
+      std::set<RE::TESRace*> lGenRaces{fDefKhaGenital[aChoice]->additionalRaces.begin(), fDefKhaGenital[aChoice]->additionalRaces.end()};
+      fDefKhaGenital[aChoice]->additionalRaces.emplace_back(aRace);
+      if (lGenRaces.find(lRNAM) == lGenRaces.end()) fDefKhaGenital[aChoice]->additionalRaces.emplace_back(lRNAM);
       Tng::gLogger::info("The race [0x{:x}:{}] from file [{}] was recognized as Khajiit. If this is wrong, a patch is required.", aRace->GetFormID(), aRace->GetFormEditorID(),
                          aRace->GetFile(0)->GetFilename());
       fExtrRaceGens.insert(std::make_pair(aRace, aGenital));
-      AddRace(aRace, fDefKhaGenital);
+      AddRace(aRace, fDefKhaGenital[aChoice], lRNAM);
     } else {
       if ((lRaceDesc.find("Argonian") != std::string::npos) || (lRaceDesc.find("Saxhleel") != std::string::npos)) {
-        fDefSaxGenital->additionalRaces.emplace_back(aRace);
+        RE::TESRace* lRNAM = (aRace->armorParentRace && aRace->armorParentRace != fDefRace) ? aRace->armorParentRace : aRace;
+        int aChoice = fGenitalChoices[Tng::cRaceTypes + 1];
+        std::set<RE::TESRace*> lGenRaces{fDefSaxGenital[aChoice]->additionalRaces.begin(), fDefSaxGenital[aChoice]->additionalRaces.end()};
+        fDefSaxGenital[aChoice]->additionalRaces.emplace_back(aRace);
+        if (lGenRaces.find(lRNAM) == lGenRaces.end()) fDefSaxGenital[aChoice]->additionalRaces.emplace_back(lRNAM);
         Tng::gLogger::info("The race [0x{:x}:{}] from file [{}] was recognized as Saxhleel(Argonian). If this is wrong, a patch is required.", aRace->GetFormID(),
                            aRace->GetFormEditorID(), aRace->GetFile(0)->GetFilename());
         fExtrRaceGens.insert(std::make_pair(aRace, aGenital));
-        AddRace(aRace, fDefSaxGenital);
+        AddRace(aRace, fDefSaxGenital[aChoice], lRNAM);
       } else {
         Tng::gLogger::warn("The race [0x{:x}:{}] from file [{}] could not be recognized and did not receive any genital. If they should, a patch is required.", aRace->GetFormID(),
                            aRace->GetFormEditorID(), aRace->GetFile(0)->GetFilename());
@@ -128,11 +136,15 @@ void TngUtil::AddRace(RE::TESRace* aRace, RE::TESObjectARMA* aGenital, RE::TESRa
       }
     }
   } else {
-    fDefMnmGenital->additionalRaces.emplace_back(aRace);
+    RE::TESRace* lRNAM = (aRace->armorParentRace && aRace->armorParentRace != fDefRace) ? aRace->armorParentRace : aRace;
+    int aChoice = fGenitalChoices[Tng::cRaceTypes];
+    std::set<RE::TESRace*> lGenRaces{fDefMnmGenital[aChoice]->additionalRaces.begin(), fDefMnmGenital[aChoice]->additionalRaces.end()};
+    fDefMnmGenital[aChoice]->additionalRaces.emplace_back(aRace);
+    if (lGenRaces.find(lRNAM) == lGenRaces.end()) fDefMnmGenital[aChoice]->additionalRaces.emplace_back(lRNAM);
     Tng::gLogger::info("The race [0x{:x}:{}] from file [{}] received the default genital for man and mer races. If this is wrong, a patch is required.", aRace->GetFormID(),
                        aRace->GetFormEditorID(), aRace->GetFile(0)->GetFilename());
     fExtrRaceGens.insert(std::make_pair(aRace, aGenital));
-    AddRace(aRace, fDefMnmGenital);
+    AddRace(aRace, fDefMnmGenital[aChoice], lRNAM);
   }
 }
 
@@ -283,7 +295,8 @@ bool TngUtil::Initialize() noexcept {
   Tng::gLogger::info("Finding the genitals to respective races...");
   for (int i = 0; i < Tng::cRaceTypes; i++) {
     const auto lRace = fDataHandler->LookupForm<RE::TESRace>(cBaseRaceIDs[i].first, cBaseRaceIDs[i].second);
-    const auto lGenital = fDataHandler->LookupForm<RE::TESObjectARMA>(cGenitalIDs[i], Tng::cName);
+    auto aChoice = fGenitalChoices[i] * Tng::cRaceTypes + i;
+    const auto lGenital = fDataHandler->LookupForm<RE::TESObjectARMA>(cGenitalIDs[aChoice], Tng::cName);
     if (!(lRace && lGenital)) {
       Tng::gLogger::error("Original information cannot be found!");
       return FALSE;
@@ -292,18 +305,22 @@ bool TngUtil::Initialize() noexcept {
   }
   for (const auto& lRaceID : cEquiRaceIDs) {
     const auto lRace = fDataHandler->LookupForm<RE::TESRace>(lRaceID.first.first, lRaceID.first.second);
-    const auto lGenital = fDataHandler->LookupForm<RE::TESObjectARMA>(cGenitalIDs[lRaceID.second], Tng::cName);
+    auto aChoice = fGenitalChoices[lRaceID.second] * Tng::cRaceTypes + lRaceID.second;
+    const auto lGenital = fDataHandler->LookupForm<RE::TESObjectARMA>(cGenitalIDs[aChoice], Tng::cName);
     if (!(lRace && lGenital)) {
       Tng::gLogger::error("Original information cannot be found!");
       return FALSE;
     }
     fEquiRaceGens.insert(std::make_pair(lRace, lGenital));
   }
-  fDefSaxGenital = fDataHandler->LookupForm<RE::TESObjectARMA>(cDefGenitalSaxID, Tng::cName);
-  fDefKhaGenital = fDataHandler->LookupForm<RE::TESObjectARMA>(cDefGenitalKhaID, Tng::cName);
-  fDefMnmGenital = fDataHandler->LookupForm<RE::TESObjectARMA>(cDefGenitalMnmID, Tng::cName);
-  if (!fDefMnmGenital || !fDefKhaGenital || !fDefSaxGenital) {
-    Tng::gLogger::error("The original TNG Default-genitals cannot be found!");
+  for (int i = 0; i < 3; i++) {
+    fDefSaxGenital[i] = fDataHandler->LookupForm<RE::TESObjectARMA>(cDefGenitalSaxID[i], Tng::cName);
+    fDefKhaGenital[i] = fDataHandler->LookupForm<RE::TESObjectARMA>(cDefGenitalKhaID[i], Tng::cName);
+    fDefMnmGenital[i] = fDataHandler->LookupForm<RE::TESObjectARMA>(cDefGenitalMnmID[i], Tng::cName);
+    if (!fDefMnmGenital[i] || !fDefKhaGenital[i] || !fDefSaxGenital[i]) {
+      Tng::gLogger::error("The original TNG Default-genitals cannot be found!");
+      return FALSE;
+    }
   }
   for (const auto& lRaceID : cExclRaceIDs) {
     auto lRace = fExclRaces.insert(fDataHandler->LookupForm<RE::TESRace>(lRaceID.first, lRaceID.second));

@@ -18,6 +18,7 @@ using namespace REL::literals;
 namespace Tng {
   namespace gLogger = SKSE::log;
   inline static constexpr std::string_view cName = "TheNewGentleman.esp";
+  inline static constexpr std::string_view cSkyrim = "Skyrim.esm";
   inline static constexpr int cRaceTypes{14};
 
   inline static constexpr RE::BGSBipedObjectForm::BipedObjectSlot cSlotBody{RE::BGSBipedObjectForm::BipedObjectSlot::kBody};
@@ -30,6 +31,10 @@ namespace Tng {
   inline static constexpr RE::FormID cAutoCoverKeyID{0xFFC};
   inline static constexpr RE::FormID cCoveringKeyID{0xFFD};  
   inline static constexpr RE::FormID cCoverID{0xA00};
+  inline static constexpr int cSizeCategories{5};
+  inline static constexpr RE::FormID cSizeKeyWIDs[cSizeCategories]{0xFE1, 0xFE2, 0xFE3, 0xFE4, 0xFE5};
+  inline static constexpr RE::FormID cSizeGlobIDs[cSizeCategories]{0xC01, 0xC02, 0xC03, 0xC04, 0xC05};
+  inline static constexpr RE::FormID cSizeListIDs[cSizeCategories]{0xCF1, 0xCF2, 0xCF3, 0xCF4, 0xCF5};
 }
 
 template <typename T>

@@ -42,7 +42,7 @@ class TngUtil : public Singleton<TngUtil> {
         {{0x0E88A, "Dawnguard.esm"}, 0},    // DLC1 Nord
     };
 
-    inline static constexpr RE::FormID cGenitalIDs[Tng::cRaceTypes] = {
+    inline static constexpr RE::FormID cGenitalIDs[Tng::cRaceTypes * 3] = {
         0x800,  // TNG_GenitalNord
         0x801,  // TNG_GenitalRedguard
         0x802,  // TNG_GenitalBreton
@@ -57,10 +57,38 @@ class TngUtil : public Singleton<TngUtil> {
         0x80B,  // TNG_GenitalElder
         0x80C,  // TNG_GenitalAfflicted
         0x80D,  // TNG_GenitalSnowElf
+        0x810,  // TNG_GenitalNord
+        0x811,  // TNG_GenitalRedguard
+        0x812,  // TNG_GenitalBreton
+        0x813,  // TNG_GenitalImperial
+        0x814,  // TNG_GenitalAltmer
+        0x815,  // TNG_GenitalBosmer
+        0x816,  // TNG_GenitalDunmer
+        0x817,  // TNG_GenitalOrsimer
+        0x818,  // TNG_GenitalSaxhleel
+        0x819,  // TNG_GenitalKhajiit
+        0x81A,  // TNG_GenitalDremora
+        0x81B,  // TNG_GenitalElder
+        0x81C,  // TNG_GenitalAfflicted
+        0x81D,  // TNG_GenitalSnowElf
+        0x820,  // TNG_GenitalNord
+        0x821,  // TNG_GenitalRedguard
+        0x822,  // TNG_GenitalBreton
+        0x823,  // TNG_GenitalImperial
+        0x824,  // TNG_GenitalAltmer
+        0x825,  // TNG_GenitalBosmer
+        0x826,  // TNG_GenitalDunmer
+        0x827,  // TNG_GenitalOrsimer
+        0x828,  // TNG_GenitalSaxhleel
+        0x829,  // TNG_GenitalKhajiit
+        0x82A,  // TNG_GenitalDremora
+        0x82B,  // TNG_GenitalElder
+        0x82C,  // TNG_GenitalAfflicted
+        0x82D,  // TNG_GenitalSnowElf
     };
-    inline static constexpr RE::FormID cDefGenitalMnmID = 0x8ff;  // TNG_GenitalDefaultManMer
-    inline static constexpr RE::FormID cDefGenitalSaxID = 0x8fd;  // TNG_GenitalDefaultSaxhleel
-    inline static constexpr RE::FormID cDefGenitalKhaID = 0x8fe;  // TNG_GenitalDefaultKhajiit
+    inline static constexpr RE::FormID cDefGenitalMnmID[3] = {0x8f0, 0x8f3, 0x8f6};  // TNG_GenitalDefaultManMer
+    inline static constexpr RE::FormID cDefGenitalSaxID[3] = {0x8f1, 0x8f4, 0x8f7};  // TNG_GenitalDefaultSaxhleel
+    inline static constexpr RE::FormID cDefGenitalKhaID[3] = {0x8f2, 0x8f5, 0x8f8};  // TNG_GenitalDefaultKhajiit
 
     // Rquires Load
 
@@ -72,9 +100,28 @@ class TngUtil : public Singleton<TngUtil> {
     inline static RE::BGSKeyword* fAutoCoverKey{nullptr};
     inline static RE::BGSKeyword* fCoveringKey{nullptr};
 
-    inline static RE::TESObjectARMA* fDefSaxGenital{nullptr};
-    inline static RE::TESObjectARMA* fDefKhaGenital{nullptr};
-    inline static RE::TESObjectARMA* fDefMnmGenital{nullptr};
+    inline static int fGenitalChoices[Tng::cRaceTypes + 3]{
+        2,  // TNG_GenitalNord
+        1,  // TNG_GenitalRedguard
+        0,  // TNG_GenitalBreton
+        2,  // TNG_GenitalImperial
+        0,  // TNG_GenitalAltmer
+        0,  // TNG_GenitalBosmer
+        1,  // TNG_GenitalDunmer
+        2,  // TNG_GenitalOrsimer
+        0,  // TNG_GenitalSaxhleel
+        2,  // TNG_GenitalKhajiit
+        1,  // TNG_GenitalDremora
+        2,  // TNG_GenitalElder
+        0,  // TNG_GenitalAfflicted
+        0,  // TNG_GenitalSnowElf
+        2,  // TNG_GenitalDefaultManMer
+        0,  // TNG_GenitalDefaultSaxhleel
+        2,  // TNG_GenitalDefaultKhajiit
+    };
+    inline static RE::TESObjectARMA* fDefSaxGenital[3]{};
+    inline static RE::TESObjectARMA* fDefKhaGenital[3]{};
+    inline static RE::TESObjectARMA* fDefMnmGenital[3]{};
     inline static RE::TESRace* fDefRace{nullptr};
 
     inline static std::set<std::pair<RE::TESRace*, RE::TESObjectARMA*>> fBaseRaceGens;
