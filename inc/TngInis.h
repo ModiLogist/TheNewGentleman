@@ -41,5 +41,5 @@ class TngInis : public Singleton<TngInis> {
     inline static std::set<std::pair<std::string, RE::FormID>> fSingleCoveringIDs;
 
     static void LoadTngInis() noexcept;
-    static void LoadMainIni(bool& aRevealWomen, bool& aRevealMen) noexcept;
+    static void LoadMainIni(bool* aRevealWomen, bool* aRevealMen) noexcept;
 };

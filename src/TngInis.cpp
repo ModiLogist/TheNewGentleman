@@ -73,17 +73,20 @@ void TngInis::LoadTngInis() noexcept {
   }
 }
 
-void TngInis::LoadMainIni(bool& aRevealWomen, bool& aRevealMen) noexcept {
+void TngInis::LoadMainIni(bool* aRevealWomen, bool* aRevealMen) noexcept {
   if (!std::filesystem::exists(cTngInisPath)) return;
+  if (!std::filesystem::exists(cSettings)) {
+    std::ofstream lTngSettings(cSettings);
+    lTngSettings << ";TNG Settings File" << std::endl;
+    lTngSettings.close();
+  }
   Tng::gLogger::info("Loading TNG settings...");
   CSimpleIniA aIni;
   aIni.SetUnicode();
+  aIni.SetMultiKey();
   aIni.LoadFile(cSettings);
-  aRevealWomen = true;
-  aRevealMen = true;
-  if (aIni.KeyExists(cArmorSection, cRevealingMod)) return;
-
-
-
-
+  if (!aIni.KeyExists(cAutoReveal, cFAutoReveal)) aIni.SetBoolValue(cAutoReveal, cFAutoReveal, true);
+  if (!aIni.KeyExists(cAutoReveal, cMAutoReveal)) aIni.SetBoolValue(cAutoReveal, cMAutoReveal, false);
+  *aRevealWomen = aIni.GetBoolValue(cAutoReveal, cFAutoReveal, true);
+  *aRevealMen = aIni.GetBoolValue(cAutoReveal, cMAutoReveal, false);  
 }
