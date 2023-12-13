@@ -137,22 +137,26 @@ void TngUtil::AddRace(RE::TESRace* aRace, RE::TESObjectARMA* aGenital, RE::TESRa
 }
 
 void TngUtil::HandleArmor(RE::TESObjectARMO* aArmor) noexcept {
-  RE::TESObjectARMA* lAB{nullptr};
-  RE::TESObjectARMA* lAG{nullptr};
+  std::set<RE::TESObjectARMA*> lBods{};
+  std::set<RE::TESObjectARMA*> lGens{};
+  RE::TESObjectARMA* lBod{nullptr};
+  RE::TESObjectARMA* lGen{nullptr};
   for (const auto& lAA : aArmor->armorAddons) {
     if (fSkinAAs.find(lAA) != fSkinAAs.end()) {
-      lAB = lAA;
+      lBod = lAA;
       break;
     }
-    if (lAA->HasPartOf(Tng::cSlotBody)) lAB = lAA;
-    if (lAA->HasPartOf(Tng::cSlotGenital)) lAG = lAA;
+    if (lAA->HasPartOf(Tng::cSlotBody)) lBods.insert(lAA);
+    if (lAA->HasPartOf(Tng::cSlotGenital)) lGens.insert(lAA);
   }
-  if (lAG) {
-    if (!lAB) {
+  if (lBods.size() == 1 && !lBod) lBod = *lBods.begin();
+  if (lGens.size() == 1) lGen = *lGens.begin();
+  if (lGen) {
+    if (!lBod) {
       fQCount++;
       return;
     }
-    if (fCoveringAAs.find(lAB) != fCoveringAAs.end()) {
+    if (fCoveringAAs.find(lBod) != fCoveringAAs.end()) {
       fCCount++;
       return;
     } else {
@@ -160,20 +164,20 @@ void TngUtil::HandleArmor(RE::TESObjectARMO* aArmor) noexcept {
       return;
     }
   }
-  if (lAB) {
+  if (lBod) {
     if (aArmor->HasKeyword(fRevealingKey)) {
-      if (fCoveringAAs.find(lAB) != fCoveringAAs.end()) {
+      if (fCoveringAAs.find(lBod) != fCoveringAAs.end()) {
         Tng::gLogger::info(
             "There is a conflict about armor [0x{:x}:{}] from file [{}]. It is markerd revealing but at the same time it uses an armor addon that is already covering!",
             aArmor->GetFormID(), aArmor->GetFormEditorID(), aArmor->GetFile(0)->GetFilename());
         fCCount++;
         return;
       }
-      fRevealAAs.insert(lAB);
+      fRevealAAs.insert(lBod);
       fRCount++;
       return;
     }
-    if (fRevealAAs.find(lAB) != fRevealAAs.end()) {
+    if (fRevealAAs.find(lBod) != fRevealAAs.end()) {
       aArmor->AddKeyword(fRevealingKey);
       Tng::gLogger::info(
           "The armor [0x{:x}:{}] from file [{}] is markerd revealing since it shares the body slot with another revealing armor! If it should be covering, a patch is required.",
@@ -181,18 +185,57 @@ void TngUtil::HandleArmor(RE::TESObjectARMO* aArmor) noexcept {
       fRCount++;
       return;
     }
-    if (fSkinAAs.find(lAB) != fSkinAAs.end()) {
+    if (fSkinAAs.find(lBod) != fSkinAAs.end()) {
       aArmor->AddKeyword(fRevealingKey);
       Tng::gLogger::info("The armor [0x{:x}:{}] from file [{}] is markerd revealing. If this is a mistake, a patch is required!", aArmor->GetFormID(), aArmor->GetFormEditorID(),
                          aArmor->GetFile(0)->GetFilename());
       fRCount++;
       return;
     }
-    lAB->AddSlotToMask(Tng::cSlotGenital);
+    lBod->AddSlotToMask(Tng::cSlotGenital);
     aArmor->AddKeyword(fAutoCoverKey);
-    fCoveringAAs.insert(lAB);
+    fCoveringAAs.insert(lBod);
     fCCount++;
+    return;
   }
+  if (lBods.size() == 0) {
+    fQCount++;
+    return;
+  }
+  if (lGens.size() > 0) {
+    for (const auto& lAA : lGens) {
+      if (lBods.find(lAA) == lBods.end()) {
+        Tng::gLogger::warn("The armor [0x{:x}:{}] from file [{}] cannot be patched automatically! If it should be covering and it is not, a patch is required.",
+                           aArmor->GetFormID(), aArmor->GetFormEditorID(), aArmor->GetFile(0)->GetFilename());
+        return;
+      }
+    }
+  }
+  for (const auto& lAA : lBods) {
+    if (fRevealAAs.find(lAA) != fRevealAAs.end()) {
+      aArmor->AddKeyword(fRevealingKey);
+      Tng::gLogger::info(
+          "The armor [0x{:x}:{}] from file [{}] is markerd revealing since it shares the body slot with another revealing armor! If it should be covering, a patch is required.",
+          aArmor->GetFormID(), aArmor->GetFormEditorID(), aArmor->GetFile(0)->GetFilename());
+      fRCount++;
+      return;
+    }
+    if (fSkinAAs.find(lAA) != fSkinAAs.end()) {
+      aArmor->AddKeyword(fRevealingKey);
+      Tng::gLogger::info("The armor [0x{:x}:{}] from file [{}] is markerd revealing. If this is a mistake, a patch is required!", aArmor->GetFormID(), aArmor->GetFormEditorID(),
+                         aArmor->GetFile(0)->GetFilename());
+      fRCount++;
+      return;
+    }
+  }
+  for (const auto& lAA : lBods) {
+    if (fCoveringAAs.find(lAA) == fCoveringAAs.end()) {
+      lAA->AddSlotToMask(Tng::cSlotGenital);
+      fCoveringAAs.insert(lBod);
+    }
+  }
+  aArmor->AddKeyword(fAutoCoverKey);
+  fCCount++;
 }
 
 void TngUtil::CoverByArmor(RE::TESObjectARMO* aArmor) noexcept {
