@@ -98,11 +98,11 @@ class TngUtil : public Singleton<TngUtil> {
     static int fQCount;
 
     // Methods
-    static bool FixSkin(RE::TESObjectARMO* aSkin, const char *const aName) noexcept;
-    static void AddGenitalToSkin(RE::TESObjectARMO* aSkin, RE::TESObjectARMA* aGenital) noexcept;
+    static bool FixSkin(RE::TESObjectARMO* aSkin, const char* const aName) noexcept;
+    static void AddGenitalToSkin(RE::TESObjectARMO* aSkin, RE::TESObjectARMA* aGenital, RE::TESRace* aRace = nullptr) noexcept;
     static void IgnoreRace(RE::TESRace* aRace);
     static bool CheckRace(RE::TESRace* aRace);
-    static void AddRace(RE::TESRace* aRace, RE::TESObjectARMA* aGenital) noexcept;
+    static void AddRace(RE::TESRace* aRace, RE::TESObjectARMA* aGenital, RE::TESRace* aRNAM = nullptr) noexcept;
     static void HandleArmor(RE::TESObjectARMO* aArmor) noexcept;
     static void CoverByArmor(RE::TESObjectARMO* aArmor) noexcept;
     static void ReCheckArmor(RE::TESObjectARMO* aArmor) noexcept;

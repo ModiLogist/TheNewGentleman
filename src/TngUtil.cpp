@@ -31,12 +31,22 @@ bool TngUtil::FixSkin(RE::TESObjectARMO* aSkin, const char* const aName) noexcep
   return lHasGenital;
 }
 
-void TngUtil::AddGenitalToSkin(RE::TESObjectARMO* aSkin, RE::TESObjectARMA* aGenital) noexcept {
-  for (const auto& lAA : aSkin->armorAddons)
+void TngUtil::AddGenitalToSkin(RE::TESObjectARMO* aSkin, RE::TESObjectARMA* aGenital, RE::TESRace* aRace) noexcept {
+  for (const auto& lAA : aSkin->armorAddons) {  
     if (lAA == aGenital) {
       fHandledSkins.insert(aSkin);
       return;
     }
+    if (!aRace) continue;
+    if (lAA->GetFile(0)->GetFilename() == Tng::cName) {
+      std::set<RE::TESRace*> lGenRaces{lAA->race};
+      lGenRaces.insert(lAA->additionalRaces.begin(), lAA->additionalRaces.end());
+      if (lGenRaces.find(aRace) != lGenRaces.end()) {
+        fHandledSkins.insert(aSkin);
+        return;
+      }
+    }
+  }
   if (fHandledSkins.find(aSkin) == fHandledSkins.end()) {
     for (const auto lAA : aSkin->armorAddons)
       if (lAA->HasPartOf(Tng::cSlotBody)) fSkinAAs.insert(lAA);
@@ -77,7 +87,7 @@ bool TngUtil::CheckRace(RE::TESRace* aRace) {
   return lAdd;
 }
 
-void TngUtil::AddRace(RE::TESRace* aRace, RE::TESObjectARMA* aGenital) noexcept {
+void TngUtil::AddRace(RE::TESRace* aRace, RE::TESObjectARMA* aGenital, RE::TESRace* aRNAM) noexcept {
   if (aRace->HasPartOf(Tng::cSlotGenital)) {
     Tng::gLogger::info("The race [{}] seems to be ready for TNG. It was not modified.", aRace->GetFormEditorID());
     IgnoreRace(aRace);
@@ -85,7 +95,7 @@ void TngUtil::AddRace(RE::TESRace* aRace, RE::TESObjectARMA* aGenital) noexcept 
   }
   if (aGenital) {
     aRace->AddSlotToMask(Tng::cSlotGenital);
-    AddGenitalToSkin(aRace->skin, aGenital);
+    AddGenitalToSkin(aRace->skin, aGenital, aRNAM);
     fRacialSkins.insert(aRace->skin);
     fHandledRaces.insert(aRace);
     return;
@@ -214,9 +224,9 @@ bool TngUtil::Initialize() noexcept {
     Tng::gLogger::error("Mod [{}] was not found!", Tng::cName);
     return FALSE;
   }
-  fNPCKey = RE::TESForm::LookupByID<RE::BGSKeyword>(Tng::cNPCKeywID);
-  fCreatureKey = RE::TESForm::LookupByID<RE::BGSKeyword>(Tng::cCrtKeywID);
-  fBeastKey = RE::TESForm::LookupByID<RE::BGSKeyword>(Tng::cBstKeywID);
+  fNPCKey = fDataHandler->LookupForm<RE::BGSKeyword>(Tng::cNPCKeywID, Tng::cSkyrim);
+  fCreatureKey = fDataHandler->LookupForm<RE::BGSKeyword>(Tng::cCrtKeywID, Tng::cSkyrim);
+  fBeastKey = fDataHandler->LookupForm<RE::BGSKeyword>(Tng::cBstKeywID, Tng::cSkyrim);
   fRevealingKey = fDataHandler->LookupForm<RE::BGSKeyword>(Tng::cRevealingKeyID, Tng::cName);
   fUnderwearKey = fDataHandler->LookupForm<RE::BGSKeyword>(Tng::cUnderwearKeyID, Tng::cName);
   fAutoCoverKey = fDataHandler->LookupForm<RE::BGSKeyword>(Tng::cAutoCoverKeyID, Tng::cName);
