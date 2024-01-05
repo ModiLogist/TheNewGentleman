@@ -1,6 +1,6 @@
+#include <TngEvents.h>
 #include <TngInis.h>
 #include <TngUtil.h>
-#include <TngEvents.h>
 
 void InitializeLogging(const SKSE::PluginDeclaration* aPlugin) {
   auto lPath{Tng::gLogger::log_directory()};
@@ -22,12 +22,14 @@ void InitializeLogging(const SKSE::PluginDeclaration* aPlugin) {
 
 void EventListener(SKSE::MessagingInterface::Message* aMessage) noexcept {
   if (aMessage->type == SKSE::MessagingInterface::kDataLoaded) {
+    if (!TngInis::LoadMainIni()) return;
     if (TngUtil::Initialize()) {
       TngUtil::GenitalizeRaces();
       TngUtil::GenitalizeNPCSkins();
       TngUtil::CheckArmorPieces();
       Tng::gLogger::info("TheNewGentleman finished initialization.");
       TngEvents::RegisterEvents();
+
     } else {
       Tng::gLogger::error("TheNewGentleman did not initialize successfully!");
     }
@@ -41,6 +43,6 @@ SKSEPluginLoad(const SKSE::LoadInterface* aSkse) {
   Tng::gLogger::info("Initializing TheNewGentleman {}!", lVersion);
   SKSE::Init(aSkse);
   const auto lMsgInterface{SKSE::GetMessagingInterface()};
-  const bool lRegistered = lMsgInterface->RegisterListener(EventListener);  
+  const bool lRegistered = lMsgInterface->RegisterListener(EventListener);
   return lRegistered;
 }

@@ -1,6 +1,7 @@
 #include <TngInis.h>
+#include <TngSizeShape.h>
 
-void TngInis::LoadModRecodPairs(CSimpleIniA::TNamesDepend aModRecords, std::set<std::pair<std::string, RE::FormID>>& aField) {
+void TngInis::LoadModRecodPairs(CSimpleIniA::TNamesDepend aModRecords, std::set<std::pair<std::string, RE::FormID>>& aField) noexcept {
   CSimpleIniA::TNamesDepend::const_iterator lEntry;
   for (lEntry = aModRecords.begin(); lEntry != aModRecords.end(); lEntry++) {
     const std::string lModRecord(lEntry->pItem);
@@ -23,14 +24,14 @@ void TngInis::LoadTngInis() noexcept {
     std::string lFileName = entry.path().filename().string();
     if (IsTngIni(lFileName)) {
       Tng::gLogger::info("\tFound ini file {}:", lFileName);
-      CSimpleIniA aIni;
-      aIni.SetUnicode();
-      aIni.SetMultiKey();
-      aIni.LoadFile(entry.path().string().c_str());
-      if (aIni.SectionExists(cSkinSection)) {
-        if (aIni.KeyExists(cSkinSection, cSkinMod)) {
+      CSimpleIniA lIni;
+      lIni.SetUnicode();
+      lIni.SetMultiKey();
+      lIni.LoadFile(entry.path().string().c_str());
+      if (lIni.SectionExists(cSkinSection)) {
+        if (lIni.KeyExists(cSkinSection, cSkinMod)) {
           CSimpleIniA::TNamesDepend lMods;
-          aIni.GetAllValues(cSkinSection, cSkinMod, lMods);
+          lIni.GetAllValues(cSkinSection, cSkinMod, lMods);
 
           CSimpleIniA::TNamesDepend::const_iterator lMod;
           for (lMod = lMods.begin(); lMod != lMods.end(); lMod++) {
@@ -38,31 +39,31 @@ void TngInis::LoadTngInis() noexcept {
             fSkinMods.insert(lModName);
           }
         }
-        if (aIni.KeyExists(cSkinSection, cSkinRecord)) {
+        if (lIni.KeyExists(cSkinSection, cSkinRecord)) {
           CSimpleIniA::TNamesDepend lModRecords;
-          aIni.GetAllValues(cSkinSection, cSkinRecord, lModRecords);
+          lIni.GetAllValues(cSkinSection, cSkinRecord, lModRecords);
           LoadModRecodPairs(lModRecords, fSingleSkinIDs);
           Tng::gLogger::info("\t\t- Found skin records in ini file [{}].", lFileName);
         }
       }
-      if (aIni.SectionExists(cArmorSection)) {
-        if (aIni.KeyExists(cArmorSection, cRevealingMod)) {
+      if (lIni.SectionExists(cArmorSection)) {
+        if (lIni.KeyExists(cArmorSection, cRevealingMod)) {
           CSimpleIniA::TNamesDepend lMods;
-          aIni.GetAllValues(cArmorSection, cRevealingMod, lMods);
+          lIni.GetAllValues(cArmorSection, cRevealingMod, lMods);
           for (const auto& lMod : lMods) {
             const std::string lModName(lMod.pItem);
             fRevealingMods.insert(lModName);
           }
         }
-        if (aIni.KeyExists(cArmorSection, cRevealingRecord)) {
+        if (lIni.KeyExists(cArmorSection, cRevealingRecord)) {
           CSimpleIniA::TNamesDepend lModRecords;
-          aIni.GetAllValues(cArmorSection, cRevealingMod, lModRecords);
+          lIni.GetAllValues(cArmorSection, cRevealingMod, lModRecords);
           LoadModRecodPairs(lModRecords, fSingleRevealingIDs);
           Tng::gLogger::info("\t\t- Found revealing records in ini file [{}].", lFileName);
         }
-        if (aIni.KeyExists(cArmorSection, cCoveringRecord)) {
+        if (lIni.KeyExists(cArmorSection, cCoveringRecord)) {
           CSimpleIniA::TNamesDepend lModRecords;
-          aIni.GetAllValues(cArmorSection, cCoveringRecord, lModRecords);
+          lIni.GetAllValues(cArmorSection, cCoveringRecord, lModRecords);
           LoadModRecodPairs(lModRecords, fSingleCoveringIDs);
           Tng::gLogger::info("\t\t- Found covering records in ini file [{}].", lFileName);
         }
@@ -73,20 +74,50 @@ void TngInis::LoadTngInis() noexcept {
   }
 }
 
-void TngInis::LoadMainIni(bool* aRevealWomen, bool* aRevealMen) noexcept {
-  if (!std::filesystem::exists(cTngInisPath)) return;
+bool TngInis::LoadMainIni() noexcept {
+  if (!TngSizeShape::InitSizes()) return false;
   if (!std::filesystem::exists(cSettings)) {
     std::ofstream lTngSettings(cSettings);
     lTngSettings << ";TNG Settings File" << std::endl;
     lTngSettings.close();
   }
   Tng::gLogger::info("Loading TNG settings...");
-  CSimpleIniA aIni;
-  aIni.SetUnicode();
-  aIni.SetMultiKey();
-  aIni.LoadFile(cSettings);
-  if (!aIni.KeyExists(cAutoReveal, cFAutoReveal)) aIni.SetBoolValue(cAutoReveal, cFAutoReveal, true);
-  if (!aIni.KeyExists(cAutoReveal, cMAutoReveal)) aIni.SetBoolValue(cAutoReveal, cMAutoReveal, false);
-  *aRevealWomen = aIni.GetBoolValue(cAutoReveal, cFAutoReveal, true);
-  *aRevealMen = aIni.GetBoolValue(cAutoReveal, cMAutoReveal, false);  
+  CSimpleIniA lIni;
+  lIni.SetUnicode();
+  lIni.LoadFile(cSettings);
+  if (!lIni.KeyExists(cAutoReveal, cFAutoReveal)) lIni.SetBoolValue(cAutoReveal, cFAutoReveal, FAutoReveal);
+  if (!lIni.KeyExists(cAutoReveal, cMAutoReveal)) lIni.SetBoolValue(cAutoReveal, cMAutoReveal, MAutoReveal);
+  for (int i = 0; i < Tng::cRaceTypes + 3; i++) {
+    auto lRaceName = cRaceNames[i];
+    if (!lIni.KeyExists(cRacialGenital, lRaceName)) lIni.SetLongValue(cRacialGenital, lRaceName, TngSizeShape::genitalChoices[i]);
+    if (!lIni.KeyExists(cRacialSize, lRaceName)) lIni.SetDoubleValue(cRacialSize, lRaceName, TngSizeShape::genitalSizes[i]);
+  }
+  FAutoReveal = lIni.GetBoolValue(cAutoReveal, cFAutoReveal, true);
+  MAutoReveal = lIni.GetBoolValue(cAutoReveal, cMAutoReveal, false);
+  for (int i = 0; i < Tng::cRaceTypes + 3; i++) {
+    TngSizeShape::genitalChoices[i] = lIni.GetLongValue(cRacialGenital, cRaceNames[i], TngSizeShape::genitalChoices[i]);
+    TngSizeShape::genitalSizes[i] = static_cast<float>(lIni.GetDoubleValue(cRacialSize, cRaceNames[i], TngSizeShape::genitalSizes[i]));
+  }
+  if (lIni.SectionExists(cNPCSizeSection)) {
+    CSimpleIniA::TNamesDepend lSizeRecords;
+    CSimpleIniA::TNamesDepend::const_iterator lEntry;
+    lIni.GetAllKeys(cNPCSizeSection, lSizeRecords);
+    for (lEntry = lSizeRecords.begin(); lEntry != lSizeRecords.end(); lEntry++) {
+      auto lSize = lIni.GetLongValue(cNPCSizeSection, lEntry->pItem);
+      const std::string lNPCRecord(lEntry->pItem);
+      TngSizeShape::UpdateSavedSize(lNPCRecord, lSize);
+    }
+  }
+  if (lIni.SectionExists(cNPCShapeSection)) {
+    CSimpleIniA::TNamesDepend lShapeRecords;
+    CSimpleIniA::TNamesDepend::const_iterator lEntry;
+    lIni.GetAllKeys(cNPCShapeSection, lShapeRecords);
+    for (lEntry = lShapeRecords.begin(); lEntry != lShapeRecords.end(); lEntry++) {
+      auto lShape = lIni.GetLongValue(cNPCShapeSection, lEntry->pItem);
+      const std::string lNPCRecord(lEntry->pItem);
+      TngSizeShape::UpdateSavedSize(lNPCRecord, lShape);
+    }
+  }
+  lIni.SaveFile(cSettings);
+  return true;
 }

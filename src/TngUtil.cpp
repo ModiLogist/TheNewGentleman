@@ -1,4 +1,5 @@
 #include <TngInis.h>
+#include <TngSizeShape.h>
 #include <TngUtil.h>
 
 int TngUtil::fRCount;
@@ -32,7 +33,7 @@ bool TngUtil::FixSkin(RE::TESObjectARMO* aSkin, const char* const aName) noexcep
 }
 
 void TngUtil::AddGenitalToSkin(RE::TESObjectARMO* aSkin, RE::TESObjectARMA* aGenital, RE::TESRace* aRace) noexcept {
-  for (const auto& lAA : aSkin->armorAddons) {  
+  for (const auto& lAA : aSkin->armorAddons) {
     if (lAA == aGenital) {
       fHandledSkins.insert(aSkin);
       return;
@@ -110,24 +111,26 @@ void TngUtil::AddRace(RE::TESRace* aRace, RE::TESObjectARMA* aGenital, RE::TESRa
     const auto lRaceDesc = std::string(aRace->GetFormEditorID()) + std::string(aRace->GetName());
     if ((lRaceDesc.find("Khajiit") != std::string::npos) || (lRaceDesc.find("Rhat") != std::string::npos)) {
       RE::TESRace* lRNAM = (aRace->armorParentRace && aRace->armorParentRace != fDefRace) ? aRace->armorParentRace : aRace;
-      int aChoice = fGenitalChoices[Tng::cRaceTypes + 2];
+      int aChoice = TngSizeShape::genitalChoices[Tng::cRaceTypes + 2];
       std::set<RE::TESRace*> lGenRaces{fDefKhaGenital[aChoice]->additionalRaces.begin(), fDefKhaGenital[aChoice]->additionalRaces.end()};
       fDefKhaGenital[aChoice]->additionalRaces.emplace_back(aRace);
       if (lGenRaces.find(lRNAM) == lGenRaces.end()) fDefKhaGenital[aChoice]->additionalRaces.emplace_back(lRNAM);
       Tng::gLogger::info("The race [0x{:x}:{}] from file [{}] was recognized as Khajiit. If this is wrong, a patch is required.", aRace->GetFormID(), aRace->GetFormEditorID(),
                          aRace->GetFile(0)->GetFilename());
       fExtrRaceGens.insert(std::make_pair(aRace, aGenital));
+      TngSizeShape::AddRaceIndex(aRace->GetFormID(), Tng::cRaceTypes + 2);
       AddRace(aRace, fDefKhaGenital[aChoice], lRNAM);
     } else {
       if ((lRaceDesc.find("Argonian") != std::string::npos) || (lRaceDesc.find("Saxhleel") != std::string::npos)) {
         RE::TESRace* lRNAM = (aRace->armorParentRace && aRace->armorParentRace != fDefRace) ? aRace->armorParentRace : aRace;
-        int aChoice = fGenitalChoices[Tng::cRaceTypes + 1];
+        int aChoice = TngSizeShape::genitalChoices[Tng::cRaceTypes + 1];
         std::set<RE::TESRace*> lGenRaces{fDefSaxGenital[aChoice]->additionalRaces.begin(), fDefSaxGenital[aChoice]->additionalRaces.end()};
         fDefSaxGenital[aChoice]->additionalRaces.emplace_back(aRace);
         if (lGenRaces.find(lRNAM) == lGenRaces.end()) fDefSaxGenital[aChoice]->additionalRaces.emplace_back(lRNAM);
         Tng::gLogger::info("The race [0x{:x}:{}] from file [{}] was recognized as Saxhleel(Argonian). If this is wrong, a patch is required.", aRace->GetFormID(),
                            aRace->GetFormEditorID(), aRace->GetFile(0)->GetFilename());
         fExtrRaceGens.insert(std::make_pair(aRace, aGenital));
+        TngSizeShape::AddRaceIndex(aRace->GetFormID(), Tng::cRaceTypes + 1);
         AddRace(aRace, fDefSaxGenital[aChoice], lRNAM);
       } else {
         Tng::gLogger::warn("The race [0x{:x}:{}] from file [{}] could not be recognized and did not receive any genital. If they should, a patch is required.", aRace->GetFormID(),
@@ -137,13 +140,14 @@ void TngUtil::AddRace(RE::TESRace* aRace, RE::TESObjectARMA* aGenital, RE::TESRa
     }
   } else {
     RE::TESRace* lRNAM = (aRace->armorParentRace && aRace->armorParentRace != fDefRace) ? aRace->armorParentRace : aRace;
-    int aChoice = fGenitalChoices[Tng::cRaceTypes];
+    int aChoice = TngSizeShape::genitalChoices[Tng::cRaceTypes];
     std::set<RE::TESRace*> lGenRaces{fDefMnmGenital[aChoice]->additionalRaces.begin(), fDefMnmGenital[aChoice]->additionalRaces.end()};
     fDefMnmGenital[aChoice]->additionalRaces.emplace_back(aRace);
     if (lGenRaces.find(lRNAM) == lGenRaces.end()) fDefMnmGenital[aChoice]->additionalRaces.emplace_back(lRNAM);
     Tng::gLogger::info("The race [0x{:x}:{}] from file [{}] received the default genital for man and mer races. If this is wrong, a patch is required.", aRace->GetFormID(),
                        aRace->GetFormEditorID(), aRace->GetFile(0)->GetFilename());
     fExtrRaceGens.insert(std::make_pair(aRace, aGenital));
+    TngSizeShape::AddRaceIndex(aRace->GetFormID(), Tng::cRaceTypes);
     AddRace(aRace, fDefMnmGenital[aChoice], lRNAM);
   }
 }
@@ -190,7 +194,7 @@ void TngUtil::HandleArmor(RE::TESObjectARMO* aArmor) noexcept {
       return;
     }
     if (fRevealAAs.find(lBod) != fRevealAAs.end()) {
-      aArmor->AddKeyword(fRevealingKey);
+      aArmor->AddKeyword(fAutoRvealKey);
       Tng::gLogger::info(
           "The armor [0x{:x}:{}] from file [{}] is markerd revealing since it shares the body slot with another revealing armor! If it should be covering, a patch is required.",
           aArmor->GetFormID(), aArmor->GetFormEditorID(), aArmor->GetFile(0)->GetFilename());
@@ -198,7 +202,7 @@ void TngUtil::HandleArmor(RE::TESObjectARMO* aArmor) noexcept {
       return;
     }
     if (fSkinAAs.find(lBod) != fSkinAAs.end()) {
-      aArmor->AddKeyword(fRevealingKey);
+      aArmor->AddKeyword(fAutoRvealKey);
       Tng::gLogger::info("The armor [0x{:x}:{}] from file [{}] is markerd revealing. If this is a mistake, a patch is required!", aArmor->GetFormID(), aArmor->GetFormEditorID(),
                          aArmor->GetFile(0)->GetFilename());
       fRCount++;
@@ -225,7 +229,7 @@ void TngUtil::HandleArmor(RE::TESObjectARMO* aArmor) noexcept {
   }
   for (const auto& lAA : lBods) {
     if (fRevealAAs.find(lAA) != fRevealAAs.end()) {
-      aArmor->AddKeyword(fRevealingKey);
+      aArmor->AddKeyword(fAutoRvealKey);
       Tng::gLogger::info(
           "The armor [0x{:x}:{}] from file [{}] is markerd revealing since it shares the body slot with another revealing armor! If it should be covering, a patch is required.",
           aArmor->GetFormID(), aArmor->GetFormEditorID(), aArmor->GetFile(0)->GetFilename());
@@ -233,7 +237,7 @@ void TngUtil::HandleArmor(RE::TESObjectARMO* aArmor) noexcept {
       return;
     }
     if (fSkinAAs.find(lAA) != fSkinAAs.end()) {
-      aArmor->AddKeyword(fRevealingKey);
+      aArmor->AddKeyword(fAutoRvealKey);
       Tng::gLogger::info("The armor [0x{:x}:{}] from file [{}] is markerd revealing. If this is a mistake, a patch is required!", aArmor->GetFormID(), aArmor->GetFormEditorID(),
                          aArmor->GetFile(0)->GetFilename());
       fRCount++;
@@ -282,11 +286,12 @@ bool TngUtil::Initialize() noexcept {
   fNPCKey = fDataHandler->LookupForm<RE::BGSKeyword>(Tng::cNPCKeywID, Tng::cSkyrim);
   fCreatureKey = fDataHandler->LookupForm<RE::BGSKeyword>(Tng::cCrtKeywID, Tng::cSkyrim);
   fBeastKey = fDataHandler->LookupForm<RE::BGSKeyword>(Tng::cBstKeywID, Tng::cSkyrim);
+  fAutoRvealKey = fDataHandler->LookupForm<RE::BGSKeyword>(Tng::cAutoRvealKeyID, Tng::cName);
   fRevealingKey = fDataHandler->LookupForm<RE::BGSKeyword>(Tng::cRevealingKeyID, Tng::cName);
   fUnderwearKey = fDataHandler->LookupForm<RE::BGSKeyword>(Tng::cUnderwearKeyID, Tng::cName);
   fAutoCoverKey = fDataHandler->LookupForm<RE::BGSKeyword>(Tng::cAutoCoverKeyID, Tng::cName);
   fCoveringKey = fDataHandler->LookupForm<RE::BGSKeyword>(Tng::cCoveringKeyID, Tng::cName);
-  if (!(fRevealingKey && fUnderwearKey && fAutoCoverKey && fCoveringKey)) {
+  if (!(fAutoRvealKey && fRevealingKey && fUnderwearKey && fAutoCoverKey && fCoveringKey)) {
     Tng::gLogger::error("The original TNG keywords could not be found!");
     return FALSE;
   }
@@ -295,22 +300,24 @@ bool TngUtil::Initialize() noexcept {
   Tng::gLogger::info("Finding the genitals to respective races...");
   for (int i = 0; i < Tng::cRaceTypes; i++) {
     const auto lRace = fDataHandler->LookupForm<RE::TESRace>(cBaseRaceIDs[i].first, cBaseRaceIDs[i].second);
-    auto aChoice = fGenitalChoices[i] * Tng::cRaceTypes + i;
+    auto aChoice = TngSizeShape::genitalChoices[i] * Tng::cRaceTypes + i;
     const auto lGenital = fDataHandler->LookupForm<RE::TESObjectARMA>(cGenitalIDs[aChoice], Tng::cName);
     if (!(lRace && lGenital)) {
       Tng::gLogger::error("Original information cannot be found!");
       return FALSE;
     }
+    TngSizeShape::AddRaceIndex(lRace->GetFormID(), i);
     fBaseRaceGens.insert(std::make_pair(lRace, lGenital));
   }
   for (const auto& lRaceID : cEquiRaceIDs) {
     const auto lRace = fDataHandler->LookupForm<RE::TESRace>(lRaceID.first.first, lRaceID.first.second);
-    auto aChoice = fGenitalChoices[lRaceID.second] * Tng::cRaceTypes + lRaceID.second;
+    auto aChoice = TngSizeShape::genitalChoices[lRaceID.second] * Tng::cRaceTypes + lRaceID.second;
     const auto lGenital = fDataHandler->LookupForm<RE::TESObjectARMA>(cGenitalIDs[aChoice], Tng::cName);
     if (!(lRace && lGenital)) {
       Tng::gLogger::error("Original information cannot be found!");
       return FALSE;
     }
+    TngSizeShape::AddRaceIndex(lRace->GetFormID(), lRaceID.second);
     fEquiRaceGens.insert(std::make_pair(lRace, lGenital));
   }
   for (int i = 0; i < 3; i++) {

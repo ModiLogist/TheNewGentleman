@@ -1,5 +1,5 @@
 #include <TngEvents.h>
-#include<TngSizeDistr.h>
+#include<TngSizeShape.h>
 
 void TngEvents::CheckForRevealing(RE::TESObjectARMO* aBodyArmor, RE::TESObjectARMO* aPelvisArmor) noexcept {
   if (!aBodyArmor || !aPelvisArmor) return;
@@ -12,7 +12,7 @@ void TngEvents::CheckForRevealing(RE::TESObjectARMO* aBodyArmor, RE::TESObjectAR
     const auto lID = (std::string(aBodyArmor->GetName()).empty()) ? aBodyArmor->GetFormEditorID() : aBodyArmor->GetName();
     Tng::gLogger::info("The armor [0x{:x}:{}] from file [{}] was recognized revealing.", aBodyArmor->GetLocalFormID(), lID, aBodyArmor->GetFile(0)->GetFilename());
     aBodyArmor->RemoveKeyword(fAutoCoverKey);
-    aBodyArmor->AddKeyword(fRevealingKey);
+    aBodyArmor->AddKeyword(fAutoRvealKey);
     return;
   }
 }
@@ -54,22 +54,23 @@ RE::BSEventNotifyControl TngEvents::ProcessEvent(const RE::TESEquipEvent* aEvent
 RE::BSEventNotifyControl TngEvents::ProcessEvent(const RE::TESObjectLoadedEvent* aEvent, RE::BSTEventSource<RE::TESObjectLoadedEvent>*) {
   if (!aEvent || fInternal) return RE::BSEventNotifyControl::kContinue;
   const auto lActor = RE::TESForm::LookupByID<RE::Actor>(aEvent->formID);
-  TngSizeDistr::RandomizeScale(lActor);
+  TngSizeShape::RandomizeScale(lActor);
   CheckActor(lActor);
   return RE::BSEventNotifyControl::kContinue;
 }
 
 void TngEvents::RegisterEvents() noexcept {
-  TngSizeDistr::InitSizes();
+  TngSizeShape::InitSizes();
   const auto lSourceHolder = RE::ScriptEventSourceHolder::GetSingleton();
   fEquipManager = RE::ActorEquipManager::GetSingleton();
   fNPCKey = RE::TESDataHandler::GetSingleton()->LookupForm<RE::BGSKeyword>(Tng::cBstKeywID, Tng::cSkyrim);
+  fAutoRvealKey = RE::TESDataHandler::GetSingleton()->LookupForm<RE::BGSKeyword>(Tng::cAutoRvealKeyID, Tng::cName);
   fRevealingKey = RE::TESDataHandler::GetSingleton()->LookupForm<RE::BGSKeyword>(Tng::cRevealingKeyID, Tng::cName);
   fUnderwearKey = RE::TESDataHandler::GetSingleton()->LookupForm<RE::BGSKeyword>(Tng::cUnderwearKeyID, Tng::cName);
   fAutoCoverKey = RE::TESDataHandler::GetSingleton()->LookupForm<RE::BGSKeyword>(Tng::cAutoCoverKeyID, Tng::cName);
   fCoveringKey = RE::TESDataHandler::GetSingleton()->LookupForm<RE::BGSKeyword>(Tng::cCoveringKeyID, Tng::cName);
   fCover = RE::TESDataHandler::GetSingleton()->LookupForm<RE::TESObjectARMO>(Tng::cCoverID, Tng::cName);
-  if (!(lSourceHolder && fNPCKey && fRevealingKey && fUnderwearKey && fAutoCoverKey && fCoveringKey && fCover)) {
+  if (!(lSourceHolder && fNPCKey && fAutoRvealKey && fRevealingKey && fUnderwearKey && fAutoCoverKey && fCoveringKey && fCover)) {
     Tng::gLogger::error("Mod cannot find necessary info for events, no events registered!");
     return;
   }

@@ -12,12 +12,13 @@ class TngInis : public Singleton<TngInis> {
     inline static constexpr const char* cMAutoReveal{"Male"};
     inline static constexpr const char* cRacialGenital{"RaceGenital"};
     inline static constexpr const char* cRacialSize{"RaceSizeMultplier"};
-    inline static constexpr const char* cRaceNames[Tng::cRaceTypes]{"Nord",    "Redguard", "Breton",  "Imperial", "Altmer", "Bosmer",    "Dunmer",
-                                                                    "Orsimer", "Saxhleel", "Khajiit", "Dremora",  "Elder",  "Afflicted", "SnowElf"};
+    inline static constexpr const char* cRaceNames[Tng::cRaceTypes + 3]{"Nord",      "Redguard", "Breton",      "Imperial",      "Altmer",      "Bosmer",
+                                                                        "Dunmer",    "Orsimer",  "Saxhleel",    "Khajiit",       "Dremora",     "Elder",
+                                                                        "Afflicted", "SnowElf",  "OtherManMer", "OtherSaxhleel", "OtherKhajiit"};
     inline static constexpr const char* cNPCSizeSection{"NPCGenitalSize"};
-    inline static constexpr const char* cNPCSizeEntry{"NPC_ID"};
+    inline static constexpr const char* cNPCShapeSection{"NPCGenitalShape"};
 
-    //Ini files
+    // Ini files
     inline static constexpr const char* cTngInisPath{R"(.\Data\SKSE\Plugins\TNG)"};
 
     inline static constexpr std::string cTngIniEnding{"TNG.ini"};
@@ -30,13 +31,14 @@ class TngInis : public Singleton<TngInis> {
     inline static constexpr const char* cRevealingRecord{"RevealingRecord"};
     inline static constexpr const char* cCoveringRecord{"CoveringRecord"};
 
-    
-
-    static void LoadModRecodPairs(CSimpleIniA::TNamesDepend aModRecords, std::set<std::pair<std::string, RE::FormID>>& aField);
+    static void LoadModRecodPairs(CSimpleIniA::TNamesDepend aModRecords, std::set<std::pair<std::string, RE::FormID>>& aField) noexcept;
 
     static bool IsTngIni(const std::string_view aFileName) noexcept;
 
   public:
+    inline static bool FAutoReveal{true};
+    inline static bool MAutoReveal{false};
+
     inline static std::set<std::string> fSkinMods;
     inline static std::set<std::pair<std::string, RE::FormID>> fSingleSkinIDs;
     inline static std::set<std::string> fRevealingMods;
@@ -44,5 +46,5 @@ class TngInis : public Singleton<TngInis> {
     inline static std::set<std::pair<std::string, RE::FormID>> fSingleCoveringIDs;
 
     static void LoadTngInis() noexcept;
-    static void LoadMainIni(bool* aRevealWomen, bool* aRevealMen) noexcept;
+    static bool LoadMainIni() noexcept;
 };

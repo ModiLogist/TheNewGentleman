@@ -95,30 +95,12 @@ class TngUtil : public Singleton<TngUtil> {
     inline static RE::BGSKeyword* fBeastKey{nullptr};
     inline static RE::BGSKeyword* fNPCKey{nullptr};
     inline static RE::BGSKeyword* fCreatureKey{nullptr};
+    inline static RE::BGSKeyword* fAutoRvealKey{nullptr};
     inline static RE::BGSKeyword* fRevealingKey{nullptr};
     inline static RE::BGSKeyword* fUnderwearKey{nullptr};
     inline static RE::BGSKeyword* fAutoCoverKey{nullptr};
     inline static RE::BGSKeyword* fCoveringKey{nullptr};
-
-    inline static int fGenitalChoices[Tng::cRaceTypes + 3]{
-        2,  // TNG_GenitalNord
-        1,  // TNG_GenitalRedguard
-        0,  // TNG_GenitalBreton
-        2,  // TNG_GenitalImperial
-        0,  // TNG_GenitalAltmer
-        0,  // TNG_GenitalBosmer
-        1,  // TNG_GenitalDunmer
-        2,  // TNG_GenitalOrsimer
-        0,  // TNG_GenitalSaxhleel
-        2,  // TNG_GenitalKhajiit
-        1,  // TNG_GenitalDremora
-        2,  // TNG_GenitalElder
-        0,  // TNG_GenitalAfflicted
-        0,  // TNG_GenitalSnowElf
-        2,  // TNG_GenitalDefaultManMer
-        0,  // TNG_GenitalDefaultSaxhleel
-        2,  // TNG_GenitalDefaultKhajiit
-    };
+    
     inline static RE::TESObjectARMA* fDefSaxGenital[3]{};
     inline static RE::TESObjectARMA* fDefKhaGenital[3]{};
     inline static RE::TESObjectARMA* fDefMnmGenital[3]{};
