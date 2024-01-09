@@ -37,6 +37,7 @@ namespace Tng {
   inline static constexpr RE::FormID cSizeKeyWIDs[cSizeCategories]{0xFE1, 0xFE2, 0xFE3, 0xFE4, 0xFE5};
   inline static constexpr RE::FormID cSizeGlobIDs[cSizeCategories]{0xC01, 0xC02, 0xC03, 0xC04, 0xC05};
   inline static constexpr RE::FormID cSizeListIDs[cSizeCategories]{0xEF1, 0xEF2, 0xEF3, 0xEF4, 0xEF5};
+  inline static constexpr RE::FormID cAutoRvealKeyID{0xFFB};
 }
 
 template <typename T>

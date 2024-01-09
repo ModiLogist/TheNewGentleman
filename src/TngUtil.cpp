@@ -168,6 +168,7 @@ void TngUtil::HandleArmor(RE::TESObjectARMO* aArmor) noexcept {
   if (lBods.size() == 1 && !lBod) lBod = *lBods.begin();
   if (lGens.size() == 1) lGen = *lGens.begin();
   if (lGen) {
+    aArmor->AddKeyword(fAutoCoverKey);
     if (!lBod) {
       fQCount++;
       return;
@@ -215,6 +216,7 @@ void TngUtil::HandleArmor(RE::TESObjectARMO* aArmor) noexcept {
     return;
   }
   if (lBods.size() == 0) {
+    aArmor->AddKeyword(fAutoCoverKey);
     fQCount++;
     return;
   }
