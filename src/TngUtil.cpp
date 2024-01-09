@@ -67,6 +67,40 @@ void TngUtil::IgnoreRace(RE::TESRace* aRace) {
 
 bool TngUtil::CheckRace(RE::TESRace* aRace) {
   if (!aRace->HasKeyword(fNPCKey) || aRace->HasKeyword(fCreatureKey) || !aRace->HasPartOf(Tng::cSlotBody) || aRace->IsChildRace()) return false;
+  if ((aRace->skeletonModels[0].model != fDefSkeleton[0]) || (aRace->skeletonModels[1].model != fDefSkeleton[1])) {
+    IgnoreRace(aRace);
+    Tng::gLogger::info("The race [0x{:x}:{}] from file [{}] was ignored because it uses a custom skeleton!", aRace->GetFormID(), aRace->GetFormEditorID(),
+                       aRace->GetFile(0)->GetFilename());
+    return false;
+  }
+  if (!aRace->skin) {
+    Tng::gLogger::warn("The race [0x{:x}:{}] from file [{}] cannot have any genitals since they do not have a skin. If they should, a patch is required.", aRace->GetFormID(),
+                       aRace->GetFormEditorID(), aRace->GetFile(0)->GetFilename());
+    IgnoreRace(aRace);
+    return false;
+  }
+  RE::TESRace* lArmRace = aRace->armorParentRace ? aRace->armorParentRace : aRace;
+  RE::TESObjectARMA* lRaceSkinAA{nullptr};
+  for (const auto& lAA : aRace->skin->armorAddons) {
+    std::set<RE::TESRace*> lAARaces{lAA->race};
+    lAARaces.insert(lAA->additionalRaces.begin(), lAA->additionalRaces.end());
+    if (lAA->HasPartOf(Tng::cSlotBody) && ((lAARaces.find(lArmRace) != lAARaces.end()) || (lAA->race == fDefRace))) {
+      lRaceSkinAA = lAA;
+      break;
+    }
+  }
+  if (!lRaceSkinAA) {
+    Tng::gLogger::warn("The race [0x{:x}:{}] from file [{}] cannot have any genitals since their skin cannot be recognized. If they should, a patch is required.",
+                       aRace->GetFormID(), aRace->GetFormEditorID(), aRace->GetFile(0)->GetFilename());
+    IgnoreRace(aRace);
+    return false;
+  }
+  if ((lRaceSkinAA->bipedModels[0].model != fDefBodyMesh[0]) || (lRaceSkinAA->bipedModels[1].model != fDefBodyMesh[1])) {
+    IgnoreRace(aRace);
+    Tng::gLogger::info("The race [0x{:x}:{}] from file [{}] was ignored because it uses a custom mesh!", aRace->GetFormID(), aRace->GetFormEditorID(),
+                       aRace->GetFile(0)->GetFilename());
+    return false;
+  }
   if (aRace->GetPlayable()) return true;
   bool lHasMaleNPCs = false;
   bool lHasNPCs = false;
@@ -99,12 +133,6 @@ void TngUtil::AddRace(RE::TESRace* aRace, RE::TESObjectARMA* aGenital, RE::TESRa
     AddGenitalToSkin(aRace->skin, aGenital, aRNAM);
     fRacialSkins.insert(aRace->skin);
     fHandledRaces.insert(aRace);
-    return;
-  }
-  if (!aRace->skin) {
-    Tng::gLogger::warn("The race [0x{:x}:{}] from file [{}] cannot have any genitals since they do not have a skin. If they should, a patch is required.", aRace->GetFormID(),
-                       aRace->GetFormEditorID(), aRace->GetFile(0)->GetFilename());
-    IgnoreRace(aRace);
     return;
   }
   if (aRace->HasKeyword(fBeastKey)) {

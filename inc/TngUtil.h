@@ -89,6 +89,7 @@ class TngUtil : public Singleton<TngUtil> {
     inline static constexpr RE::FormID cDefGenitalMnmID[3] = {0x8f0, 0x8f3, 0x8f6};  // TNG_GenitalDefaultManMer
     inline static constexpr RE::FormID cDefGenitalSaxID[3] = {0x8f1, 0x8f4, 0x8f7};  // TNG_GenitalDefaultSaxhleel
     inline static constexpr RE::FormID cDefGenitalKhaID[3] = {0x8f2, 0x8f5, 0x8f8};  // TNG_GenitalDefaultKhajiit
+    inline static constexpr RE::FormID cDefSkinAAID{0xD67};
 
     // Rquires Load
 
@@ -105,6 +106,10 @@ class TngUtil : public Singleton<TngUtil> {
     inline static RE::TESObjectARMA* fDefKhaGenital[3]{};
     inline static RE::TESObjectARMA* fDefMnmGenital[3]{};
     inline static RE::TESRace* fDefRace{nullptr};
+
+    inline static RE::TESObjectARMA* fDefSkinAA{nullptr};
+    inline static RE::BSFixedString fDefSkeleton[2];
+    inline static RE::BSFixedString fDefBodyMesh[2];
 
     inline static std::set<std::pair<RE::TESRace*, RE::TESObjectARMA*>> fBaseRaceGens;
     inline static std::set<std::pair<RE::TESRace*, RE::TESObjectARMA*>> fEquiRaceGens;
