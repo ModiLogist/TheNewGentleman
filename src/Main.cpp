@@ -1,6 +1,9 @@
-#include <TngEvents.h>
+#include <TngSizeShape.h>
 #include <TngInis.h>
 #include <TngUtil.h>
+#include <TngEvents.h>
+#include <TngPapyrus.h>
+
 
 void InitializeLogging(const SKSE::PluginDeclaration* aPlugin) {
   auto lPath{Tng::gLogger::log_directory()};
@@ -21,7 +24,9 @@ void InitializeLogging(const SKSE::PluginDeclaration* aPlugin) {
 }
 
 void EventListener(SKSE::MessagingInterface::Message* aMessage) noexcept {
+  TngPapyrus::GetSingleton()->tngLoaded = false;
   if (aMessage->type == SKSE::MessagingInterface::kDataLoaded) {
+    if (!TngSizeShape::InitSizes()) return;
     if (!TngInis::LoadMainIni()) return;
     if (TngUtil::Initialize()) {
       TngUtil::GenitalizeRaces();
@@ -29,10 +34,11 @@ void EventListener(SKSE::MessagingInterface::Message* aMessage) noexcept {
       TngUtil::CheckArmorPieces();
       Tng::gLogger::info("TheNewGentleman finished initialization.");
       TngEvents::RegisterEvents();
-
     } else {
       Tng::gLogger::error("TheNewGentleman did not initialize successfully!");
+      return;
     }
+    TngPapyrus::GetSingleton()->tngLoaded = true;
   }
 }
 
@@ -42,7 +48,7 @@ SKSEPluginLoad(const SKSE::LoadInterface* aSkse) {
   InitializeLogging(lPlugin);
   Tng::gLogger::info("Initializing TheNewGentleman {}!", lVersion);
   SKSE::Init(aSkse);
-  const auto lMsgInterface{SKSE::GetMessagingInterface()};
-  const bool lRegistered = lMsgInterface->RegisterListener(EventListener);
+  const bool lRegistered = SKSE::GetMessagingInterface()->RegisterListener(EventListener);
+  if (lRegistered) SKSE::GetPapyrusInterface()->Register(TngPapyrus::BindPapyrus);
   return lRegistered;
 }

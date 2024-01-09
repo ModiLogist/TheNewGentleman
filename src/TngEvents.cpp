@@ -1,5 +1,6 @@
 #include <TngEvents.h>
-#include<TngSizeShape.h>
+#include <TngInis.h>
+#include <TngSizeShape.h>
 
 void TngEvents::CheckForRevealing(RE::TESObjectARMO* aBodyArmor, RE::TESObjectARMO* aPelvisArmor) noexcept {
   if (!aBodyArmor || !aPelvisArmor) return;
@@ -35,17 +36,40 @@ void TngEvents::CheckActor(RE::Actor* aActor, RE::TESObjectARMO* aArmor) noexcep
     return;
   }
   const auto lBArmo = aActor->GetWornArmor(Tng::cSlotBody);
+  if ((lNPC->IsFemale() && !TngInis::GetSingleton()->FAutoReveal) || (!lNPC->IsFemale() && !TngInis::GetSingleton()->MAutoReveal)) return;
   CheckForRevealing(lBArmo, lGArmo);
 }
 
-RE::BSEventNotifyControl TngEvents::ProcessEvent(const RE::TESEquipEvent* aEvent, RE::BSTEventSource<RE::TESEquipEvent>*) {
+void TngEvents::CheckGentlewomen(RE::Actor* aActor) noexcept {
+  if (TngSizeShape::CanModifyActor(aActor) != 1) return;
+  const auto lNPC = aActor->GetActorBase();
+  if (!lNPC->IsFemale()) return;
+  if (fWomenChance->value < 1) return;
+  if (TngSizeShape::GetSingleton()->fFemAddonCount == 0) return;
+  if ((lNPC->GetFormID() % 100) < (std::floor(fWomenChance->value) + 1)) {
+    auto lSkin = TngSizeShape::GetSingleton()->fFemAddons[lNPC->GetFormID() % TngSizeShape::GetSingleton()->fFemAddonCount];
+    lNPC->skin = lSkin;
+    if (lSkin->HasKeyword(fSkinWithPenisKey)) {
+      lNPC->AddKeyword(fGentleWomanKey);
+      fGentified->AddForm(lNPC);
+    }
+  }
+}
+
+RE::BSEventNotifyControl TngEvents::ProcessEvent(const RE::TESEquipEvent* aEvent, RE::BSTEventSource<RE::TESEquipEvent>* aSource) {
   if (!aEvent || fInternal) return RE::BSEventNotifyControl::kContinue;
   const auto lActor = aEvent->actor->As<RE::Actor>();
   auto lArmor = RE::TESForm::LookupByID<RE::TESObjectARMO>(aEvent->baseObject);
-  if (!lArmor || !aEvent->equipped) return RE::BSEventNotifyControl::kContinue;
+  if (!lArmor) return RE::BSEventNotifyControl::kContinue;
   if (lArmor->HasKeyword(fCoveringKey) || lArmor->HasKeyword(fAutoCoverKey) || lArmor->HasPartOf(Tng::cSlotGenital)) {
-    CheckActor(lActor, lArmor);
-    fInternal = false;
+    if (aEvent->equipped) {
+      aSource->notifying = false;
+      CheckActor(lActor, lArmor);
+      fInternal = false;
+      aSource->notifying = true;
+    } else {
+      TngSizeShape::RandomizeScale(lActor);
+    }
   }
   return RE::BSEventNotifyControl::kContinue;
 }
@@ -53,13 +77,12 @@ RE::BSEventNotifyControl TngEvents::ProcessEvent(const RE::TESEquipEvent* aEvent
 RE::BSEventNotifyControl TngEvents::ProcessEvent(const RE::TESObjectLoadedEvent* aEvent, RE::BSTEventSource<RE::TESObjectLoadedEvent>*) {
   if (!aEvent || fInternal) return RE::BSEventNotifyControl::kContinue;
   const auto lActor = RE::TESForm::LookupByID<RE::Actor>(aEvent->formID);
-  TngSizeShape::RandomizeScale(lActor);
+  CheckGentlewomen(lActor);
   CheckActor(lActor);
   return RE::BSEventNotifyControl::kContinue;
 }
 
 void TngEvents::RegisterEvents() noexcept {
-  TngSizeShape::InitSizes();
   const auto lSourceHolder = RE::ScriptEventSourceHolder::GetSingleton();
   fEquipManager = RE::ActorEquipManager::GetSingleton();
   fNPCKey = RE::TESDataHandler::GetSingleton()->LookupForm<RE::BGSKeyword>(Tng::cNPCKeywID, Tng::cSkyrim);
@@ -69,6 +92,12 @@ void TngEvents::RegisterEvents() noexcept {
   fAutoCoverKey = RE::TESDataHandler::GetSingleton()->LookupForm<RE::BGSKeyword>(Tng::cAutoCoverKeyID, Tng::cName);
   fCoveringKey = RE::TESDataHandler::GetSingleton()->LookupForm<RE::BGSKeyword>(Tng::cCoveringKeyID, Tng::cName);
   fTNGRaceKey = RE::TESDataHandler::GetSingleton()->LookupForm<RE::BGSKeyword>(Tng::cTNGRaceKeyID, Tng::cName);
+  fGentleWomanKey = RE::TESDataHandler::GetSingleton()->LookupForm<RE::BGSKeyword>(cGentleWomanKeyID, Tng::cName);
+  fSkinWithPenisKey = RE::TESDataHandler::GetSingleton()->LookupForm<RE::BGSKeyword>(cSkinWithPenisKeyID, Tng::cName);
+  fWomenChance = RE::TESDataHandler::GetSingleton()->LookupForm<RE::TESGlobal>(cWomenChanceID, Tng::cName);
+  fGentified = RE::TESDataHandler::GetSingleton()->LookupForm<RE::BGSListForm>(cGentifiedID, Tng::cName);
+  if (!(lSourceHolder && fNPCKey && fAutoRvealKey && fRevealingKey && fUnderwearKey && fAutoCoverKey && fCoveringKey && fTNGRaceKey && fGentleWomanKey && fSkinWithPenisKey &&
+        fWomenChance && fGentified)) {
     Tng::gLogger::error("Mod cannot find necessary info for events, no events registered!");
     return;
   }

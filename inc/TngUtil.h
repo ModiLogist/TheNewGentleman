@@ -89,6 +89,10 @@ class TngUtil : public Singleton<TngUtil> {
     inline static constexpr RE::FormID cDefGenitalMnmID[3] = {0x8f0, 0x8f3, 0x8f6};  // TNG_GenitalDefaultManMer
     inline static constexpr RE::FormID cDefGenitalSaxID[3] = {0x8f1, 0x8f4, 0x8f7};  // TNG_GenitalDefaultSaxhleel
     inline static constexpr RE::FormID cDefGenitalKhaID[3] = {0x8f2, 0x8f5, 0x8f8};  // TNG_GenitalDefaultKhajiit
+    
+    inline static constexpr RE::FormID cSizeMessageID{0xCFE};
+    inline static constexpr RE::FormID cShapeMessageID{0xCFF};
+
     inline static constexpr RE::FormID cDefSkinAAID{0xD67};
 
     // Rquires Load
@@ -96,11 +100,13 @@ class TngUtil : public Singleton<TngUtil> {
     inline static RE::BGSKeyword* fBeastKey{nullptr};
     inline static RE::BGSKeyword* fNPCKey{nullptr};
     inline static RE::BGSKeyword* fCreatureKey{nullptr};
+    inline static RE::BGSKeyword* fTNGRaceKey{nullptr};
     inline static RE::BGSKeyword* fAutoRvealKey{nullptr};
     inline static RE::BGSKeyword* fRevealingKey{nullptr};
     inline static RE::BGSKeyword* fUnderwearKey{nullptr};
     inline static RE::BGSKeyword* fAutoCoverKey{nullptr};
     inline static RE::BGSKeyword* fCoveringKey{nullptr};
+    
     
     inline static RE::TESObjectARMA* fDefSaxGenital[3]{};
     inline static RE::TESObjectARMA* fDefKhaGenital[3]{};
@@ -146,4 +152,6 @@ class TngUtil : public Singleton<TngUtil> {
     static void GenitalizeRaces() noexcept;
     static void GenitalizeNPCSkins() noexcept;
     static void CheckArmorPieces() noexcept;
+    static void UpdateRace(int aRaceIdx, int aGenOption) noexcept;
+    static void UpdateSavedRaces() noexcept;
 };

@@ -1,10 +1,10 @@
-ScriptName TNG_PapyrusUtil
+ScriptName TNG_PapyrusUtil hidden
 
-Bool function GetFAutoReveal() Global Native
-Bool function GetMAutoReveal() Global Native
-Bool function CanModifyActor(Actor aActor) Global Native
-Bool function UpdateActor(Actor aActor, Int aGenOption, Int aGenSize) Global Native
-Bool function UpdateRace(Int aGenOption, Float aGenMult) Global Native
-Bool function SetAutoRevealing(Bool aFemaleArmor, Bool aMaleArmor) Global Native
-Int GetGenType(Int aRaceIdx) Global Native
-Float GetGenSize(Int aRaceIdx) Global Native
+Function UpdateActor(Actor aActor, Int aGenOption, Int aGenSize) Global Native
+Function UpdateRace(Int aRaceIdx, Int aGenOption, Float aGenMult) Global Native
+Function SetAutoRevealing(Bool aFemaleArmor, Bool aMaleArmor) Global Native
+Bool Function CanModifyActor(Actor aActor) Global Native
+Bool Function GetFAutoReveal() Global Native
+Bool Function GetMAutoReveal() Global Native
+Int Function GetGenType(Int aRaceIdx) Global Native
+Float Function GetGenSize(Int aRaceIdx) Global Native

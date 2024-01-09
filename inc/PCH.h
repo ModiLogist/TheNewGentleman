@@ -19,6 +19,7 @@ namespace Tng {
   namespace gLogger = SKSE::log;
   inline static constexpr std::string_view cName = "TheNewGentleman.esp";
   inline static constexpr std::string_view cSkyrim = "Skyrim.esm";
+  inline static constexpr const char cDelimChar{'~'};
   inline static constexpr int cRaceTypes{14};
   inline static constexpr int cSizeCategories{5};
 
@@ -27,16 +28,11 @@ namespace Tng {
   inline static constexpr RE::FormID cNPCKeywID{0x13794};
   inline static constexpr RE::FormID cCrtKeywID{0x13795};
   inline static constexpr RE::FormID cBstKeywID{0xD61D1};
+  inline static constexpr RE::FormID cTNGRaceKeyID{0xFF0};
   inline static constexpr RE::FormID cRevealingKeyID{0xFFF};
   inline static constexpr RE::FormID cUnderwearKeyID{0xFFE};
   inline static constexpr RE::FormID cCoveringKeyID{0xFFD};  
   inline static constexpr RE::FormID cAutoCoverKeyID{0xFFC};
-  inline static constexpr RE::FormID cAutoRvealKeyID{0xFFB};  
-  inline static constexpr RE::FormID cCoverID{0xA00};
-  inline static constexpr RE::FormID cSkinIDs [3] {0xA01,0xA02,0xA03};
-  inline static constexpr RE::FormID cSizeKeyWIDs[cSizeCategories]{0xFE1, 0xFE2, 0xFE3, 0xFE4, 0xFE5};
-  inline static constexpr RE::FormID cSizeGlobIDs[cSizeCategories]{0xC01, 0xC02, 0xC03, 0xC04, 0xC05};
-  inline static constexpr RE::FormID cSizeListIDs[cSizeCategories]{0xEF1, 0xEF2, 0xEF3, 0xEF4, 0xEF5};
   inline static constexpr RE::FormID cAutoRvealKeyID{0xFFB};
 }
 

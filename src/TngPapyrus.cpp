@@ -1,43 +1,83 @@
 #include <TngInis.h>
 #include <TngPapyrus.h>
 #include <TngSizeShape.h>
+#include <TngUtil.h>
 
-void TngUtil::UpdateActor(RE::StaticFunctionTag*, RE::Actor* aActor, int aGenOption, int aGenSize) noexcept {
-  if (!aActor) return;
-  if (aGenOption > -1) TngSizeShape::SetActorSkin(aActor, aGenOption);
-  TngSizeShape::SetActorSize(aActor, aGenSize);
-}
+bool TngPapyrus::tngLoaded;
 
-void TngUtil::UpdateRace(RE::StaticFunctionTag*, int aRaceIdx, int aGenOption, float aGenMult) noexcept {
-  TngSizeShape::GetSingleton()->genitalChoices[aRaceIdx] = aGenOption;
+bool TngPapyrus::TngLoaded(RE::StaticFunctionTag*) { return tngLoaded; }
+
+void TngPapyrus::UpdateSize(RE::StaticFunctionTag*, int aIdx) { TngInis::SaveSize(aIdx); }
+
+void TngPapyrus::UpdateRace(RE::StaticFunctionTag*, int aRaceIdx, int aGenOption, float aGenMult) {
+  if (aGenOption == -1) {
+    TngSizeShape::GetSingleton()->genitalChoices[aRaceIdx] = TngSizeShape::cGenitalDefaults[aRaceIdx];
+  } else {
+    TngSizeShape::GetSingleton()->genitalChoices[aRaceIdx] = aGenOption;
+  }
   TngSizeShape::GetSingleton()->genitalSizes[aRaceIdx] = aGenMult;
+  TngUtil::UpdateRace(aRaceIdx, aGenOption);
+  TngInis::UpdateRace(aRaceIdx, aGenOption, aGenMult);
 }
 
-void TngUtil::SetAutoRevealing(RE::StaticFunctionTag*, bool aFemaleArmor, bool aMaleArmor) noexcept {
+void TngPapyrus::SetAutoRevealing(RE::StaticFunctionTag*, bool aFemaleArmor, bool aMaleArmor) {
   TngInis::GetSingleton()->FAutoReveal = aFemaleArmor;
   TngInis::GetSingleton()->MAutoReveal = aMaleArmor;
-  Tng::gLogger::info("it works!");
 }
 
-bool TngUtil::CanModifyActor(RE::StaticFunctionTag*, RE::Actor* aActor) { return TngSizeShape::CanModifyActor(aActor); }
+int TngPapyrus::CanModifyActor(RE::StaticFunctionTag*, RE::Actor* aActor) { return TngSizeShape::CanModifyActor(aActor); }
 
-bool TngUtil::GetFAutoReveal(RE::StaticFunctionTag* ) { return TngInis::GetSingleton()->FAutoReveal; }
+void TngPapyrus::UpdateActor(RE::StaticFunctionTag*, RE::Actor* aActor, int aGenOption, int aGenSize) {
+  if (!aActor) return;
+  if (aGenSize == -1) {
+    TngSizeShape::RandomizeScale(aActor);
+    return;
+  }
+  TngSizeShape::SetActorSize(aActor, aGenSize);
+  if (aGenOption > -1) TngSizeShape::SetActorSkin(aActor, aGenOption);
+  if (aActor->IsPlayerRef()) return;
+  std::string lModName{aActor->GetFile(0)->GetFilename()};
+  TngInis::AddActor(aActor->GetLocalFormID(), lModName, aGenOption, aGenSize);
+}
 
-bool TngUtil::GetMAutoReveal(RE::StaticFunctionTag*) { return TngInis::GetSingleton()->MAutoReveal; }
+bool TngPapyrus::GetFAutoReveal(RE::StaticFunctionTag*) { return TngInis::GetSingleton()->FAutoReveal; }
 
-int TngUtil::GetGenType(RE::StaticFunctionTag*, int aRaceIdx) noexcept { return TngSizeShape::GetSingleton()->genitalChoices[aRaceIdx]; }
+bool TngPapyrus::GetMAutoReveal(RE::StaticFunctionTag*) { return TngInis::GetSingleton()->MAutoReveal; }
 
-float TngUtil::GetGenSize(RE::StaticFunctionTag*, int aRaceIdx) noexcept { return TngSizeShape::GetSingleton()->genitalSizes[aRaceIdx]; }
+int TngPapyrus::GetGenType(RE::StaticFunctionTag*, int aRaceIdx) { return TngSizeShape::GetSingleton()->genitalChoices[aRaceIdx]; }
 
-void TngUtil::BindPapyrus(RE::BSScript::IVirtualMachine* aVM) noexcept { 
-  aVM->RegisterFunction("UpdateActor", "TNG_PapyrusUtil", UpdateActor);
+float TngPapyrus::GetGenSize(RE::StaticFunctionTag*, int aRaceIdx) { return TngSizeShape::GetSingleton()->genitalSizes[aRaceIdx]; }
+
+bool TngPapyrus::MakeRevealing(RE::StaticFunctionTag*, RE::TESObjectARMO* aArmor) {
+  if (!aArmor) return false;
+  RE::BGSKeyword* lAutoCover = RE::TESDataHandler::GetSingleton()->LookupForm<RE::BGSKeyword>(Tng::cAutoCoverKeyID, Tng::cName);
+  RE::BGSKeyword* lRevealing = RE::TESDataHandler::GetSingleton()->LookupForm<RE::BGSKeyword>(Tng::cRevealingKeyID, Tng::cName);
+  if (!lAutoCover || !lRevealing) return false;
+  if (!aArmor->HasKeyword(lAutoCover)) return false;
+  for (const auto& lAA : aArmor->armorAddons)
+    if (lAA->HasPartOf(Tng::cSlotGenital) && lAA->HasPartOf(Tng::cSlotBody)) lAA->RemoveSlotFromMask(Tng::cSlotGenital);
+  aArmor->RemoveKeyword(lAutoCover);
+  aArmor->AddKeyword(lRevealing);
+  TngInis::AddRevealingArmor(aArmor);
+  return true;
+}
+
+void TngPapyrus::SaveKeys(RE::StaticFunctionTag*) { TngInis::SaveKeys(); }
+
+
+
+bool TngPapyrus::BindPapyrus(RE::BSScript::IVirtualMachine* aVM) noexcept {
+  aVM->RegisterFunction("TngLoaded", "TNG_PapyrusUtil", TngLoaded);
+  aVM->RegisterFunction("UpdateSize", "TNG_PapyrusUtil", UpdateSize);
   aVM->RegisterFunction("UpdateRace", "TNG_PapyrusUtil", UpdateRace);
   aVM->RegisterFunction("SetAutoRevealing", "TNG_PapyrusUtil", SetAutoRevealing);
   aVM->RegisterFunction("CanModifyActor", "TNG_PapyrusUtil", CanModifyActor);
+  aVM->RegisterFunction("UpdateActor", "TNG_PapyrusUtil", UpdateActor);
   aVM->RegisterFunction("GetFAutoReveal", "TNG_PapyrusUtil", GetFAutoReveal);
   aVM->RegisterFunction("GetMAutoReveal", "TNG_PapyrusUtil", GetMAutoReveal);
   aVM->RegisterFunction("GetGenType", "TNG_PapyrusUtil", GetGenType);
   aVM->RegisterFunction("GetGenSize", "TNG_PapyrusUtil", GetGenSize);
+  aVM->RegisterFunction("MakeRevealing", "TNG_PapyrusUtil", MakeRevealing);
+  aVM->RegisterFunction("SaveKeys", "TNG_PapyrusUtil", SaveKeys);
+  return true;
 }
-
-

@@ -2,9 +2,6 @@
 
 class TngInis : public Singleton<TngInis> {
   private:
-    inline static constexpr const char cDelimChar{'~'};
-    inline static constexpr const char cColonChar{':'};
-
     // TNG setting
     inline static constexpr const char* cSettings{R"(.\Data\SKSE\Plugins\TheNewGentleman.ini)"};
     inline static constexpr const char* cAutoReveal{"AutoReveal"};
@@ -15,8 +12,22 @@ class TngInis : public Singleton<TngInis> {
     inline static constexpr const char* cRaceNames[Tng::cRaceTypes + 3]{"Nord",      "Redguard", "Breton",      "Imperial",      "Altmer",      "Bosmer",
                                                                         "Dunmer",    "Orsimer",  "Saxhleel",    "Khajiit",       "Dremora",     "Elder",
                                                                         "Afflicted", "SnowElf",  "OtherManMer", "OtherSaxhleel", "OtherKhajiit"};
+
+    inline static constexpr const char* cGlobalSize{"GlobalSizes"};
+    inline static constexpr const char* cSizeNames[Tng::cSizeCategories]{"Size_XS", "Size__S", "Size__M", "Size__L", "Size_XL"};
     inline static constexpr const char* cNPCSizeSection{"NPCGenitalSize"};
     inline static constexpr const char* cNPCShapeSection{"NPCGenitalShape"};
+
+    
+    inline static constexpr RE::FormID cNPCCtrlID{0xCB0};
+    inline static constexpr RE::FormID cUPGCtrlID{0xCB1};
+    inline static constexpr RE::FormID cDOWCtrlID{0xCB2};
+    inline static constexpr RE::FormID cREVCtrlID{0xCB3};
+    inline static constexpr const char* cControls{"Controls"};
+    inline static constexpr const char* cNPCCtrl{"NPCEdit"};
+    inline static constexpr const char* cUPGCtrl{"GenitalUp"};
+    inline static constexpr const char* cDOWCtrl{"GenitalDown"};
+    inline static constexpr const char* cREVCtrl{"Revealing"};
 
     // Ini files
     inline static constexpr const char* cTngInisPath{R"(.\Data\SKSE\Plugins\TNG)"};
@@ -31,9 +42,11 @@ class TngInis : public Singleton<TngInis> {
     inline static constexpr const char* cRevealingRecord{"RevealingRecord"};
     inline static constexpr const char* cCoveringRecord{"CoveringRecord"};
 
+
     static void LoadModRecodPairs(CSimpleIniA::TNamesDepend aModRecords, std::set<std::pair<std::string, RE::FormID>>& aField) noexcept;
 
     static bool IsTngIni(const std::string_view aFileName) noexcept;
+    static void UpdateRevealing(const std::string aArmorRecod) noexcept;
 
   public:
     inline static bool FAutoReveal{true};
@@ -47,4 +60,9 @@ class TngInis : public Singleton<TngInis> {
 
     static void LoadTngInis() noexcept;
     static bool LoadMainIni() noexcept;
+    static void SaveSize(const int aIdx) noexcept;
+    static void UpdateRace(const int aRaceIdx, const int aRaceShape, const float aRaceMult) noexcept;
+    static void AddActor(RE::FormID aFormID, std::string aModName, int aGenShape, int aGenSize) noexcept;
+    static void AddRevealingArmor(RE::TESObjectARMO* aArmor) noexcept;
+    static void SaveKeys() noexcept;
 };
