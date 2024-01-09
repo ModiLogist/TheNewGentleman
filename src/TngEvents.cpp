@@ -20,7 +20,6 @@ void TngEvents::CheckForRevealing(RE::TESObjectARMO* aBodyArmor, RE::TESObjectAR
 void TngEvents::CheckForClipping(RE::Actor* aActor, RE::TESObjectARMO* aArmor) noexcept {
   if (!aActor || !aArmor) return;
   fInternal = true;
-  fEquipManager->EquipObject(aActor, fCover, nullptr, 1, nullptr, false, false, false, true);
   fEquipManager->EquipObject(aActor, aArmor, nullptr, 1, nullptr, false, false, false, true);
 }
 
