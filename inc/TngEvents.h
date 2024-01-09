@@ -13,12 +13,12 @@ class TngEvents : public RE::BSTEventSink<RE::TESObjectLoadedEvent>, public RE::
 
     inline static RE::ActorEquipManager* fEquipManager{nullptr};
     inline static RE::BGSKeyword* fNPCKey{nullptr};
+    inline static RE::BGSKeyword* fTNGRaceKey{nullptr};
     inline static RE::BGSKeyword* fAutoRvealKey{nullptr};
     inline static RE::BGSKeyword* fRevealingKey{nullptr};
     inline static RE::BGSKeyword* fUnderwearKey{nullptr};
     inline static RE::BGSKeyword* fAutoCoverKey{nullptr};
     inline static RE::BGSKeyword* fCoveringKey{nullptr};
-    inline static RE::TESObjectARMO* fCover{nullptr};
     inline static bool fInternal;
     
     

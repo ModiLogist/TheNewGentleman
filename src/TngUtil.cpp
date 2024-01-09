@@ -130,6 +130,7 @@ void TngUtil::AddRace(RE::TESRace* aRace, RE::TESObjectARMA* aGenital, RE::TESRa
   }
   if (aGenital) {
     aRace->AddSlotToMask(Tng::cSlotGenital);
+    aRace->AddKeyword(fTNGRaceKey);
     AddGenitalToSkin(aRace->skin, aGenital, aRNAM);
     fRacialSkins.insert(aRace->skin);
     fHandledRaces.insert(aRace);
@@ -321,12 +322,17 @@ bool TngUtil::Initialize() noexcept {
   fUnderwearKey = fDataHandler->LookupForm<RE::BGSKeyword>(Tng::cUnderwearKeyID, Tng::cName);
   fAutoCoverKey = fDataHandler->LookupForm<RE::BGSKeyword>(Tng::cAutoCoverKeyID, Tng::cName);
   fCoveringKey = fDataHandler->LookupForm<RE::BGSKeyword>(Tng::cCoveringKeyID, Tng::cName);
-  if (!(fAutoRvealKey && fRevealingKey && fUnderwearKey && fAutoCoverKey && fCoveringKey)) {
+  fTNGRaceKey = fDataHandler->LookupForm<RE::BGSKeyword>(Tng::cTNGRaceKeyID, Tng::cName);
+  if (!(fAutoRvealKey && fRevealingKey && fUnderwearKey && fAutoCoverKey && fCoveringKey && fTNGRaceKey)) {
     Tng::gLogger::error("The original TNG keywords could not be found!");
     return FALSE;
   }
   fDefRace = RE::TESForm::LookupByID<RE::TESRace>(cDefRaceID);
-
+  fDefSkeleton[0] = fDefRace->skeletonModels[0].model;
+  fDefSkeleton[1] = fDefRace->skeletonModels[1].model;
+  fDefSkinAA = RE::TESForm::LookupByID<RE::TESObjectARMA>(cDefSkinAAID);
+  fDefBodyMesh[0] = fDefSkinAA->bipedModels[0].model;
+  fDefBodyMesh[1] = fDefSkinAA->bipedModels[1].model;
   Tng::gLogger::info("Finding the genitals to respective races...");
   for (int i = 0; i < Tng::cRaceTypes; i++) {
     const auto lRace = fDataHandler->LookupForm<RE::TESRace>(cBaseRaceIDs[i].first, cBaseRaceIDs[i].second);

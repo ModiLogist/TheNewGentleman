@@ -27,8 +27,8 @@ void TngEvents::CheckActor(RE::Actor* aActor, RE::TESObjectARMO* aArmor) noexcep
   const auto lNPC = aActor ? aActor->GetActorBase() : nullptr;
   if (!aActor || !lNPC) return;
   if (!lNPC->race) return;
-  if (!lNPC->race->HasKeyword(fNPCKey)) return;
-  if (!lNPC->race->HasPartOf(Tng::cSlotGenital)) return;
+  if (!lNPC->race->HasKeyword(fTNGRaceKey)) return;
+  TngSizeShape::RandomizeScale(aActor);
   const auto lGArmo = aActor->GetWornArmor(Tng::cSlotGenital);
   if (aArmor && !lGArmo) {
     if (aArmor->HasKeyword(fCoveringKey) || aArmor->HasKeyword(fAutoCoverKey)) CheckForClipping(aActor, aArmor);
@@ -62,14 +62,13 @@ void TngEvents::RegisterEvents() noexcept {
   TngSizeShape::InitSizes();
   const auto lSourceHolder = RE::ScriptEventSourceHolder::GetSingleton();
   fEquipManager = RE::ActorEquipManager::GetSingleton();
-  fNPCKey = RE::TESDataHandler::GetSingleton()->LookupForm<RE::BGSKeyword>(Tng::cBstKeywID, Tng::cSkyrim);
+  fNPCKey = RE::TESDataHandler::GetSingleton()->LookupForm<RE::BGSKeyword>(Tng::cNPCKeywID, Tng::cSkyrim);
   fAutoRvealKey = RE::TESDataHandler::GetSingleton()->LookupForm<RE::BGSKeyword>(Tng::cAutoRvealKeyID, Tng::cName);
   fRevealingKey = RE::TESDataHandler::GetSingleton()->LookupForm<RE::BGSKeyword>(Tng::cRevealingKeyID, Tng::cName);
   fUnderwearKey = RE::TESDataHandler::GetSingleton()->LookupForm<RE::BGSKeyword>(Tng::cUnderwearKeyID, Tng::cName);
   fAutoCoverKey = RE::TESDataHandler::GetSingleton()->LookupForm<RE::BGSKeyword>(Tng::cAutoCoverKeyID, Tng::cName);
   fCoveringKey = RE::TESDataHandler::GetSingleton()->LookupForm<RE::BGSKeyword>(Tng::cCoveringKeyID, Tng::cName);
-  fCover = RE::TESDataHandler::GetSingleton()->LookupForm<RE::TESObjectARMO>(Tng::cCoverID, Tng::cName);
-  if (!(lSourceHolder && fNPCKey && fAutoRvealKey && fRevealingKey && fUnderwearKey && fAutoCoverKey && fCoveringKey && fCover)) {
+  fTNGRaceKey = RE::TESDataHandler::GetSingleton()->LookupForm<RE::BGSKeyword>(Tng::cTNGRaceKeyID, Tng::cName);
     Tng::gLogger::error("Mod cannot find necessary info for events, no events registered!");
     return;
   }
