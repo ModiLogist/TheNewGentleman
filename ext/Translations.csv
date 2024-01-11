@@ -36,31 +36,16 @@ $TNG_GRF,Female NPCs
 $TNG_GRM,Male NPCs
 ,
 $TNG_KyH,Controls
+$TNG_DAK,Integration with DAK
+$TNG_DKN,DAK integration has been removed. This can cause conflicts between the assigned keys with other mods. Do you want to reset all of them?
 $TNG_K_N,NPC Customization
 $TNG_K_R,Make Armor Revealing
 $TNG_K_U,Rise genital
 $TNG_K_D,Drop genital
 ,
-,
 $TNG_SOH,Default Sizes
 $TNG_OGT,Genital Type
 $TNG_OGS,Genital Size Multiplier
-,
-$TNG_Yes,Yes
-$TNG__No,No
-,
-$TNG_E_H,Error
-$TNG_E_0,The New Gentleman DLL cannot be loaded successfully! Make sure you have all the requirements installed!
-,
-$TNG_N_H,Interface
-$TNG_N_T,Show notifications
-$TNG_N_1,The actor is not wearing the armor!
-$TNG_N_2,The armor was marked as revealing successfully!
-$TNG_N_3,The armor cannot be made revealing!
-$TNG_N_4,The selected actor has a custom skin. Genital shape cannot be modified for custom skins!
-,
-$TNG_W_1,No actor can be selected!
-$TNG_W_2,The selected actor cannot be modified!
 ,
 $TNG_OOP,Oops!
 $TNG_AWC,Women chance for an addon
@@ -68,3 +53,26 @@ $TNG_A_W,Gentlewomen Addons
 $TNG_A_M,Gentlemen Addons
 $TNG_ANW,There seems to be no addons installed for women!
 $TNG_ANM,There seems to be no addons installed for men!
+,
+$TNG_Yes,Yes
+$TNG__No,No
+$TNG__OK,OK
+$TNG_RES,Reset Skin
+$TNG_NEX,Next Addons
+,
+$TNG_E_H,Error
+$TNG_E_0,The New Gentleman DLL cannot be loaded successfully! Make sure you have all the requirements installed!
+,
+$TNG_N_H,Interface
+$TNG_N_T,Show notifications
+$TNG_N_R,You changed the default genital of a race! Some changes would not be applied until you launch the game another time. (To avoid unforseen issues)
+$TNG_N_1,The actor is not wearing the armor!
+$TNG_N_2,The armor was marked as revealing successfully!
+$TNG_N_3,The armor cannot be made revealing!
+$TNG_N_4,The selected actor has a custom skin. Genital shape cannot be modified for custom skins!
+,
+$TNG_W_1,No actor can be selected!
+$TNG_W_2,The selected actor cannot be modified!
+$TNG_W_2,DAK Integration is enabled but relevant information cannot be found. Please open MCM and disable DAK integration.
+,
+$TNG_H_1,To avoid conflicts use the key from Dynamic activation key in combination with the keys to activate them.

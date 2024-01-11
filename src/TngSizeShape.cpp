@@ -106,6 +106,7 @@ void TngSizeShape::UpdateSavedShape(const std::string aNPCRecord, const long aSh
   const RE::FormID lFormID = std::strtol(aNPCRecord.substr(0, lSepLoc).data(), nullptr, 0);
   const std::string lModName = aNPCRecord.substr(lSepLoc + 1);
   RE::TESNPC *lNPC = fDataHandler->LookupForm<RE::TESNPC>(lFormID, lModName);
+  Tng::gLogger::info("Looking for {:x} in {}",lFormID,lModName);
   if (!lNPC) return;
   if (!lNPC->race) return;
   if (!lNPC->race->skin) return;
@@ -211,6 +212,7 @@ void TngSizeShape::SetActorSkin(RE::Actor *aActor, int aGenOption) noexcept {
   if (!lNPC->race->HasPartOf(Tng::cSlotGenital)) return;
   if (aGenOption == -2) {
     lNPC->skin = lNPC->race->skin;
+    return;
   }
   if (lNPC->IsFemale()) {
     lNPC->skin = fAddons[1][aGenOption];

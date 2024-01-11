@@ -42,6 +42,7 @@ void TngEvents::CheckActor(RE::Actor* aActor, RE::TESObjectARMO* aArmor) noexcep
 
 void TngEvents::CheckGentlewomen(RE::Actor* aActor) noexcept {
   if (TngSizeShape::CanModifyActor(aActor) != 1) return;
+  if (aActor->IsPlayerRef()) return;
   const auto lNPC = aActor->GetActorBase();
   if (!lNPC->IsFemale()) return;
   if (fWomenChance->value < 1) return;

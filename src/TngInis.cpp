@@ -198,6 +198,10 @@ void TngInis::AddActor(RE::FormID aFormID, std::string aModName, int aGenShape, 
   std::string lIDStr = "0x" + oss.str() + Tng::cDelimChar + aModName;
   if (aGenShape > -1) lIni.SetLongValue(cNPCShapeSection, lIDStr.c_str(), aGenShape);
   lIni.SetLongValue(cNPCSizeSection, lIDStr.c_str(), aGenSize);
+  if (aGenShape == -2) {
+    lIni.Delete(cNPCShapeSection, lIDStr.c_str());
+    lIni.Delete(cNPCSizeSection, lIDStr.c_str());
+  }
   lIni.SaveFile(cSettings);
 }
 

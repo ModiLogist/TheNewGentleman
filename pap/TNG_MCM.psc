@@ -2,6 +2,7 @@ Scriptname TNG_MCM extends SKI_ConfigBase
 
 ;Property
 GlobalVariable[] Property GlobalSizes auto
+GlobalVariable Property DAKIntegration auto
 GlobalVariable Property NPCKey auto
 GlobalVariable Property GenUpKey auto
 GlobalVariable Property GenDownKey auto
@@ -13,7 +14,9 @@ Message Property SizeMenu auto
 Keyword Property TngCovering auto
 FormList Property AddonsFem auto
 FormList Property AddonsMal auto
+FormList Property Gentified auto
 Bool Property Notifs auto
+Int Property PlayerSkin auto
 
 ;Kinda constant
 Int ciRaces
@@ -28,19 +31,26 @@ String[] fSTypeOptions
 String[] fSSizeGlobals
 Float[] fFSizeDefaults
 Actor fkLastActor = None
+GlobalVariable fkDAK = None
 Int fiPos = 0
+Bool fbRaceSkinChanged = False
+Bool fbMessageChanged = False
 
 ;Pointer to UI
 Int[] fIRaceTypeHdls
 Int[] fIRaceSizeHdls
 Int[] fIGlblSizeHdls
+
 Int fiAutoRevealF
 Int fiAutoRevealM
 Int fiNotifs
+
+Int fiDAK
 Int fiNPCKey
 Int fiRevealKey
 Int fiUpKey
 Int fiDownKey
+
 Int fiWomenChance
 
 ;Local
@@ -67,7 +77,10 @@ Event OnVersionUpdate(Int aiVersion)
 EndEvent
 
 Event OnGameReload()
-	Parent.OnGameReload()
+	Parent.OnGameReload()  
+  If Game.GetModByName("Dynamic Activation Key.esp")
+    fkDAK = Game.GetFormFromFile(0x801,"Dynamic Activation Key.esp") As GlobalVariable
+  EndIf
   If NPCKey.GetValueInt() > 0
     RegisterForKey(NPCKey.GetValueInt())
   EndIf
@@ -79,6 +92,14 @@ Event OnGameReload()
   EndIf
   If GenDownKey.GetValueInt() > 0
     RegisterForKey(GenDownKey.GetValueInt())
+  EndIf
+  If PlayerSkin > -1
+    ActorBase lkPC = Game.GetPlayer().GetActorBase()
+    If lkPC.GetSex()
+      lkPC.SetSkin(AddonsFem.GetAt(PlayerSkin) as Armor)
+    Else
+      lkPC.SetSkin(AddonsMal.GetAt(PlayerSkin) as Armor)
+    EndIf
   EndIf
 EndEvent
 
@@ -134,15 +155,27 @@ Event OnConfigOpen()
   
 	fSFemAddons = new String[20]
 	fSMalAddons = new String[20]
+  
+  fbRaceSkinChanged = False
+  fbMessageChanged = False
 EndEvent
 
 Event OnConfigClose()
-  TNG_PapyrusUtil.SaveKeys()
+  TNG_PapyrusUtil.SaveGlobals()
+  If fbRaceSkinChanged
+    ShowMessage("$TNG_N_R","$TNG__OK")
+  EndIf
+EndEvent
+
+Event OnOptionHighlight(Int aiOption)
+	If aiOption == fiDAK
+    SetInfoText("$TNG_H_1")
+  EndIf  
 EndEvent
 
 Event OnPageReset(string asPage)
   If !TNG_PapyrusUtil.TngLoaded()
-    AddTextOption("$TNG_E_H", "$TNG_E_0")
+    AddTextOption("$TNG_E_H","$TNG_E_0")
     Return
   EndIf
 	If asPage == Pages[0]
@@ -153,13 +186,26 @@ Event OnPageReset(string asPage)
     bool lbARM = TNG_PapyrusUtil.GetMAutoReveal()
     fiAutoRevealM = AddToggleOption("$TNG_GRM",lbARM)
     AddHeaderOption("$TNG_N_H")
+		AddHeaderOption("")
     fiNotifs = AddToggleOption("$TNG_N_T",Notifs)
+    AddEmptyOption()
     AddHeaderOption("$TNG_KyH")
     AddHeaderOption("")
-    fiNPCKey = AddKeyMapOption("$TNG_K_N", NPCKey.GetValueInt())
-    fiRevealKey = AddKeyMapOption("$TNG_K_R", RevealKey.GetValueInt())
-    fiUpKey = AddKeyMapOption("$TNG_K_U", GenUpKey.GetValueInt())
-    fiDownKey = AddKeyMapOption("$TNG_K_D", GenDownKey.GetValueInt())
+    fkDAK = None
+    If Game.GetModByName("Dynamic Activation Key.esp")
+      fkDAK = Game.GetFormFromFile(0x801,"Dynamic Activation Key.esp") As GlobalVariable
+      If fkDAK
+        fiDAK = AddToggleOption("$TNG_DAK",DAKIntegration.GetValue()>1)
+        AddEmptyOption()
+      EndIf
+    EndIf
+    If !fkDAK
+      DAKIntegration.SetValue(0)
+    EndIf
+    fiNPCKey = AddKeyMapOption("$TNG_K_N",NPCKey.GetValueInt())
+    fiRevealKey = AddKeyMapOption("$TNG_K_R",RevealKey.GetValueInt())
+    fiUpKey = AddKeyMapOption("$TNG_K_U",GenUpKey.GetValueInt())
+    fiDownKey = AddKeyMapOption("$TNG_K_D",GenDownKey.GetValueInt())
     AddHeaderOption("$TNG_SOH")
     AddHeaderOption("")
     Int liGlbSize = 0
@@ -195,12 +241,12 @@ Event OnPageReset(string asPage)
       liLines = liFLines
     EndIf
     If liFLines == 0
-      AddTextOption("$TNG_OOP", "$TNG_ANW")
+      AddTextOption("$TNG_OOP","$TNG_ANW")
     Else
       fiWomenChance = AddSliderOption("$TNG_AWC",WomenChance.GetValue(),"{0}%");
     EndIf
     If liMLines == 0
-      AddTextOption("$TNG_OOP", "$TNG_ANM")
+      AddTextOption("$TNG_OOP","$TNG_ANM")
     Else
       AddEmptyOption()
     EndIf
@@ -210,7 +256,7 @@ Event OnPageReset(string asPage)
     Int liCurr = 0
     While liCurr < liLines
       If liCurr < liFLines
-        AddTextOption(AddonsFem.GetAt(liCurr).GetFormID(), AddonsFem.GetAt(liCurr).GetName())
+        AddTextOption(AddonsFem.GetAt(liCurr).GetFormID(),AddonsFem.GetAt(liCurr).GetName())
       Else
         AddEmptyOption()
       EndIf
@@ -226,10 +272,6 @@ Event OnPageReset(string asPage)
   
 EndEvent
 
-Event OnOptionHighlight(Int aiOption)
-	
-EndEvent
-
 Event OnOptionDefault(Int aiOption)
   Int liOpLoop = ciRaces
   While liOpLoop
@@ -241,7 +283,7 @@ Event OnOptionDefault(Int aiOption)
       Return
     EndIf
     If aiOption == fIRaceTypeHdls[liOpLoop]
-      TNG_PapyrusUtil.UpdateRace(liOpLoop, -1,TNG_PapyrusUtil.GetGenSize(liOpLoop))
+      TNG_PapyrusUtil.UpdateRace(liOpLoop,-1,TNG_PapyrusUtil.GetGenSize(liOpLoop))
       SetMenuOptionValue(fIRaceTypeHdls[liOpLoop],TNG_PapyrusUtil.GetGenType(liOpLoop))
       Return
     EndIf
@@ -271,11 +313,23 @@ Event OnOptionDefault(Int aiOption)
     SetToggleOptionValue(fiNotifs,True)
     Return
   EndIf
+  If aiOption == fiDAK
+    DAKIntegration.SetValue(0)
+    SetToggleOptionValue(fiDAK,False)
+    Bool lbResetAll = ShowMessage("$TNG_DKN",true,"$TNG_Yes","$TNG__No")
+    If lbResetAll
+      OnOptionDefault(fiNPCKey)
+      OnOptionDefault(fiRevealKey)
+      OnOptionDefault(fiUpKey)
+      OnOptionDefault(fiDownKey)
+    EndIf
+    Return
+  EndIf
   If aiOption == fiNPCKey
     If NPCKey.GetValueInt() > 0
       UnregisterForKey(NPCKey.GetValueInt())
       NPCKey.SetValueInt(-1)
-			SetKeymapOptionValue(fiNPCKey, -1)
+			SetKeymapOptionValue(fiNPCKey,-1)
     EndIf
     Return
   EndIf
@@ -283,7 +337,7 @@ Event OnOptionDefault(Int aiOption)
     If RevealKey.GetValueInt() > 0
       UnregisterForKey(RevealKey.GetValueInt())
       RevealKey.SetValueInt(-1)
-			SetKeymapOptionValue(fiRevealKey, -1)
+			SetKeymapOptionValue(fiRevealKey,-1)
     EndIf
     Return
   EndIf
@@ -291,7 +345,7 @@ Event OnOptionDefault(Int aiOption)
     If GenUpKey.GetValueInt() > 0
       UnregisterForKey(GenUpKey.GetValueInt())
       GenUpKey.SetValueInt(-1)
-			SetKeymapOptionValue(fiUpKey, -1)
+			SetKeymapOptionValue(fiUpKey,-1)
     EndIf
     Return
   EndIf
@@ -299,7 +353,7 @@ Event OnOptionDefault(Int aiOption)
     If GenDownKey.GetValueInt() > 0
       UnregisterForKey(GenDownKey.GetValueInt())
       GenDownKey.SetValueInt(-1)
-			SetKeymapOptionValue(fiDownKey, -1)
+			SetKeymapOptionValue(fiDownKey,-1)
     EndIf
     Return
   EndIf
@@ -327,7 +381,8 @@ Event OnOptionMenuAccept(int aiOption,int aiChoice)
   While liRace
     liRace -= 1
     If aiOption == fIRaceTypeHdls[liRace]
-      TNG_PapyrusUtil.UpdateRace(liRace, aiChoice,TNG_PapyrusUtil.GetGenSize(liRace))
+      TNG_PapyrusUtil.UpdateRace(liRace,aiChoice,TNG_PapyrusUtil.GetGenSize(liRace))      
+      fbRaceSkinChanged = True
       SetMenuOptionValue(fIRaceTypeHdls[liRace],fSTypeOptions[aiChoice])
       Return
     EndIf
@@ -411,39 +466,57 @@ Event OnOptionSelect(int aiOption)
 	If aiOption == fiAutoRevealF
     TNG_PapyrusUtil.SetAutoRevealing(!TNG_PapyrusUtil.GetFAutoReveal(),TNG_PapyrusUtil.GetMAutoReveal())    
 		SetToggleOptionValue(fiAutoRevealF,TNG_PapyrusUtil.GetFAutoReveal())
+    Return
   EndIf
   If aiOption == fiAutoRevealM
     TNG_PapyrusUtil.SetAutoRevealing(TNG_PapyrusUtil.GetFAutoReveal(),!TNG_PapyrusUtil.GetMAutoReveal())    
 		SetToggleOptionValue(fiAutoRevealM,TNG_PapyrusUtil.GetMAutoReveal())
+    Return
   EndIf
   If aiOption == fiNotifs
     Notifs = !Notifs
     SetToggleOptionValue(fiNotifs,Notifs)
+    Return
+  EndIf
+  If aiOption == fiDAK
+    DAKIntegration.SetValue(2.0 - DAKIntegration.GetValue())
+    SetToggleOptionValue(fiDAK,DAKIntegration.GetValue() > 1)
+    If DAKIntegration.GetValue() < 1
+      Bool lbResetAll = ShowMessage("$TNG_DKN",true,"$TNG_Yes","$TNG__No")
+      If lbResetAll
+        OnOptionDefault(fiNPCKey)
+        OnOptionDefault(fiRevealKey)
+        OnOptionDefault(fiUpKey)
+        OnOptionDefault(fiDownKey)
+      EndIf
+    EndIf
+    Return
   EndIf
 EndEvent
 
-Event OnOptionKeyMapChange(int aiOption, int aiKeyCode, String asConflictControl, String asConflictName)
-  Bool abContinue = True
-  String aNotif
-  If asConflictControl != ""
-    If (asConflictName != "")
-      aNotif = "This key is already mapped to:\n\"" + asConflictControl + "\"\n(" + asConflictName + ")\n\nAre you sure you want to continue?"
-    Else
-      aNotif = "This key is already mapped to:\n\"" + asConflictControl + "\"\n\nAre you sure you want to continue?"
-    EndIf
-    abContinue = ShowMessage(aNotif, true, "$TNG_Yes", "$TNG__No")  
-    If (!abContinue) 
-      Return
+Event OnOptionKeyMapChange(int aiOption,int aiKeyCode,String asConflictControl,String asConflictName)
+  If !fkDAK || (DAKIntegration.GetValue() < 1)
+    Bool lbContinue = True
+    String lsNotif
+    If asConflictControl != ""
+      If (asConflictName != "")
+        lsNotif = "This key is already mapped to:\n\"" + asConflictControl + "\"\n(" + asConflictName + ")\n\nAre you sure you want to continue?"
+      Else
+        lsNotif = "This key is already mapped to:\n\"" + asConflictControl + "\"\n\nAre you sure you want to continue?"
+      EndIf
+      lbContinue = ShowMessage(lsNotif,true,"$TNG_Yes","$TNG__No")  
+      If (!lbContinue) 
+        Return
+      EndIf
     EndIf
   EndIf
-  
   If (aiOption == fiNPCKey) || (aiOption == fiRevealKey) || (aiOption == fiUpKey) || (aiOption == fiDownKey)
-    UpdateKey(aiOption, aiKeyCode)
-    SetKeymapOptionValue(aiOption, aiKeyCode)
+    UpdateKey(aiOption,aiKeyCode)
+    SetKeymapOptionValue(aiOption,aiKeyCode)
   EndIf
 EndEvent
 
-Function UpdateKey(Int aHdl, Int aiNewKey)
+Function UpdateKey(Int aHdl,Int aiNewKey)
 	Int liCurrKey = -1
   If (aHdl == fiNPCKey)
     liCurrKey = NPCKey.GetValueInt()
@@ -468,6 +541,15 @@ Event OnKeyDown(Int aiKey)
 	If fbTNGMenuOpen || Utility.IsInMenuMode()
 		Return
 	EndIf
+  If (DAKIntegration.GetValue() > 1) && !fkDAK
+    Debug.Notification("$TNG_W_3")
+    Return
+  EndIf
+  If (DAKIntegration.GetValue() > 1)
+    If fkDAK.GetValueInt() != 1
+      Return
+    EndIf
+  EndIf
 	If aiKey == NPCKey.GetValueInt()
     fbTNGMenuOpen = True
 		ShowTNGMenu(TargetOrPlayer)
@@ -478,13 +560,20 @@ Event OnKeyDown(Int aiKey)
     If !lkActor
       Return
     EndIf
+    ActorBase lkNPC = lkActor.GetActorBase()
+    If !lkNPC
+      lkActor = Game.GetPlayer()
+    EndIf
+    If (lkNPC.GetSex() == 0) && !Gentified.HasForm(lkNPC)
+      lkActor = Game.GetPlayer()
+    EndIf
     If lkActor != fkLastActor
       fkLastActor = lkActor
       fiPos = 0
     EndIf    
     If fiPos < 9
       fiPos += 1
-      Debug.SendAnimationEvent(lkActor, "SOSBend" + fiPos)
+      Debug.SendAnimationEvent(lkActor,"SOSBend" + fiPos)
     EndIf
     Return
   EndIf
@@ -499,7 +588,7 @@ Event OnKeyDown(Int aiKey)
     EndIf    
     If fiPos > -9
       fiPos -= 1
-      Debug.SendAnimationEvent(lkActor, "SOSBend" + fiPos)
+      Debug.SendAnimationEvent(lkActor,"SOSBend" + fiPos)
     EndIf
     Return
   EndIf
@@ -550,8 +639,9 @@ Function ShowTNGMenu(Actor akActor)
     Debug.Notification("$TNG_W_2")
     Return
   EndIf
+  Bool lbIsFemale = akActor.GetActorBase().GetSex()
   If liModifyRes == 1
-    If akActor.GetActorBase().GetSex()
+    If lbIsFemale
       liSkin = TypeMenuF.Show()
     Else
       liSkin = TypeMenuM.Show()
@@ -559,10 +649,31 @@ Function ShowTNGMenu(Actor akActor)
   Else
     Debug.Notification("$TNG_N_4")
   EndIf
-  liSize = SizeMenu.Show()
+  If liSkin < 4
+    liSize = SizeMenu.Show()
+  EndIf
+  If liSkin == 4
+    liSkin = -2
+    If lbIsFemale
+      Gentified.RemoveAddedForm(akActor.GetActorBase())
+    EndIf
+  EndIf
+  If liSkin == 5
+    fbMessageChanged = True
+    TNG_PapyrusUtil.UpdateMessage(lbIsFemale)    
+    ShowTNGMenu(akActor)
+    Return
+  EndIf
   TNG_PapyrusUtil.UpdateActor(akActor,liSkin,liSize)
+  If akActor == Game.GetPlayer()
+    PlayerSkin = liSkin
+  EndIf
   If !akActor.WornHasKeyword(TngCovering)
     akActor.QueueNiNodeUpdate()
   EndIf
   fbTNGMenuOpen = False
+  If fbMessageChanged
+    TNG_PapyrusUtil.ResetMessage(lbIsFemale)
+  EndIf
+  fbMessageChanged = False
 EndFunction
