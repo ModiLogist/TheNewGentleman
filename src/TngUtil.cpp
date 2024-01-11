@@ -568,9 +568,9 @@ void TngUtil::UpdateRace(int aRaceIdx, int aGenOption) noexcept {
     auto lRace = RE::TESForm::LookupByID<RE::TESRace>(lRaceID);
     if (!lRace) continue;
     if (aGenOption == -1) {
-      lRace->skin = TngSizeShape::fMalAddons[TngSizeShape::cGenitalDefaults[aRaceIdx]];
+      lRace->skin = TngSizeShape::fAddons[0][TngSizeShape::cGenitalDefaults[aRaceIdx]];
     } else {
-      lRace->skin = TngSizeShape::fMalAddons[aGenOption];
+      lRace->skin = TngSizeShape::fAddons[0][aGenOption];
     }
   }
 }

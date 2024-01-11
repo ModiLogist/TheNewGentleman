@@ -19,15 +19,21 @@ class TngInis : public Singleton<TngInis> {
     inline static constexpr const char* cNPCShapeSection{"NPCGenitalShape"};
 
     
+    inline static constexpr RE::FormID cINTCtrlID{0xC00};
     inline static constexpr RE::FormID cNPCCtrlID{0xCB0};
     inline static constexpr RE::FormID cUPGCtrlID{0xCB1};
     inline static constexpr RE::FormID cDOWCtrlID{0xCB2};
     inline static constexpr RE::FormID cREVCtrlID{0xCB3};
+    
     inline static constexpr const char* cControls{"Controls"};
     inline static constexpr const char* cNPCCtrl{"NPCEdit"};
     inline static constexpr const char* cUPGCtrl{"GenitalUp"};
     inline static constexpr const char* cDOWCtrl{"GenitalDown"};
     inline static constexpr const char* cREVCtrl{"Revealing"};
+    inline static constexpr const char* cINTCtrl{"DAK_Integration"};
+
+    inline static constexpr const char* cGentleWomen{"GentleWomen"};
+    inline static constexpr const char* cGentleWomenChance{"Chance"};
 
     // Ini files
     inline static constexpr const char* cTngInisPath{R"(.\Data\SKSE\Plugins\TNG)"};
@@ -64,5 +70,5 @@ class TngInis : public Singleton<TngInis> {
     static void UpdateRace(const int aRaceIdx, const int aRaceShape, const float aRaceMult) noexcept;
     static void AddActor(RE::FormID aFormID, std::string aModName, int aGenShape, int aGenSize) noexcept;
     static void AddRevealingArmor(RE::TESObjectARMO* aArmor) noexcept;
-    static void SaveKeys() noexcept;
+    static void SaveGlobals() noexcept;
 };

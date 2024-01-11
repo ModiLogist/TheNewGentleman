@@ -45,9 +45,10 @@ void TngEvents::CheckGentlewomen(RE::Actor* aActor) noexcept {
   const auto lNPC = aActor->GetActorBase();
   if (!lNPC->IsFemale()) return;
   if (fWomenChance->value < 1) return;
-  if (TngSizeShape::GetSingleton()->fFemAddonCount == 0) return;
+  if (aActor->HasKeyword(fGentleWomanKey)) return;
+  if (TngSizeShape::GetSingleton()->fAddonCount[1] == 0) return;
   if ((lNPC->GetFormID() % 100) < (std::floor(fWomenChance->value) + 1)) {
-    auto lSkin = TngSizeShape::GetSingleton()->fFemAddons[lNPC->GetFormID() % TngSizeShape::GetSingleton()->fFemAddonCount];
+    auto lSkin = TngSizeShape::GetSingleton()->fAddons[1][lNPC->GetFormID() % TngSizeShape::GetSingleton()->fAddonCount[1]];
     lNPC->skin = lSkin;
     if (lSkin->HasKeyword(fSkinWithPenisKey)) {
       lNPC->AddKeyword(fGentleWomanKey);
@@ -93,9 +94,9 @@ void TngEvents::RegisterEvents() noexcept {
   fCoveringKey = RE::TESDataHandler::GetSingleton()->LookupForm<RE::BGSKeyword>(Tng::cCoveringKeyID, Tng::cName);
   fTNGRaceKey = RE::TESDataHandler::GetSingleton()->LookupForm<RE::BGSKeyword>(Tng::cTNGRaceKeyID, Tng::cName);
   fGentleWomanKey = RE::TESDataHandler::GetSingleton()->LookupForm<RE::BGSKeyword>(cGentleWomanKeyID, Tng::cName);
-  fSkinWithPenisKey = RE::TESDataHandler::GetSingleton()->LookupForm<RE::BGSKeyword>(cSkinWithPenisKeyID, Tng::cName);
-  fWomenChance = RE::TESDataHandler::GetSingleton()->LookupForm<RE::TESGlobal>(cWomenChanceID, Tng::cName);
-  fGentified = RE::TESDataHandler::GetSingleton()->LookupForm<RE::BGSListForm>(cGentifiedID, Tng::cName);
+  fSkinWithPenisKey = RE::TESDataHandler::GetSingleton()->LookupForm<RE::BGSKeyword>(Tng::cSkinWithPenisKeyID, Tng::cName);
+  fWomenChance = RE::TESDataHandler::GetSingleton()->LookupForm<RE::TESGlobal>(Tng::cWomenChanceID, Tng::cName);
+  fGentified = RE::TESDataHandler::GetSingleton()->LookupForm<RE::BGSListForm>(Tng::cGentifiedID, Tng::cName);
   if (!(lSourceHolder && fNPCKey && fAutoRvealKey && fRevealingKey && fUnderwearKey && fAutoCoverKey && fCoveringKey && fTNGRaceKey && fGentleWomanKey && fSkinWithPenisKey &&
         fWomenChance && fGentified)) {
     Tng::gLogger::error("Mod cannot find necessary info for events, no events registered!");

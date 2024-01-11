@@ -150,10 +150,19 @@ bool TngInis::LoadMainIni() noexcept {
     auto lUPGCtrl = RE::TESDataHandler::GetSingleton()->LookupForm<RE::TESGlobal>(cUPGCtrlID, Tng::cName);
     auto lDOWCtrl = RE::TESDataHandler::GetSingleton()->LookupForm<RE::TESGlobal>(cDOWCtrlID, Tng::cName);
     auto lREVCtrl = RE::TESDataHandler::GetSingleton()->LookupForm<RE::TESGlobal>(cREVCtrlID, Tng::cName);
+    auto lINTCtrl = RE::TESDataHandler::GetSingleton()->LookupForm<RE::TESGlobal>(cINTCtrlID, Tng::cName);
+    auto lWomenChance = RE::TESDataHandler::GetSingleton()->LookupForm<RE::TESGlobal>(Tng::cWomenChanceID, Tng::cName);
+    if (!(lNPCCtrl && lUPGCtrl && lDOWCtrl && lREVCtrl && lINTCtrl && lWomenChance)) {
+      Tng::gLogger::info("There seems to be an issue for saving some settings.");
+      lIni.SaveFile(cSettings);
+      return true;
+    }
+    if (lIni.KeyExists(cControls, cINTCtrl)) lINTCtrl->value = lIni.GetBoolValue(cControls, cINTCtrl) ? 2.0f : 0.0f;
     if (lIni.KeyExists(cControls, cNPCCtrl)) lNPCCtrl->value = static_cast<float>(lIni.GetLongValue(cControls, cNPCCtrl));
     if (lIni.KeyExists(cControls, cUPGCtrl)) lUPGCtrl->value = static_cast<float>(lIni.GetLongValue(cControls, cUPGCtrl));
     if (lIni.KeyExists(cControls, cDOWCtrl)) lDOWCtrl->value = static_cast<float>(lIni.GetLongValue(cControls, cDOWCtrl));
     if (lIni.KeyExists(cControls, cREVCtrl)) lREVCtrl->value = static_cast<float>(lIni.GetLongValue(cControls, cREVCtrl));
+    if (lIni.KeyExists(cGentleWomen, cGentleWomenChance)) lWomenChance->value = static_cast<float>(lIni.GetDoubleValue(cGentleWomen, cGentleWomenChance));
   }
   lIni.SaveFile(cSettings);
   return true;
@@ -204,7 +213,7 @@ void TngInis::AddRevealingArmor(RE::TESObjectARMO* aArmor) noexcept {
   lIni.SaveFile(cSettings);
 }
 
-void TngInis::SaveKeys() noexcept {
+void TngInis::SaveGlobals() noexcept {
   CSimpleIniA lIni;
   lIni.SetUnicode();
   lIni.LoadFile(cSettings);
@@ -212,9 +221,18 @@ void TngInis::SaveKeys() noexcept {
   auto lUPGCtrl = RE::TESDataHandler::GetSingleton()->LookupForm<RE::TESGlobal>(cUPGCtrlID, Tng::cName);
   auto lDOWCtrl = RE::TESDataHandler::GetSingleton()->LookupForm<RE::TESGlobal>(cDOWCtrlID, Tng::cName);
   auto lREVCtrl = RE::TESDataHandler::GetSingleton()->LookupForm<RE::TESGlobal>(cREVCtrlID, Tng::cName);
+  auto lINTCtrl = RE::TESDataHandler::GetSingleton()->LookupForm<RE::TESGlobal>(cINTCtrlID, Tng::cName);
+  auto lWomenChance = RE::TESDataHandler::GetSingleton()->LookupForm<RE::TESGlobal>(Tng::cWomenChanceID, Tng::cName);
+  if (!(lNPCCtrl && lUPGCtrl && lDOWCtrl && lREVCtrl && lINTCtrl && lWomenChance)) {
+    Tng::gLogger::info("There seems to be an issue for saving some settings.");
+    return;
+  }
+  lIni.SetBoolValue(cControls, cINTCtrl, lINTCtrl->value > 1);
   lIni.SetLongValue(cControls, cNPCCtrl, static_cast<int>(lNPCCtrl->value));
   lIni.SetLongValue(cControls, cUPGCtrl, static_cast<int>(lUPGCtrl->value));
   lIni.SetLongValue(cControls, cDOWCtrl, static_cast<int>(lDOWCtrl->value));
-  lIni.SetLongValue(cControls, cREVCtrl, static_cast<int>(lREVCtrl->value));
+  lIni.SetLongValue(cControls, cREVCtrl, static_cast<int>(lREVCtrl->value));  
+  lIni.SetDoubleValue(cGentleWomen, cGentleWomenChance, lWomenChance->value);
+
   lIni.SaveFile(cSettings);
 }

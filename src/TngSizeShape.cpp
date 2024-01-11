@@ -1,39 +1,52 @@
 #include <TngSizeShape.h>
 
-int TngSizeShape::fFemAddonCount;
-int TngSizeShape::fMalAddonCount;
+int TngSizeShape::fAddonCount[2];
 
 bool TngSizeShape::LoadAddons() noexcept {
   fFemAddKey = fDataHandler->LookupForm<RE::BGSKeyword>(cFemAddKeyID, Tng::cName);
   fMalAddKey = fDataHandler->LookupForm<RE::BGSKeyword>(cMalAddKeyID, Tng::cName);
   fFemAddLst = fDataHandler->LookupForm<RE::BGSListForm>(cFemAddLstID, Tng::cName);
   fMalAddLst = fDataHandler->LookupForm<RE::BGSListForm>(cMalAddLstID, Tng::cName);
-  if (!fFemAddKey || !fMalAddKey || !fFemAddLst || !fMalAddLst) {
+  fAddonGlb[1] = fDataHandler->LookupForm<RE::TESGlobal>(cFemAddConID, Tng::cName);
+  fAddonGlb[0] = fDataHandler->LookupForm<RE::TESGlobal>(cMalAddConID, Tng::cName);
+  fMsg[1] = fDataHandler->LookupForm<RE::BGSMessage>(cShapeMessageFID, Tng::cName);
+  fMsg[0] = fDataHandler->LookupForm<RE::BGSMessage>(cShapeMessageMID, Tng::cName);
+  fShowNext[1] = fDataHandler->LookupForm<RE::TESGlobal>(cShowNextFID, Tng::cName);
+  fShowNext[0] = fDataHandler->LookupForm<RE::TESGlobal>(cShowNextMID, Tng::cName);  
+  if (!fFemAddKey || !fMalAddKey || !fFemAddLst || !fMalAddLst || !fAddonGlb[0] || !fAddonGlb[1] || !fMsg[0] || !fMsg[1] || !fShowNext[0] || !fShowNext[1]) {
     Tng::gLogger::error("Could not find the base information required for shape variations!");
     return false;
   }
   for (int i = 0; i < 3; i++) {
-    fMalAddons[i] = fDataHandler->LookupForm<RE::TESObjectARMO>(cSkinIDs[i], Tng::cName);
-    if (!fMalAddons[i]) {
+    fAddons[0][i] = fDataHandler->LookupForm<RE::TESObjectARMO>(cSkinIDs[i], Tng::cName);
+    if (!fAddons[0][i]) {
       Tng::gLogger::error("Could not find the information required for shape variations!");
       return false;
     }
   }
-  fFemAddonCount = 0;
-  fMalAddonCount = 3;
+  fAddonCount[0] = 3;
+  fAddonCount[1] = 0;
   auto &lAllArmor = fDataHandler->GetFormArray<RE::TESObjectARMO>();
   for (const auto &lArmor : lAllArmor) {
     if (lArmor->HasKeyword(fFemAddKey)) {
-      fFemAddons[fFemAddonCount] = lArmor;
-      fFemAddonCount++;
+      fAddons[1][fAddonCount[1]] = lArmor;
       fFemAddLst->AddForm(lArmor);
+      auto lBtn = *std::next(fMsg[1]->menuButtons.begin(), fAddonCount[1]);
+      lBtn->text = lArmor->GetName();
+      fAddonCount[1]++;
     }
     if (lArmor->HasKeyword(fMalAddKey)) {
-      fMalAddons[fMalAddonCount] = lArmor;
-      fMalAddonCount++;
+      fAddons[0][fAddonCount[0]] = lArmor;
       fMalAddLst->AddForm(lArmor);
+      auto lBtn = *std::next(fMsg[0]->menuButtons.begin(), fAddonCount[0]);
+      lBtn->text = lArmor->GetName();
+      fAddonCount[0]++;
     }
   }
+  fAddonGlb[0]->value = static_cast<float>(fAddonCount[0]);
+  fShowNext[0]->value = fAddonCount[0] > 4 ? 2.0f : 0.0f;
+  fAddonGlb[1]->value = static_cast<float>(fAddonCount[1]);
+  fShowNext[1]->value = fAddonCount[1] > 4 ? 2.0f : 0.0f;
   return true;
 }
 
@@ -58,7 +71,9 @@ void TngSizeShape::ScaleGenital(RE::Actor *aActor, RE::TESGlobal *aGlobal) noexc
 bool TngSizeShape::InitSizes() noexcept {
   fDataHandler = RE::TESDataHandler::GetSingleton();
   fTNGRaceKey = fDataHandler->LookupForm<RE::BGSKeyword>(Tng::cTNGRaceKeyID, Tng::cName);
-  if (!fTNGRaceKey) {
+  fGentified = RE::TESDataHandler::GetSingleton()->LookupForm<RE::BGSListForm>(Tng::cGentifiedID, Tng::cName);
+  fSkinWithPenisKey = RE::TESDataHandler::GetSingleton()->LookupForm<RE::BGSKeyword>(Tng::cSkinWithPenisKeyID, Tng::cName);
+  if (!fTNGRaceKey || !fGentified) {
     Tng::gLogger::error("Could not find the information required for size distribution!");
     return false;
   }
@@ -96,9 +111,10 @@ void TngSizeShape::UpdateSavedShape(const std::string aNPCRecord, const long aSh
   if (!lNPC->race->skin) return;
   if (lNPC->skin && lNPC->skin != lNPC->race->skin) return;
   if (lNPC->IsFemale()) {
-    lNPC->skin = fFemAddons[aShape];
+    lNPC->skin = fAddons[1][aShape];
+    if (fAddons[1][aShape]->HasKeyword(fSkinWithPenisKey)) fGentified->AddForm(lNPC);
   } else {
-    lNPC->skin = fMalAddons[aShape];
+    lNPC->skin = fAddons[0][aShape];
   }
 }
 
@@ -143,11 +159,35 @@ int TngSizeShape::CanModifyActor(RE::Actor *aActor) noexcept {
   auto lSkin = aActor->GetSkin();
   if (!lSkin) return 1;
   if (lSkin == aActor->GetRace()->skin) return 1;
-  for (const auto &lTngSkin : fMalAddons)
+  for (const auto &lTngSkin : fAddons[0])
     if (lSkin == lTngSkin) return 1;
-  for (const auto &lTngSkin : fFemAddons)
+  for (const auto &lTngSkin : fAddons[1])
     if (lSkin == lTngSkin) return 1;
   return 0;
+}
+
+void TngSizeShape::UpdateMessage(bool aIsFemale) noexcept {
+  int lFM = aIsFemale ? 1 : 0;
+  for (int i = 0; i < 4; i++) {
+    auto lBtn = *std::next(fMsg[lFM]->menuButtons.begin(), i);
+    if (fMessagePage[lFM] == 0) fOgMessageBtns[i] = lBtn->text;
+    int lIdx = 4 * fMessagePage[lFM] + i;
+    if (lIdx < fAddonCount[lFM]) lBtn->text = fAddons[lFM][lIdx]->GetName();
+  }
+  fAddonGlb[lFM]->value = static_cast<float>(fAddonCount[lFM] - (4 * fMessagePage[lFM]));
+  fMessagePage[lFM]++;
+  fShowNext[lFM]->value = fAddonCount[lFM] > fMessagePage[lFM] * 4 ? 2.0f : 0.0f;
+}
+
+void TngSizeShape::ResetMessage(bool aIsFemale) noexcept {
+  int lFM = aIsFemale ? 1 : 0;
+  for (int i = 0; i < 4; i++) {
+    auto lBtn = *std::next(fMsg[lFM]->menuButtons.begin(), i);
+    lBtn->text = fOgMessageBtns[i];
+    fAddonGlb[lFM]->value = static_cast<float>(fAddonCount[lFM]);
+    fShowNext[0]->value = fAddonCount[0] > 4 ? 2.0f : 0.0f;
+    fMessagePage[lFM] = 0;
+  }
 }
 
 void TngSizeShape::SetActorSize(RE::Actor *aActor, int aGenSize) noexcept {
@@ -164,13 +204,18 @@ void TngSizeShape::SetActorSize(RE::Actor *aActor, int aGenSize) noexcept {
 }
 
 void TngSizeShape::SetActorSkin(RE::Actor *aActor, int aGenOption) noexcept {
+  if (aGenOption == -1) return;
   const auto lNPC = aActor ? aActor->GetActorBase() : nullptr;
   if (!aActor || !lNPC) return;
   if (!lNPC->race) return;
   if (!lNPC->race->HasPartOf(Tng::cSlotGenital)) return;
+  if (aGenOption == -2) {
+    lNPC->skin = lNPC->race->skin;
+  }
   if (lNPC->IsFemale()) {
-    lNPC->skin = fFemAddons[aGenOption];
+    lNPC->skin = fAddons[1][aGenOption];
+    if (fAddons[1][aGenOption]->HasKeyword(fSkinWithPenisKey)) fGentified->AddForm(lNPC);
   } else {
-    lNPC->skin = fMalAddons[aGenOption];
+    lNPC->skin = fAddons[0][aGenOption];
   }
 }

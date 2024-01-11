@@ -11,9 +11,6 @@ class TngEvents : public RE::BSTEventSink<RE::TESObjectLoadedEvent>, public RE::
     TngEvents& operator=(const TngEvents&) = delete;
     TngEvents& operator=(TngEvents&&) = delete;
 
-    inline static constexpr RE::FormID cWomenChanceID{0xCA0};
-    inline static constexpr RE::FormID cGentifiedID{0xE00};
-    inline static constexpr RE::FormID cSkinWithPenisKeyID{0xFF7};
     inline static constexpr RE::FormID cGentleWomanKeyID{0xFF8};
 
     inline static RE::ActorEquipManager* fEquipManager{nullptr};

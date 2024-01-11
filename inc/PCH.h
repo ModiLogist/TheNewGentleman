@@ -34,6 +34,9 @@ namespace Tng {
   inline static constexpr RE::FormID cCoveringKeyID{0xFFD};  
   inline static constexpr RE::FormID cAutoCoverKeyID{0xFFC};
   inline static constexpr RE::FormID cAutoRvealKeyID{0xFFB};
+  inline static constexpr RE::FormID cSkinWithPenisKeyID{0xFF7};
+  inline static constexpr RE::FormID cWomenChanceID{0xCA0};
+  inline static constexpr RE::FormID cGentifiedID{0xE00};
 }
 
 template <typename T>

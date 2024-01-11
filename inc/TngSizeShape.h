@@ -11,8 +11,18 @@ class TngSizeShape : public Singleton<TngSizeShape> {
     inline static constexpr RE::FormID cSizeGlobIDs[Tng::cSizeCategories]{0xC01, 0xC02, 0xC03, 0xC04, 0xC05};
     inline static constexpr RE::FormID cFemAddKeyID{0xFFA};
     inline static constexpr RE::FormID cMalAddKeyID{0xFF9};
+
+    
+    inline static constexpr RE::FormID cFemAddConID{0xCA1};
+    inline static constexpr RE::FormID cMalAddConID{0xCA2};
+    inline static constexpr RE::FormID cShowNextFID{0xCA3};
+    inline static constexpr RE::FormID cShowNextMID{0xCA4};
     inline static constexpr RE::FormID cFemAddLstID{0xE03};
     inline static constexpr RE::FormID cMalAddLstID{0xE02};
+
+    
+    inline static constexpr RE::FormID cShapeMessageMID{0xCFE};
+    inline static constexpr RE::FormID cShapeMessageFID{0xCFF};
 
     inline static RE::TESDataHandler* fDataHandler{nullptr};
 
@@ -24,6 +34,15 @@ class TngSizeShape : public Singleton<TngSizeShape> {
     inline static RE::BGSKeyword* fMalAddKey{nullptr};
     inline static RE::BGSListForm* fFemAddLst{nullptr};
     inline static RE::BGSListForm* fMalAddLst{nullptr};
+    inline static RE::BGSListForm* fGentified{nullptr};
+    inline static RE::BGSKeyword* fSkinWithPenisKey{nullptr};
+    inline static RE::BGSMessage* fMsg[2]{};
+    inline static RE::TESGlobal* fAddonGlb[2]{};
+    inline static RE::TESGlobal* fShowNext[2]{};
+
+    inline static int fMessagePage[2];
+    inline static std::string fOgMessageBtns[3];
+
     static bool LoadAddons() noexcept;
     static float GetRacialMult(RE::Actor* aActor) noexcept;
     static void ScaleGenital(RE::Actor* aActor, RE::TESGlobal* aGlobal) noexcept;
@@ -88,11 +107,9 @@ class TngSizeShape : public Singleton<TngSizeShape> {
     };
     inline static RE::TESGlobal* fSizeGlobs[Tng::cSizeCategories]{};
 
-    inline static RE::TESObjectARMO* fFemAddons[99]{};
-    inline static RE::TESObjectARMO* fMalAddons[99]{};
+    inline static RE::TESObjectARMO* fAddons[2][99]{};
     inline static std::set<RE::TESObjectARMA*> fMalAddonAAs[99]{};
-    static int fFemAddonCount;
-    static int fMalAddonCount;
+    static int fAddonCount[2];
 
 
 
@@ -105,4 +122,6 @@ class TngSizeShape : public Singleton<TngSizeShape> {
     static void SetActorSkin(RE::Actor* aActor, int aGenOption) noexcept;
     static void SetActorSize(RE::Actor* aActor, int aGenSize) noexcept;
     static int CanModifyActor(RE::Actor* aActor) noexcept;
+    static void UpdateMessage(bool aIsFemale) noexcept;
+    static void ResetMessage(bool aIsFemale) noexcept;
 };

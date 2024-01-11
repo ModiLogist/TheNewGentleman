@@ -34,11 +34,15 @@ void TngPapyrus::UpdateActor(RE::StaticFunctionTag*, RE::Actor* aActor, int aGen
     return;
   }
   TngSizeShape::SetActorSize(aActor, aGenSize);
-  if (aGenOption > -1) TngSizeShape::SetActorSkin(aActor, aGenOption);
+  TngSizeShape::SetActorSkin(aActor, aGenOption);
   if (aActor->IsPlayerRef()) return;
   std::string lModName{aActor->GetFile(0)->GetFilename()};
   TngInis::AddActor(aActor->GetLocalFormID(), lModName, aGenOption, aGenSize);
 }
+
+void TngPapyrus::UpdateMessage(RE::StaticFunctionTag*, bool aIsFemale) { TngSizeShape::UpdateMessage(aIsFemale); }
+
+void TngPapyrus::ResetMessage(RE::StaticFunctionTag*, bool aIsFemale) { TngSizeShape::ResetMessage(aIsFemale); }
 
 bool TngPapyrus::GetFAutoReveal(RE::StaticFunctionTag*) { return TngInis::GetSingleton()->FAutoReveal; }
 
@@ -62,9 +66,7 @@ bool TngPapyrus::MakeRevealing(RE::StaticFunctionTag*, RE::TESObjectARMO* aArmor
   return true;
 }
 
-void TngPapyrus::SaveKeys(RE::StaticFunctionTag*) { TngInis::SaveKeys(); }
-
-
+void TngPapyrus::SaveGlobals(RE::StaticFunctionTag*) { TngInis::SaveGlobals(); }
 
 bool TngPapyrus::BindPapyrus(RE::BSScript::IVirtualMachine* aVM) noexcept {
   aVM->RegisterFunction("TngLoaded", "TNG_PapyrusUtil", TngLoaded);
@@ -73,11 +75,13 @@ bool TngPapyrus::BindPapyrus(RE::BSScript::IVirtualMachine* aVM) noexcept {
   aVM->RegisterFunction("SetAutoRevealing", "TNG_PapyrusUtil", SetAutoRevealing);
   aVM->RegisterFunction("CanModifyActor", "TNG_PapyrusUtil", CanModifyActor);
   aVM->RegisterFunction("UpdateActor", "TNG_PapyrusUtil", UpdateActor);
+  aVM->RegisterFunction("UpdateMessage", "TNG_PapyrusUtil", UpdateMessage);
+  aVM->RegisterFunction("UpdateActor", "TNG_PapyrusUtil", ResetMessage);
   aVM->RegisterFunction("GetFAutoReveal", "TNG_PapyrusUtil", GetFAutoReveal);
   aVM->RegisterFunction("GetMAutoReveal", "TNG_PapyrusUtil", GetMAutoReveal);
   aVM->RegisterFunction("GetGenType", "TNG_PapyrusUtil", GetGenType);
   aVM->RegisterFunction("GetGenSize", "TNG_PapyrusUtil", GetGenSize);
   aVM->RegisterFunction("MakeRevealing", "TNG_PapyrusUtil", MakeRevealing);
-  aVM->RegisterFunction("SaveKeys", "TNG_PapyrusUtil", SaveKeys);
+  aVM->RegisterFunction("SaveGlobals", "TNG_PapyrusUtil", SaveGlobals);
   return true;
 }

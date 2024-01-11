@@ -90,8 +90,6 @@ class TngUtil : public Singleton<TngUtil> {
     inline static constexpr RE::FormID cDefGenitalSaxID[3] = {0x8f1, 0x8f4, 0x8f7};  // TNG_GenitalDefaultSaxhleel
     inline static constexpr RE::FormID cDefGenitalKhaID[3] = {0x8f2, 0x8f5, 0x8f8};  // TNG_GenitalDefaultKhajiit
     
-    inline static constexpr RE::FormID cSizeMessageID{0xCFE};
-    inline static constexpr RE::FormID cShapeMessageID{0xCFF};
 
     inline static constexpr RE::FormID cDefSkinAAID{0xD67};
 
