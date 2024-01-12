@@ -40,7 +40,6 @@ class TngSizeShape : public Singleton<TngSizeShape> {
     inline static RE::TESGlobal* fAddonGlb[2]{};
     inline static RE::TESGlobal* fShowNext[2]{};
 
-    inline static int fMessagePage[2];
     inline static std::string fOgMessageBtns[3];
 
     static bool LoadAddons() noexcept;
@@ -109,7 +108,8 @@ class TngSizeShape : public Singleton<TngSizeShape> {
 
     inline static RE::TESObjectARMO* fAddons[2][99]{};
     inline static std::set<RE::TESObjectARMA*> fMalAddonAAs[99]{};
-    static int fAddonCount[2];
+    inline static int fAddonCount[2];
+    inline static int fMessagePage[2];
 
 
 
@@ -119,7 +119,7 @@ class TngSizeShape : public Singleton<TngSizeShape> {
     static void AddRaceIndex(RE::FormID aRace, int aRaceIndex) noexcept;
     static std::set<RE::FormID> GetRacesWithIndex(int aRaceIndex) noexcept;
     static void RandomizeScale(RE::Actor* aActor) noexcept;
-    static void SetActorSkin(RE::Actor* aActor, int aGenOption) noexcept;
+    static bool SetActorSkin(RE::Actor* aActor, int aGenOption) noexcept;
     static void SetActorSize(RE::Actor* aActor, int aGenSize) noexcept;
     static int CanModifyActor(RE::Actor* aActor) noexcept;
     static void UpdateMessage(bool aIsFemale) noexcept;

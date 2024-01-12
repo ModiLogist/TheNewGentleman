@@ -68,7 +68,8 @@ class TngInis : public Singleton<TngInis> {
     static bool LoadMainIni() noexcept;
     static void SaveSize(const int aIdx) noexcept;
     static void UpdateRace(const int aRaceIdx, const int aRaceShape, const float aRaceMult) noexcept;
-    static void AddActor(RE::FormID aFormID, std::string aModName, int aGenShape, int aGenSize) noexcept;
+    static void AddActorShape(RE::FormID aFormID, std::string aModName, int aGenShape) noexcept;
+    static void AddActorSize(RE::FormID aFormID, std::string aModName, int aGenSize) noexcept;
     static void AddRevealingArmor(RE::TESObjectARMO* aArmor) noexcept;
     static void SaveGlobals() noexcept;
 };

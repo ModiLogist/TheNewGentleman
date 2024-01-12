@@ -189,7 +189,7 @@ void TngInis::UpdateRace(const int aRaceIdx, const int aRaceShape, const float a
   lIni.SaveFile(cSettings);
 }
 
-void TngInis::AddActor(RE::FormID aFormID, std::string aModName, int aGenShape, int aGenSize) noexcept {
+void TngInis::AddActorShape(RE::FormID aFormID, std::string aModName, int aGenShape) noexcept {
   CSimpleIniA lIni;
   lIni.SetUnicode();
   lIni.LoadFile(cSettings);
@@ -197,9 +197,19 @@ void TngInis::AddActor(RE::FormID aFormID, std::string aModName, int aGenShape, 
   oss << std::hex << aFormID;
   std::string lIDStr = "0x" + oss.str() + Tng::cDelimChar + aModName;
   if (aGenShape > -1) lIni.SetLongValue(cNPCShapeSection, lIDStr.c_str(), aGenShape);
+  if (aGenShape == -2) lIni.Delete(cNPCShapeSection, lIDStr.c_str());
+  lIni.SaveFile(cSettings);
+}
+
+void TngInis::AddActorSize(RE::FormID aFormID, std::string aModName, int aGenSize) noexcept {
+  CSimpleIniA lIni;
+  lIni.SetUnicode();
+  lIni.LoadFile(cSettings);
+  std::ostringstream oss;
+  oss << std::hex << aFormID;
+  std::string lIDStr = "0x" + oss.str() + Tng::cDelimChar + aModName;
   lIni.SetLongValue(cNPCSizeSection, lIDStr.c_str(), aGenSize);
-  if (aGenShape == -2) {
-    lIni.Delete(cNPCShapeSection, lIDStr.c_str());
+  if (aGenSize == -2) {
     lIni.Delete(cNPCSizeSection, lIDStr.c_str());
   }
   lIni.SaveFile(cSettings);
@@ -235,7 +245,7 @@ void TngInis::SaveGlobals() noexcept {
   lIni.SetLongValue(cControls, cNPCCtrl, static_cast<int>(lNPCCtrl->value));
   lIni.SetLongValue(cControls, cUPGCtrl, static_cast<int>(lUPGCtrl->value));
   lIni.SetLongValue(cControls, cDOWCtrl, static_cast<int>(lDOWCtrl->value));
-  lIni.SetLongValue(cControls, cREVCtrl, static_cast<int>(lREVCtrl->value));  
+  lIni.SetLongValue(cControls, cREVCtrl, static_cast<int>(lREVCtrl->value));
   lIni.SetDoubleValue(cGentleWomen, cGentleWomenChance, lWomenChance->value);
 
   lIni.SaveFile(cSettings);

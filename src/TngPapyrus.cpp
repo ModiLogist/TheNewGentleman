@@ -23,17 +23,28 @@ void TngPapyrus::SetAutoRevealing(RE::StaticFunctionTag*, bool aFemaleArmor, boo
 
 int TngPapyrus::CanModifyActor(RE::StaticFunctionTag*, RE::Actor* aActor) { return TngSizeShape::CanModifyActor(aActor); }
 
-void TngPapyrus::UpdateActor(RE::StaticFunctionTag*, RE::Actor* aActor, int aGenOption, int aGenSize) {
+bool TngPapyrus::SetActorShape(RE::StaticFunctionTag*, RE::Actor* aActor, int aGenOption) {
+  if (!aActor) return false;
+  bool res = TngSizeShape::SetActorSkin(aActor, aGenOption);
+  if (!aActor->IsPlayerRef() && aActor->GetFile(0)) {
+    std::string lModName{aActor->GetFile(0)->GetFilename()};
+    int lFM = aActor->GetActorBase()->IsFemale() ? 1 : 0;
+    TngInis::AddActorShape(aActor->GetActorBase()->GetLocalFormID(), lModName, aGenOption + (TngSizeShape::fMessagePage[lFM] * 4));
+  }
+  return res;
+}
+
+void TngPapyrus::SetActorSize(RE::StaticFunctionTag*, RE::Actor* aActor, int aGenSize) {
   if (!aActor) return;
   if (aGenSize == -1) {
     TngSizeShape::RandomizeScale(aActor);
-    return;
+  } else {
+    TngSizeShape::SetActorSize(aActor, aGenSize);
   }
-  TngSizeShape::SetActorSize(aActor, aGenSize);
-  TngSizeShape::SetActorSkin(aActor, aGenOption);
-  if (aActor->IsPlayerRef()) return;
-  std::string lModName{aActor->GetFile(0)->GetFilename()};
-  TngInis::AddActor(aActor->GetActorBase()->GetLocalFormID(), lModName, aGenOption, aGenSize);
+  if (!aActor->IsPlayerRef() && aActor->GetFile(0)) {
+    std::string lModName{aActor->GetFile(0)->GetFilename()};
+    TngInis::AddActorSize(aActor->GetActorBase()->GetLocalFormID(), lModName, aGenSize);
+  }
 }
 
 void TngPapyrus::UpdateMessage(RE::StaticFunctionTag*, bool aIsFemale) { TngSizeShape::UpdateMessage(aIsFemale); }
@@ -69,7 +80,8 @@ bool TngPapyrus::BindPapyrus(RE::BSScript::IVirtualMachine* aVM) noexcept {
   aVM->RegisterFunction("UpdateRace", "TNG_PapyrusUtil", UpdateRace);
   aVM->RegisterFunction("SetAutoRevealing", "TNG_PapyrusUtil", SetAutoRevealing);
   aVM->RegisterFunction("CanModifyActor", "TNG_PapyrusUtil", CanModifyActor);
-  aVM->RegisterFunction("UpdateActor", "TNG_PapyrusUtil", UpdateActor);
+  aVM->RegisterFunction("SetActorShape", "TNG_PapyrusUtil", SetActorShape);
+  aVM->RegisterFunction("SetActorSize", "TNG_PapyrusUtil", SetActorSize);
   aVM->RegisterFunction("UpdateMessage", "TNG_PapyrusUtil", UpdateMessage);
   aVM->RegisterFunction("ResetMessage", "TNG_PapyrusUtil", ResetMessage);
   aVM->RegisterFunction("GetFAutoReveal", "TNG_PapyrusUtil", GetFAutoReveal);

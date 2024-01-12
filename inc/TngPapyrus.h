@@ -5,7 +5,8 @@ class TngPapyrus : public Singleton<TngPapyrus> {
     static void UpdateRace(RE::StaticFunctionTag*, int aRaceIdx, int aGenOption, float aGenMult);
     static void SetAutoRevealing(RE::StaticFunctionTag*, bool aFemaleArmor, bool aMaleArmor);
     static int CanModifyActor(RE::StaticFunctionTag*, RE::Actor* aActor);
-    static void UpdateActor(RE::StaticFunctionTag*, RE::Actor* aActor, int aGenOption, int aGenSize);
+    static bool SetActorShape(RE::StaticFunctionTag*, RE::Actor* aActor, int aGenOption);
+    static void SetActorSize(RE::StaticFunctionTag*, RE::Actor* aActor, int aGenSize);
     static void UpdateMessage(RE::StaticFunctionTag*, bool aIsFemale);
     static void ResetMessage(RE::StaticFunctionTag*, bool aIsFemale);
     static bool GetFAutoReveal(RE::StaticFunctionTag*);
