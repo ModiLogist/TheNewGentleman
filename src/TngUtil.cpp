@@ -482,7 +482,8 @@ void TngUtil::CheckArmorPieces() noexcept {
   auto& lAllArmor = fDataHandler->GetFormArray<RE::TESObjectARMO>();
   std::set<RE::TESObjectARMO*> lPotentialArmor;
   std::set<RE::TESObjectARMO*> lUnhandledArmor;
-
+  for (int i = 0; i < TngSizeShape::fAddonCount[0]; i++) fHandledSkins.insert(TngSizeShape::fAddons[0][i]);
+  for (int i = 0; i < TngSizeShape::fAddonCount[1]; i++) fHandledSkins.insert(TngSizeShape::fAddons[1][i]);
   bool lCheckSkinMods = (TngInis::fSkinMods.size() > 0);
   bool lCheckSkinRecords = (TngInis::fSingleSkinIDs.size() > 0);
   bool lCheckRevealMods = (TngInis::fRevealingMods.size() > 0);
