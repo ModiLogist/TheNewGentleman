@@ -33,7 +33,6 @@ Float[] fFSizeDefaults
 Actor fkLastActor = None
 GlobalVariable fkDAK = None
 Int fiPos = 0
-Bool fbRaceSkinChanged = False
 Bool fbMessageChanged = False
 
 ;Pointer to UI
@@ -156,15 +155,11 @@ Event OnConfigOpen()
 	fSFemAddons = new String[20]
 	fSMalAddons = new String[20]
   
-  fbRaceSkinChanged = False
   fbMessageChanged = False
 EndEvent
 
 Event OnConfigClose()
   TNG_PapyrusUtil.SaveGlobals()
-  If fbRaceSkinChanged
-    ShowMessage("$TNG_N_R","$TNG__OK")
-  EndIf
 EndEvent
 
 Event OnOptionHighlight(Int aiOption)
@@ -174,10 +169,6 @@ Event OnOptionHighlight(Int aiOption)
 EndEvent
 
 Event OnPageReset(string asPage)
-  If !TNG_PapyrusUtil.TngLoaded()
-    AddTextOption("$TNG_E_H","$TNG_E_0")
-    Return
-  EndIf
 	If asPage == Pages[0]
 		AddHeaderOption("$TNG_GRH")
 		AddHeaderOption("")
@@ -241,12 +232,12 @@ Event OnPageReset(string asPage)
       liLines = liFLines
     EndIf
     If liFLines == 0
-      AddTextOption("$TNG_OOP","$TNG_ANW")
+      AddTextOption("$TNG_ANW","")
     Else
       fiWomenChance = AddSliderOption("$TNG_AWC",WomenChance.GetValue(),"{0}%");
     EndIf
     If liMLines == 0
-      AddTextOption("$TNG_OOP","$TNG_ANM")
+      AddTextOption("$TNG_ANM","")
     Else
       AddEmptyOption()
     EndIf
@@ -256,7 +247,7 @@ Event OnPageReset(string asPage)
     Int liCurr = 0
     While liCurr < liLines
       If liCurr < liFLines
-        AddTextOption(AddonsFem.GetAt(liCurr).GetFormID(),AddonsFem.GetAt(liCurr).GetName())
+        AddTextOption(AddonsFem.GetAt(liCurr).GetName(),"")
       Else
         AddEmptyOption()
       EndIf
@@ -279,12 +270,12 @@ Event OnOptionDefault(Int aiOption)
     If aiOption == fIRaceSizeHdls[liOpLoop]
       TNG_PapyrusUtil.UpdateRace(liOpLoop,TNG_PapyrusUtil.GetGenType(liOpLoop),1.0)
       SetSliderOptionValue(fIRaceSizeHdls[liOpLoop],TNG_PapyrusUtil.GetGenSize(liOpLoop),"{2}")
-      TNG_PapyrusUtil.UpdateActor(Game.GetPlayer(),-1,-1)
+      TNG_PapyrusUtil.SetActorSize(Game.GetPlayer(),-1)
       Return
     EndIf
     If aiOption == fIRaceTypeHdls[liOpLoop]
       TNG_PapyrusUtil.UpdateRace(liOpLoop,-1,TNG_PapyrusUtil.GetGenSize(liOpLoop))
-      SetMenuOptionValue(fIRaceTypeHdls[liOpLoop],TNG_PapyrusUtil.GetGenType(liOpLoop))
+      SetMenuOptionValue(fIRaceTypeHdls[liOpLoop],fSTypeOptions[TNG_PapyrusUtil.GetGenType(liOpLoop)])
       Return
     EndIf
   EndWhile
@@ -294,7 +285,7 @@ Event OnOptionDefault(Int aiOption)
     If aiOption == fIGlblSizeHdls[liOpLoop]      
       GlobalSizes[liOpLoop].SetValue(fFSizeDefaults[liOpLoop])
       SetSliderOptionValue(fIGlblSizeHdls[liOpLoop],GlobalSizes[liOpLoop].GetValue(),"{2}")
-      TNG_PapyrusUtil.UpdateActor(Game.GetPlayer(),-1,-1)
+      TNG_PapyrusUtil.SetActorSize(Game.GetPlayer(),-1)
       Return
     EndIf
   EndWhile
@@ -381,9 +372,10 @@ Event OnOptionMenuAccept(int aiOption,int aiChoice)
   While liRace
     liRace -= 1
     If aiOption == fIRaceTypeHdls[liRace]
-      TNG_PapyrusUtil.UpdateRace(liRace,aiChoice,TNG_PapyrusUtil.GetGenSize(liRace))      
-      fbRaceSkinChanged = True
-      SetMenuOptionValue(fIRaceTypeHdls[liRace],fSTypeOptions[aiChoice])
+      If ShowMessage("$TNG_N_R",true,"$TNG__OK")
+        TNG_PapyrusUtil.UpdateRace(liRace,aiChoice,TNG_PapyrusUtil.GetGenSize(liRace))
+        SetMenuOptionValue(fIRaceTypeHdls[liRace],fSTypeOptions[aiChoice])
+      EndIf
       Return
     EndIf
   EndWhile
@@ -436,7 +428,7 @@ Event OnOptionSliderAccept(int aiOption,float afValue)
         GlobalSizes[liSize].SetValue(afValue)
         SetSliderOptionValue(fIGlblSizeHdls[liSize],GlobalSizes[liSize].GetValue(),"{2}")
         TNG_PapyrusUtil.UpdateSize(liSize)
-        TNG_PapyrusUtil.UpdateActor(Game.GetPlayer(),-1,-1)
+        TNG_PapyrusUtil.SetActorSize(Game.GetPlayer(),-1)
         Return
       EndIf
     EndWhile
@@ -449,7 +441,7 @@ Event OnOptionSliderAccept(int aiOption,float afValue)
       If aiOption == fIRaceSizeHdls[liRace]
         TNG_PapyrusUtil.UpdateRace(liRace,TNG_PapyrusUtil.GetGenType(liRace),afValue)
         SetSliderOptionValue(fIRaceSizeHdls[liRace],TNG_PapyrusUtil.GetGenSize(liRace),"{2}")
-        TNG_PapyrusUtil.UpdateActor(Game.GetPlayer(),-1,-1)
+        TNG_PapyrusUtil.SetActorSize(Game.GetPlayer(),-1)
         Return
       EndIf
     EndWhile
@@ -650,12 +642,20 @@ Function ShowTNGMenu(Actor akActor)
     Debug.Notification("$TNG_N_4")
   EndIf
   If liSkin < 4
-    liSize = SizeMenu.Show()
+    Bool lbShowSize = TNG_PapyrusUtil.SetActorShape(akActor,liSkin)
+    If lbShowSize
+      liSize = SizeMenu.Show()
+      TNG_PapyrusUtil.SetActorSize(akActor,liSize)
+    EndIf
   EndIf
   If liSkin == 4
     liSkin = -2
+    TNG_PapyrusUtil.SetActorShape(akActor,liSkin)
     If lbIsFemale
       Gentified.RemoveAddedForm(akActor.GetActorBase())
+    Else
+      liSize = SizeMenu.Show()
+      TNG_PapyrusUtil.SetActorSize(akActor,liSize)
     EndIf
   EndIf
   If liSkin == 5
@@ -664,7 +664,6 @@ Function ShowTNGMenu(Actor akActor)
     ShowTNGMenu(akActor)
     Return
   EndIf
-  TNG_PapyrusUtil.UpdateActor(akActor,liSkin,liSize)
   If akActor == Game.GetPlayer()
     PlayerSkin = liSkin
   EndIf

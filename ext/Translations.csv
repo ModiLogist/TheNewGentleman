@@ -22,7 +22,7 @@ $TNG_ROS,Other Saxhleel
 $TNG_ROK,Other Khajiit
 ,
 $TNG_TCT,Circumcised
-$TNG_TMT,Moscular Uncircumcised
+$TNG_TMT,Muscular Uncircumcised
 $TNG_TRT,Regular Uncircumcised
 ,
 $TNG_SXS,X-Small
@@ -72,7 +72,7 @@ $TNG_N_3,The armor cannot be made revealing!
 $TNG_N_4,The selected actor has a custom skin. Genital shape cannot be modified for custom skins!
 ,
 $TNG_W_1,No actor can be selected!
-$TNG_W_2,The selected actor cannot be modified!
+$TNG_W_2,The selected actor cannot be modified since they are using a custom skin!
 $TNG_W_2,DAK Integration is enabled but relevant information cannot be found. Please open MCM and disable DAK integration.
 ,
 $TNG_H_1,To avoid conflicts use the key from Dynamic activation key in combination with the keys to activate them.
