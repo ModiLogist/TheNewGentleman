@@ -1,7 +1,6 @@
 #pragma once
 class TngPapyrus : public Singleton<TngPapyrus> {
   private:
-    static bool TngLoaded(RE::StaticFunctionTag*);
     static void UpdateSize(RE::StaticFunctionTag*, int aIdx);
     static void UpdateRace(RE::StaticFunctionTag*, int aRaceIdx, int aGenOption, float aGenMult);
     static void SetAutoRevealing(RE::StaticFunctionTag*, bool aFemaleArmor, bool aMaleArmor);
@@ -17,6 +16,5 @@ class TngPapyrus : public Singleton<TngPapyrus> {
     static void SaveGlobals(RE::StaticFunctionTag*);
 
   public:
-    static bool tngLoaded;
     static bool BindPapyrus(RE::BSScript::IVirtualMachine* aVM) noexcept;
 };

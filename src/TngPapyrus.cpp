@@ -3,10 +3,6 @@
 #include <TngSizeShape.h>
 #include <TngUtil.h>
 
-bool TngPapyrus::tngLoaded;
-
-bool TngPapyrus::TngLoaded(RE::StaticFunctionTag*) { return tngLoaded; }
-
 void TngPapyrus::UpdateSize(RE::StaticFunctionTag*, int aIdx) { TngInis::SaveSize(aIdx); }
 
 void TngPapyrus::UpdateRace(RE::StaticFunctionTag*, int aRaceIdx, int aGenOption, float aGenMult) {
@@ -69,7 +65,6 @@ bool TngPapyrus::MakeRevealing(RE::StaticFunctionTag*, RE::TESObjectARMO* aArmor
 void TngPapyrus::SaveGlobals(RE::StaticFunctionTag*) { TngInis::SaveGlobals(); }
 
 bool TngPapyrus::BindPapyrus(RE::BSScript::IVirtualMachine* aVM) noexcept {
-  aVM->RegisterFunction("TngLoaded", "TNG_PapyrusUtil", TngLoaded);
   aVM->RegisterFunction("UpdateSize", "TNG_PapyrusUtil", UpdateSize);
   aVM->RegisterFunction("UpdateRace", "TNG_PapyrusUtil", UpdateRace);
   aVM->RegisterFunction("SetAutoRevealing", "TNG_PapyrusUtil", SetAutoRevealing);

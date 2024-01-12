@@ -24,7 +24,6 @@ void InitializeLogging(const SKSE::PluginDeclaration* aPlugin) {
 }
 
 void EventListener(SKSE::MessagingInterface::Message* aMessage) noexcept {
-  TngPapyrus::GetSingleton()->tngLoaded = false;
   if (aMessage->type == SKSE::MessagingInterface::kDataLoaded) {
     if (!TngSizeShape::InitSizes()) return;
     if (!TngInis::LoadMainIni()) return;
@@ -38,7 +37,6 @@ void EventListener(SKSE::MessagingInterface::Message* aMessage) noexcept {
       Tng::gLogger::error("TheNewGentleman did not initialize successfully!");
       return;
     }
-    TngPapyrus::GetSingleton()->tngLoaded = true;
   }
 }
 
