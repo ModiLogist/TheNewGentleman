@@ -1,11 +1,12 @@
 #pragma once
 
-class TngUtil : public Singleton<TngUtil> {
+class TngCore : public Singleton<TngCore> {
   private:
-    inline static RE::TESDataHandler* fDataHandler{nullptr};
     // Const
     inline static constexpr RE::FormID cDefRaceID = 0x19;
-    inline static constexpr std::pair<RE::FormID, std::string_view> cBaseRaceIDs[Tng::cRaceTypes] = {
+    inline static constexpr RE::FormID cDefSkinAAID{0xD67};
+    inline static constexpr int cVanillaRaceTypes{14};
+    inline static constexpr std::pair<RE::FormID, std::string_view> cBaseRaceIDs[cVanillaRaceTypes] = {
         {0x13746, "Skyrim.esm"},     // Nord
         {0x13748, "Skyrim.esm"},     // Redguard
         {0x13741, "Skyrim.esm"},     // Breton
@@ -41,8 +42,27 @@ class TngUtil : public Singleton<TngUtil> {
         {{0xA82BA, "Skyrim.esm"}, 11},      // Elder Vampire
         {{0x0E88A, "Dawnguard.esm"}, 0},    // DLC1 Nord
     };
+    inline static constexpr int cVanillaRaceDefaults[cVanillaRaceTypes]{
+        2,  // TNG_GenitalNord
+        1,  // TNG_GenitalRedguard
+        0,  // TNG_GenitalBreton
+        2,  // TNG_GenitalImperial
+        0,  // TNG_GenitalAltmer
+        0,  // TNG_GenitalBosmer
+        1,  // TNG_GenitalDunmer
+        2,  // TNG_GenitalOrsimer
+        0,  // TNG_GenitalSaxhleel
+        2,  // TNG_GenitalKhajiit
+        1,  // TNG_GenitalDremora
+        2,  // TNG_GenitalElder
+        0,  // TNG_GenitalAfflicted
+        0,  // TNG_GenitalSnowElf
+    };
+    inline static constexpr std::string cRaceNames[cVanillaRaceTypes][2]{
+        {"Nord", "Nord"},   {"Redguard", "Redguard"}, {"Breton", "Reachmen"}, {"Imperial", "Imperial"}, {"Altmer", "HighElf"}, {"Bosmer", "WoodElf"},      {"Dunmer", "DarkElf"},
+        {"Orsimer", "Orc"}, {"Saxhleel", "Argonian"}, {"Khajiit", "Rhat"},    {"Dremora", "Dremora"},   {"Elder", "Elder"},    {"Afflicted", "Afflicted"}, {"SnowElf", "Falmer"}};
 
-    inline static constexpr RE::FormID cGenitalIDs[Tng::cRaceTypes * 3] = {
+    inline static constexpr RE::FormID cGenitalIDs[cVanillaRaceTypes * 3] = {
         0x800,  // TNG_GenitalNord
         0x801,  // TNG_GenitalRedguard
         0x802,  // TNG_GenitalBreton
@@ -86,39 +106,8 @@ class TngUtil : public Singleton<TngUtil> {
         0x82C,  // TNG_GenitalAfflicted
         0x82D,  // TNG_GenitalSnowElf
     };
-    inline static constexpr RE::FormID cDefGenitalMnmID[3] = {0x8f0, 0x8f3, 0x8f6};  // TNG_GenitalDefaultManMer
-    inline static constexpr RE::FormID cDefGenitalSaxID[3] = {0x8f1, 0x8f4, 0x8f7};  // TNG_GenitalDefaultSaxhleel
-    inline static constexpr RE::FormID cDefGenitalKhaID[3] = {0x8f2, 0x8f5, 0x8f8};  // TNG_GenitalDefaultKhajiit
-    
-
-    inline static constexpr RE::FormID cDefSkinAAID{0xD67};
-
     // Rquires Load
-
-    inline static RE::BGSKeyword* fBeastKey{nullptr};
-    inline static RE::BGSKeyword* fNPCKey{nullptr};
-    inline static RE::BGSKeyword* fCreatureKey{nullptr};
-    inline static RE::BGSKeyword* fTNGRaceKey{nullptr};
-    inline static RE::BGSKeyword* fAutoRvealKey{nullptr};
-    inline static RE::BGSKeyword* fRevealingKey{nullptr};
-    inline static RE::BGSKeyword* fUnderwearKey{nullptr};
-    inline static RE::BGSKeyword* fAutoCoverKey{nullptr};
-    inline static RE::BGSKeyword* fCoveringKey{nullptr};
-    
-    
-    inline static RE::TESObjectARMA* fDefSaxGenital[3]{};
-    inline static RE::TESObjectARMA* fDefKhaGenital[3]{};
-    inline static RE::TESObjectARMA* fDefMnmGenital[3]{};
-    inline static RE::TESRace* fDefRace{nullptr};
-
-    inline static RE::TESObjectARMA* fDefSkinAA{nullptr};
-    inline static RE::BSFixedString fDefSkeleton[2];
-    inline static RE::BSFixedString fDefBodyMesh[2];
-
-    inline static std::set<std::pair<RE::TESRace*, RE::TESObjectARMA*>> fBaseRaceGens;
-    inline static std::set<std::pair<RE::TESRace*, RE::TESObjectARMA*>> fEquiRaceGens;
-    inline static std::set<std::pair<RE::TESRace*, RE::TESObjectARMA*>> fExtrRaceGens;
-    inline static std::set<std::pair<RE::TESRace*, RE::TESObjectARMA*>> fAllRaceGens;
+    inline static std::set<std::pair<RE::TESRace*, RE::TESObjectARMA*>> fRaceGens;
     inline static std::set<RE::TESRace*> fExclRaces;
     inline static std::set<RE::TESRace*> fHandledRaces;
     inline static std::set<RE::TESRace*> fIgnoreRaces;
@@ -136,6 +125,8 @@ class TngUtil : public Singleton<TngUtil> {
     static int fQCount;
 
     // Methods
+    static void UpdateGenRace(RE::TESRace* aRace, RE::TESObjectARMO* aGenital, const bool aIsCustomRace = false) noexcept;
+    static bool UpdateEqRaceAddon(RE::TESRace* aRace, RE::TESObjectARMO* aGenital) noexcept;
     static bool FixSkin(RE::TESObjectARMO* aSkin, const char* const aName) noexcept;
     static void AddGenitalToSkin(RE::TESObjectARMO* aSkin, RE::TESObjectARMA* aGenital, RE::TESRace* aRace = nullptr) noexcept;
     static void IgnoreRace(RE::TESRace* aRace);

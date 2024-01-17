@@ -96,24 +96,28 @@ bool TngInis::LoadMainIni() noexcept {
   CSimpleIniA lIni;
   lIni.SetUnicode();
   lIni.LoadFile(cSettings);
-  if (!lIni.KeyExists(cAutoReveal, cFAutoReveal)) lIni.SetBoolValue(cAutoReveal, cFAutoReveal, FAutoReveal);
-  if (!lIni.KeyExists(cAutoReveal, cMAutoReveal)) lIni.SetBoolValue(cAutoReveal, cMAutoReveal, MAutoReveal);
   for (int i = 0; i < Tng::cSizeCategories; i++) {
-    if (!lIni.KeyExists(cGlobalSize, cSizeNames[i])) lIni.SetDoubleValue(cGlobalSize, cSizeNames[i], TngSizeShape::fSizeGlobs[i]->value);
+    TngSizeShape::SetGlobalSize(i, static_cast<float>(lIni.GetDoubleValue(cGlobalSize, cSizeNames[i], 1.0)));
   }
-  for (int i = 0; i < Tng::cRaceTypes + 3; i++) {
-    auto lRaceName = cRaceNames[i];
-    if (!lIni.KeyExists(cRacialGenital, lRaceName)) lIni.SetLongValue(cRacialGenital, lRaceName, TngSizeShape::genitalChoices[i]);
-    if (!lIni.KeyExists(cRacialSize, lRaceName)) lIni.SetDoubleValue(cRacialSize, lRaceName, TngSizeShape::genitalSizes[i]);
+  if (lIni.SectionExists(cRacialGenital)) {
+    CSimpleIniA::TNamesDepend lRaceRecords;
+    CSimpleIniA::TNamesDepend::const_iterator lEntry;
+    lIni.GetAllKeys(cRacialGenital, lRaceRecords);
+    for (lEntry = lRaceRecords.begin(); lEntry != lRaceRecords.end(); lEntry++) {
+      std::string lShape = lIni.GetValue(cRacialGenital, lEntry->pItem);
+      const std::string lRaceRecord(lEntry->pItem);
+      TngSizeShape::LoadRaceShape(lRaceRecord, lShape);
+    }
   }
-  FAutoReveal = lIni.GetBoolValue(cAutoReveal, cFAutoReveal, true);
-  MAutoReveal = lIni.GetBoolValue(cAutoReveal, cMAutoReveal, false);
-  for (int i = 0; i < Tng::cSizeCategories; i++) {
-    TngSizeShape::fSizeGlobs[i]->value = static_cast<float>(lIni.GetDoubleValue(cGlobalSize, cSizeNames[i]));
-  }
-  for (int i = 0; i < Tng::cRaceTypes + 3; i++) {
-    TngSizeShape::genitalChoices[i] = lIni.GetLongValue(cRacialGenital, cRaceNames[i], TngSizeShape::genitalChoices[i]);
-    TngSizeShape::genitalSizes[i] = static_cast<float>(lIni.GetDoubleValue(cRacialSize, cRaceNames[i], TngSizeShape::genitalSizes[i]));
+  if (lIni.SectionExists(cRacialSize)) {
+    CSimpleIniA::TNamesDepend lRaceRecords;
+    CSimpleIniA::TNamesDepend::const_iterator lEntry;
+    lIni.GetAllKeys(cRacialSize, lRaceRecords);
+    for (lEntry = lRaceRecords.begin(); lEntry != lRaceRecords.end(); lEntry++) {
+      auto lMult100 = lIni.GetLongValue(cRacialSize, lEntry->pItem);
+      const std::string lRaceRecord(lEntry->pItem);
+      TngSizeShape::LoadRaceMult(lRaceRecord, lMult100);
+    }
   }
   if (lIni.SectionExists(cNPCSizeSection)) {
     CSimpleIniA::TNamesDepend lSizeRecords;
@@ -122,7 +126,7 @@ bool TngInis::LoadMainIni() noexcept {
     for (lEntry = lSizeRecords.begin(); lEntry != lSizeRecords.end(); lEntry++) {
       auto lSize = lIni.GetLongValue(cNPCSizeSection, lEntry->pItem);
       const std::string lNPCRecord(lEntry->pItem);
-      TngSizeShape::UpdateSavedSize(lNPCRecord, lSize);
+      TngSizeShape::LoadNPCSize(lNPCRecord, lSize);
     }
   }
   if (lIni.SectionExists(cNPCShapeSection)) {
@@ -130,9 +134,9 @@ bool TngInis::LoadMainIni() noexcept {
     CSimpleIniA::TNamesDepend::const_iterator lEntry;
     lIni.GetAllKeys(cNPCShapeSection, lShapeRecords);
     for (lEntry = lShapeRecords.begin(); lEntry != lShapeRecords.end(); lEntry++) {
-      auto lShape = lIni.GetLongValue(cNPCShapeSection, lEntry->pItem);
+      std::string lShape = lIni.GetValue(cNPCShapeSection, lEntry->pItem);
       const std::string lNPCRecord(lEntry->pItem);
-      TngSizeShape::UpdateSavedShape(lNPCRecord, lShape);
+      TngSizeShape::LoadNPCShape(lNPCRecord, lShape);
     }
   }
   if (lIni.SectionExists(cRevealingRecord)) {
@@ -168,28 +172,61 @@ bool TngInis::LoadMainIni() noexcept {
   return true;
 }
 
+bool TngInis::GetAutoReveal(const bool aIsFemale) noexcept {
+  CSimpleIniA lIni;
+  lIni.SetUnicode();
+  lIni.LoadFile(cSettings);
+  return lIni.GetBoolValue(cAutoReveal, aIsFemale ? cFAutoReveal : cMAutoReveal, aIsFemale);
+}
+
+bool TngInis::GetAllowSkinOverwrite() noexcept {
+  CSimpleIniA lIni;
+  lIni.SetUnicode();
+  lIni.LoadFile(cSettings);
+  return lIni.GetBoolValue(cGeneral, cSkinOverwrite, false);
+}
+
+bool TngInis::GetClipCheck() noexcept {
+  CSimpleIniA lIni;
+  lIni.SetUnicode();
+  lIni.LoadFile(cSettings);
+  return lIni.GetBoolValue(cGeneral, cDoubleCheck, true);
+}
+
 void TngInis::SaveSize(const int aIdx) noexcept {
   CSimpleIniA lIni;
   lIni.SetUnicode();
   lIni.LoadFile(cSettings);
-  lIni.SetDoubleValue(cGlobalSize, cSizeNames[aIdx], TngSizeShape::fSizeGlobs[aIdx]->value);
+  lIni.SetDoubleValue(cGlobalSize, cSizeNames[aIdx], TngSizeShape::GetGlobalSize(aIdx));
   lIni.SaveFile(cSettings);
 }
 
-void TngInis::UpdateRace(const int aRaceIdx, const int aRaceShape, const float aRaceMult) noexcept {
+void TngInis::SaveRaceMult(RE::FormID aFormID, std::string aModName, const float aRaceMult) noexcept {
   CSimpleIniA lIni;
   lIni.SetUnicode();
   lIni.LoadFile(cSettings);
-  if (aRaceShape == -1) {
-    lIni.SetLongValue(cRacialGenital, cRaceNames[aRaceIdx], TngSizeShape::cGenitalDefaults[aRaceIdx]);
-  } else {
-    lIni.SetLongValue(cRacialGenital, cRaceNames[aRaceIdx], aRaceShape);
-  }
-  lIni.SetDoubleValue(cRacialSize, cRaceNames[aRaceIdx], aRaceMult);
+  std::ostringstream oss;
+  oss << std::hex << aFormID;
+  std::string lIDStr = "0x" + oss.str() + Tng::cDelimChar + aModName;
+  auto lMult100 = static_cast<int>(aRaceMult * 100.0f);
+  if ((lMult100 > 9) && (lMult100 < 1000)) lIni.SetLongValue(cRacialGenital, lIDStr.c_str(), lMult100);
+  if (lMult100 == 0) lIni.Delete(cRacialGenital, lIDStr.c_str());
   lIni.SaveFile(cSettings);
 }
 
-void TngInis::AddActorShape(RE::FormID aFormID, std::string aModName, int aGenShape) noexcept {
+void TngInis::SaveRaceShape(RE::FormID aFormID, std::string aModName, const int aRaceShape) noexcept {
+  CSimpleIniA lIni;
+  lIni.SetUnicode();
+  lIni.LoadFile(cSettings);
+  std::ostringstream oss;
+  oss << std::hex << aFormID;
+  std::string lIDStr = "0x" + oss.str() + Tng::cDelimChar + aModName;
+  if ((aRaceShape > -1) && (aRaceShape < 100)) lIni.SetLongValue(cRacialGenital, lIDStr.c_str(), aRaceShape);
+  if (aRaceShape == -1) lIni.Delete(cRacialGenital, lIDStr.c_str());
+  lIni.SaveFile(cSettings);
+}
+
+void TngInis::SaveActorShape(RE::FormID aFormID, std::string aModName, int aGenShape) noexcept {
   CSimpleIniA lIni;
   lIni.SetUnicode();
   lIni.LoadFile(cSettings);
@@ -201,7 +238,7 @@ void TngInis::AddActorShape(RE::FormID aFormID, std::string aModName, int aGenSh
   lIni.SaveFile(cSettings);
 }
 
-void TngInis::AddActorSize(RE::FormID aFormID, std::string aModName, int aGenSize) noexcept {
+void TngInis::SaveActorSize(RE::FormID aFormID, std::string aModName, int aGenSize) noexcept {
   CSimpleIniA lIni;
   lIni.SetUnicode();
   lIni.LoadFile(cSettings);
@@ -215,7 +252,7 @@ void TngInis::AddActorSize(RE::FormID aFormID, std::string aModName, int aGenSiz
   lIni.SaveFile(cSettings);
 }
 
-void TngInis::AddRevealingArmor(RE::TESObjectARMO* aArmor) noexcept {
+void TngInis::SaveRevealingArmor(RE::TESObjectARMO* aArmor) noexcept {
   CSimpleIniA lIni;
   lIni.SetUnicode();
   lIni.LoadFile(cSettings);
@@ -224,6 +261,25 @@ void TngInis::AddRevealingArmor(RE::TESObjectARMO* aArmor) noexcept {
   std::string lModName{aArmor->GetFile(0)->GetFilename()};
   std::string lIDStr = "0x" + oss.str() + Tng::cDelimChar + lModName;
   lIni.SetBoolValue(cRevealingRecord, lIDStr.c_str(), true);
+  lIni.SaveFile(cSettings);
+}
+
+void TngInis::SaveBool(int aID, bool aValue) noexcept {
+  CSimpleIniA lIni;
+  lIni.SetUnicode();
+  lIni.LoadFile(cSettings);
+  switch (aID) {
+    case 1:
+      lIni.SetBoolValue(cAutoReveal, cFAutoReveal, aValue);
+    case 2:
+      lIni.SetBoolValue(cAutoReveal, cMAutoReveal, aValue);
+    case 3:
+      lIni.SetBoolValue(cGeneral, cSkinOverwrite, aValue);
+    case 4:
+      lIni.SetBoolValue(cGeneral, cDoubleCheck, aValue);
+    default:
+      break;
+  }
   lIni.SaveFile(cSettings);
 }
 

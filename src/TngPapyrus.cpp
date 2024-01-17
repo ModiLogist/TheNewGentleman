@@ -1,7 +1,7 @@
 #include <TngInis.h>
 #include <TngPapyrus.h>
 #include <TngSizeShape.h>
-#include <TngUtil.h>
+#include <TngCore.h>
 
 void TngPapyrus::UpdateSize(RE::StaticFunctionTag*, int aIdx) { TngInis::SaveSize(aIdx); }
 
@@ -12,24 +12,24 @@ void TngPapyrus::UpdateRace(RE::StaticFunctionTag*, int aRaceIdx, int aGenOption
     TngSizeShape::GetSingleton()->genitalChoices[aRaceIdx] = aGenOption;
   }
   TngSizeShape::GetSingleton()->genitalSizes[aRaceIdx] = aGenMult;
-  TngUtil::UpdateRace(aRaceIdx, aGenOption);
+  TngCore::UpdateRace(aRaceIdx, aGenOption);
   TngInis::UpdateRace(aRaceIdx, aGenOption, aGenMult);
 }
 
-void TngPapyrus::SetAutoRevealing(RE::StaticFunctionTag*, bool aFemaleArmor, bool aMaleArmor) {
-  TngInis::GetSingleton()->FAutoReveal = aFemaleArmor;
-  TngInis::GetSingleton()->MAutoReveal = aMaleArmor;
-}
+bool TngPapyrus::AllowSkinOverwrite(RE::StaticFunctionTag*) { return TngInis::GetAllowSkinOverwrite(); }
 
-int TngPapyrus::CanModifyActor(RE::StaticFunctionTag*, RE::Actor* aActor) { return TngSizeShape::CanModifyActor(aActor); }
+bool TngPapyrus::GetClipCheck(RE::StaticFunctionTag*) { return TngInis::GetClipCheck(); }
+
+int TngPapyrus::CanModifyActor(RE::StaticFunctionTag*, RE::Actor* aActor, bool aAllowSkinOverwrite) { return TngSizeShape::CanModifyActor(aActor, aAllowSkinOverwrite); }
 
 bool TngPapyrus::SetActorShape(RE::StaticFunctionTag*, RE::Actor* aActor, int aGenOption) {
   if (!aActor) return false;
+  const auto lNPC = aActor ? aActor->GetActorBase() : nullptr;
   bool res = TngSizeShape::SetActorSkin(aActor, aGenOption);
-  if (!aActor->IsPlayerRef() && aActor->GetFile(0)) {
+  if (!aActor->IsPlayerRef() && lNPC->GetFile(0)) {
     std::string lModName{aActor->GetFile(0)->GetFilename()};
     int lFM = aActor->GetActorBase()->IsFemale() ? 1 : 0;
-    TngInis::AddActorShape(aActor->GetActorBase()->GetLocalFormID(), lModName, aGenOption + (TngSizeShape::fMessagePage[lFM] * 4));
+    TngInis::AddActorShape(aActor->GetActorBase()->GetLocalFormID(), lModName, aGenOption);
   }
   return res;
 }
@@ -47,13 +47,11 @@ void TngPapyrus::SetActorSize(RE::StaticFunctionTag*, RE::Actor* aActor, int aGe
   }
 }
 
-void TngPapyrus::UpdateMessage(RE::StaticFunctionTag*, bool aIsFemale) { TngSizeShape::UpdateMessage(aIsFemale); }
+bool TngPapyrus::LoadAddons(RE::StaticFunctionTag*) { return false; }
 
-void TngPapyrus::ResetMessage(RE::StaticFunctionTag*, bool aIsFemale) { TngSizeShape::ResetMessage(aIsFemale); }
+std::vector<std::string> TngPapyrus::GetAllPossibleAddons(RE::StaticFunctionTag*, RE::Actor* aActor) { return std::vector<std::string>(); }
 
-bool TngPapyrus::GetFAutoReveal(RE::StaticFunctionTag*) { return TngInis::GetSingleton()->FAutoReveal; }
-
-bool TngPapyrus::GetMAutoReveal(RE::StaticFunctionTag*) { return TngInis::GetSingleton()->MAutoReveal; }
+bool TngPapyrus::GetAutoReveal(RE::StaticFunctionTag*, bool aIsFemale) { return TngInis::GetAutoReveal(aIsFemale); }
 
 int TngPapyrus::GetGenType(RE::StaticFunctionTag*, int aRaceIdx) { return TngSizeShape::GetSingleton()->genitalChoices[aRaceIdx]; }
 
@@ -73,22 +71,25 @@ bool TngPapyrus::MakeRevealing(RE::StaticFunctionTag*, RE::TESObjectARMO* aArmor
   return true;
 }
 
+void TngPapyrus::SaveBoolValues(RE::StaticFunctionTag*, int aID, bool aValue) { TngInis::SaveBool(aID, aValue); }
+
 void TngPapyrus::SaveGlobals(RE::StaticFunctionTag*) { TngInis::SaveGlobals(); }
 
 bool TngPapyrus::BindPapyrus(RE::BSScript::IVirtualMachine* aVM) noexcept {
   aVM->RegisterFunction("UpdateSize", "TNG_PapyrusUtil", UpdateSize);
   aVM->RegisterFunction("UpdateRace", "TNG_PapyrusUtil", UpdateRace);
-  aVM->RegisterFunction("SetAutoRevealing", "TNG_PapyrusUtil", SetAutoRevealing);
+  aVM->RegisterFunction("AllowSkinOverwrite", "TNG_PapyrusUtil", AllowSkinOverwrite);
+  aVM->RegisterFunction("GetClipCheck", "TNG_PapyrusUtil", GetClipCheck);
   aVM->RegisterFunction("CanModifyActor", "TNG_PapyrusUtil", CanModifyActor);
   aVM->RegisterFunction("SetActorShape", "TNG_PapyrusUtil", SetActorShape);
   aVM->RegisterFunction("SetActorSize", "TNG_PapyrusUtil", SetActorSize);
-  aVM->RegisterFunction("UpdateMessage", "TNG_PapyrusUtil", UpdateMessage);
-  aVM->RegisterFunction("ResetMessage", "TNG_PapyrusUtil", ResetMessage);
-  aVM->RegisterFunction("GetFAutoReveal", "TNG_PapyrusUtil", GetFAutoReveal);
-  aVM->RegisterFunction("GetMAutoReveal", "TNG_PapyrusUtil", GetMAutoReveal);
+  aVM->RegisterFunction("LoadAddons", "TNG_PapyrusUtil", LoadAddons);
+  aVM->RegisterFunction("GetAllPossibleAddons", "TNG_PapyrusUtil", GetAllPossibleAddons);
+  aVM->RegisterFunction("GetAutoReveal", "TNG_PapyrusUtil", GetAutoReveal);
   aVM->RegisterFunction("GetGenType", "TNG_PapyrusUtil", GetGenType);
   aVM->RegisterFunction("GetGenSize", "TNG_PapyrusUtil", GetGenSize);
   aVM->RegisterFunction("MakeRevealing", "TNG_PapyrusUtil", MakeRevealing);
+  aVM->RegisterFunction("SaveBoolValues", "TNG_PapyrusUtil", SaveBoolValues);
   aVM->RegisterFunction("SaveGlobals", "TNG_PapyrusUtil", SaveGlobals);
   return true;
 }

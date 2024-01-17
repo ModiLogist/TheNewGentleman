@@ -3,15 +3,15 @@
 class TngInis : public Singleton<TngInis> {
   private:
     // TNG setting
-    inline static constexpr const char* cSettings{R"(.\Data\SKSE\Plugins\TheNewGentleman.ini)"};
+    inline static constexpr const char* cSettings{R"(.\Data\SKSE\Plugins\The New Gentleman.ini)"};
     inline static constexpr const char* cAutoReveal{"AutoReveal"};
     inline static constexpr const char* cFAutoReveal{"Female"};
     inline static constexpr const char* cMAutoReveal{"Male"};
-    inline static constexpr const char* cRacialGenital{"RaceGenital"};
-    inline static constexpr const char* cRacialSize{"RaceSizeMultplier"};
-    inline static constexpr const char* cRaceNames[Tng::cRaceTypes + 3]{"Nord",      "Redguard", "Breton",      "Imperial",      "Altmer",      "Bosmer",
-                                                                        "Dunmer",    "Orsimer",  "Saxhleel",    "Khajiit",       "Dremora",     "Elder",
-                                                                        "Afflicted", "SnowElf",  "OtherManMer", "OtherSaxhleel", "OtherKhajiit"};
+    inline static constexpr const char* cGeneral{"General"};
+    inline static constexpr const char* cSkinOverwrite{"SkinOverwrite"};
+    inline static constexpr const char* cDoubleCheck{"DoubleCheckClipping"};
+    inline static constexpr const char* cRacialGenital{"RaceGenitals"};
+    inline static constexpr const char* cRacialSize{"RaceSizeMultpliers"};
 
     inline static constexpr const char* cGlobalSize{"GlobalSizes"};
     inline static constexpr const char* cSizeNames[Tng::cSizeCategories]{"Size_XS", "Size__S", "Size__M", "Size__L", "Size_XL"};
@@ -55,9 +55,6 @@ class TngInis : public Singleton<TngInis> {
     static void UpdateRevealing(const std::string aArmorRecod) noexcept;
 
   public:
-    inline static bool FAutoReveal{true};
-    inline static bool MAutoReveal{false};
-
     inline static std::set<std::string> fSkinMods;
     inline static std::set<std::pair<std::string, RE::FormID>> fSingleSkinIDs;
     inline static std::set<std::string> fRevealingMods;
@@ -66,10 +63,15 @@ class TngInis : public Singleton<TngInis> {
 
     static void LoadTngInis() noexcept;
     static bool LoadMainIni() noexcept;
+    static bool GetAutoReveal(const bool aIsFemale) noexcept;
+    static bool GetAllowSkinOverwrite() noexcept;
+    static bool GetClipCheck() noexcept;
     static void SaveSize(const int aIdx) noexcept;
-    static void UpdateRace(const int aRaceIdx, const int aRaceShape, const float aRaceMult) noexcept;
-    static void AddActorShape(RE::FormID aFormID, std::string aModName, int aGenShape) noexcept;
-    static void AddActorSize(RE::FormID aFormID, std::string aModName, int aGenSize) noexcept;
-    static void AddRevealingArmor(RE::TESObjectARMO* aArmor) noexcept;
+    static void SaveRaceMult(RE::FormID aFormID, std::string aModName, const float aRaceMult) noexcept;
+    static void SaveRaceShape(RE::FormID aFormID, std::string aModName, const int aRaceShape) noexcept;
+    static void SaveActorShape(RE::FormID aFormID, std::string aModName, int aGenShape) noexcept;
+    static void SaveActorSize(RE::FormID aFormID, std::string aModName, int aGenSize) noexcept;
+    static void SaveRevealingArmor(RE::TESObjectARMO* aArmor) noexcept;
+    static void SaveBool(int aID, bool aValue) noexcept;
     static void SaveGlobals() noexcept;
 };

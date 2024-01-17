@@ -1,217 +1,345 @@
 #include <TngSizeShape.h>
 
 bool TngSizeShape::LoadAddons() noexcept {
-  fFemAddKey = fDataHandler->LookupForm<RE::BGSKeyword>(cFemAddKeyID, Tng::cName);
-  fMalAddKey = fDataHandler->LookupForm<RE::BGSKeyword>(cMalAddKeyID, Tng::cName);
-  fFemAddLst = fDataHandler->LookupForm<RE::BGSListForm>(cFemAddLstID, Tng::cName);
-  fMalAddLst = fDataHandler->LookupForm<RE::BGSListForm>(cMalAddLstID, Tng::cName);
-  fAddonGlb[1] = fDataHandler->LookupForm<RE::TESGlobal>(cFemAddConID, Tng::cName);
-  fAddonGlb[0] = fDataHandler->LookupForm<RE::TESGlobal>(cMalAddConID, Tng::cName);
-  fMsg[1] = fDataHandler->LookupForm<RE::BGSMessage>(cShapeMessageFID, Tng::cName);
-  fMsg[0] = fDataHandler->LookupForm<RE::BGSMessage>(cShapeMessageMID, Tng::cName);
-  fShowNext[1] = fDataHandler->LookupForm<RE::TESGlobal>(cShowNextFID, Tng::cName);
-  fShowNext[0] = fDataHandler->LookupForm<RE::TESGlobal>(cShowNextMID, Tng::cName);  
-  if (!fFemAddKey || !fMalAddKey || !fFemAddLst || !fMalAddLst || !fAddonGlb[0] || !fAddonGlb[1] || !fMsg[0] || !fMsg[1] || !fShowNext[0] || !fShowNext[1]) {
+  auto lDataHandler = RE::TESDataHandler::GetSingleton();
+  auto lFemAddKey = lDataHandler->LookupForm<RE::BGSKeyword>(cFemAddKeyID, Tng::cName);
+  auto lMalAddKey = lDataHandler->LookupForm<RE::BGSKeyword>(cMalAddKeyID, Tng::cName);
+  auto lFemAddLst = lDataHandler->LookupForm<RE::BGSListForm>(cFemAddLstID, Tng::cName);
+  auto lMalAddLst = lDataHandler->LookupForm<RE::BGSListForm>(cMalAddLstID, Tng::cName);
+  if (!lFemAddKey || !lMalAddKey || !lFemAddLst || !lMalAddLst) {
     Tng::gLogger::error("Could not find the base information required for shape variations!");
     return false;
   }
   for (int i = 0; i < 3; i++) {
-    fAddons[0][i] = fDataHandler->LookupForm<RE::TESObjectARMO>(cSkinIDs[i], Tng::cName);
-    if (!fAddons[0][i]) {
+    auto lArmor = lDataHandler->LookupForm<RE::TESObjectARMO>(cSkinIDs[i], Tng::cName);
+    if (!lArmor) {
       Tng::gLogger::error("Could not find the information required for shape variations!");
       return false;
     }
   }
-  fAddonCount[0] = 3;
-  fAddonCount[1] = 0;
-  auto &lAllArmor = fDataHandler->GetFormArray<RE::TESObjectARMO>();
+  int lFAddonCount = lFemAddLst->forms.size();
+  int lMAddonCount = lMalAddLst->forms.size();
+  auto &lAllArmor = lDataHandler->GetFormArray<RE::TESObjectARMO>();
   for (const auto &lArmor : lAllArmor) {
-    if (lArmor->HasKeyword(fFemAddKey)) {
-      fAddons[1][fAddonCount[1]] = lArmor;
-      fFemAddLst->AddForm(lArmor);
-      if (fAddonCount[1] < 4) {      
-        auto lBtn = *std::next(fMsg[1]->menuButtons.begin(), fAddonCount[1]);
-        lBtn->text = lArmor->GetName();
-      }
-      fAddonCount[1]++;
+    if (lArmor->HasKeyword(lFemAddKey)) {
+      if (!lFemAddLst->HasForm(lArmor)) lFemAddLst->AddForm(lArmor);
+      lFAddonCount++;
     }
-    if (lArmor->HasKeyword(fMalAddKey)) {
-      fAddons[0][fAddonCount[0]] = lArmor;
-      fMalAddLst->AddForm(lArmor);
-      if (fAddonCount[0] < 4) {      
-        auto lBtn = *std::next(fMsg[0]->menuButtons.begin(), fAddonCount[0]);
-        lBtn->text = lArmor->GetName();
-      }
-      fAddonCount[0]++;
+    if (lArmor->HasKeyword(lMalAddKey)) {
+      lMalAddLst->AddForm(lArmor);
+      lMAddonCount++;
     }
   }
-  fAddonGlb[0]->value = static_cast<float>(fAddonCount[0]);
-  fShowNext[0]->value = fAddonCount[0] > 4 ? 2.0f : 0.0f;
-  fAddonGlb[1]->value = static_cast<float>(fAddonCount[1]);
-  fShowNext[1]->value = fAddonCount[1] > 4 ? 2.0f : 0.0f;
   return true;
 }
 
-float TngSizeShape::GetRacialMult(RE::Actor *aActor) noexcept {
-  const auto lNPC = aActor ? aActor->GetActorBase() : nullptr;
-  if (!lNPC) return 1.0f;
-  const auto lRaceID = lNPC->race->GetFormID();
-  auto lRaceIndex = std::find_if(fRaceIndices.begin(), fRaceIndices.end(), [&lRaceID](const std::pair<RE::FormID, int> &p) { return p.first == lRaceID; });
-  if (lRaceIndex != fRaceIndices.end()) return genitalSizes[lRaceIndex->second];
-  return 1.0f;
-}
-
-void TngSizeShape::ScaleGenital(RE::Actor *aActor, RE::TESGlobal *aGlobal) noexcept {
-  auto lScale = GetRacialMult(aActor) * aGlobal->value;
-  RE::NiAVObject *aBaseNode = aActor->GetNodeByName(cBaseBone);
-  RE::NiAVObject *aScrtNode = aActor->GetNodeByName(cScrtBone);
-  if (!aBaseNode || !aScrtNode) return;
-  aBaseNode->local.scale = lScale;
-  aScrtNode->local.scale = 1.0f / lScale;
-}
-
-bool TngSizeShape::InitSizes() noexcept {
-  fDataHandler = RE::TESDataHandler::GetSingleton();
-  fTNGRaceKey = fDataHandler->LookupForm<RE::BGSKeyword>(Tng::cTNGRaceKeyID, Tng::cName);
-  fGentified = RE::TESDataHandler::GetSingleton()->LookupForm<RE::BGSListForm>(Tng::cGentifiedID, Tng::cName);
-  fSkinWithPenisKey = RE::TESDataHandler::GetSingleton()->LookupForm<RE::BGSKeyword>(Tng::cSkinWithPenisKeyID, Tng::cName);
-  if (!fTNGRaceKey || !fGentified || !fSkinWithPenisKey) {
-    Tng::gLogger::error("Could not find the information required for size distribution!");
-    return false;
-  }
+void TngSizeShape::LoadNPCSize(const std::string aNPCRecord, const int aSize) noexcept {
+  auto lDataHandler = RE::TESDataHandler::GetSingleton();
+  const size_t lSepLoc = aNPCRecord.find(Tng::cDelimChar);
+  const RE::FormID lFormID = std::strtol(aNPCRecord.substr(0, lSepLoc).data(), nullptr, 0);
+  const std::string lModName = aNPCRecord.substr(lSepLoc + 1);
+  RE::TESNPC *lNPC = lDataHandler->LookupForm<RE::TESNPC>(lFormID, lModName);
+  RE::BGSKeyword *lSizeKws[Tng::cSizeCategories]{};
+  RE::TESGlobal *lSizeGlbs[Tng::cSizeCategories]{};
   for (int i = 0; i < Tng::cSizeCategories; i++) {
-    if (fSizeKeyWs[i] && fSizeGlobs[i]) continue;
-    fSizeKeyWs[i] = fDataHandler->LookupForm<RE::BGSKeyword>(cSizeKeyWIDs[i], Tng::cName);
-    fSizeGlobs[i] = fDataHandler->LookupForm<RE::TESGlobal>(cSizeGlobIDs[i], Tng::cName);
-    if (!fSizeKeyWs[i] || !fSizeGlobs[i]) {
-      Tng::gLogger::error("Could not find the information required for size distribution!");
-      return false;
+    lSizeKws[i] = lDataHandler->LookupForm<RE::BGSKeyword>(cSizeKeyWIDs[i], Tng::cName);
+    lSizeGlbs[i] = lDataHandler->LookupForm<RE::TESGlobal>(cSizeGlobIDs[i], Tng::cName);
+    if (!lSizeKws[i] || !lSizeGlbs[i]) {
+      Tng::gLogger::error("Could not find the information required for size distribution among NPCs!");
+      return;
     }
   }
-  return LoadAddons();
-}
-
-void TngSizeShape::UpdateSavedSize(const std::string aNPCRecord, const long aSize) noexcept {
-  const size_t lSepLoc = aNPCRecord.find(Tng::cDelimChar);
-  const RE::FormID lFormID = std::strtol(aNPCRecord.substr(0, lSepLoc).data(), nullptr, 0);
-  const std::string lModName = aNPCRecord.substr(lSepLoc + 1);
-  RE::TESNPC *lNPC = fDataHandler->LookupForm<RE::TESNPC>(lFormID, lModName);
   if (lNPC) {
     for (int i = 0; i < Tng::cSizeCategories; i++)
-      if (lNPC->HasKeyword(fSizeKeyWs[i])) lNPC->RemoveKeyword(fSizeKeyWs[i]);
-    lNPC->AddKeyword(fSizeKeyWs[aSize]);
+      if (lNPC->HasKeyword(lSizeKws[i])) lNPC->RemoveKeyword(lSizeKws[i]);
+    lNPC->AddKeyword(lSizeKws[aSize]);
   }
 }
 
-void TngSizeShape::UpdateSavedShape(const std::string aNPCRecord, const long aShape) noexcept {
+void TngSizeShape::LoadNPCShape(const std::string aNPCRecord, const std::string aShapeRecord) noexcept {
+  auto lDataHandler = RE::TESDataHandler::GetSingleton();
   const size_t lSepLoc = aNPCRecord.find(Tng::cDelimChar);
   const RE::FormID lFormID = std::strtol(aNPCRecord.substr(0, lSepLoc).data(), nullptr, 0);
   const std::string lModName = aNPCRecord.substr(lSepLoc + 1);
-  RE::TESNPC *lNPC = fDataHandler->LookupForm<RE::TESNPC>(lFormID, lModName);
-  Tng::gLogger::info("Looking for {:x} in {}",lFormID,lModName);
+  RE::TESNPC *lNPC = lDataHandler->LookupForm<RE::TESNPC>(lFormID, lModName);
   if (!lNPC) return;
   if (!lNPC->race) return;
   if (!lNPC->race->skin) return;
   if (lNPC->skin && lNPC->skin != lNPC->race->skin) return;
-  if (lNPC->IsFemale()) {
-    if (fAddonCount[1] < aShape) {
-      Tng::gLogger::info("A previously installed addon cannot be found anymore! {} would use her original skin.", lNPC->GetName());
-      return;
-    }
-    lNPC->skin = fAddons[1][aShape];
-    if (fAddons[1][aShape]->HasKeyword(fSkinWithPenisKey)) fGentified->AddForm(lNPC);
-  } else {
-    if (fAddonCount[0] < aShape) {
-      Tng::gLogger::info("A previously installed addon cannot be found anymore! {} would use his racial genital.", lNPC->GetName());
-      return;
-    }
-    lNPC->skin = fAddons[0][aShape];
-  }
-}
-
-void TngSizeShape::AddRaceIndex(RE::FormID aRaceID, int aRaceIndex) noexcept { fRaceIndices.insert(std::make_pair(aRaceID, aRaceIndex)); }
-
-std::set<RE::FormID> TngSizeShape::GetRacesWithIndex(int aRaceIndex) noexcept {
-  std::set<RE::FormID> res{};
-  for (const auto &lRaceIdx : fRaceIndices) {
-    if (lRaceIdx.second == aRaceIndex) res.insert(lRaceIdx.first);
-  }
-  return res;
-}
-
-void TngSizeShape::RandomizeScale(RE::Actor *aActor) noexcept {
-  for (int i = 0; i < Tng::cSizeCategories; i++) {
-    if (!fSizeKeyWs[i] || !fSizeGlobs[i]) {
-      Tng::gLogger::error("TNG could not find the information required for size distribution!");
-      return;
-    }
-  }
-  const auto lNPC = aActor ? aActor->GetActorBase() : nullptr;
-  if (!aActor || !lNPC) return;
+  const size_t lShapeSepLoc = aShapeRecord.find(Tng::cDelimChar);
+  const RE::FormID lShapeFormID = std::strtol(aShapeRecord.substr(0, lShapeSepLoc).data(), nullptr, 0);
+  const std::string lShapeModName = aShapeRecord.substr(lShapeSepLoc + 1);
+  RE::TESNPC *lNPC = lDataHandler->LookupForm<RE::TESNPC>(lShapeFormID, lShapeModName);
+  if (!lNPC) return;
   if (!lNPC->race) return;
-  if (!lNPC->race->HasPartOf(Tng::cSlotGenital)) return;
+  if (!lNPC->race->skin) return;
+  if (lNPC->skin && lNPC->skin != lNPC->race->skin) return;
 
-  for (int i = 0; i < Tng::cSizeCategories; i++) {
-    if (lNPC->HasKeyword(fSizeKeyWs[i])) {
-      ScaleGenital(aActor, fSizeGlobs[i]);
+  auto lFemAddLst = lDataHandler->LookupForm<RE::BGSListForm>(cFemAddLstID, Tng::cName);
+  auto lMalAddLst = lDataHandler->LookupForm<RE::BGSListForm>(cMalAddLstID, Tng::cName);
+  auto lTNGRaceKey = lDataHandler->LookupForm<RE::BGSKeyword>(Tng::cTNGRaceKeyID, Tng::cName);
+  auto lGentified = lDataHandler->LookupForm<RE::BGSListForm>(Tng::cGentifiedID, Tng::cName);
+  auto lSkinWithPenisKey = lDataHandler->LookupForm<RE::BGSKeyword>(Tng::cSkinWithPenisKeyID, Tng::cName);
+  if (!lTNGRaceKey || !lGentified || !lSkinWithPenisKey || !lFemAddLst || !lMalAddLst) {
+    Tng::gLogger::error("Could not find the information required for size distribution!");
+    return;
+  }
+  auto lAddLst = lNPC->IsFemale() ? lFemAddLst : lMalAddLst;
+  if (lAddLst->forms.size() < aShape) {
+    Tng::gLogger::error("A previously installed addon cannot be found anymore! {} would use original skin.", lNPC->GetName());
+    return;
+  }
+  auto lSkin = lAddLst->forms[aShape]->As<RE::TESObjectARMO>();
+  if (!lSkin) {
+    Tng::gLogger::error("A previously installed addon cannot be found anymore! {} would use original skin.", lNPC->GetName());
+    return;
+  }
+  if (aShape == GetRaceShape(lNPC->race)) return;
+  auto &lAllKws = RE::TESDataHandler::GetSingleton()->GetFormArray<RE::BGSKeyword>();
+  std::string lReqKw = cActorShape + (aShape < 10 ? "0" + std::to_string(aShape) : std::to_string(aShape));
+  auto lKwIt = std::find_if(lAllKws.begin(), lAllKws.end(), [&](const auto &kw) { return kw && kw->formEditorID == lReqKw.c_str(); });
+  RE::BGSKeyword *lKw{nullptr};
+  if (lKwIt != lAllKws.end()) {
+    const auto lKw = *lKwIt;
+    if (!lKw) {
+      Tng::gLogger::critical("Couldn't get existing keyword [{}]!", lReqKw);
+      return;
+    }
+  } else {
+    const auto lFactory = RE::IFormFactory::GetConcreteFormFactoryByType<RE::BGSKeyword>();
+    if (lKw = lFactory ? lFactory->Create() : nullptr; lKw) {
+      lKw->formEditorID = lReqKw;
+      lAllKws.push_back(lKw);
+    } else {
+      Tng::gLogger::critical("Couldn't create keyword [{}]!", lReqKw);
       return;
     }
   }
-  const int lDefSize = lNPC->formID % 5;
-  lNPC->AddKeyword(fSizeKeyWs[lDefSize]);
-  ScaleGenital(aActor, fSizeGlobs[lDefSize]);
+  if (!lKw) {
+    Tng::gLogger::info("Couldn't set the shape for actor [{}]!", lNPC->GetFormEditorID());
+    return;
+  }
+  for (const auto &lExistingKw : lNPC->GetKeywords()) {
+    if (lExistingKw->formEditorID.contains(cActorShape)) lNPC->RemoveKeyword(lExistingKw);
+  }
+  lNPC->AddKeyword(lKw);
 }
 
-int TngSizeShape::CanModifyActor(RE::Actor *aActor) noexcept {
+void TngSizeShape::LoadRaceMult(const std::string aRaceRecord, const int aSize100) noexcept {
+  const size_t lSepLoc = aRaceRecord.find(Tng::cDelimChar);
+  const RE::FormID lFormID = std::strtol(aRaceRecord.substr(0, lSepLoc).data(), nullptr, 0);
+  const std::string lModName = aRaceRecord.substr(lSepLoc + 1);
+  auto *lRace = RE::TESDataHandler::GetSingleton()->LookupForm<RE::TESRace>(lFormID, lModName);
+  if (!lRace) return;
+  SetRaceMult(lRace, static_cast<float>(aSize100/100.0f));
+}
+
+void TngSizeShape::LoadRaceShape(const std::string aRaceRecord, const std::string aShapeRecord) noexcept {
+  const size_t lSepLoc = aRaceRecord.find(Tng::cDelimChar);
+  const RE::FormID lFormID = std::strtol(aRaceRecord.substr(0, lSepLoc).data(), nullptr, 0);
+  const std::string lModName = aRaceRecord.substr(lSepLoc + 1);
+  auto *lRace = RE::TESDataHandler::GetSingleton()->LookupForm<RE::TESRace>(lFormID, lModName);
+  if (!lRace) return;
+  SetRaceShape(lRace, aShape);
+}
+
+float TngSizeShape::GetRaceMult(RE::TESRace *aRace) noexcept {
+  if (!aRace) {
+    Tng::gLogger::warn("Failure in getting a race mult!");
+    return 1.0f;
+  }
+  for (auto lKw : aRace->GetKeywords()) {
+    const std::string lKwStr(lKw->formEditorID);
+    if (lKwStr.starts_with(cRaceMult)) {
+      if (lKwStr.size() != 17) return 1.0f;
+      const int lMult100 = std::strtol(lKwStr.substr(14, 3).data(), nullptr, 0);
+      return static_cast<float>(lMult100) / 100.0f;
+    }
+  }
+  return 1.0f;
+}
+
+void TngSizeShape::SetRaceMult(RE::TESRace *aRace, const float aMult) noexcept {
+  if (!aRace) {
+    Tng::gLogger::warn("Failure in setting a race mult!");
+    return;
+  }
+  auto &lAllKws = RE::TESDataHandler::GetSingleton()->GetFormArray<RE::BGSKeyword>();
+  int lRaceMult100 = static_cast<int>(aMult*100);
+  if (lRaceMult100 > 1000) {
+    Tng::gLogger::warn("Cannot set the race multiplier to a value equal or greater than 10! It was set 9.99");
+    lRaceMult100 = 999;
+  }
+  if (lRaceMult100 < 10) {
+    Tng::gLogger::warn("Cannot set the race multiplier to a value smaller than 0.1! It was set 0.1");
+    lRaceMult100 = 10;
+  }
+  std::string lReqKw = cRaceMult + (lRaceMult100 < 100 ? "0" + std::to_string(lRaceMult100) : std::to_string(lRaceMult100));
+  auto lKwIt = std::find_if(lAllKws.begin(), lAllKws.end(), [&](const auto &kw) { return kw && kw->formEditorID == lReqKw.c_str(); });
+  RE::BGSKeyword *lKw{nullptr};
+  if (lKwIt != lAllKws.end()) {
+    const auto lKw = *lKwIt;
+    if (!lKw) {
+      Tng::gLogger::info("Couldn't get existing keyword [{}]!", lReqKw);
+      return;
+    }
+  } else {
+    const auto lFactory = RE::IFormFactory::GetConcreteFormFactoryByType<RE::BGSKeyword>();
+    if (lKw = lFactory ? lFactory->Create() : nullptr; lKw) {
+      lKw->formEditorID = lReqKw;
+      lAllKws.push_back(lKw);
+    } else {
+      Tng::gLogger::info("Couldn't create keyword [{}]!", lReqKw);
+      return;
+    }
+  }
+  if (!lKw) {
+    Tng::gLogger::info("Couldn't set the size multiplier for race [{}]!", aRace->GetFormEditorID());
+    return;
+  }
+  for (const auto &lExistingKw : aRace->GetKeywords()) {
+    if (lExistingKw->formEditorID.contains(cRaceMult)) aRace->RemoveKeyword(lExistingKw);
+  }
+  aRace->AddKeyword(lKw);
+}
+
+int TngSizeShape::GetRaceShape(RE::TESRace *aRace) noexcept {
+  if (!aRace) {
+    Tng::gLogger::warn("Failure in getting a race shape!");
+    return -1;
+  }
+  auto lMalAddLst = RE::TESDataHandler::GetSingleton()->LookupForm<RE::BGSListForm>(cMalAddLstID, Tng::cName);
+  if (!lMalAddLst) {
+    Tng::gLogger::critical("Required formlist for shapes cannot be accessed!");
+    return -1;
+  }
+  for (auto lKw : aRace->GetKeywords()) {
+    const std::string lKwStr(lKw->formEditorID);
+    if (lKwStr.starts_with(cRaceShape)) {
+      if (lKwStr.size() != 17) return 0;
+      return std::strtol(lKwStr.substr(15, 2).data(), nullptr, 0);
+    }
+  }
+  return -1;
+}
+
+void TngSizeShape::SetRaceShape(RE::TESRace *aRace, int aRaceShape) noexcept {
+  if (!aRace) {
+    Tng::gLogger::warn("Failure in setting a race shape!");
+    return;
+  }
+  auto lMalAddLst = RE::TESDataHandler::GetSingleton()->LookupForm<RE::BGSListForm>(cMalAddLstID, Tng::cName);
+  if (!lMalAddLst) {
+    Tng::gLogger::critical("Required formlist for shapes cannot be accessed!");
+    return;
+  }
+  if (!aRace) {
+    Tng::gLogger::critical("Failure in setting a race shape!");
+    return;
+  }
+  auto &lAllKws = RE::TESDataHandler::GetSingleton()->GetFormArray<RE::BGSKeyword>();
+  int lRaceShape = static_cast<int>(aRaceShape);
+  if ((lMalAddLst->forms.size() < lRaceShape) || (lRaceShape < 0)) {
+    Tng::gLogger::critical("Cannot set the race {} to use addon {}! There are only {} addons.", aRace->GetFormEditorID(), lRaceShape + 1, lMalAddLst->forms.size());
+    lRaceShape = 0;
+  }
+  std::string lReqKw = cRaceShape + (lRaceShape < 10 ? "0" + std::to_string(lRaceShape) : std::to_string(lRaceShape));
+  auto lKwIt = std::find_if(lAllKws.begin(), lAllKws.end(), [&](const auto &kw) { return kw && kw->formEditorID == lReqKw.c_str(); });
+  RE::BGSKeyword *lKw{nullptr};
+  if (lKwIt != lAllKws.end()) {
+    const auto lKw = *lKwIt;
+    if (!lKw) {
+      Tng::gLogger::info("Couldn't get existing keyword [{}]!", lReqKw);
+      return;
+    }
+  } else {
+    const auto lFactory = RE::IFormFactory::GetConcreteFormFactoryByType<RE::BGSKeyword>();
+    if (lKw = lFactory ? lFactory->Create() : nullptr; lKw) {
+      lKw->formEditorID = lReqKw;
+      lAllKws.push_back(lKw);
+    } else {
+      Tng::gLogger::info("Couldn't create keyword [{}]!", lReqKw);
+      return;
+    }
+  }
+  if (!lKw) {
+    Tng::gLogger::info("Couldn't set the shape for race [{}]!", aRace->GetFormEditorID());
+    return;
+  }
+  for (const auto &lExistingKw : aRace->GetKeywords()) {
+    if (lExistingKw->formEditorID.contains(cRaceShape)) aRace->RemoveKeyword(lExistingKw);
+  }
+  aRace->AddKeyword(lKw);
+}
+
+int TngSizeShape::CanModifyActor(RE::Actor *aActor, bool aAllowOverwrite) noexcept {
   const auto lNPC = aActor ? aActor->GetActorBase() : nullptr;
   if (!aActor || !lNPC) return -1;
   if (!lNPC->race) return -1;
-  if (!lNPC->race->HasKeyword(fTNGRaceKey)) return -1;
+  auto lDataHandler = RE::TESDataHandler::GetSingleton();
+  if (!lDataHandler) return -1;
+  auto lTNGRaceKey = lDataHandler->LookupForm<RE::BGSKeyword>(Tng::cTNGRaceKeyID, Tng::cName);
+  auto lFemAddLst = lDataHandler->LookupForm<RE::BGSListForm>(cFemAddLstID, Tng::cName);
+  auto lMalAddLst = lDataHandler->LookupForm<RE::BGSListForm>(cMalAddLstID, Tng::cName);
+  if (!lNPC->race->HasKeyword(lTNGRaceKey)) return -1;
+  if (aAllowOverwrite) return 1;
   auto lSkin = aActor->GetSkin();
   if (!lSkin) return 1;
   if (lSkin == aActor->GetRace()->skin) return 1;
-  for (const auto &lTngSkin : fAddons[0])
-    if (lSkin == lTngSkin) return 1;
-  for (const auto &lTngSkin : fAddons[1])
+  for (const auto &lTngSkin : lFemAddLst->forms)
+    if (lSkin == lTngSkin->As<RE::TESObjectARMO>()) return 1;
+  for (const auto &lTngSkin : lMalAddLst->forms)
     if (lSkin == lTngSkin) return 1;
   return lNPC->IsFemale() ? -1 : 0;
 }
 
-void TngSizeShape::UpdateMessage(bool aIsFemale) noexcept {
-  int lFM = aIsFemale ? 1 : 0;
-  fMessagePage[lFM]++;
-  for (int i = 0; i < 4; i++) {
-    auto lBtn = *std::next(fMsg[lFM]->menuButtons.begin(), i);
-    if (fMessagePage[lFM] == 1) fOgMessageBtns[i] = lBtn->text;
-    int lIdx = 4 * fMessagePage[lFM] + i;
-    if (lIdx < fAddonCount[lFM]) lBtn->text = fAddons[lFM][lIdx]->GetName();
+float TngSizeShape::GetGlobalSize(int aIdx) noexcept {
+  if (aIdx < 0 || aIdx > Tng::cSizeCategories) return 1.0f;
+  RE::TESGlobal *lSizeGlb{nullptr};
+  lSizeGlb = RE::TESDataHandler::GetSingleton()->LookupForm<RE::TESGlobal>(cSizeGlobIDs[aIdx], Tng::cName);
+  if (!lSizeGlb) {
+    Tng::gLogger::critical("Could not find the information required for size distribution among NPCs!");
+    return 1.0f;
   }
-  fAddonGlb[lFM]->value = static_cast<float>(fAddonCount[lFM] - (4 * fMessagePage[lFM]));
-  fShowNext[lFM]->value = fAddonCount[lFM] > (fMessagePage[lFM] + 1) * 4 ? 2.0f : 0.0f;
+  return lSizeGlb->value;
 }
 
-void TngSizeShape::ResetMessage(bool aIsFemale) noexcept {
-  int lFM = aIsFemale ? 1 : 0;
-  for (int i = 0; i < 4; i++) {
-    auto lBtn = *std::next(fMsg[lFM]->menuButtons.begin(), i);
-    lBtn->text = fOgMessageBtns[i];
-    fAddonGlb[lFM]->value = static_cast<float>(fAddonCount[lFM]);
-    fShowNext[lFM]->value = fAddonCount[lFM] > 4 ? 2.0f : 0.0f;
-    fMessagePage[lFM] = 0;
+void TngSizeShape::SetGlobalSize(int aIdx, float aSize) noexcept {
+  if (aIdx < 0 || aIdx > Tng::cSizeCategories) return;
+  RE::TESGlobal *lSizeGlb{nullptr};
+  lSizeGlb = RE::TESDataHandler::GetSingleton()->LookupForm<RE::TESGlobal>(cSizeGlobIDs[aIdx], Tng::cName);
+  if (!lSizeGlb) {
+    Tng::gLogger::critical("Could not find the information required for size distribution among NPCs!");
+    return;
   }
+  lSizeGlb->value = aSize;
 }
 
-void TngSizeShape::SetActorSize(RE::Actor *aActor, int aGenSize) noexcept {
+void TngSizeShape::RandomizeScale(RE::Actor *aActor) noexcept {
+  RE::BGSKeyword *lSizeKws[Tng::cSizeCategories]{};
+  RE::TESGlobal *lSizeGlbs[Tng::cSizeCategories]{};
+  for (int i = 0; i < Tng::cSizeCategories; i++) {
+    lSizeKws[i] = RE::TESDataHandler::GetSingleton()->LookupForm<RE::BGSKeyword>(cSizeKeyWIDs[i], Tng::cName);
+    lSizeGlbs[i] = RE::TESDataHandler::GetSingleton()->LookupForm<RE::TESGlobal>(cSizeGlobIDs[i], Tng::cName);
+    if (!lSizeKws[i] || !lSizeGlbs[i]) {
+      Tng::gLogger::error("Could not find the information required for size distribution among NPCs!");
+      return;
+    }
+  }
   const auto lNPC = aActor ? aActor->GetActorBase() : nullptr;
   if (!aActor || !lNPC) return;
   if (!lNPC->race) return;
   if (!lNPC->race->HasPartOf(Tng::cSlotGenital)) return;
-  for (int i = 0; i < Tng::cSizeCategories; i++)
-    if (lNPC->HasKeyword(fSizeKeyWs[i])) {
-      lNPC->RemoveKeyword(fSizeKeyWs[i]);
+
+  for (int i = 0; i < Tng::cSizeCategories; i++) {
+    if (lNPC->HasKeyword(lSizeKws[i])) {
+      ScaleGenital(aActor, lSizeGlbs[i]);
+      return;
     }
-  lNPC->AddKeyword(fSizeKeyWs[aGenSize]);
-  ScaleGenital(aActor, fSizeGlobs[aGenSize]);
+  }
+  const int lDefSize = lNPC->formID % 5;
+  lNPC->AddKeyword(lSizeKws[lDefSize]);
+  ScaleGenital(aActor, lSizeGlbs[lDefSize]);
 }
 
 bool TngSizeShape::SetActorSkin(RE::Actor *aActor, int aGenOption) noexcept {
@@ -219,20 +347,85 @@ bool TngSizeShape::SetActorSkin(RE::Actor *aActor, int aGenOption) noexcept {
   if (!aActor || !lNPC) return false;
   if (!lNPC->race) return false;
   if (!lNPC->race->HasPartOf(Tng::cSlotGenital)) return false;
+  auto lAddLst = RE::TESDataHandler::GetSingleton()->LookupForm<RE::BGSListForm>(lNPC->IsFemale() ? cFemAddLstID : cMalAddLstID, Tng::cName);
+  auto lSkinWithPenisKey = RE::TESDataHandler::GetSingleton()->LookupForm<RE::BGSKeyword>(Tng::cSkinWithPenisKeyID, Tng::cName);
+  auto lGentified = RE::TESDataHandler::GetSingleton()->LookupForm<RE::BGSListForm>(Tng::cGentifiedID, Tng::cName);
+  if (!lAddLst || !lSkinWithPenisKey || !lGentified) return false;
   if (aGenOption == -1) return !lNPC->IsFemale();
   if (aGenOption == -2) {
     lNPC->skin = lNPC->race->skin;
     return !lNPC->IsFemale();
   }
-  if (lNPC->IsFemale()) {
-    lNPC->skin = fAddons[1][aGenOption + (fMessagePage[1] * 4)];
-    if (lNPC->skin->HasKeyword(fSkinWithPenisKey)) {
-      fGentified->AddForm(lNPC);
-      return true;
-    }
-    return false;
-  } else {
-    lNPC->skin = fAddons[0][aGenOption + (fMessagePage[0] * 4)];
-    return true;
+  auto lSkin = lAddLst->forms[aGenOption]->As<RE::TESObjectARMO>();
+  if (!lSkin) {
+    lNPC->skin = lNPC->race->skin;
+    return !lNPC->IsFemale();
   }
+  lNPC->skin = lSkin;
+  if (lSkin->HasKeyword(lSkinWithPenisKey)) lGentified->AddForm(lNPC);
+  return (!lNPC->IsFemale() || lSkin->HasKeyword(lSkinWithPenisKey));
+}
+
+void TngSizeShape::SetActorSize(RE::Actor *aActor, int aGenSize) noexcept {
+  const auto lNPC = aActor ? aActor->GetActorBase() : nullptr;
+  if (!aActor || !lNPC) return;
+  if (!lNPC->race) return;
+  if (!lNPC->race->HasPartOf(Tng::cSlotGenital)) return;
+  RE::BGSKeyword *lSizeKws[Tng::cSizeCategories]{};
+  RE::TESGlobal *lSizeGlbs[Tng::cSizeCategories]{};
+  for (int i = 0; i < Tng::cSizeCategories; i++) {
+    lSizeKws[i] = RE::TESDataHandler::GetSingleton()->LookupForm<RE::BGSKeyword>(cSizeKeyWIDs[i], Tng::cName);
+    lSizeGlbs[i] = RE::TESDataHandler::GetSingleton()->LookupForm<RE::TESGlobal>(cSizeGlobIDs[i], Tng::cName);
+    if (!lSizeKws[i] || !lSizeGlbs[i]) {
+      Tng::gLogger::error("Could not find the information required for size distribution among NPCs!");
+      return;
+    }
+    if (lNPC->HasKeyword(lSizeKws[i])) {
+      lNPC->RemoveKeyword(lSizeKws[i]);
+    }
+  }
+  lNPC->AddKeyword(lSizeKws[aGenSize]);
+  ScaleGenital(aActor, lSizeGlbs[aGenSize]);
+}
+
+std::vector<std::string> TngSizeShape::GetAllPossibleAddons(RE::Actor *aActor) noexcept {
+  std::vector<std::string> lRes{};
+  const auto lNPC = aActor ? aActor->GetActorBase() : nullptr;
+  auto lFemAddLst = RE::TESDataHandler::GetSingleton()->LookupForm<RE::BGSListForm>(cFemAddLstID, Tng::cName);
+  auto lMalAddLst = RE::TESDataHandler::GetSingleton()->LookupForm<RE::BGSListForm>(cMalAddLstID, Tng::cName);
+  if (!aActor || !lNPC || !lFemAddLst || !lMalAddLst) return lRes;
+  lRes.push_back("$TNG_AST");
+  lRes.push_back(aActor->GetName());
+  lRes.push_back("$TNG_ASR");
+  auto lList = lNPC->IsFemale() ? lFemAddLst : lMalAddLst;
+  for (auto lForm : lList->forms) {
+    auto lSkin = lForm->As<RE::TESObjectARMO>();
+    if (lSkin) lRes.push_back(lSkin->GetName());
+  }
+  return lRes;
+}
+
+int TngSizeShape::GetAddonCount(bool aIsFemale) noexcept {
+  auto lAddLst = RE::TESDataHandler::GetSingleton()->LookupForm<RE::BGSListForm>(aIsFemale ? cFemAddLstID : cMalAddLstID, Tng::cName);
+  if (!lAddLst) return 0;
+  return lAddLst->forms.size();
+}
+
+RE::TESObjectARMO *TngSizeShape::GetAddonAt(bool aIsFemale, int aIdx) noexcept {
+  auto lAddLst = RE::TESDataHandler::GetSingleton()->LookupForm<RE::BGSListForm>(aIsFemale ? cFemAddLstID : cMalAddLstID, Tng::cName);
+  if (!lAddLst) return nullptr;
+  if (aIdx > lAddLst->forms.size()) return nullptr;
+  return lAddLst->forms[aIdx]->As<RE::TESObjectARMO>();
+}
+
+void TngSizeShape::ScaleGenital(RE::Actor *aActor, RE::TESGlobal *aGlobal) noexcept {
+  const auto lNPC = aActor ? aActor->GetActorBase() : nullptr;
+  if (!aActor || !lNPC) return;
+  if (!lNPC->race) return;
+  auto lScale = GetRaceMult(lNPC->race) * aGlobal->value;
+  RE::NiAVObject *aBaseNode = aActor->GetNodeByName(cBaseBone);
+  RE::NiAVObject *aScrtNode = aActor->GetNodeByName(cScrtBone);
+  if (!aBaseNode || !aScrtNode) return;
+  aBaseNode->local.scale = lScale;
+  aScrtNode->local.scale = 1.0f / lScale;
 }

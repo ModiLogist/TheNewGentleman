@@ -20,7 +20,7 @@ namespace Tng {
   inline static constexpr std::string_view cName = "TheNewGentleman.esp";
   inline static constexpr std::string_view cSkyrim = "Skyrim.esm";
   inline static constexpr const char cDelimChar{'~'};
-  inline static constexpr int cRaceTypes{14};
+  inline static constexpr const char cColonChar{':'};
   inline static constexpr int cSizeCategories{5};
 
   inline static constexpr RE::BGSBipedObjectForm::BipedObjectSlot cSlotBody{RE::BGSBipedObjectForm::BipedObjectSlot::kBody};

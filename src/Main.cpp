@@ -1,6 +1,6 @@
 #include <TngSizeShape.h>
 #include <TngInis.h>
-#include <TngUtil.h>
+#include <TngCore.h>
 #include <TngEvents.h>
 #include <TngPapyrus.h>
 
@@ -25,12 +25,12 @@ void InitializeLogging(const SKSE::PluginDeclaration* aPlugin) {
 
 void EventListener(SKSE::MessagingInterface::Message* aMessage) noexcept {
   if (aMessage->type == SKSE::MessagingInterface::kDataLoaded) {
-    if (!TngSizeShape::InitSizes()) return;
+    if (!TngSizeShape::LoadAddons()) return;
     if (!TngInis::LoadMainIni()) return;
-    if (TngUtil::Initialize()) {
-      TngUtil::GenitalizeRaces();
-      TngUtil::GenitalizeNPCSkins();
-      TngUtil::CheckArmorPieces();
+    if (TngCore::Initialize()) {
+      TngCore::GenitalizeRaces();
+      TngCore::GenitalizeNPCSkins();
+      TngCore::CheckArmorPieces();
       Tng::gLogger::info("TheNewGentleman finished initialization.");
       TngEvents::RegisterEvents();
     } else {

@@ -12,6 +12,7 @@ project(
 
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_INTERPROCEDURAL_OPTIMIZATION ON)
 set(CMAKE_INTERPROCEDURAL_OPTIMIZATION_DEBUG OFF)
 
@@ -32,7 +33,7 @@ set(
     src/Main.cpp
     src/TngPapyrus.cpp
     src/TngEvents.cpp
-    src/TngUtil.cpp
+    src/TngCore.cpp
     src/TngSizeShape.cpp
     src/TngInis.cpp
     ${CMAKE_CURRENT_BINARY_DIR}/version.rc

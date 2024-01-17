@@ -1,12 +1,45 @@
 #include <TngInis.h>
 #include <TngSizeShape.h>
-#include <TngUtil.h>
+#include <TngCore.h>
 
-int TngUtil::fRCount;
-int TngUtil::fQCount;
-int TngUtil::fCCount;
+int TngCore::fRCount;
+int TngCore::fQCount;
+int TngCore::fCCount;
 
-bool TngUtil::FixSkin(RE::TESObjectARMO* aSkin, const char* const aName) noexcept {
+void TngCore::UpdateGenRace(RE::TESRace* aRace, RE::TESObjectARMO* aGenital, const bool aIsCustomRace) noexcept {
+  RE::TESObjectARMA* lGenitalAA{nullptr};
+  for (const auto& lAA : aGenital->armorAddons) {
+    std::set<RE::TESRace*> lAARaces{lAA->race};
+    if (lAA->additionalRaces.size() > 0) lAARaces.insert(lAA->additionalRaces.begin(), lAA->additionalRaces.end());
+    if (lAARaces.find(aRace) != lAARaces.end()) {
+      lGenitalAA = lAA;
+      break;
+    }
+    if (aRace->armorParentRace)
+      if (lAARaces.find(aRace->armorParentRace) != lAARaces.end()) {
+        lGenitalAA = lAA;
+        break;
+      }
+  }
+  if (lGenitalAA)
+    fBaseRaceGens.insert(std::make_pair(aRace, lGenitalAA));
+  else {
+  }
+  if (aIsCustomRace)
+    Tng::gLogger::critical("The race {} is not supported by the addon {} from file {}.", aRace->GetFormEditorID(), aGenital->GetName(), aGenital->GetFile(0)->GetFilename());
+  else {  
+    UpdateEqRaceAddon(aRace, aGenital);
+    UpdateGenRace(aRace, aGenital);
+  }
+}
+
+bool TngCore::UpdateEqRaceAddon(RE::TESRace* aRace, RE::TESObjectARMO* aGenital) noexcept {
+  auto lBeastKey = RE::TESDataHandler::GetSingleton()->LookupForm<RE::BGSKeyword>(Tng::cBstKeywID, Tng::cSkyrim);
+  if (!lB)
+  const auto lRaceDesc = std::string(aRace->GetFormEditorID()) + std::string(aRace->GetName());
+  if ((lRaceDesc.find("Khajiit") != std::string::npos) || (lRaceDesc.find("Rhat") != std::string::npos)) }
+
+bool TngCore::FixSkin(RE::TESObjectARMO* aSkin, const char* const aName) noexcept {
   if (!aSkin->HasPartOf(Tng::cSlotBody)) return false;
   if (aSkin->HasPartOf(Tng::cSlotGenital)) {
     if (aName) Tng::gLogger::info("The skin [0x{:x}:{}] from file [{}] is ready for TNG!", aSkin->GetFormID(), aName, aSkin->GetFile(0)->GetFilename());
@@ -32,7 +65,7 @@ bool TngUtil::FixSkin(RE::TESObjectARMO* aSkin, const char* const aName) noexcep
   return lHasGenital;
 }
 
-void TngUtil::AddGenitalToSkin(RE::TESObjectARMO* aSkin, RE::TESObjectARMA* aGenital, RE::TESRace* aRace) noexcept {
+void TngCore::AddGenitalToSkin(RE::TESObjectARMO* aSkin, RE::TESObjectARMA* aGenital, RE::TESRace* aRace) noexcept {
   for (const auto& lAA : aSkin->armorAddons) {
     if (lAA == aGenital) {
       fHandledSkins.insert(aSkin);
@@ -57,7 +90,7 @@ void TngUtil::AddGenitalToSkin(RE::TESObjectARMO* aSkin, RE::TESObjectARMA* aGen
   fHandledSkins.insert(aSkin);
 }
 
-void TngUtil::IgnoreRace(RE::TESRace* aRace) {
+void TngCore::IgnoreRace(RE::TESRace* aRace) {
   fIgnoreRaces.insert(aRace);
   if (aRace->skin) {
     fRacialSkins.insert(aRace->skin);
@@ -65,7 +98,7 @@ void TngUtil::IgnoreRace(RE::TESRace* aRace) {
   }
 }
 
-bool TngUtil::CheckRace(RE::TESRace* aRace) {
+bool TngCore::CheckRace(RE::TESRace* aRace) {
   if (!aRace->HasKeyword(fNPCKey) || aRace->HasKeyword(fCreatureKey) || !aRace->HasPartOf(Tng::cSlotBody) || aRace->IsChildRace()) return false;
   if ((aRace->skeletonModels[0].model != fDefSkeleton[0]) || (aRace->skeletonModels[1].model != fDefSkeleton[1])) {
     IgnoreRace(aRace);
@@ -122,7 +155,7 @@ bool TngUtil::CheckRace(RE::TESRace* aRace) {
   return lAdd;
 }
 
-void TngUtil::AddRace(RE::TESRace* aRace, RE::TESObjectARMA* aGenital, RE::TESRace* aRNAM) noexcept {
+void TngCore::AddRace(RE::TESRace* aRace, RE::TESObjectARMA* aGenital, RE::TESRace* aRNAM) noexcept {
   if (aRace->HasPartOf(Tng::cSlotGenital)) {
     Tng::gLogger::info("The race [{}] seems to be ready for TNG. It was not modified.", aRace->GetFormEditorID());
     IgnoreRace(aRace);
@@ -130,7 +163,7 @@ void TngUtil::AddRace(RE::TESRace* aRace, RE::TESObjectARMA* aGenital, RE::TESRa
   }
   if (aGenital) {
     aRace->AddSlotToMask(Tng::cSlotGenital);
-    aRace->AddKeyword(fTNGRaceKey);
+    aRace->AddKeyword(lTNGRaceKey);
     AddGenitalToSkin(aRace->skin, aGenital, aRNAM);
     fRacialSkins.insert(aRace->skin);
     fHandledRaces.insert(aRace);
@@ -140,14 +173,13 @@ void TngUtil::AddRace(RE::TESRace* aRace, RE::TESObjectARMA* aGenital, RE::TESRa
     const auto lRaceDesc = std::string(aRace->GetFormEditorID()) + std::string(aRace->GetName());
     if ((lRaceDesc.find("Khajiit") != std::string::npos) || (lRaceDesc.find("Rhat") != std::string::npos)) {
       RE::TESRace* lRNAM = (aRace->armorParentRace && aRace->armorParentRace != fDefRace) ? aRace->armorParentRace : aRace;
-      int aChoice = TngSizeShape::genitalChoices[Tng::cRaceTypes + 2] < 3 ? TngSizeShape::genitalChoices[Tng::cRaceTypes + 2] : TngSizeShape::cGenitalDefaults[Tng::cRaceTypes + 2];
+      int aChoice = TngSizeShape::GetRaceShape(aRace) > -1 ? TngSizeShape::GetRaceShape(aRace) : cVanillaRaceDefaults[9];
       std::set<RE::TESRace*> lGenRaces{fDefKhaGenital[aChoice]->additionalRaces.begin(), fDefKhaGenital[aChoice]->additionalRaces.end()};
       fDefKhaGenital[aChoice]->additionalRaces.emplace_back(aRace);
       if (lGenRaces.find(lRNAM) == lGenRaces.end()) fDefKhaGenital[aChoice]->additionalRaces.emplace_back(lRNAM);
       Tng::gLogger::info("The race [0x{:x}:{}] from file [{}] was recognized as Khajiit. If this is wrong, a patch is required.", aRace->GetFormID(), aRace->GetFormEditorID(),
                          aRace->GetFile(0)->GetFilename());
       fExtrRaceGens.insert(std::make_pair(aRace, aGenital));
-      TngSizeShape::AddRaceIndex(aRace->GetFormID(), Tng::cRaceTypes + 2);
       AddRace(aRace, fDefKhaGenital[aChoice], lRNAM);
     } else {
       if ((lRaceDesc.find("Argonian") != std::string::npos) || (lRaceDesc.find("Saxhleel") != std::string::npos)) {
@@ -182,7 +214,7 @@ void TngUtil::AddRace(RE::TESRace* aRace, RE::TESObjectARMA* aGenital, RE::TESRa
   }
 }
 
-void TngUtil::HandleArmor(RE::TESObjectARMO* aArmor) noexcept {
+void TngCore::HandleArmor(RE::TESObjectARMO* aArmor) noexcept {
   std::set<RE::TESObjectARMA*> lBods{};
   std::set<RE::TESObjectARMA*> lGens{};
   RE::TESObjectARMA* lBod{nullptr};
@@ -303,7 +335,7 @@ void TngUtil::HandleArmor(RE::TESObjectARMO* aArmor) noexcept {
   fCCount++;
 }
 
-void TngUtil::CoverByArmor(RE::TESObjectARMO* aArmor) noexcept {
+void TngCore::CoverByArmor(RE::TESObjectARMO* aArmor) noexcept {
   aArmor->AddKeyword(fCoveringKey);
   const auto lID = (std::string(aArmor->GetName()).empty()) ? aArmor->GetFormEditorID() : aArmor->GetName();
   if (!(aArmor->HasPartOf(Tng::cSlotGenital) || aArmor->armorAddons[0]->HasPartOf(Tng::cSlotGenital))) {
@@ -316,7 +348,7 @@ void TngUtil::CoverByArmor(RE::TESObjectARMO* aArmor) noexcept {
   }
 }
 
-void TngUtil::ReCheckArmor(RE::TESObjectARMO* aArmor) noexcept {
+void TngCore::ReCheckArmor(RE::TESObjectARMO* aArmor) noexcept {
   for (const auto& lAA : aArmor->armorAddons)
     if (fCoveringAAs.find(lAA) != fCoveringAAs.end()) {
       const auto lID = (std::string(aArmor->GetName()).empty()) ? aArmor->GetFormEditorID() : aArmor->GetName();
@@ -326,24 +358,24 @@ void TngUtil::ReCheckArmor(RE::TESObjectARMO* aArmor) noexcept {
     }
 }
 
-bool TngUtil::Initialize() noexcept {
-  fDataHandler = RE::TESDataHandler::GetSingleton();
-  if (!fDataHandler->LookupModByName(Tng::cName)) {
+bool TngCore::Initialize() noexcept {
+  auto lDataHandler = RE::TESDataHandler::GetSingleton();
+  if (!lDataHandler->LookupModByName(Tng::cName)) {
     Tng::gLogger::error("Mod [{}] was not found!", Tng::cName);
     return FALSE;
   }
-  fNPCKey = fDataHandler->LookupForm<RE::BGSKeyword>(Tng::cNPCKeywID, Tng::cSkyrim);
-  fCreatureKey = fDataHandler->LookupForm<RE::BGSKeyword>(Tng::cCrtKeywID, Tng::cSkyrim);
-  fBeastKey = fDataHandler->LookupForm<RE::BGSKeyword>(Tng::cBstKeywID, Tng::cSkyrim);
-  fAutoRvealKey = fDataHandler->LookupForm<RE::BGSKeyword>(Tng::cAutoRvealKeyID, Tng::cName);
-  fRevealingKey = fDataHandler->LookupForm<RE::BGSKeyword>(Tng::cRevealingKeyID, Tng::cName);
-  fUnderwearKey = fDataHandler->LookupForm<RE::BGSKeyword>(Tng::cUnderwearKeyID, Tng::cName);
-  fAutoCoverKey = fDataHandler->LookupForm<RE::BGSKeyword>(Tng::cAutoCoverKeyID, Tng::cName);
-  fCoveringKey = fDataHandler->LookupForm<RE::BGSKeyword>(Tng::cCoveringKeyID, Tng::cName);
-  fTNGRaceKey = fDataHandler->LookupForm<RE::BGSKeyword>(Tng::cTNGRaceKeyID, Tng::cName);
+  fNPCKey = lDataHandler->LookupForm<RE::BGSKeyword>(Tng::cNPCKeywID, Tng::cSkyrim);
+  fCreatureKey = lDataHandler->LookupForm<RE::BGSKeyword>(Tng::cCrtKeywID, Tng::cSkyrim);
+  fBeastKey = lDataHandler->LookupForm<RE::BGSKeyword>(Tng::cBstKeywID, Tng::cSkyrim);
+  fAutoRvealKey = lDataHandler->LookupForm<RE::BGSKeyword>(Tng::cAutoRvealKeyID, Tng::cName);
+  fRevealingKey = lDataHandler->LookupForm<RE::BGSKeyword>(Tng::cRevealingKeyID, Tng::cName);
+  fUnderwearKey = lDataHandler->LookupForm<RE::BGSKeyword>(Tng::cUnderwearKeyID, Tng::cName);
+  fAutoCoverKey = lDataHandler->LookupForm<RE::BGSKeyword>(Tng::cAutoCoverKeyID, Tng::cName);
+  fCoveringKey = lDataHandler->LookupForm<RE::BGSKeyword>(Tng::cCoveringKeyID, Tng::cName);
+  fTNGRaceKey = lDataHandler->LookupForm<RE::BGSKeyword>(Tng::cTNGRaceKeyID, Tng::cName);
   if (!(fAutoRvealKey && fRevealingKey && fUnderwearKey && fAutoCoverKey && fCoveringKey && fTNGRaceKey)) {
     Tng::gLogger::error("The original TNG keywords could not be found!");
-    return FALSE;
+    return false;
   }
   fDefRace = RE::TESForm::LookupByID<RE::TESRace>(cDefRaceID);
   fDefSkeleton[0] = fDefRace->skeletonModels[0].model;
@@ -352,55 +384,63 @@ bool TngUtil::Initialize() noexcept {
   fDefBodyMesh[0] = fDefSkinAA->bipedModels[0].model;
   fDefBodyMesh[1] = fDefSkinAA->bipedModels[1].model;
   Tng::gLogger::info("Finding the genitals to respective races...");
-  for (int i = 0; i < Tng::cRaceTypes; i++) {
-    const auto lRace = fDataHandler->LookupForm<RE::TESRace>(cBaseRaceIDs[i].first, cBaseRaceIDs[i].second);
-    auto aChoice = (TngSizeShape::genitalChoices[i] < 3 ? TngSizeShape::genitalChoices[i] : TngSizeShape::cGenitalDefaults[i]) * Tng::cRaceTypes + i;
-    const auto lGenital = fDataHandler->LookupForm<RE::TESObjectARMA>(cGenitalIDs[aChoice], Tng::cName);
-    if (!(lRace && lGenital)) {
-      Tng::gLogger::error("Original information cannot be found!");
-      return FALSE;
+  for (int i = 0; i < cVanillaRaceTypes; i++) {
+    const auto lRace = lDataHandler->LookupForm<RE::TESRace>(cBaseRaceIDs[i].first, cBaseRaceIDs[i].second);
+    if (!(lRace)) {
+      Tng::gLogger::critical("Original game races cannot be found!");
+      continue;
     }
-    TngSizeShape::AddRaceIndex(lRace->GetFormID(), i);
-    fBaseRaceGens.insert(std::make_pair(lRace, lGenital));
+    auto aChoice = TngSizeShape::GetRaceShape(lRace) > -1 ? TngSizeShape::GetRaceShape(lRace) : cVanillaRaceDefaults[i];
+    const auto lGenital = TngSizeShape::GetAddonAt(false, aChoice);
+    if (!(lGenital)) {
+      Tng::gLogger::error("Original genitalia from TNG cannot be found!");
+      continue;
+    }
+    UpdateGenRace(lRace, lGenital);
   }
   for (const auto& lRaceID : cEquiRaceIDs) {
-    const auto lRace = fDataHandler->LookupForm<RE::TESRace>(lRaceID.first.first, lRaceID.first.second);
-    auto aChoice =
-        (TngSizeShape::genitalChoices[lRaceID.second] < 3 ? TngSizeShape::genitalChoices[lRaceID.second] : TngSizeShape::cGenitalDefaults[lRaceID.second]) * Tng::cRaceTypes +
-        lRaceID.second;
-    const auto lGenital = fDataHandler->LookupForm<RE::TESObjectARMA>(cGenitalIDs[aChoice], Tng::cName);
+    const auto lRace = lDataHandler->LookupForm<RE::TESRace>(lRaceID.first.first, lRaceID.first.second);
+    if (!(lRace)) {
+      Tng::gLogger::critical("Original game races cannot be found!");
+      return false;
+    }
+    auto aChoice = TngSizeShape::GetRaceShape(lRace) > -1 ? TngSizeShape::GetRaceShape(lRace) : cVanillaRaceDefaults[lRaceID.second];
+    const auto lGenital = TngSizeShape::GetAddonAt(false, aChoice);
+    if (!(lGenital)) {
+      Tng::gLogger::error("Original genitalia from TNG cannot be found!");
+      return false;
+    }
     if (!(lRace && lGenital)) {
       Tng::gLogger::error("Original information cannot be found!");
-      return FALSE;
+      return false;
     }
-    TngSizeShape::AddRaceIndex(lRace->GetFormID(), lRaceID.second);
     fEquiRaceGens.insert(std::make_pair(lRace, lGenital));
   }
   for (int i = 0; i < 3; i++) {
-    fDefSaxGenital[i] = fDataHandler->LookupForm<RE::TESObjectARMA>(cDefGenitalSaxID[i], Tng::cName);
-    fDefKhaGenital[i] = fDataHandler->LookupForm<RE::TESObjectARMA>(cDefGenitalKhaID[i], Tng::cName);
-    fDefMnmGenital[i] = fDataHandler->LookupForm<RE::TESObjectARMA>(cDefGenitalMnmID[i], Tng::cName);
+    fDefSaxGenital[i] = lDataHandler->LookupForm<RE::TESObjectARMA>(cDefGenitalSaxID[i], Tng::cName);
+    fDefKhaGenital[i] = lDataHandler->LookupForm<RE::TESObjectARMA>(cDefGenitalKhaID[i], Tng::cName);
+    fDefMnmGenital[i] = lDataHandler->LookupForm<RE::TESObjectARMA>(cDefGenitalMnmID[i], Tng::cName);
     if (!fDefMnmGenital[i] || !fDefKhaGenital[i] || !fDefSaxGenital[i]) {
       Tng::gLogger::error("The original TNG Default-genitals cannot be found!");
-      return FALSE;
+      return false;
     }
   }
   for (const auto& lRaceID : cExclRaceIDs) {
-    auto lRace = fExclRaces.insert(fDataHandler->LookupForm<RE::TESRace>(lRaceID.first, lRaceID.second));
+    auto lRace = fExclRaces.insert(lDataHandler->LookupForm<RE::TESRace>(lRaceID.first, lRaceID.second));
     if ((*lRace.first)->skin) {
       fRacialSkins.insert((*lRace.first)->skin);
       fHandledSkins.insert((*lRace.first)->skin);
     }
   }
-  fAllNPCs = fDataHandler->GetFormArray<RE::TESNPC>();
-  return TRUE;
+  fAllNPCs = lDataHandler->GetFormArray<RE::TESNPC>();
+  return true;
 }
 
-void TngUtil::GenitalizeRaces() noexcept {
+void TngCore::GenitalizeRaces() noexcept {
   Tng::gLogger::info("Assigning genitals to races...");
   for (const auto& lRaceGen : fBaseRaceGens) AddRace(lRaceGen.first, lRaceGen.second);
   for (const auto& lRaceGen : fEquiRaceGens) AddRace(lRaceGen.first, lRaceGen.second);
-  auto& lAllRacesArray = fDataHandler->GetFormArray<RE::TESRace>();
+  auto& lAllRacesArray = lDataHandler->GetFormArray<RE::TESRace>();
   for (const auto& lRace : lAllRacesArray) {
     if (fHandledRaces.find(lRace) != fHandledRaces.end()) continue;
     if (fExclRaces.find(lRace) != fExclRaces.end()) continue;
@@ -413,7 +453,7 @@ void TngUtil::GenitalizeRaces() noexcept {
                      fBaseRaceGens.size() + fEquiRaceGens.size(), fExtrRaceGens.size());
 }
 
-void TngUtil::GenitalizeNPCSkins() noexcept {
+void TngCore::GenitalizeNPCSkins() noexcept {
   int lAllCount = fAllNPCs.size();
   Tng::gLogger::info("Checking NPCs for custom skins: There are {} NPC records.", lAllCount);
   int lIrr = lAllCount;
@@ -473,17 +513,17 @@ void TngUtil::GenitalizeNPCSkins() noexcept {
   }
 }
 
-void TngUtil::CheckArmorPieces() noexcept {
+void TngCore::CheckArmorPieces() noexcept {
   Tng::gLogger::info("Checking armor pieces...");
   fRCount = 0;
   fCCount = 0;
   fQCount = 0;
   TngInis::LoadTngInis();
-  auto& lAllArmor = fDataHandler->GetFormArray<RE::TESObjectARMO>();
+  auto& lAllArmor = lDataHandler->GetFormArray<RE::TESObjectARMO>();
   std::set<RE::TESObjectARMO*> lPotentialArmor;
   std::set<RE::TESObjectARMO*> lUnhandledArmor;
-  for (int i = 0; i < TngSizeShape::fAddonCount[0]; i++) fHandledSkins.insert(TngSizeShape::fAddons[0][i]);
-  for (int i = 0; i < TngSizeShape::fAddonCount[1]; i++) fHandledSkins.insert(TngSizeShape::fAddons[1][i]);
+  for (int i = 0; i < TngSizeShape::lAddonCount[0]; i++) fHandledSkins.insert(TngSizeShape::lMAddons[i]);
+  for (int i = 0; i < TngSizeShape::lAddonCount[1]; i++) fHandledSkins.insert(TngSizeShape::lFAddons[i]);
   bool lCheckSkinMods = (TngInis::fSkinMods.size() > 0);
   bool lCheckSkinRecords = (TngInis::fSingleSkinIDs.size() > 0);
   bool lCheckRevealMods = (TngInis::fRevealingMods.size() > 0);
@@ -491,9 +531,9 @@ void TngUtil::CheckArmorPieces() noexcept {
   bool lCheckCoverRecords = (TngInis::fSingleCoveringIDs.size() > 0);
 
   for (const auto& lModName : TngInis::fSkinMods)
-    if (fDataHandler->LookupModByName(lModName)) Tng::gLogger::info("TheNewGentleman keeps an eye for [{}] as a skin mod.", lModName);
+    if (lDataHandler->LookupModByName(lModName)) Tng::gLogger::info("TheNewGentleman keeps an eye for [{}] as a skin mod.", lModName);
   for (const auto& lRevealMod : TngInis::fRevealingMods)
-    if (fDataHandler->LookupModByName(lRevealMod)) Tng::gLogger::info("TheNewGentleman keeps an eye for [{}] as a revealing armor mod.", lRevealMod);
+    if (lDataHandler->LookupModByName(lRevealMod)) Tng::gLogger::info("TheNewGentleman keeps an eye for [{}] as a revealing armor mod.", lRevealMod);
 
   for (const auto& lArmor : lAllArmor) {
     if (fHandledSkins.find(lArmor) != fHandledSkins.end()) continue;
@@ -563,22 +603,22 @@ void TngUtil::CheckArmorPieces() noexcept {
   Tng::gLogger::info("\t{}: updated to cover genitals", fCCount);
 }
 
-void TngUtil::UpdateRace(int aRaceIdx, int aGenOption) noexcept {
+void TngCore::UpdateRace(int aRaceIdx, int aGenOption) noexcept {
   auto lRaces = TngSizeShape::GetRacesWithIndex(aRaceIdx);
   for (const auto& lRaceID : lRaces) {
     auto lRace = RE::TESForm::LookupByID<RE::TESRace>(lRaceID);
     if (!lRace) continue;
     if (aGenOption == -1) {
-      lRace->skin = TngSizeShape::fAddons[0][TngSizeShape::cGenitalDefaults[aRaceIdx]];
+      lRace->skin = TngSizeShape::lMAddons[TngSizeShape::cGenitalDefaults[aRaceIdx]];
     } else {
-      lRace->skin = TngSizeShape::fAddons[0][aGenOption];
+      lRace->skin = TngSizeShape::lMAddons[aGenOption];
     }
   }
 }
 
-void TngUtil::UpdateSavedRaces() noexcept {
+void TngCore::UpdateSavedRaces() noexcept {
   for (int i = 0; i < Tng::cRaceTypes + 3; i++) {
-    if (TngSizeShape::GetSingleton()->genitalChoices[i] > TngSizeShape::GetSingleton()->fMalAddonAAs->size()) {
+    if (TngSizeShape::GetSingleton()->genitalChoices[i] > TngSizeShape::fMalAddonAAs->size()) {
       TngInis::UpdateRace(i, TngSizeShape::GetSingleton()->cGenitalDefaults[i], TngSizeShape::GetSingleton()->genitalSizes[i]);
       Tng::gLogger::info("A previously saved addon cannot be found anymore! The races using the addon are reverted to their default addon!");
       continue;
