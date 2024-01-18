@@ -1,14 +1,12 @@
 #pragma once
 
 class TngSizeShape : public Singleton<TngSizeShape> {
-
   public:
-    
     static bool LoadAddons() noexcept;
-    static void LoadNPCSize(const std::string aNPCRecord, const int aSize) noexcept;
-    static void LoadNPCShape(const std::string aNPCRecord, const std::string aShapeRecord) noexcept;
-    static void LoadRaceMult(const std::string aRaceRecord, const int aSize100) noexcept;
-    static void LoadRaceShape(const std::string aRaceRecord, const std::string aShapeRecord) noexcept;
+    static bool LoadNPCSize(const std::string aNPCRecord, const int aSize) noexcept;
+    static bool LoadNPCShape(const std::string aNPCRecord, const std::string aShapeRecord) noexcept;
+    static bool LoadRaceMult(const std::string aRaceRecord, const int aSize100) noexcept;
+    static bool LoadRaceShape(const std::string aRaceRecord, const std::string aShapeRecord) noexcept;
     static float GetRaceMult(RE::TESRace* aRace) noexcept;
     static void SetRaceMult(RE::TESRace* aRace, const float aMult) noexcept;
     static int GetRaceShape(RE::TESRace* aRace) noexcept;
@@ -39,4 +37,13 @@ class TngSizeShape : public Singleton<TngSizeShape> {
     inline static constexpr RE::FormID cMalAddLstID{0xE02};
 
     static void ScaleGenital(RE::Actor* aActor, RE::TESGlobal* aGlobal) noexcept;
+    static int FindInFormList(RE::TESForm* aForm, RE::BGSListForm* aList);
+
+    template <typename FormType>
+    static constexpr FormType* LoadForm(std::string aFormRecord) {
+      const size_t lSepLoc = aFormRecord.find(Tng::cDelimChar);
+      const RE::FormID lFormID = std::strtol(aFormRecord.substr(0, lSepLoc).data(), nullptr, 0);
+      const std::string lModName = aRaceRecord.substr(lSepLoc + 1);
+      return RE::TESDataHandler::GetSingleton()->LookupForm<FormType>(lFormID, lModName);
+    };
 };

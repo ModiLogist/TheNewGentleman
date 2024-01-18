@@ -47,7 +47,7 @@ void TngPapyrus::SetActorSize(RE::StaticFunctionTag*, RE::Actor* aActor, int aGe
   }
 }
 
-bool TngPapyrus::LoadAddons(RE::StaticFunctionTag*) { return false; }
+bool TngPapyrus::LoadAddons(RE::StaticFunctionTag*) { return TngSizeShape::LoadAddons(); }
 
 std::vector<std::string> TngPapyrus::GetAllPossibleAddons(RE::StaticFunctionTag*, RE::Actor* aActor) { return std::vector<std::string>(); }
 

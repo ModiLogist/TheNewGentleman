@@ -7,13 +7,13 @@ bool TngSizeShape::LoadAddons() noexcept {
   auto lFemAddLst = lDataHandler->LookupForm<RE::BGSListForm>(cFemAddLstID, Tng::cName);
   auto lMalAddLst = lDataHandler->LookupForm<RE::BGSListForm>(cMalAddLstID, Tng::cName);
   if (!lFemAddKey || !lMalAddKey || !lFemAddLst || !lMalAddLst) {
-    Tng::gLogger::error("Could not find the base information required for shape variations!");
+    Tng::gLogger::critical("Could not find the base information required for shape variations!");
     return false;
   }
   for (int i = 0; i < 3; i++) {
     auto lArmor = lDataHandler->LookupForm<RE::TESObjectARMO>(cSkinIDs[i], Tng::cName);
     if (!lArmor) {
-      Tng::gLogger::error("Could not find the information required for shape variations!");
+      Tng::gLogger::critical("Could not find the information required for shape variations!");
       return false;
     }
   }
@@ -33,77 +33,63 @@ bool TngSizeShape::LoadAddons() noexcept {
   return true;
 }
 
-void TngSizeShape::LoadNPCSize(const std::string aNPCRecord, const int aSize) noexcept {
+bool TngSizeShape::LoadNPCSize(const std::string aNPCRecord, const int aSize) noexcept {
   auto lDataHandler = RE::TESDataHandler::GetSingleton();
   const size_t lSepLoc = aNPCRecord.find(Tng::cDelimChar);
   const RE::FormID lFormID = std::strtol(aNPCRecord.substr(0, lSepLoc).data(), nullptr, 0);
   const std::string lModName = aNPCRecord.substr(lSepLoc + 1);
-  RE::TESNPC *lNPC = lDataHandler->LookupForm<RE::TESNPC>(lFormID, lModName);
-  RE::BGSKeyword *lSizeKws[Tng::cSizeCategories]{};
-  RE::TESGlobal *lSizeGlbs[Tng::cSizeCategories]{};
+  auto *lNPC = LoadForm<RE::TESNPC>(aNPCRecord);
+  if (!lNPC) return false;
+  static RE::BGSKeyword *lSizeKws[Tng::cSizeCategories]{};
+  static RE::TESGlobal *lSizeGlbs[Tng::cSizeCategories]{};
   for (int i = 0; i < Tng::cSizeCategories; i++) {
-    lSizeKws[i] = lDataHandler->LookupForm<RE::BGSKeyword>(cSizeKeyWIDs[i], Tng::cName);
-    lSizeGlbs[i] = lDataHandler->LookupForm<RE::TESGlobal>(cSizeGlobIDs[i], Tng::cName);
+    lSizeKws[i] = lSizeKws[i] ? lSizeKws[i] : lDataHandler->LookupForm<RE::BGSKeyword>(cSizeKeyWIDs[i], Tng::cName);
+    lSizeGlbs[i] = lSizeGlbs[i] ? lSizeGlbs[i] : lDataHandler->LookupForm<RE::TESGlobal>(cSizeGlobIDs[i], Tng::cName);
     if (!lSizeKws[i] || !lSizeGlbs[i]) {
-      Tng::gLogger::error("Could not find the information required for size distribution among NPCs!");
-      return;
+      Tng::gLogger::error("Could not find the information required to load saved size information for NPCs!");
+      return true;
     }
   }
-  if (lNPC) {
-    for (int i = 0; i < Tng::cSizeCategories; i++)
-      if (lNPC->HasKeyword(lSizeKws[i])) lNPC->RemoveKeyword(lSizeKws[i]);
-    lNPC->AddKeyword(lSizeKws[aSize]);
-  }
+  for (int i = 0; i < Tng::cSizeCategories; i++)
+    if (lNPC->HasKeyword(lSizeKws[i])) lNPC->RemoveKeyword(lSizeKws[i]);
+  lNPC->AddKeyword(lSizeKws[aSize]);
+  return true;
 }
 
-void TngSizeShape::LoadNPCShape(const std::string aNPCRecord, const std::string aShapeRecord) noexcept {
+bool TngSizeShape::LoadNPCShape(const std::string aNPCRecord, const std::string aShapeRecord) noexcept {
+  auto lNPC = LoadForm<RE::TESNPC>(aNPCRecord);
+  if (!lNPC) return false;
+  if (!lNPC->race) return false;
+  if (!lNPC->race->skin) return false;
+  auto lShape = LoadForm<RE::TESObjectARMO>(aShapeRecord);
+  if (!lShape) {
+    Tng::gLogger::error("The addon {} saved for NPC {} cannot be found anymore!", aShapeRecord, aNPCRecord);
+    return false;
+  }
   auto lDataHandler = RE::TESDataHandler::GetSingleton();
-  const size_t lSepLoc = aNPCRecord.find(Tng::cDelimChar);
-  const RE::FormID lFormID = std::strtol(aNPCRecord.substr(0, lSepLoc).data(), nullptr, 0);
-  const std::string lModName = aNPCRecord.substr(lSepLoc + 1);
-  RE::TESNPC *lNPC = lDataHandler->LookupForm<RE::TESNPC>(lFormID, lModName);
-  if (!lNPC) return;
-  if (!lNPC->race) return;
-  if (!lNPC->race->skin) return;
-  if (lNPC->skin && lNPC->skin != lNPC->race->skin) return;
-  const size_t lShapeSepLoc = aShapeRecord.find(Tng::cDelimChar);
-  const RE::FormID lShapeFormID = std::strtol(aShapeRecord.substr(0, lShapeSepLoc).data(), nullptr, 0);
-  const std::string lShapeModName = aShapeRecord.substr(lShapeSepLoc + 1);
-  RE::TESNPC *lNPC = lDataHandler->LookupForm<RE::TESNPC>(lShapeFormID, lShapeModName);
-  if (!lNPC) return;
-  if (!lNPC->race) return;
-  if (!lNPC->race->skin) return;
-  if (lNPC->skin && lNPC->skin != lNPC->race->skin) return;
-
-  auto lFemAddLst = lDataHandler->LookupForm<RE::BGSListForm>(cFemAddLstID, Tng::cName);
-  auto lMalAddLst = lDataHandler->LookupForm<RE::BGSListForm>(cMalAddLstID, Tng::cName);
+  auto lAddLst = lDataHandler->LookupForm<RE::BGSListForm>(lNPC->IsFemale() ? cFemAddLstID : cMalAddLstID, Tng::cName);
   auto lTNGRaceKey = lDataHandler->LookupForm<RE::BGSKeyword>(Tng::cTNGRaceKeyID, Tng::cName);
   auto lGentified = lDataHandler->LookupForm<RE::BGSListForm>(Tng::cGentifiedID, Tng::cName);
   auto lSkinWithPenisKey = lDataHandler->LookupForm<RE::BGSKeyword>(Tng::cSkinWithPenisKeyID, Tng::cName);
-  if (!lTNGRaceKey || !lGentified || !lSkinWithPenisKey || !lFemAddLst || !lMalAddLst) {
-    Tng::gLogger::error("Could not find the information required for size distribution!");
-    return;
+  if (!lAddLst || !lTNGRaceKey || !lGentified || !lSkinWithPenisKey) {
+    Tng::gLogger::critical("The information to load {} NPC shapes cannot be found!", lNPC->IsFemale() ? "Female" : "Male");
+    return true;
   }
-  auto lAddLst = lNPC->IsFemale() ? lFemAddLst : lMalAddLst;
-  if (lAddLst->forms.size() < aShape) {
-    Tng::gLogger::error("A previously installed addon cannot be found anymore! {} would use original skin.", lNPC->GetName());
-    return;
+  auto lIdx = FindInFormList(lShape, lAddLst);
+  if (lIdx < 0) {
+    Tng::gLogger::error("A previously installed addon {} cannot be loaded anymore! Please report this issue. {} would use original skin.", aShapeRecord, lNPC->GetName());
+    return true;
   }
-  auto lSkin = lAddLst->forms[aShape]->As<RE::TESObjectARMO>();
-  if (!lSkin) {
-    Tng::gLogger::error("A previously installed addon cannot be found anymore! {} would use original skin.", lNPC->GetName());
-    return;
-  }
-  if (aShape == GetRaceShape(lNPC->race)) return;
+  if (lIdx == GetRaceShape(lNPC->race)) return true;
   auto &lAllKws = RE::TESDataHandler::GetSingleton()->GetFormArray<RE::BGSKeyword>();
-  std::string lReqKw = cActorShape + (aShape < 10 ? "0" + std::to_string(aShape) : std::to_string(aShape));
+  std::string lReqKw = cActorShape + (lIdx < 10 ? "0" + std::to_string(lIdx) : std::to_string(lIdx));
   auto lKwIt = std::find_if(lAllKws.begin(), lAllKws.end(), [&](const auto &kw) { return kw && kw->formEditorID == lReqKw.c_str(); });
   RE::BGSKeyword *lKw{nullptr};
   if (lKwIt != lAllKws.end()) {
     const auto lKw = *lKwIt;
     if (!lKw) {
       Tng::gLogger::critical("Couldn't get existing keyword [{}]!", lReqKw);
-      return;
+      return true;
     }
   } else {
     const auto lFactory = RE::IFormFactory::GetConcreteFormFactoryByType<RE::BGSKeyword>();
@@ -112,35 +98,53 @@ void TngSizeShape::LoadNPCShape(const std::string aNPCRecord, const std::string 
       lAllKws.push_back(lKw);
     } else {
       Tng::gLogger::critical("Couldn't create keyword [{}]!", lReqKw);
-      return;
+      return true;
     }
   }
   if (!lKw) {
-    Tng::gLogger::info("Couldn't set the shape for actor [{}]!", lNPC->GetFormEditorID());
-    return;
+    Tng::gLogger::critical("Couldn't set the shape for actor [{}]!", lNPC->GetFormEditorID());
+    return true;
   }
   for (const auto &lExistingKw : lNPC->GetKeywords()) {
     if (lExistingKw->formEditorID.contains(cActorShape)) lNPC->RemoveKeyword(lExistingKw);
   }
   lNPC->AddKeyword(lKw);
+  return true;
 }
 
-void TngSizeShape::LoadRaceMult(const std::string aRaceRecord, const int aSize100) noexcept {
-  const size_t lSepLoc = aRaceRecord.find(Tng::cDelimChar);
-  const RE::FormID lFormID = std::strtol(aRaceRecord.substr(0, lSepLoc).data(), nullptr, 0);
-  const std::string lModName = aRaceRecord.substr(lSepLoc + 1);
-  auto *lRace = RE::TESDataHandler::GetSingleton()->LookupForm<RE::TESRace>(lFormID, lModName);
-  if (!lRace) return;
-  SetRaceMult(lRace, static_cast<float>(aSize100/100.0f));
+bool TngSizeShape::LoadRaceMult(const std::string aRaceRecord, const int aSize100) noexcept {
+  auto lRace = LoadForm<RE::TESRace>(aRaceRecord);
+  if (!lRace) {
+    Tng::gLogger::error("A previously saved race {} cannot be found anymore! It's information is removed from ini file.");
+    return false;
+  }
+  SetRaceMult(lRace, static_cast<float>(aSize100 / 100.0f));
+  return true;
 }
 
-void TngSizeShape::LoadRaceShape(const std::string aRaceRecord, const std::string aShapeRecord) noexcept {
-  const size_t lSepLoc = aRaceRecord.find(Tng::cDelimChar);
-  const RE::FormID lFormID = std::strtol(aRaceRecord.substr(0, lSepLoc).data(), nullptr, 0);
-  const std::string lModName = aRaceRecord.substr(lSepLoc + 1);
-  auto *lRace = RE::TESDataHandler::GetSingleton()->LookupForm<RE::TESRace>(lFormID, lModName);
-  if (!lRace) return;
-  SetRaceShape(lRace, aShape);
+bool TngSizeShape::LoadRaceShape(const std::string aRaceRecord, const std::string aShapeRecord) noexcept {
+  auto lRace = LoadForm<RE::TESRace>(aRaceRecord);
+  if (!lRace) {
+    Tng::gLogger::error("A previously saved race {} cannot be found anymore! It's information is removed from ini file.");
+    return false;
+  }
+  auto lShape = LoadForm<RE::TESObjectARMO>(aShapeRecord);
+  if (!lShape) {
+    Tng::gLogger::error("A previously saved addon {} for race {} cannot be found anymore! It's information is removed from ini file.");
+    return false;
+  }
+  auto lMalAddLst = RE::TESDataHandler::GetSingleton()->LookupForm<RE::BGSListForm>(cMalAddLstID, Tng::cName);
+  if (!lMalAddLst) {
+    Tng::gLogger::critical("Required formlist for shapes cannot be accessed! The race [{:x}:{}] would use the default addon.", lRace->GetFormID(), lRace->GetFormEditorID());
+    return true;
+  }
+  auto lIdx = FindInFormList(lShape, lMalAddLst);
+  if (lIdx < 0) {
+    Tng::gLogger::error("A previously installed addon {} cannot be loaded anymore! Please report this issue. {} would use original skin.", aShapeRecord, lRace->GetName());
+    return true;
+  }
+  SetRaceShape(lRace, lIdx);
+  return true;
 }
 
 float TngSizeShape::GetRaceMult(RE::TESRace *aRace) noexcept {
@@ -165,7 +169,7 @@ void TngSizeShape::SetRaceMult(RE::TESRace *aRace, const float aMult) noexcept {
     return;
   }
   auto &lAllKws = RE::TESDataHandler::GetSingleton()->GetFormArray<RE::BGSKeyword>();
-  int lRaceMult100 = static_cast<int>(aMult*100);
+  int lRaceMult100 = static_cast<int>(aMult * 100);
   if (lRaceMult100 > 1000) {
     Tng::gLogger::warn("Cannot set the race multiplier to a value equal or greater than 10! It was set 9.99");
     lRaceMult100 = 999;
@@ -428,4 +432,12 @@ void TngSizeShape::ScaleGenital(RE::Actor *aActor, RE::TESGlobal *aGlobal) noexc
   if (!aBaseNode || !aScrtNode) return;
   aBaseNode->local.scale = lScale;
   aScrtNode->local.scale = 1.0f / lScale;
+}
+
+int TngSizeShape::FindInFormList(RE::TESForm *aForm, RE::BGSListForm *aList) {
+  if (!aForm || !aList) return -1;
+  if (!aList->HasForm(aForm)) return -1;
+  for (int i = 0; i < aList->forms.size(); i++)
+    if (aList->forms[i]->formID == aForm->formID) return i;
+  return -1;
 }

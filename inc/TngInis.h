@@ -1,6 +1,27 @@
 #pragma once
 
 class TngInis : public Singleton<TngInis> {
+  public:
+    inline static std::set<std::string> fSkinMods;
+    inline static std::set<std::pair<std::string, RE::FormID>> fSingleSkinIDs;
+    inline static std::set<std::string> fRevealingMods;
+    inline static std::set<std::pair<std::string, RE::FormID>> fSingleRevealingIDs;
+    inline static std::set<std::pair<std::string, RE::FormID>> fSingleCoveringIDs;
+
+    static void LoadTngInis() noexcept;
+    static bool LoadMainIni() noexcept;
+    static bool GetAutoReveal(const bool aIsFemale) noexcept;
+    static bool GetAllowSkinOverwrite() noexcept;
+    static bool GetClipCheck() noexcept;
+    static void SaveSize(const int aIdx) noexcept;
+    static void SaveRaceMult(RE::FormID aFormID, std::string aModName, const float aRaceMult) noexcept;
+    static void SaveRaceShape(RE::FormID aFormID, std::string aModName, const int aRaceShape) noexcept;
+    static void SaveActorShape(RE::FormID aFormID, std::string aModName, int aGenShape) noexcept;
+    static void SaveActorSize(RE::FormID aFormID, std::string aModName, int aGenSize) noexcept;
+    static void SaveRevealingArmor(RE::TESObjectARMO* aArmor) noexcept;
+    static void SaveBool(int aID, bool aValue) noexcept;
+    static void SaveGlobals() noexcept;
+
   private:
     // TNG setting
     inline static constexpr const char* cSettings{R"(.\Data\SKSE\Plugins\The New Gentleman.ini)"};
@@ -18,13 +39,12 @@ class TngInis : public Singleton<TngInis> {
     inline static constexpr const char* cNPCSizeSection{"NPCGenitalSize"};
     inline static constexpr const char* cNPCShapeSection{"NPCGenitalShape"};
 
-    
     inline static constexpr RE::FormID cINTCtrlID{0xC00};
     inline static constexpr RE::FormID cNPCCtrlID{0xCB0};
     inline static constexpr RE::FormID cUPGCtrlID{0xCB1};
     inline static constexpr RE::FormID cDOWCtrlID{0xCB2};
     inline static constexpr RE::FormID cREVCtrlID{0xCB3};
-    
+
     inline static constexpr const char* cControls{"Controls"};
     inline static constexpr const char* cNPCCtrl{"NPCEdit"};
     inline static constexpr const char* cUPGCtrl{"GenitalUp"};
@@ -48,30 +68,8 @@ class TngInis : public Singleton<TngInis> {
     inline static constexpr const char* cRevealingRecord{"RevealingRecord"};
     inline static constexpr const char* cCoveringRecord{"CoveringRecord"};
 
-
     static void LoadModRecodPairs(CSimpleIniA::TNamesDepend aModRecords, std::set<std::pair<std::string, RE::FormID>>& aField) noexcept;
 
     static bool IsTngIni(const std::string_view aFileName) noexcept;
-    static void UpdateRevealing(const std::string aArmorRecod) noexcept;
-
-  public:
-    inline static std::set<std::string> fSkinMods;
-    inline static std::set<std::pair<std::string, RE::FormID>> fSingleSkinIDs;
-    inline static std::set<std::string> fRevealingMods;
-    inline static std::set<std::pair<std::string, RE::FormID>> fSingleRevealingIDs;
-    inline static std::set<std::pair<std::string, RE::FormID>> fSingleCoveringIDs;
-
-    static void LoadTngInis() noexcept;
-    static bool LoadMainIni() noexcept;
-    static bool GetAutoReveal(const bool aIsFemale) noexcept;
-    static bool GetAllowSkinOverwrite() noexcept;
-    static bool GetClipCheck() noexcept;
-    static void SaveSize(const int aIdx) noexcept;
-    static void SaveRaceMult(RE::FormID aFormID, std::string aModName, const float aRaceMult) noexcept;
-    static void SaveRaceShape(RE::FormID aFormID, std::string aModName, const int aRaceShape) noexcept;
-    static void SaveActorShape(RE::FormID aFormID, std::string aModName, int aGenShape) noexcept;
-    static void SaveActorSize(RE::FormID aFormID, std::string aModName, int aGenSize) noexcept;
-    static void SaveRevealingArmor(RE::TESObjectARMO* aArmor) noexcept;
-    static void SaveBool(int aID, bool aValue) noexcept;
-    static void SaveGlobals() noexcept;
+    static bool UpdateRevealing(const std::string aArmorRecod) noexcept;
 };

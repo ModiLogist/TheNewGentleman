@@ -1,34 +1,6 @@
 #include <TngInis.h>
 #include <TngSizeShape.h>
 
-void TngInis::LoadModRecodPairs(CSimpleIniA::TNamesDepend aModRecords, std::set<std::pair<std::string, RE::FormID>>& aField) noexcept {
-  CSimpleIniA::TNamesDepend::const_iterator lEntry;
-  for (lEntry = aModRecords.begin(); lEntry != aModRecords.end(); lEntry++) {
-    const std::string lModRecord(lEntry->pItem);
-    const size_t lSepLoc = lModRecord.find(Tng::cDelimChar);
-    const RE::FormID lID = std::strtol(lModRecord.substr(0, lSepLoc).data(), nullptr, 0);
-    const std::string lModName = lModRecord.substr(lSepLoc + 1);
-    aField.insert(std::make_pair(lModName, lID));
-  }
-}
-
-bool TngInis::IsTngIni(const std::string_view aFileName) noexcept {
-  if (aFileName.size() < cTngIniEnding.size()) return false;
-  return std::equal(cTngIniEnding.rbegin(), cTngIniEnding.rend(), aFileName.rbegin());
-}
-
-void TngInis::UpdateRevealing(const std::string aArmorRecod) noexcept {
-  const size_t lSepLoc = aArmorRecod.find(Tng::cDelimChar);
-  const RE::FormID lFormID = std::strtol(aArmorRecod.substr(0, lSepLoc).data(), nullptr, 0);
-  const std::string lModName = aArmorRecod.substr(lSepLoc + 1);
-  auto lArmor = RE::TESDataHandler::GetSingleton()->LookupForm<RE::TESObjectARMO>(lFormID, lModName);
-  if (!lArmor) {
-    Tng::gLogger::info("Previously marked revealing armor from mod {} does not exist anymore!", lModName);
-    return;
-  }
-  fSingleRevealingIDs.insert(std::make_pair(lModName, lFormID));
-}
-
 void TngInis::LoadTngInis() noexcept {
   if (!std::filesystem::exists(cTngInisPath)) return;
   Tng::gLogger::info("Loading ini files:");
@@ -106,7 +78,7 @@ bool TngInis::LoadMainIni() noexcept {
     for (lEntry = lRaceRecords.begin(); lEntry != lRaceRecords.end(); lEntry++) {
       std::string lShape = lIni.GetValue(cRacialGenital, lEntry->pItem);
       const std::string lRaceRecord(lEntry->pItem);
-      TngSizeShape::LoadRaceShape(lRaceRecord, lShape);
+      if (!TngSizeShape::LoadRaceShape(lRaceRecord, lShape)) lIni.Delete(cRacialGenital, lEntry->pItem);
     }
   }
   if (lIni.SectionExists(cRacialSize)) {
@@ -116,7 +88,7 @@ bool TngInis::LoadMainIni() noexcept {
     for (lEntry = lRaceRecords.begin(); lEntry != lRaceRecords.end(); lEntry++) {
       auto lMult100 = lIni.GetLongValue(cRacialSize, lEntry->pItem);
       const std::string lRaceRecord(lEntry->pItem);
-      TngSizeShape::LoadRaceMult(lRaceRecord, lMult100);
+      if (!TngSizeShape::LoadRaceMult(lRaceRecord, lMult100)) lIni.Delete(cRacialGenital, lEntry->pItem);
     }
   }
   if (lIni.SectionExists(cNPCSizeSection)) {
@@ -126,7 +98,7 @@ bool TngInis::LoadMainIni() noexcept {
     for (lEntry = lSizeRecords.begin(); lEntry != lSizeRecords.end(); lEntry++) {
       auto lSize = lIni.GetLongValue(cNPCSizeSection, lEntry->pItem);
       const std::string lNPCRecord(lEntry->pItem);
-      TngSizeShape::LoadNPCSize(lNPCRecord, lSize);
+      if (!TngSizeShape::LoadNPCSize(lNPCRecord, lSize)) lIni.Delete(cRacialGenital, lEntry->pItem);
     }
   }
   if (lIni.SectionExists(cNPCShapeSection)) {
@@ -136,7 +108,7 @@ bool TngInis::LoadMainIni() noexcept {
     for (lEntry = lShapeRecords.begin(); lEntry != lShapeRecords.end(); lEntry++) {
       std::string lShape = lIni.GetValue(cNPCShapeSection, lEntry->pItem);
       const std::string lNPCRecord(lEntry->pItem);
-      TngSizeShape::LoadNPCShape(lNPCRecord, lShape);
+      if (!TngSizeShape::LoadNPCShape(lNPCRecord, lShape)) lIni.Delete(cRacialGenital, lEntry->pItem);
     }
   }
   if (lIni.SectionExists(cRevealingRecord)) {
@@ -157,7 +129,7 @@ bool TngInis::LoadMainIni() noexcept {
     auto lINTCtrl = RE::TESDataHandler::GetSingleton()->LookupForm<RE::TESGlobal>(cINTCtrlID, Tng::cName);
     auto lWomenChance = RE::TESDataHandler::GetSingleton()->LookupForm<RE::TESGlobal>(Tng::cWomenChanceID, Tng::cName);
     if (!(lNPCCtrl && lUPGCtrl && lDOWCtrl && lREVCtrl && lINTCtrl && lWomenChance)) {
-      Tng::gLogger::info("There seems to be an issue for saving some settings.");
+      Tng::gLogger::critical("Cannot save the controls! They might reset after you close the game. Please report this isssue.");
       lIni.SaveFile(cSettings);
       return true;
     }
@@ -294,7 +266,7 @@ void TngInis::SaveGlobals() noexcept {
   auto lINTCtrl = RE::TESDataHandler::GetSingleton()->LookupForm<RE::TESGlobal>(cINTCtrlID, Tng::cName);
   auto lWomenChance = RE::TESDataHandler::GetSingleton()->LookupForm<RE::TESGlobal>(Tng::cWomenChanceID, Tng::cName);
   if (!(lNPCCtrl && lUPGCtrl && lDOWCtrl && lREVCtrl && lINTCtrl && lWomenChance)) {
-    Tng::gLogger::info("There seems to be an issue for saving some settings.");
+    Tng::gLogger::critical("Cannot save the controls! They might reset after you close the game. Please report this isssue.");
     return;
   }
   lIni.SetBoolValue(cControls, cINTCtrl, lINTCtrl->value > 1);
@@ -305,4 +277,32 @@ void TngInis::SaveGlobals() noexcept {
   lIni.SetDoubleValue(cGentleWomen, cGentleWomenChance, lWomenChance->value);
 
   lIni.SaveFile(cSettings);
+}
+
+void TngInis::LoadModRecodPairs(CSimpleIniA::TNamesDepend aModRecords, std::set<std::pair<std::string, RE::FormID>>& aField) noexcept {
+  CSimpleIniA::TNamesDepend::const_iterator lEntry;
+  for (lEntry = aModRecords.begin(); lEntry != aModRecords.end(); lEntry++) {
+    const std::string lModRecord(lEntry->pItem);
+    const size_t lSepLoc = lModRecord.find(Tng::cDelimChar);
+    const RE::FormID lID = std::strtol(lModRecord.substr(0, lSepLoc).data(), nullptr, 0);
+    const std::string lModName = lModRecord.substr(lSepLoc + 1);
+    aField.insert(std::make_pair(lModName, lID));
+  }
+}
+
+bool TngInis::IsTngIni(const std::string_view aFileName) noexcept {
+  if (aFileName.size() < cTngIniEnding.size()) return false;
+  return std::equal(cTngIniEnding.rbegin(), cTngIniEnding.rend(), aFileName.rbegin());
+}
+
+bool TngInis::UpdateRevealing(const std::string aArmorRecod) noexcept {
+  const size_t lSepLoc = aArmorRecod.find(Tng::cDelimChar);
+  const RE::FormID lFormID = std::strtol(aArmorRecod.substr(0, lSepLoc).data(), nullptr, 0);
+  const std::string lModName = aArmorRecod.substr(lSepLoc + 1);
+  auto lArmor = RE::TESDataHandler::GetSingleton()->LookupForm<RE::TESObjectARMO>(lFormID, lModName);
+  if (!lArmor) {
+    Tng::gLogger::info("Previously marked revealing armor from mod {} does not exist anymore!", lModName);
+    return false;
+  }
+  fSingleRevealingIDs.insert(std::make_pair(lModName, lFormID));
 }

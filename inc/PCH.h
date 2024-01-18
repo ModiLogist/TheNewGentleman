@@ -28,12 +28,16 @@ namespace Tng {
   inline static constexpr RE::FormID cNPCKeywID{0x13794};
   inline static constexpr RE::FormID cCrtKeywID{0x13795};
   inline static constexpr RE::FormID cBstKeywID{0xD61D1};
-  inline static constexpr RE::FormID cTNGRaceKeyID{0xFF0};
+  inline static constexpr RE::FormID cProcessedRaceKeyID{0xFF0};
+  inline static constexpr RE::FormID cReadyRaceKeyID{0xFF1};
+  inline static constexpr RE::FormID cIgnoredRaceKeyID{0xFF2};
+  inline static constexpr RE::FormID cIgnoredArmoKeyID{0xFF3};
   inline static constexpr RE::FormID cRevealingKeyID{0xFFF};
   inline static constexpr RE::FormID cUnderwearKeyID{0xFFE};
   inline static constexpr RE::FormID cCoveringKeyID{0xFFD};  
   inline static constexpr RE::FormID cAutoCoverKeyID{0xFFC};
   inline static constexpr RE::FormID cAutoRvealKeyID{0xFFB};
+  inline static constexpr RE::FormID cProblemArmoKeyID{0xFF4};
   inline static constexpr RE::FormID cSkinWithPenisKeyID{0xFF7};
   inline static constexpr RE::FormID cWomenChanceID{0xCA0};
   inline static constexpr RE::FormID cGentifiedID{0xE00};
