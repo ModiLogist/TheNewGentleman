@@ -1,8 +1,8 @@
-#include <TngSizeShape.h>
-#include <TngInis.h>
 #include <TngCore.h>
 #include <TngEvents.h>
+#include <TngInis.h>
 #include <TngPapyrus.h>
+#include <TngSizeShape.h>
 bool CheckIncompatiblity() {
   if (GetModuleHandle(L"Data\\SKSE\\Plugins\\acon.dll")) {
     RE::DebugMessageBox("Warning: TNG is not compatible with acon.dll. Please don't use it with mods from that website!"); 
@@ -11,8 +11,7 @@ bool CheckIncompatiblity() {
   return true;
 }
 
-
-void InitializeLogging(const SKSE::PluginDeclaration* aPlugin) {
+  void InitializeLogging(const SKSE::PluginDeclaration* aPlugin) {
   auto lPath{Tng::gLogger::log_directory()};
   if (!lPath) {
     SKSE::stl::report_and_fail("Unable to lookup SKSE logs directory.");
@@ -32,9 +31,18 @@ void InitializeLogging(const SKSE::PluginDeclaration* aPlugin) {
 
 void EventListener(SKSE::MessagingInterface::Message* aMessage) noexcept {
   if (aMessage->type == SKSE::MessagingInterface::kDataLoaded) {
-    if (!TngSizeShape::LoadAddons()) return;
-    if (!TngInis::LoadMainIni()) return;
     if (!CheckIncompatiblity()) return;
+    if (TngSizeShape::Init()) {
+      TngSizeShape::LoadAddons();
+    } else {
+      return;
+    }
+    if (TngInis::Init()) {
+      TngInis::LoadMainIni();
+      TngInis::LoadTngInis();
+    } else {
+      return;
+    }
     if (TngCore::Initialize()) {
       TngCore::GenitalizeRaces();
       TngCore::GenitalizeNPCSkins();

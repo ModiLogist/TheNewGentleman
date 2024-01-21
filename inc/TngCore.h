@@ -1,18 +1,12 @@
 #pragma once
 
 class TngCore : public Singleton<TngCore> {
-  public:
-    static bool Initialize() noexcept;
-    static void GenitalizeRaces() noexcept;
-    static void GenitalizeNPCSkins() noexcept;
-    static void CheckArmorPieces() noexcept;
-    static bool UpdateRace(RE::TESRace* aRace, int aGenOption) noexcept;
-
   private:
     // Const
     inline static constexpr RE::FormID cDefRaceID = 0x19;
     inline static constexpr RE::FormID cDefSkinAAID{0xD67};
     inline static constexpr int cVanillaRaceTypes{14};
+    inline static constexpr int cEqRaceTypes{13};
     inline static constexpr std::pair<RE::FormID, std::string_view> cBaseRaceIDs[cVanillaRaceTypes] = {
         {0x13746, "Skyrim.esm"},     // Nord
         {0x13748, "Skyrim.esm"},     // Redguard
@@ -34,7 +28,7 @@ class TngCore : public Singleton<TngCore> {
         {0x10760A, "Skyrim.esm"},     // ManakinRace
         {0x004D31, "Dawnguard.esm"},  // TestRace
     };
-    inline static constexpr std::pair<std::pair<RE::FormID, std::string_view>, int> cEquiRaceIDs[13] = {
+    inline static constexpr std::pair<std::pair<RE::FormID, std::string_view>, int> cEquiRaceIDs[cEqRaceTypes] = {
         {{0x88794, "Skyrim.esm"}, 0},       // Nord Vampire
         {{0x88846, "Skyrim.esm"}, 1},       // Redguard Vampire
         {{0x8883C, "Skyrim.esm"}, 2},       // Breton Vampire
@@ -115,17 +109,56 @@ class TngCore : public Singleton<TngCore> {
     };
 
     // Shard Variables
-    inline static std::set<RE::TESObjectARMA*> fSkinAAs;
+    inline static RE::TESDataHandler* fDH;
+    inline static RE::BGSKeyword* fPRaceKey;
+    inline static RE::BGSKeyword* fRRaceKey;
+    inline static RE::BGSKeyword* fIRaceKey;
+    inline static RE::BGSKeyword* fARKey;
+    inline static RE::BGSKeyword* fRRKey;
+    inline static RE::BGSKeyword* fACKey;
+    inline static RE::BGSKeyword* fCCKey;
+    inline static RE::BGSKeyword* fPAKey;
+    inline static RE::BGSKeyword* fIAKey;
+    inline static RE::BGSKeyword* fUAKey;
+    inline static RE::BGSKeyword* fNPCKey;
+    inline static RE::BGSKeyword* fBstKey;
+    inline static RE::BGSKeyword* fCrtKey;
+    inline static RE::TESRace* fDefRace;
+    inline static RE::BSTArray<RE::TESNPC*> fAllNPCs;
+    inline static RE::TESRace* fBaseRaces[cVanillaRaceTypes];    
+    inline static RE::TESRace* fEqRaces[cEqRaceTypes];
 
-    // Methods
-    static void UpdateGenRace(RE::TESRace* aRace, RE::TESObjectARMO* aGenital, const bool aIsCustomRace = false) noexcept;
-    static void HandleVanillaRace(std::pair<RE::FormID, std::string_view> aRaceRecord, const int aDefaultChoice);
-    static bool UpdateEqRaceAddon(RE::TESRace* aRace, RE::TESObjectARMO* aGenital) noexcept;
-    static bool FixSkin(RE::TESObjectARMO* aSkin, const char* const aName) noexcept;
-    static void AddGenitalToSkin(RE::TESObjectARMO* aSkin, RE::TESObjectARMA* aGenital, RE::TESRace* aRace = nullptr) noexcept;
-    static bool IgnoreRace(RE::TESRace* aRace);
+  public:
+    static bool Initialize() noexcept;
+
+  public:
+    static void GenitalizeRaces() noexcept;
+    static bool UpdateRaces(const std::size_t aRaceIdx, int aGenOption) noexcept;
+
+  private:
+    static bool IgnoreRace(RE::TESRace* aRace) noexcept;
+    static void HandleVanillaRace(RE::TESRace* aRace, const int aDefaultChoice) noexcept;
+    static RE::TESObjectARMA* UpdateEqRaceAddon(RE::TESRace* aRace, RE::TESObjectARMO* aGenital) noexcept;
     static bool CheckRace(RE::TESRace* aRace);
-    static char AddRace(RE::TESRace* aRace, RE::TESObjectARMA* aGenital, RE::TESRace* aRNAM = nullptr) noexcept;
-    static void HandleArmor(RE::TESObjectARMO* aArmor) noexcept;
+    static bool UpdateAddonsForRace(RE::TESRace* aRace, const int aChoice) noexcept;
+    static char AddRace(RE::TESRace* aRace) noexcept;
+    static void AddGenitalToSkin(RE::TESObjectARMO* aSkin, RE::TESObjectARMA* aGenital) noexcept;
+
+  public:
+    static void GenitalizeNPCSkins() noexcept;
+
+  private:
+    static bool FixSkin(RE::TESObjectARMO* aSkin, const char* const aName) noexcept;
+
+  public:
+    static void CheckArmorPieces() noexcept;
+    static void HandleArmor(RE::TESObjectARMO* aArmor, const bool aIfLog = true) noexcept;
+    static bool SwapRevealing(RE::TESObjectARMO* aArmor) noexcept;
+
+  private:
+    inline static std::set<RE::TESObjectARMA*> fSAAs;
+    inline static std::set<RE::TESObjectARMA*> fRAAs;
+    inline static std::set<RE::TESObjectARMA*> fCAAs;
+
     static void CoverByArmor(RE::TESObjectARMO* aArmor) noexcept;
 };

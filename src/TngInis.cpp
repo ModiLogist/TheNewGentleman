@@ -1,64 +1,22 @@
 #include <TngInis.h>
 #include <TngSizeShape.h>
 
-void TngInis::LoadTngInis() noexcept {
-  if (!std::filesystem::exists(cTngInisPath)) return;
-  Tng::gLogger::info("Loading ini files:");
-  for (const auto& entry : std::filesystem::directory_iterator(cTngInisPath)) {
-    std::string lFileName = entry.path().filename().string();
-    if (IsTngIni(lFileName)) {
-      Tng::gLogger::info("\tFound ini file {}:", lFileName);
-      CSimpleIniA lIni;
-      lIni.SetUnicode();
-      lIni.SetMultiKey();
-      lIni.LoadFile(entry.path().string().c_str());
-      if (lIni.SectionExists(cSkinSection)) {
-        if (lIni.KeyExists(cSkinSection, cSkinMod)) {
-          CSimpleIniA::TNamesDepend lMods;
-          lIni.GetAllValues(cSkinSection, cSkinMod, lMods);
-
-          CSimpleIniA::TNamesDepend::const_iterator lMod;
-          for (lMod = lMods.begin(); lMod != lMods.end(); lMod++) {
-            const std::string lModName(lMod->pItem);
-            fSkinMods.insert(lModName);
-          }
-        }
-        if (lIni.KeyExists(cSkinSection, cSkinRecord)) {
-          CSimpleIniA::TNamesDepend lModRecords;
-          lIni.GetAllValues(cSkinSection, cSkinRecord, lModRecords);
-          LoadModRecodPairs(lModRecords, fSingleSkinIDs);
-          Tng::gLogger::info("\t\t- Found skin records in ini file [{}].", lFileName);
-        }
-      }
-      if (lIni.SectionExists(cArmorSection)) {
-        if (lIni.KeyExists(cArmorSection, cRevealingMod)) {
-          CSimpleIniA::TNamesDepend lMods;
-          lIni.GetAllValues(cArmorSection, cRevealingMod, lMods);
-          for (const auto& lMod : lMods) {
-            const std::string lModName(lMod.pItem);
-            fRevealingMods.insert(lModName);
-          }
-        }
-        if (lIni.KeyExists(cArmorSection, cRevealingRecord)) {
-          CSimpleIniA::TNamesDepend lModRecords;
-          lIni.GetAllValues(cArmorSection, cRevealingMod, lModRecords);
-          LoadModRecodPairs(lModRecords, fSingleRevealingIDs);
-          Tng::gLogger::info("\t\t- Found revealing records in ini file [{}].", lFileName);
-        }
-        if (lIni.KeyExists(cArmorSection, cCoveringRecord)) {
-          CSimpleIniA::TNamesDepend lModRecords;
-          lIni.GetAllValues(cArmorSection, cCoveringRecord, lModRecords);
-          LoadModRecodPairs(lModRecords, fSingleCoveringIDs);
-          Tng::gLogger::info("\t\t- Found covering records in ini file [{}].", lFileName);
-        }
-      }
-    } else {
-      Tng::gLogger::warn("The file {} in TNG ini folder is not named correctly or is not a TNG ini file.", lFileName);
-    }
+bool TngInis::Init() noexcept {
+  fDH = RE::TESDataHandler::GetSingleton();
+  fNPCCtrl = fDH->LookupForm<RE::TESGlobal>(cNPCCtrlID, Tng::cName);
+  fUPGCtrl = fDH->LookupForm<RE::TESGlobal>(cUPGCtrlID, Tng::cName);
+  fDOWCtrl = fDH->LookupForm<RE::TESGlobal>(cDOWCtrlID, Tng::cName);
+  fREVCtrl = fDH->LookupForm<RE::TESGlobal>(cREVCtrlID, Tng::cName);
+  fINTCtrl = fDH->LookupForm<RE::TESGlobal>(cINTCtrlID, Tng::cName);
+  fWomenChance = fDH->LookupForm<RE::TESGlobal>(Tng::cWomenChanceID, Tng::cName);
+  if (!(fNPCCtrl && fUPGCtrl && fDOWCtrl && fREVCtrl && fINTCtrl && fWomenChance)) {
+    Tng::gLogger::critical("Information required for saving and loading ini files could not be found. Please report this issue!");
+    return false;
   }
+  return true;
 }
 
-bool TngInis::LoadMainIni() noexcept {
+void TngInis::LoadMainIni() noexcept {
   if (!std::filesystem::exists(cSettings)) {
     std::ofstream lTngSettings(cSettings);
     lTngSettings << ";TNG Settings File" << std::endl;
@@ -122,26 +80,70 @@ bool TngInis::LoadMainIni() noexcept {
     }
   }
   if (lIni.SectionExists(cControls)) {
-    auto lNPCCtrl = RE::TESDataHandler::GetSingleton()->LookupForm<RE::TESGlobal>(cNPCCtrlID, Tng::cName);
-    auto lUPGCtrl = RE::TESDataHandler::GetSingleton()->LookupForm<RE::TESGlobal>(cUPGCtrlID, Tng::cName);
-    auto lDOWCtrl = RE::TESDataHandler::GetSingleton()->LookupForm<RE::TESGlobal>(cDOWCtrlID, Tng::cName);
-    auto lREVCtrl = RE::TESDataHandler::GetSingleton()->LookupForm<RE::TESGlobal>(cREVCtrlID, Tng::cName);
-    auto lINTCtrl = RE::TESDataHandler::GetSingleton()->LookupForm<RE::TESGlobal>(cINTCtrlID, Tng::cName);
-    auto lWomenChance = RE::TESDataHandler::GetSingleton()->LookupForm<RE::TESGlobal>(Tng::cWomenChanceID, Tng::cName);
-    if (!(lNPCCtrl && lUPGCtrl && lDOWCtrl && lREVCtrl && lINTCtrl && lWomenChance)) {
-      Tng::gLogger::critical("Cannot save the controls! They might reset after you close the game. Please report this isssue.");
-      lIni.SaveFile(cSettings);
-      return true;
-    }
-    if (lIni.KeyExists(cControls, cINTCtrl)) lINTCtrl->value = lIni.GetBoolValue(cControls, cINTCtrl) ? 2.0f : 0.0f;
-    if (lIni.KeyExists(cControls, cNPCCtrl)) lNPCCtrl->value = static_cast<float>(lIni.GetLongValue(cControls, cNPCCtrl));
-    if (lIni.KeyExists(cControls, cUPGCtrl)) lUPGCtrl->value = static_cast<float>(lIni.GetLongValue(cControls, cUPGCtrl));
-    if (lIni.KeyExists(cControls, cDOWCtrl)) lDOWCtrl->value = static_cast<float>(lIni.GetLongValue(cControls, cDOWCtrl));
-    if (lIni.KeyExists(cControls, cREVCtrl)) lREVCtrl->value = static_cast<float>(lIni.GetLongValue(cControls, cREVCtrl));
-    if (lIni.KeyExists(cGentleWomen, cGentleWomenChance)) lWomenChance->value = static_cast<float>(lIni.GetDoubleValue(cGentleWomen, cGentleWomenChance));
+    if (lIni.KeyExists(cControls, cINTCtrl)) fINTCtrl->value = lIni.GetBoolValue(cControls, cINTCtrl) ? 2.0f : 0.0f;
+    if (lIni.KeyExists(cControls, cNPCCtrl)) fNPCCtrl->value = static_cast<float>(lIni.GetLongValue(cControls, cNPCCtrl));
+    if (lIni.KeyExists(cControls, cUPGCtrl)) fUPGCtrl->value = static_cast<float>(lIni.GetLongValue(cControls, cUPGCtrl));
+    if (lIni.KeyExists(cControls, cDOWCtrl)) fDOWCtrl->value = static_cast<float>(lIni.GetLongValue(cControls, cDOWCtrl));
+    if (lIni.KeyExists(cControls, cREVCtrl)) fREVCtrl->value = static_cast<float>(lIni.GetLongValue(cControls, cREVCtrl));
+    if (lIni.KeyExists(cGentleWomen, cGentleWomenChance)) fWomenChance->value = static_cast<float>(lIni.GetDoubleValue(cGentleWomen, cGentleWomenChance));
   }
   lIni.SaveFile(cSettings);
-  return true;
+}
+void TngInis::LoadTngInis() noexcept {
+  if (!std::filesystem::exists(cTngInisPath)) return;
+  Tng::gLogger::info("Loading ini files:");
+  for (const auto& entry : std::filesystem::directory_iterator(cTngInisPath)) {
+    std::string lFileName = entry.path().filename().string();
+    if (IsTngIni(lFileName)) {
+      Tng::gLogger::info("\tFound ini file {}:", lFileName);
+      CSimpleIniA lIni;
+      lIni.SetUnicode();
+      lIni.SetMultiKey();
+      lIni.LoadFile(entry.path().string().c_str());
+      if (lIni.SectionExists(cSkinSection)) {
+        if (lIni.KeyExists(cSkinSection, cSkinMod)) {
+          CSimpleIniA::TNamesDepend lMods;
+          lIni.GetAllValues(cSkinSection, cSkinMod, lMods);
+
+          CSimpleIniA::TNamesDepend::const_iterator lMod;
+          for (lMod = lMods.begin(); lMod != lMods.end(); lMod++) {
+            const std::string lModName(lMod->pItem);
+            fSkinMods.insert(lModName);
+          }
+        }
+        if (lIni.KeyExists(cSkinSection, cSkinRecord)) {
+          CSimpleIniA::TNamesDepend lModRecords;
+          lIni.GetAllValues(cSkinSection, cSkinRecord, lModRecords);
+          LoadModRecodPairs(lModRecords, fSingleSkinIDs);
+          Tng::gLogger::info("\t\t- Found skin records in ini file [{}].", lFileName);
+        }
+      }
+      if (lIni.SectionExists(cArmorSection)) {
+        if (lIni.KeyExists(cArmorSection, cRevealingMod)) {
+          CSimpleIniA::TNamesDepend lMods;
+          lIni.GetAllValues(cArmorSection, cRevealingMod, lMods);
+          for (const auto& lMod : lMods) {
+            const std::string lModName(lMod.pItem);
+            fRevealingMods.insert(lModName);
+          }
+        }
+        if (lIni.KeyExists(cArmorSection, cRevealingRecord)) {
+          CSimpleIniA::TNamesDepend lModRecords;
+          lIni.GetAllValues(cArmorSection, cRevealingMod, lModRecords);
+          LoadModRecodPairs(lModRecords, fSingleRevealingIDs);
+          Tng::gLogger::info("\t\t- Found revealing records in ini file [{}].", lFileName);
+        }
+        if (lIni.KeyExists(cArmorSection, cCoveringRecord)) {
+          CSimpleIniA::TNamesDepend lModRecords;
+          lIni.GetAllValues(cArmorSection, cCoveringRecord, lModRecords);
+          LoadModRecodPairs(lModRecords, fSingleCoveringIDs);
+          Tng::gLogger::info("\t\t- Found covering records in ini file [{}].", lFileName);
+        }
+      }
+    } else {
+      Tng::gLogger::warn("The file {} in TNG ini folder is not named correctly or is not a TNG ini file.", lFileName);
+    }
+  }
 }
 
 bool TngInis::GetAutoReveal(const bool aIsFemale) noexcept {
@@ -151,13 +153,6 @@ bool TngInis::GetAutoReveal(const bool aIsFemale) noexcept {
   return lIni.GetBoolValue(cAutoReveal, aIsFemale ? cFAutoReveal : cMAutoReveal, aIsFemale);
 }
 
-bool TngInis::GetAllowSkinOverwrite() noexcept {
-  CSimpleIniA lIni;
-  lIni.SetUnicode();
-  lIni.LoadFile(cSettings);
-  return lIni.GetBoolValue(cGeneral, cSkinOverwrite, false);
-}
-
 bool TngInis::GetClipCheck() noexcept {
   CSimpleIniA lIni;
   lIni.SetUnicode();
@@ -165,74 +160,86 @@ bool TngInis::GetClipCheck() noexcept {
   return lIni.GetBoolValue(cGeneral, cDoubleCheck, true);
 }
 
-void TngInis::SaveSize(const int aIdx) noexcept {
+void TngInis::SaveRaceMult(const std::size_t aRaceIdx, const float aRaceMult) noexcept {
   CSimpleIniA lIni;
   lIni.SetUnicode();
   lIni.LoadFile(cSettings);
-  lIni.SetDoubleValue(cGlobalSize, cSizeNames[aIdx], TngSizeShape::GetGlobalSize(aIdx));
+  for (const auto& lRace : TngSizeShape::GetRacesByIdx(aRaceIdx)) {
+    auto lRaceIDStr = RecordToStr(lRace);
+    if (lRaceIDStr == "") continue;
+    auto lMult100 = static_cast<int>(aRaceMult * 100.0f);
+    if ((lMult100 > 9) && (lMult100 < 1000)) lIni.SetLongValue(cRacialGenital, lRaceIDStr.c_str(), lMult100);
+    if (lMult100 == 0) lIni.Delete(cRacialGenital, lRaceIDStr.c_str());
+  }
   lIni.SaveFile(cSettings);
 }
 
-void TngInis::SaveRaceMult(RE::FormID aFormID, std::string aModName, const float aRaceMult) noexcept {
+void TngInis::SaveRaceShape(const std::size_t aRaceIdx, const int aRaceShape) noexcept {
+  if ((aRaceShape < 0) && (aRaceShape + 1 > TngSizeShape::GetAddonCount(false))) {
+    Tng::gLogger::error("Failed to set the race genital addon to {}! There are only {} addons.", aRaceShape, TngSizeShape::GetAddonCount(false));
+    return;
+  }
   CSimpleIniA lIni;
   lIni.SetUnicode();
   lIni.LoadFile(cSettings);
-  std::ostringstream oss;
-  oss << std::hex << aFormID;
-  std::string lIDStr = "0x" + oss.str() + Tng::cDelimChar + aModName;
-  auto lMult100 = static_cast<int>(aRaceMult * 100.0f);
-  if ((lMult100 > 9) && (lMult100 < 1000)) lIni.SetLongValue(cRacialGenital, lIDStr.c_str(), lMult100);
-  if (lMult100 == 0) lIni.Delete(cRacialGenital, lIDStr.c_str());
+  for (const auto& lRace : TngSizeShape::GetRacesByIdx(aRaceIdx)) {
+    auto lRaceIDStr = RecordToStr(lRace);
+    if (lRaceIDStr == "") continue;
+    if (aRaceShape == -1) {
+      lIni.Delete(cRacialGenital, lRaceIDStr.c_str());
+      continue;
+    }
+    auto lGenIDStr = RecordToStr(TngSizeShape::GetAddonAt(false, aRaceShape));
+    lIni.SetValue(cRacialGenital, lRaceIDStr.c_str(), lGenIDStr.c_str());
+  }
   lIni.SaveFile(cSettings);
 }
 
-void TngInis::SaveRaceShape(RE::FormID aFormID, std::string aModName, const int aRaceShape) noexcept {
+void TngInis::SaveActorShape(RE::TESNPC* aNPC, int aGenShape) noexcept {
+  if (aGenShape == -1) return;
+  auto lNPCIDStr = RecordToStr(aNPC);
+  if (lNPCIDStr == "") return;
   CSimpleIniA lIni;
   lIni.SetUnicode();
   lIni.LoadFile(cSettings);
-  std::ostringstream oss;
-  oss << std::hex << aFormID;
-  std::string lIDStr = "0x" + oss.str() + Tng::cDelimChar + aModName;
-  if ((aRaceShape > -1) && (aRaceShape < 100)) lIni.SetLongValue(cRacialGenital, lIDStr.c_str(), aRaceShape);
-  if (aRaceShape == -1) lIni.Delete(cRacialGenital, lIDStr.c_str());
+  if (aGenShape == -2) lIni.Delete(cNPCShapeSection, lNPCIDStr.c_str());
+  if (aGenShape > -1) {
+    auto lGenIDStr = RecordToStr(TngSizeShape::GetAddonAt(false, aGenShape));
+    lIni.SetValue(cNPCShapeSection, lNPCIDStr.c_str(), lGenIDStr.c_str());
+  }
   lIni.SaveFile(cSettings);
 }
 
-void TngInis::SaveActorShape(RE::FormID aFormID, std::string aModName, int aGenShape) noexcept {
+void TngInis::SaveActorSize(RE::TESNPC* aNPC, int aGenSize) noexcept {
+  auto lNPCIDStr = RecordToStr(aNPC);
+  if (lNPCIDStr == "") return;
   CSimpleIniA lIni;
   lIni.SetUnicode();
   lIni.LoadFile(cSettings);
-  std::ostringstream oss;
-  oss << std::hex << aFormID;
-  std::string lIDStr = "0x" + oss.str() + Tng::cDelimChar + aModName;
-  if (aGenShape > -1) lIni.SetLongValue(cNPCShapeSection, lIDStr.c_str(), aGenShape);
-  if (aGenShape == -2) lIni.Delete(cNPCShapeSection, lIDStr.c_str());
-  lIni.SaveFile(cSettings);
-}
-
-void TngInis::SaveActorSize(RE::FormID aFormID, std::string aModName, int aGenSize) noexcept {
-  CSimpleIniA lIni;
-  lIni.SetUnicode();
-  lIni.LoadFile(cSettings);
-  std::ostringstream oss;
-  oss << std::hex << aFormID;
-  std::string lIDStr = "0x" + oss.str() + Tng::cDelimChar + aModName;
-  lIni.SetLongValue(cNPCSizeSection, lIDStr.c_str(), aGenSize);
+  lIni.SetLongValue(cNPCSizeSection, lNPCIDStr.c_str(), aGenSize);
   if (aGenSize == -2) {
-    lIni.Delete(cNPCSizeSection, lIDStr.c_str());
+    lIni.Delete(cNPCSizeSection, lNPCIDStr.c_str());
   }
   lIni.SaveFile(cSettings);
 }
 
 void TngInis::SaveRevealingArmor(RE::TESObjectARMO* aArmor) noexcept {
+  auto lArmoIDStr = RecordToStr(aArmor);
+  if (lArmoIDStr == "") return;
   CSimpleIniA lIni;
   lIni.SetUnicode();
   lIni.LoadFile(cSettings);
-  std::ostringstream oss;
-  oss << std::hex << aArmor->GetLocalFormID();
-  std::string lModName{aArmor->GetFile(0)->GetFilename()};
-  std::string lIDStr = "0x" + oss.str() + Tng::cDelimChar + lModName;
-  lIni.SetBoolValue(cRevealingRecord, lIDStr.c_str(), true);
+  lIni.SetBoolValue(cRevealingRecord, lArmoIDStr.c_str(), true);
+  lIni.SaveFile(cSettings);
+}
+
+void TngInis::RemoveRevealingArmor(RE::TESObjectARMO* aArmor) noexcept {
+  auto lArmoIDStr = RecordToStr(aArmor);
+  if (lArmoIDStr == "") return;
+  CSimpleIniA lIni;
+  lIni.SetUnicode();
+  lIni.LoadFile(cSettings);
+  lIni.Delete(cRevealingRecord, lArmoIDStr.c_str());
   lIni.SaveFile(cSettings);
 }
 
@@ -246,8 +253,6 @@ void TngInis::SaveBool(int aID, bool aValue) noexcept {
     case 2:
       lIni.SetBoolValue(cAutoReveal, cMAutoReveal, aValue);
     case 3:
-      lIni.SetBoolValue(cGeneral, cSkinOverwrite, aValue);
-    case 4:
       lIni.SetBoolValue(cGeneral, cDoubleCheck, aValue);
     default:
       break;
@@ -259,34 +264,49 @@ void TngInis::SaveGlobals() noexcept {
   CSimpleIniA lIni;
   lIni.SetUnicode();
   lIni.LoadFile(cSettings);
-  auto lNPCCtrl = RE::TESDataHandler::GetSingleton()->LookupForm<RE::TESGlobal>(cNPCCtrlID, Tng::cName);
-  auto lUPGCtrl = RE::TESDataHandler::GetSingleton()->LookupForm<RE::TESGlobal>(cUPGCtrlID, Tng::cName);
-  auto lDOWCtrl = RE::TESDataHandler::GetSingleton()->LookupForm<RE::TESGlobal>(cDOWCtrlID, Tng::cName);
-  auto lREVCtrl = RE::TESDataHandler::GetSingleton()->LookupForm<RE::TESGlobal>(cREVCtrlID, Tng::cName);
-  auto lINTCtrl = RE::TESDataHandler::GetSingleton()->LookupForm<RE::TESGlobal>(cINTCtrlID, Tng::cName);
-  auto lWomenChance = RE::TESDataHandler::GetSingleton()->LookupForm<RE::TESGlobal>(Tng::cWomenChanceID, Tng::cName);
-  if (!(lNPCCtrl && lUPGCtrl && lDOWCtrl && lREVCtrl && lINTCtrl && lWomenChance)) {
-    Tng::gLogger::critical("Cannot save the controls! They might reset after you close the game. Please report this isssue.");
-    return;
-  }
-  lIni.SetBoolValue(cControls, cINTCtrl, lINTCtrl->value > 1);
-  lIni.SetLongValue(cControls, cNPCCtrl, static_cast<int>(lNPCCtrl->value));
-  lIni.SetLongValue(cControls, cUPGCtrl, static_cast<int>(lUPGCtrl->value));
-  lIni.SetLongValue(cControls, cDOWCtrl, static_cast<int>(lDOWCtrl->value));
-  lIni.SetLongValue(cControls, cREVCtrl, static_cast<int>(lREVCtrl->value));
-  lIni.SetDoubleValue(cGentleWomen, cGentleWomenChance, lWomenChance->value);
-
+  for (int i = 0; i < Tng::cSizeCategories; i++) lIni.SetDoubleValue(cGlobalSize, cSizeNames[i], TngSizeShape::GetGlobalSize(i));
+  lIni.SetBoolValue(cControls, cINTCtrl, fINTCtrl->value > 1);
+  lIni.SetLongValue(cControls, cNPCCtrl, static_cast<int>(fNPCCtrl->value));
+  lIni.SetLongValue(cControls, cUPGCtrl, static_cast<int>(fUPGCtrl->value));
+  lIni.SetLongValue(cControls, cDOWCtrl, static_cast<int>(fDOWCtrl->value));
+  lIni.SetLongValue(cControls, cREVCtrl, static_cast<int>(fREVCtrl->value));
+  lIni.SetDoubleValue(cGentleWomen, cGentleWomenChance, fWomenChance->value);
   lIni.SaveFile(cSettings);
+}
+
+bool TngInis::IsValidSkeleton(RE::BSFixedString aModel, RE::BSFixedString aDefModels[2]) noexcept {
+  static std::set<RE::BSFixedString> lValidSkeletons;
+  if (lValidSkeletons.size() != 0) return lValidSkeletons.find(aModel) != lValidSkeletons.end();
+  lValidSkeletons.insert(aDefModels[0]);
+  lValidSkeletons.insert(aDefModels[0]);
+  if (!std::filesystem::exists(cTngInisPath)) return lValidSkeletons.find(aModel) != lValidSkeletons.end();
+  for (const auto& entry : std::filesystem::directory_iterator(cTngInisPath)) {
+    std::string lFileName = entry.path().filename().string();
+    if (IsTngIni(lFileName)) {
+      Tng::gLogger::info("\tFound ini file {}:", lFileName);
+      CSimpleIniA lIni;
+      lIni.SetUnicode();
+      lIni.SetMultiKey();
+      lIni.LoadFile(entry.path().string().c_str());
+      if (lIni.KeyExists(cSkeleton, cValidModel)) {
+        CSimpleIniA::TNamesDepend lSkeletons;
+        lIni.GetAllValues(cSkinSection, cSkinMod, lSkeletons);
+        CSimpleIniA::TNamesDepend::const_iterator lSkeleton;
+        for (lSkeleton = lSkeletons.begin(); lSkeleton != lSkeletons.end(); lSkeleton++) {
+          const RE::BSFixedString lModel(lSkeleton->pItem);
+          lValidSkeletons.insert(lModel);
+        }
+      }
+    }
+  }
+  return lValidSkeletons.find(aModel) != lValidSkeletons.end();
 }
 
 void TngInis::LoadModRecodPairs(CSimpleIniA::TNamesDepend aModRecords, std::set<std::pair<std::string, RE::FormID>>& aField) noexcept {
   CSimpleIniA::TNamesDepend::const_iterator lEntry;
   for (lEntry = aModRecords.begin(); lEntry != aModRecords.end(); lEntry++) {
     const std::string lModRecord(lEntry->pItem);
-    const size_t lSepLoc = lModRecord.find(Tng::cDelimChar);
-    const RE::FormID lID = std::strtol(lModRecord.substr(0, lSepLoc).data(), nullptr, 0);
-    const std::string lModName = lModRecord.substr(lSepLoc + 1);
-    aField.insert(std::make_pair(lModName, lID));
+    aField.insert(std::make_pair(StrToRecord(lModRecord).first, StrToRecord(lModRecord).second));
   }
 }
 
@@ -296,13 +316,10 @@ bool TngInis::IsTngIni(const std::string_view aFileName) noexcept {
 }
 
 bool TngInis::UpdateRevealing(const std::string aArmorRecod) noexcept {
-  const size_t lSepLoc = aArmorRecod.find(Tng::cDelimChar);
-  const RE::FormID lFormID = std::strtol(aArmorRecod.substr(0, lSepLoc).data(), nullptr, 0);
-  const std::string lModName = aArmorRecod.substr(lSepLoc + 1);
-  auto lArmor = RE::TESDataHandler::GetSingleton()->LookupForm<RE::TESObjectARMO>(lFormID, lModName);
+  auto lArmor = fDH->LookupForm<RE::TESObjectARMO>(StrToRecord(aArmorRecod).second, StrToRecord(aArmorRecod).first);
   if (!lArmor) {
-    Tng::gLogger::info("Previously marked revealing armor from mod {} does not exist anymore!", lModName);
+    Tng::gLogger::info("Previously marked revealing armor from mod {} does not exist anymore!", StrToRecord(aArmorRecod).first);
     return false;
   }
-  fSingleRevealingIDs.insert(std::make_pair(lModName, lFormID));
+  fRunTimeRevealingIDs.insert(std::make_pair(StrToRecord(aArmorRecod).first, StrToRecord(aArmorRecod).second));
 }

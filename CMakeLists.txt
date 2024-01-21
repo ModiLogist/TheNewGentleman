@@ -95,6 +95,7 @@ target_precompile_headers(
   ${PROJECT_NAME}
   PRIVATE
     inc/PCH.h
+    inc/Tng.h
     ${SIMPLEINI_INCLUDE_DIRS}/SimpleIni.h
 )
 
