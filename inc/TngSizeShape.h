@@ -20,7 +20,7 @@ class TngSizeShape : public Singleton<TngSizeShape> {
   public:
     static bool Init() noexcept;
     static void LoadAddons() noexcept;
-    static int GetAddonCount(bool aIsFemale) noexcept;
+    static std::size_t GetAddonCount(bool aIsFemale) noexcept;
     static std::set<std::string> GetAddonNames(bool aIsFemale) noexcept;
     static bool LoadNPCSize(const std::string aNPCRecord, const int aSize) noexcept;
     static bool LoadNPCShape(const std::string aNPCRecord, const std::string aShapeRecord) noexcept;
@@ -36,14 +36,14 @@ class TngSizeShape : public Singleton<TngSizeShape> {
     static bool SetRaceShape(const std::size_t aRaceIdx, int aRaceShape) noexcept;
     static std::set<RE::TESRace*> GetRacesByIdx(const std::size_t aRaceIdx) noexcept;
     static std::set<std::string> GetRaceNames() noexcept;
-    static int CanModifyActor(RE::Actor* aActor, bool aAllowOverwrite) noexcept;
+    static Tng::TNGRes CanModifyActor(RE::Actor* aActor) noexcept;
     static float GetGlobalSize(int aIdx) noexcept;
     static void SetGlobalSize(int aIdx, float aSize) noexcept;
     static void RandomizeScale(RE::Actor* aActor) noexcept;
     static Tng::TNGRes SetActorSkin(RE::Actor* aActor, int aGenOption) noexcept;
     static Tng::TNGRes SetActorSize(RE::Actor* aActor, int aGenSize) noexcept;
     static std::vector<std::string> GetAllPossibleAddons(RE::Actor* aActor) noexcept;
-    static RE::TESObjectARMO* GetAddonAt(bool aIsFemale, int aIdx) noexcept;
+    static RE::TESObjectARMO* GetAddonAt(bool aIsFemale, uint32_t aIdx) noexcept;
 
   private:
     inline static const char* cBaseBone{"NPC GenitalsBase [GenBase]"};
@@ -62,7 +62,7 @@ class TngSizeShape : public Singleton<TngSizeShape> {
     inline static std::vector<std::pair<std::string, std::set<RE::TESRace*>>> fRaceInfo;
 
     static void ScaleGenital(RE::Actor* aActor, RE::TESGlobal* aGlobal) noexcept;
-    static bool ResetGenital(RE::TESNPC* aNPC) noexcept;
+    static Tng::TNGRes ResetGenital(RE::TESNPC* aNPC) noexcept;
     static bool SetNPCGenital(RE::TESNPC* aNPC, RE::TESObjectARMO* aGenital, int aChoice) noexcept;
     static int FindInFormList(RE::TESForm* aForm, RE::BGSListForm* aList) noexcept;
 };

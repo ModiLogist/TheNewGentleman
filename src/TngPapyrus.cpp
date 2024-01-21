@@ -28,7 +28,7 @@ float TngPapyrus::GetRaceMult(RE::StaticFunctionTag*, int aRaceIdx) {
 
 void TngPapyrus::SetRaceShape(RE::StaticFunctionTag*, int aRaceIdx, int aGenOption) {
   if (aRaceIdx < 0) return;
-  if (TngCore::UpdateRaces(static_cast<int>(aRaceIdx), aGenOption) < 0) return;
+  TngCore::UpdateRaces(static_cast<int>(aRaceIdx), aGenOption);
 }
 
 void TngPapyrus::SetRaceMult(RE::StaticFunctionTag*, int aRaceIdx, float aGenMult) {
@@ -70,19 +70,19 @@ bool TngPapyrus::SwapRevealing(RE::StaticFunctionTag*, RE::TESObjectARMO* aArmor
 }
 
 bool TngPapyrus::BindPapyrus(RE::BSScript::IVirtualMachine* aVM) noexcept {
-  aVM->RegisterFunction("UpdateSize", "TNG_PapyrusUtil", UpdateSize);
-  aVM->RegisterFunction("UpdateRaces", "TNG_PapyrusUtil", UpdateRaces);
-  aVM->RegisterFunction("AllowSkinOverwrite", "TNG_PapyrusUtil", AllowSkinOverwrite);
+  aVM->RegisterFunction("SaveGlobals", "TNG_PapyrusUtil", SaveGlobals);
   aVM->RegisterFunction("GetClipCheck", "TNG_PapyrusUtil", GetClipCheck);
+  aVM->RegisterFunction("GetAutoReveal", "TNG_PapyrusUtil", GetAutoReveal);
+  aVM->RegisterFunction("SaveBoolValues", "TNG_PapyrusUtil", SaveBoolValues);
+  aVM->RegisterFunction("GetRaceNames", "TNG_PapyrusUtil", GetRaceNames);
+  aVM->RegisterFunction("GetRaceShape", "TNG_PapyrusUtil", GetRaceShape);
+  aVM->RegisterFunction("GetRaceMult", "TNG_PapyrusUtil", GetRaceMult);
+  aVM->RegisterFunction("SetRaceShape", "TNG_PapyrusUtil", SetRaceShape);
+  aVM->RegisterFunction("SetRaceMult", "TNG_PapyrusUtil", SetRaceMult);
+  aVM->RegisterFunction("GetAllPossibleAddons", "TNG_PapyrusUtil", GetAllPossibleAddons);
   aVM->RegisterFunction("CanModifyActor", "TNG_PapyrusUtil", CanModifyActor);
   aVM->RegisterFunction("SetActorShape", "TNG_PapyrusUtil", SetActorShape);
   aVM->RegisterFunction("SetActorSize", "TNG_PapyrusUtil", SetActorSize);
-  aVM->RegisterFunction("GetAllPossibleAddons", "TNG_PapyrusUtil", GetAllPossibleAddons);
-  aVM->RegisterFunction("GetAutoReveal", "TNG_PapyrusUtil", GetAutoReveal);
-  aVM->RegisterFunction("GetGenType", "TNG_PapyrusUtil", GetGenType);
-  aVM->RegisterFunction("GetGenSize", "TNG_PapyrusUtil", GetGenSize);
-  aVM->RegisterFunction("MakeRevealing", "TNG_PapyrusUtil", MakeRevealing);
-  aVM->RegisterFunction("SaveBoolValues", "TNG_PapyrusUtil", SaveBoolValues);
-  aVM->RegisterFunction("SaveGlobals", "TNG_PapyrusUtil", SaveGlobals);
+  aVM->RegisterFunction("SwapRevealing", "TNG_PapyrusUtil", SwapRevealing);
   return true;
 }

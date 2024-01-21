@@ -3,7 +3,7 @@
 #include <TngSizeShape.h>
 
 bool TngCore::Initialize() noexcept {
-  auto fDH = RE::TESDataHandler::GetSingleton();
+  fDH = RE::TESDataHandler::GetSingleton();
   if (!fDH->LookupModByName(Tng::cName)) {
     Tng::gLogger::critical("Mod [{}] was not found! Please report this issue!", Tng::cName);
     return false;
@@ -22,14 +22,20 @@ bool TngCore::Initialize() noexcept {
   fBstKey = fDH->LookupForm<RE::BGSKeyword>(Tng::cBstKeywID, Tng::cSkyrim);
   fCrtKey = fDH->LookupForm<RE::BGSKeyword>(Tng::cCrtKeywID, Tng::cSkyrim);
   fDefRace = fDH->LookupForm<RE::TESRace>(cDefRaceID, Tng::cSkyrim);
+  fBeastDef = fDH->LookupForm<RE::TESRace>(cBaseRaceIDs[9].first, cBaseRaceIDs[9].second);
   fAllNPCs = fDH->GetFormArray<RE::TESNPC>();
-  if (!(fPRaceKey && fRRaceKey && fIRaceKey && fARKey && fRRKey && fACKey && fCCKey && fPAKey && fIAKey && fUAKey && fNPCKey && fBstKey && fCrtKey && fDefRace)) {
+  if (!(fPRaceKey && fRRaceKey && fIRaceKey && fARKey && fRRKey && fACKey && fCCKey && fPAKey && fIAKey && fUAKey && fNPCKey && fBstKey && fCrtKey && fDefRace && fBeastDef)) {
     Tng::gLogger::critical("The original TNG information could not be found!");
     return false;
   }
+  std::set<std::string> lDefSks{};
+  lDefSks.insert(fDefRace->skeletonModels[0].model.data());
+  lDefSks.insert(fDefRace->skeletonModels[1].model.data());
+  lDefSks.insert(fBeastDef->skeletonModels[0].model.data());
+  lDefSks.insert(fBeastDef->skeletonModels[1].model.data());
+  TngInis::UpdateValidSkeletons(lDefSks);
   for (int i = 0; i < cVanillaRaceTypes; i++) fBaseRaces[i] = fDH->LookupForm<RE::TESRace>(cBaseRaceIDs[i].first, cBaseRaceIDs[i].second);
   for (int i = 0; i < cEqRaceTypes; i++) fEqRaces[i] = fDH->LookupForm<RE::TESRace>(cEquiRaceIDs[i].first.first, cEquiRaceIDs[i].first.second);
-
   return true;
 }
 
@@ -156,9 +162,8 @@ RE::TESObjectARMA* TngCore::UpdateEqRaceAddon(RE::TESRace* aRace, RE::TESObjectA
 }
 
 bool TngCore::CheckRace(RE::TESRace* aRace) {
-  RE::BSFixedString lDefSks[2]{fDefRace->skeletonModels[0].model, fDefRace->skeletonModels[1].model};
   if (!aRace->HasKeyword(fNPCKey) || aRace->HasKeyword(fCrtKey) || !aRace->HasPartOf(Tng::cSlotBody) || aRace->IsChildRace()) return false;
-  if (!TngInis::IsValidSkeleton(aRace->skeletonModels[0].model, lDefSks) || !TngInis::IsValidSkeleton(aRace->skeletonModels[1].model, lDefSks)) {
+  if (!TngInis::IsValidSkeleton(aRace->skeletonModels[0].model.data()) || !TngInis::IsValidSkeleton(aRace->skeletonModels[1].model.data())) {
     IgnoreRace(aRace);
     Tng::gLogger::info("The race [0x{:x}:{}] from file [{}] was ignored because it uses a custom skeleton!", aRace->GetFormID(), aRace->GetFormEditorID(),
                        aRace->GetFile(0)->GetFilename());
@@ -209,7 +214,7 @@ bool TngCore::CheckRace(RE::TESRace* aRace) {
 }
 
 bool TngCore::UpdateAddonsForRace(RE::TESRace* aRace, const int aChoice) noexcept {
-  int lAddCount = TngSizeShape::GetAddonCount(false);
+  auto lAddCount = TngSizeShape::GetAddonCount(false);
   RE::TESObjectARMA* lRes{nullptr};
   for (int i = 0; i < lAddCount; i++) {
     auto lGenital = TngSizeShape::GetAddonAt(false, i);
@@ -616,6 +621,7 @@ bool TngCore::SwapRevealing(RE::TESObjectARMO* aArmor) noexcept {
     aArmor->AddKeyword(fACKey);
     TngInis::RemoveRevealingArmor(aArmor);
   }
+  return true;
 }
 
 void TngCore::CoverByArmor(RE::TESObjectARMO* aArmor) noexcept {

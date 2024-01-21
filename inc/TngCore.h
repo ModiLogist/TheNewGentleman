@@ -59,7 +59,7 @@ class TngCore : public Singleton<TngCore> {
         0,  // TNG_GenitalAfflicted
         0,  // TNG_GenitalSnowElf
     };
-    inline static constexpr std::string cRaceNames[cVanillaRaceTypes][2]{
+    inline static std::string cRaceNames[cVanillaRaceTypes][2]{
         {"Nord", "nord"},   {"Redguard", "redguard"}, {"Breton", "Reachmen"}, {"Imperial", "imperial"}, {"Altmer", "HighElf"}, {"Bosmer", "WoodElf"},      {"Dunmer", "DarkElf"},
         {"Orsimer", "Orc"}, {"Saxhleel", "Argonian"}, {"Khajiit", "Rhat"},    {"Dremora", "dremora"},   {"Elder", "elder"},    {"Afflicted", "afflicted"}, {"SnowElf", "Falmer"}};
 
@@ -124,6 +124,7 @@ class TngCore : public Singleton<TngCore> {
     inline static RE::BGSKeyword* fBstKey;
     inline static RE::BGSKeyword* fCrtKey;
     inline static RE::TESRace* fDefRace;
+    inline static RE::TESRace* fBeastDef;
     inline static RE::BSTArray<RE::TESNPC*> fAllNPCs;
     inline static RE::TESRace* fBaseRaces[cVanillaRaceTypes];    
     inline static RE::TESRace* fEqRaces[cEqRaceTypes];

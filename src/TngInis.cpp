@@ -175,7 +175,7 @@ void TngInis::SaveRaceMult(const std::size_t aRaceIdx, const float aRaceMult) no
 }
 
 void TngInis::SaveRaceShape(const std::size_t aRaceIdx, const int aRaceShape) noexcept {
-  if ((aRaceShape < 0) && (aRaceShape + 1 > TngSizeShape::GetAddonCount(false))) {
+  if ((aRaceShape < 0) && (static_cast<std::size_t>(aRaceShape) + 1 > TngSizeShape::GetAddonCount(false))) {
     Tng::gLogger::error("Failed to set the race genital addon to {}! There are only {} addons.", aRaceShape, TngSizeShape::GetAddonCount(false));
     return;
   }
@@ -265,7 +265,7 @@ void TngInis::SaveGlobals() noexcept {
   lIni.SetUnicode();
   lIni.LoadFile(cSettings);
   for (int i = 0; i < Tng::cSizeCategories; i++) lIni.SetDoubleValue(cGlobalSize, cSizeNames[i], TngSizeShape::GetGlobalSize(i));
-  lIni.SetBoolValue(cControls, cINTCtrl, fINTCtrl->value > 1);
+  lIni.SetBoolValue(cControls, cINTCtrl, fINTCtrl->value > 1.0f);
   lIni.SetLongValue(cControls, cNPCCtrl, static_cast<int>(fNPCCtrl->value));
   lIni.SetLongValue(cControls, cUPGCtrl, static_cast<int>(fUPGCtrl->value));
   lIni.SetLongValue(cControls, cDOWCtrl, static_cast<int>(fDOWCtrl->value));
@@ -274,12 +274,12 @@ void TngInis::SaveGlobals() noexcept {
   lIni.SaveFile(cSettings);
 }
 
-bool TngInis::IsValidSkeleton(RE::BSFixedString aModel, RE::BSFixedString aDefModels[2]) noexcept {
-  static std::set<RE::BSFixedString> lValidSkeletons;
-  if (lValidSkeletons.size() != 0) return lValidSkeletons.find(aModel) != lValidSkeletons.end();
-  lValidSkeletons.insert(aDefModels[0]);
-  lValidSkeletons.insert(aDefModels[0]);
-  if (!std::filesystem::exists(cTngInisPath)) return lValidSkeletons.find(aModel) != lValidSkeletons.end();
+void TngInis::UpdateValidSkeletons(std::set<std::string> aValidSkeletons) noexcept {
+  for (const auto& lModel : aValidSkeletons) fValidSkeletons.insert(lModel);
+}
+
+bool TngInis::IsValidSkeleton(std::string aModel) noexcept {
+  if (!std::filesystem::exists(cTngInisPath)) return (fValidSkeletons.find(aModel) != fValidSkeletons.end());
   for (const auto& entry : std::filesystem::directory_iterator(cTngInisPath)) {
     std::string lFileName = entry.path().filename().string();
     if (IsTngIni(lFileName)) {
@@ -293,20 +293,20 @@ bool TngInis::IsValidSkeleton(RE::BSFixedString aModel, RE::BSFixedString aDefMo
         lIni.GetAllValues(cSkinSection, cSkinMod, lSkeletons);
         CSimpleIniA::TNamesDepend::const_iterator lSkeleton;
         for (lSkeleton = lSkeletons.begin(); lSkeleton != lSkeletons.end(); lSkeleton++) {
-          const RE::BSFixedString lModel(lSkeleton->pItem);
-          lValidSkeletons.insert(lModel);
+          const std::string lModel(lSkeleton->pItem);
+          fValidSkeletons.insert(lModel);
         }
       }
     }
   }
-  return lValidSkeletons.find(aModel) != lValidSkeletons.end();
+  return fValidSkeletons.find(aModel) != fValidSkeletons.end();
 }
 
 void TngInis::LoadModRecodPairs(CSimpleIniA::TNamesDepend aModRecords, std::set<std::pair<std::string, RE::FormID>>& aField) noexcept {
   CSimpleIniA::TNamesDepend::const_iterator lEntry;
   for (lEntry = aModRecords.begin(); lEntry != aModRecords.end(); lEntry++) {
     const std::string lModRecord(lEntry->pItem);
-    aField.insert(std::make_pair(StrToRecord(lModRecord).first, StrToRecord(lModRecord).second));
+    aField.insert(std::make_pair<std::string,RE::FormID>(StrToRecord(lModRecord).first, StrToRecord(lModRecord).second));
   }
 }
 
@@ -321,5 +321,6 @@ bool TngInis::UpdateRevealing(const std::string aArmorRecod) noexcept {
     Tng::gLogger::info("Previously marked revealing armor from mod {} does not exist anymore!", StrToRecord(aArmorRecod).first);
     return false;
   }
-  fRunTimeRevealingIDs.insert(std::make_pair(StrToRecord(aArmorRecod).first, StrToRecord(aArmorRecod).second));
+  fRunTimeRevealingIDs.insert(std::make_pair<std::string, RE::FormID>(StrToRecord(aArmorRecod).first, StrToRecord(aArmorRecod).second));
+  return true;
 }

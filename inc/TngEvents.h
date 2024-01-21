@@ -2,7 +2,7 @@
 
 class TngEvents : public RE::BSTEventSink<RE::TESObjectLoadedEvent>, public RE::BSTEventSink<RE::TESEquipEvent> {
   private:
-    RE::TESDataHandler* fDH = RE::TESDataHandler::GetSingleton();
+    RE::TESDataHandler* fDH;
     inline static RE::BGSKeyword* fPRaceKey;
     inline static RE::BGSKeyword* fCCKey;
     inline static RE::BGSKeyword* fACKey;

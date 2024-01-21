@@ -24,6 +24,7 @@ bool TngSizeShape::Init() noexcept {
       return false;
     }
   }
+  return true;
 }
 
 void TngSizeShape::LoadAddons() noexcept {
@@ -40,7 +41,7 @@ void TngSizeShape::LoadAddons() noexcept {
   }
 }
 
-int TngSizeShape::GetAddonCount(bool aIsFemale) noexcept {
+std::size_t TngSizeShape::GetAddonCount(bool aIsFemale) noexcept {
   auto lAddLst = aIsFemale ? fFemAddLst : fMalAddLst;
   if (!lAddLst) return 0;
   return lAddLst->forms.size();
@@ -84,7 +85,7 @@ bool TngSizeShape::LoadNPCShape(const std::string aNPCRecord, const std::string 
   auto lKwIt = std::find_if(lAllKws.begin(), lAllKws.end(), [&](const auto &kw) { return kw && kw->formEditorID == lReqKw.c_str(); });
   RE::BGSKeyword *lKw{nullptr};
   if (lKwIt != lAllKws.end()) {
-    const auto lKw = *lKwIt;
+    lKw = *lKwIt;
   } else {
     const auto lFactory = RE::IFormFactory::GetConcreteFormFactoryByType<RE::BGSKeyword>();
     if (lKw = lFactory ? lFactory->Create() : nullptr; lKw) {
@@ -105,11 +106,11 @@ bool TngSizeShape::LoadNPCShape(const std::string aNPCRecord, const std::string 
 bool TngSizeShape::LoadRaceMult(const std::string aRaceRecord, const int aSize100) noexcept {
   auto lRace = LoadForm<RE::TESRace>(aRaceRecord);
   if (!lRace) {
-    Tng::gLogger::error("A previously saved race {} cannot be found anymore! It's information is removed from ini file.");
+    Tng::gLogger::error("A previously saved race cannot be found anymore! It's information is removed from ini file.");
     return false;
   }
   SetRaceMult(lRace, static_cast<float>(aSize100 / 100.0f));
-  auto lRaceEntry = std::find_if(fRaceInfo.begin(), fRaceInfo.end(), [&lRace](const std::pair<std::string_view, int> &p) { return p.first == lRace->GetName(); });
+  auto lRaceEntry = std::find_if(fRaceInfo.begin(), fRaceInfo.end(), [&lRace](const std::pair<std::string, std::set<RE::TESRace*>> &p) { return p.first == lRace->GetName(); });
   if (lRaceEntry == fRaceInfo.end())
     fRaceInfo.push_back(std::make_pair<std::string, std::set<RE::TESRace *>>(lRace->GetName(), std::set<RE::TESRace *>{lRace}));
   else
@@ -120,12 +121,12 @@ bool TngSizeShape::LoadRaceMult(const std::string aRaceRecord, const int aSize10
 bool TngSizeShape::LoadRaceShape(const std::string aRaceRecord, const std::string aShapeRecord) noexcept {
   auto lRace = LoadForm<RE::TESRace>(aRaceRecord);
   if (!lRace) {
-    Tng::gLogger::error("A previously saved race {} cannot be found anymore! It's information is removed from ini file.");
+    Tng::gLogger::error("A previously saved race cannot be found anymore! It's information is removed from ini file.");
     return false;
   }
   auto lShape = LoadForm<RE::TESObjectARMO>(aShapeRecord);
   if (!lShape) {
-    Tng::gLogger::error("A previously saved addon {} for race {} cannot be found anymore! It's information is removed from ini file.");
+    Tng::gLogger::error("A previously saved addon cannot be found anymore! It's information is removed from ini file.");
     return false;
   }
   auto lIdx = FindInFormList(lShape, fMalAddLst);
@@ -172,7 +173,7 @@ bool TngSizeShape::SetRaceMult(RE::TESRace *aRace, const float aMult) noexcept {
   auto lKwIt = std::find_if(lAllKws.begin(), lAllKws.end(), [&](const auto &kw) { return kw && kw->formEditorID == lReqKw.c_str(); });
   RE::BGSKeyword *lKw{nullptr};
   if (lKwIt != lAllKws.end()) {
-    const auto lKw = *lKwIt;
+    lKw = *lKwIt;
   } else {
     const auto lFactory = RE::IFormFactory::GetConcreteFormFactoryByType<RE::BGSKeyword>();
     if (lKw = lFactory ? lFactory->Create() : nullptr; lKw) {
@@ -215,7 +216,7 @@ void TngSizeShape::SetRaceShape(RE::TESRace *aRace, int aRaceShape) noexcept {
     return;
   }
   auto &lAllKws = fDH->GetFormArray<RE::BGSKeyword>();
-  int lRaceShape = static_cast<int>(aRaceShape);
+  auto lRaceShape = static_cast<std::size_t>(aRaceShape);
   if ((fMalAddLst->forms.size() < lRaceShape) || (lRaceShape < 0)) {
     Tng::gLogger::critical("Cannot set the race {} to use addon {}! There are only {} addons.", aRace->GetFormEditorID(), lRaceShape + 1, fMalAddLst->forms.size());
     lRaceShape = 0;
@@ -224,7 +225,7 @@ void TngSizeShape::SetRaceShape(RE::TESRace *aRace, int aRaceShape) noexcept {
   auto lKwIt = std::find_if(lAllKws.begin(), lAllKws.end(), [&](const auto &kw) { return kw && kw->formEditorID == lReqKw.c_str(); });
   RE::BGSKeyword *lKw{nullptr};
   if (lKwIt != lAllKws.end()) {
-    const auto lKw = *lKwIt;
+    lKw = *lKwIt;
   } else {
     const auto lFactory = RE::IFormFactory::GetConcreteFormFactoryByType<RE::BGSKeyword>();
     if (lKw = lFactory ? lFactory->Create() : nullptr; lKw) {
@@ -239,7 +240,7 @@ void TngSizeShape::SetRaceShape(RE::TESRace *aRace, int aRaceShape) noexcept {
     if (lExistingKw->formEditorID.contains(cRaceShape)) aRace->RemoveKeyword(lExistingKw);
   }
   aRace->AddKeyword(lKw);
-  auto lRaceEntry = std::find_if(fRaceInfo.begin(), fRaceInfo.end(), [&aRace](const std::pair<std::string_view, int> &p) { return p.first == aRace->GetName(); });
+  auto lRaceEntry = std::find_if(fRaceInfo.begin(), fRaceInfo.end(), [&aRace](const std::pair<std::string_view, std::set<RE::TESRace*>> &p) { return p.first == aRace->GetName(); });
   if (lRaceEntry == fRaceInfo.end())
     fRaceInfo.push_back(std::make_pair<std::string, std::set<RE::TESRace *>>(aRace->GetName(), std::set<RE::TESRace *>{aRace}));
   else
@@ -255,10 +256,11 @@ bool TngSizeShape::SetRaceMult(const std::size_t aRaceIdx, const float aMult) no
   if (fRaceInfo.size() <= aRaceIdx) return false;
   if (aMult < 0.1f || aMult >= 10.0f) return false;
   for (const auto &lRace : fRaceInfo[aRaceIdx].second) SetRaceMult(lRace, aMult);
+  return true;
 }
 
 int TngSizeShape::GetRaceShape(const std::size_t aRaceIdx) noexcept {
-  if (fRaceInfo.size() <= aRaceIdx) return -1.0f;
+  if (fRaceInfo.size() <= aRaceIdx) return -1;
   return GetRaceShape(*fRaceInfo[aRaceIdx].second.begin());
 }
 
@@ -368,9 +370,9 @@ std::vector<std::string> TngSizeShape::GetAllPossibleAddons(RE::Actor *aActor) n
   }
   return lRes;
 }
-RE::TESObjectARMO *TngSizeShape::GetAddonAt(bool aIsFemale, int aIdx) noexcept {
+RE::TESObjectARMO *TngSizeShape::GetAddonAt(bool aIsFemale, uint32_t aIdx) noexcept {
   auto lAddLst = aIsFemale ? fFemAddLst : fMalAddLst;
-  if (aIdx > lAddLst->forms.size() - 1) return nullptr;
+  if (aIdx >= lAddLst->forms.size()) return nullptr;
   return lAddLst->forms[aIdx]->As<RE::TESObjectARMO>();
 }
 
@@ -386,22 +388,23 @@ void TngSizeShape::ScaleGenital(RE::Actor *aActor, RE::TESGlobal *aGlobal) noexc
   aScrtNode->local.scale = 1.0f / lScale;
 }
 
-bool TngSizeShape::ResetGenital(RE::TESNPC *aNPC) noexcept {
+Tng::TNGRes TngSizeShape::ResetGenital(RE::TESNPC *aNPC) noexcept {
   auto lSkin = aNPC->skin;
-  if (!lSkin) return true;
-  if (lSkin == aNPC->race->skin) return true;
-  if (!lSkin->HasKeyword(fCustomSkin)) return true;
+  if (!lSkin) return aNPC->IsFemale() ? Tng::resOkNoGen : Tng::resOkGen;
+  if (lSkin == aNPC->race->skin) aNPC->IsFemale() ? Tng::resOkNoGen : Tng::resOkGen;
+  if (!lSkin->HasKeyword(fCustomSkin)) return (!aNPC->IsFemale() || lSkin->HasKeyword(fSkinWithPenisKey)) ? Tng::resOkGen : Tng::resOkNoGen;
   for (const auto &lKw : lSkin->GetKeywords()) {
     const std::string lKwStr(lKw->formEditorID);
     if (lKwStr.starts_with(cShapeSkin)) {
       const size_t lLen = lKwStr.find(Tng::cColonChar) - strlen(cShapeSkin);
       std::string lOgSkinRec = lKwStr.substr(strlen(cShapeSkin), lLen);
       auto lOgSKin = LoadForm<RE::TESObjectARMO>(lOgSkinRec);
-      if (!lOgSKin) return false;
+      if (!lOgSKin) return Tng::pgErr;
       aNPC->skin = lOgSKin;
-      return true;
+      return (!aNPC->IsFemale() || lOgSKin->HasKeyword(fSkinWithPenisKey)) ? Tng::resOkGen : Tng::resOkNoGen;
     }
   }
+  return Tng::pgErr;
 }
 
 bool TngSizeShape::SetNPCGenital(RE::TESNPC *aNPC, RE::TESObjectARMO *aGenital, int aChoice) noexcept {
@@ -431,12 +434,13 @@ bool TngSizeShape::SetNPCGenital(RE::TESNPC *aNPC, RE::TESObjectARMO *aGenital, 
   fDH->GetFormArray<RE::TESObjectARMO>().push_back(lSkin);
   fSkinFactory.insert(lSkin);
   aNPC->skin = lSkin;
+  return true;
 }
 
 int TngSizeShape::FindInFormList(RE::TESForm *aForm, RE::BGSListForm *aList) noexcept {
   if (!aForm || !aList) return -1;
   if (!aList->HasForm(aForm)) return -1;
-  for (int i = 0; i < aList->forms.size(); i++)
+  for (uint32_t i = 0; i < aList->forms.size(); i++)
     if (aList->forms[i]->formID == aForm->formID) return i;
   return -1;
 }

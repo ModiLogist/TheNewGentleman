@@ -57,6 +57,7 @@ class TngInis : public Singleton<TngInis> {
     inline static RE::TESGlobal* fREVCtrl;
     inline static RE::TESGlobal* fINTCtrl;
     inline static RE::TESGlobal* fWomenChance;
+    inline static std::set<std::string> fValidSkeletons;
 
   public:
     inline static std::set<std::string> fSkinMods;
@@ -79,7 +80,8 @@ class TngInis : public Singleton<TngInis> {
     static void RemoveRevealingArmor(RE::TESObjectARMO* aArmor) noexcept;
     static void SaveBool(int aID, bool aValue) noexcept;
     static void SaveGlobals() noexcept;
-    static bool IsValidSkeleton(RE::BSFixedString aModel, RE::BSFixedString aDefModels[2]) noexcept;
+    static void UpdateValidSkeletons(std::set<std::string> aValidSkeletons) noexcept;
+    static bool IsValidSkeleton(std::string aModel) noexcept;
 
   private:
     static void LoadModRecodPairs(CSimpleIniA::TNamesDepend aModRecords, std::set<std::pair<std::string, RE::FormID>>& aField) noexcept;

@@ -5,13 +5,18 @@
 #include <TngSizeShape.h>
 bool CheckIncompatiblity() {
   if (GetModuleHandle(L"Data\\SKSE\\Plugins\\acon.dll")) {
-    RE::DebugMessageBox("Warning: TNG is not compatible with acon.dll. Please don't use it with mods from that website!"); 
+    RE::DebugMessageBox("Warning: TNG is not compatible with acon.dll. Please don't use TNG with mods from that website!");
     return false;
   }
   return true;
 }
 
-  void InitializeLogging(const SKSE::PluginDeclaration* aPlugin) {
+void IssueWarning() {
+  Tng::gLogger::error("TheNewGentleman did not initialize successfully!");
+  RE::DebugMessageBox("$TNG_E_0");
+}
+
+void InitializeLogging(const SKSE::PluginDeclaration* aPlugin) {
   auto lPath{Tng::gLogger::log_directory()};
   if (!lPath) {
     SKSE::stl::report_and_fail("Unable to lookup SKSE logs directory.");
@@ -35,12 +40,14 @@ void EventListener(SKSE::MessagingInterface::Message* aMessage) noexcept {
     if (TngSizeShape::Init()) {
       TngSizeShape::LoadAddons();
     } else {
+      IssueWarning();
       return;
     }
     if (TngInis::Init()) {
       TngInis::LoadMainIni();
       TngInis::LoadTngInis();
     } else {
+      IssueWarning();
       return;
     }
     if (TngCore::Initialize()) {
@@ -50,7 +57,7 @@ void EventListener(SKSE::MessagingInterface::Message* aMessage) noexcept {
       Tng::gLogger::info("TheNewGentleman finished initialization.");
       TngEvents::RegisterEvents();
     } else {
-      Tng::gLogger::error("TheNewGentleman did not initialize successfully!");
+      IssueWarning();
       return;
     }
   }

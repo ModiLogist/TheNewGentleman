@@ -6,18 +6,18 @@
 void TngEvents::RegisterEvents() noexcept {
   const auto lSourceHolder = RE::ScriptEventSourceHolder::GetSingleton();
   RE::TESDataHandler* fDH = RE::TESDataHandler::GetSingleton();
-  static RE::BGSKeyword* fPRaceKey = fDH->LookupForm<RE::BGSKeyword>(Tng::cProcessedRaceKeyID, Tng::cName);
-  static RE::BGSKeyword* fCCKey = fDH->LookupForm<RE::BGSKeyword>(Tng::cCoveringKeyID, Tng::cName);
-  static RE::BGSKeyword* fACKey = fDH->LookupForm<RE::BGSKeyword>(Tng::cAutoCoverKeyID, Tng::cName);
-  static RE::BGSKeyword* fARKey = fDH->LookupForm<RE::BGSKeyword>(Tng::cAutoRvealKeyID, Tng::cName);
-  static RE::BGSKeyword* fRRKey = fDH->LookupForm<RE::BGSKeyword>(Tng::cRevealingKeyID, Tng::cName);
-  static RE::BGSKeyword* fPAKey = fDH->LookupForm<RE::BGSKeyword>(Tng::cProblemArmoKeyID, Tng::cName);
-  static RE::BGSKeyword* fIAKey = fDH->LookupForm<RE::BGSKeyword>(Tng::cIgnoredArmoKeyID, Tng::cName);
-  static RE::BGSKeyword* fUAKey = fDH->LookupForm<RE::BGSKeyword>(Tng::cUnderwearKeyID, Tng::cName);
-  static RE::BGSKeyword* fGWKey = fDH->LookupForm<RE::BGSKeyword>(Tng::cGentleWomanKeyID, Tng::cName);
-  static RE::BGSKeyword* fPSKey = fDH->LookupForm<RE::BGSKeyword>(Tng::cSkinWithPenisKeyID, Tng::cName);
-  static RE::TESGlobal* fGWChance = fDH->LookupForm<RE::TESGlobal>(Tng::cWomenChanceID, Tng::cName);
-  static RE::BGSListForm* fGentified = fGentified ? fGentified : fDH->LookupForm<RE::BGSListForm>(Tng::cGentifiedID, Tng::cName);
+  fPRaceKey = fDH->LookupForm<RE::BGSKeyword>(Tng::cProcessedRaceKeyID, Tng::cName);
+  fCCKey = fDH->LookupForm<RE::BGSKeyword>(Tng::cCoveringKeyID, Tng::cName);
+  fACKey = fDH->LookupForm<RE::BGSKeyword>(Tng::cAutoCoverKeyID, Tng::cName);
+  fARKey = fDH->LookupForm<RE::BGSKeyword>(Tng::cAutoRvealKeyID, Tng::cName);
+  fRRKey = fDH->LookupForm<RE::BGSKeyword>(Tng::cRevealingKeyID, Tng::cName);
+  fPAKey = fDH->LookupForm<RE::BGSKeyword>(Tng::cProblemArmoKeyID, Tng::cName);
+  fIAKey = fDH->LookupForm<RE::BGSKeyword>(Tng::cIgnoredArmoKeyID, Tng::cName);
+  fUAKey = fDH->LookupForm<RE::BGSKeyword>(Tng::cUnderwearKeyID, Tng::cName);
+  fGWKey = fDH->LookupForm<RE::BGSKeyword>(Tng::cGentleWomanKeyID, Tng::cName);
+  fPSKey = fDH->LookupForm<RE::BGSKeyword>(Tng::cSkinWithPenisKeyID, Tng::cName);
+  fGWChance = fDH->LookupForm<RE::TESGlobal>(Tng::cWomenChanceID, Tng::cName);
+  fGentified = fGentified ? fGentified : fDH->LookupForm<RE::BGSListForm>(Tng::cGentifiedID, Tng::cName);
   if (!(fPRaceKey && fCCKey && fACKey && fARKey && fRRKey && fPAKey && fIAKey && fUAKey && fGWKey && fGWKey && fPSKey && fGWChance && fGentified)) {
     Tng::gLogger::critical("Failed to register events. There might be functionality issues. Please report this issue.");
     return;
