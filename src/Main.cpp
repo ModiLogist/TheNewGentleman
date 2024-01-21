@@ -3,6 +3,13 @@
 #include <TngCore.h>
 #include <TngEvents.h>
 #include <TngPapyrus.h>
+bool CheckIncompatiblity() {
+  if (GetModuleHandle(L"Data\\SKSE\\Plugins\\acon.dll")) {
+    RE::DebugMessageBox("Warning: TNG is not compatible with acon.dll. Please don't use it with mods from that website!"); 
+    return false;
+  }
+  return true;
+}
 
 
 void InitializeLogging(const SKSE::PluginDeclaration* aPlugin) {
@@ -27,6 +34,7 @@ void EventListener(SKSE::MessagingInterface::Message* aMessage) noexcept {
   if (aMessage->type == SKSE::MessagingInterface::kDataLoaded) {
     if (!TngSizeShape::LoadAddons()) return;
     if (!TngInis::LoadMainIni()) return;
+    if (!CheckIncompatiblity()) return;
     if (TngCore::Initialize()) {
       TngCore::GenitalizeRaces();
       TngCore::GenitalizeNPCSkins();
