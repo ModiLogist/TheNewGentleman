@@ -26,17 +26,19 @@ void TngInis::LoadMainIni() noexcept {
   CSimpleIniA lIni;
   lIni.SetUnicode();
   lIni.LoadFile(cSettings);
-  for (int i = 0; i < Tng::cSizeCategories; i++) {
-    TngSizeShape::SetGlobalSize(i, static_cast<float>(lIni.GetDoubleValue(cGlobalSize, cSizeNames[i], 1.0)));
+  if (lIni.SectionExists(cGlobalSize)) {
+    for (int i = 0; i < Tng::cSizeCategories; i++) {
+      TngSizeShape::SetGlobalSize(i, static_cast<float>(lIni.GetDoubleValue(cGlobalSize, cSizeNames[i], 1.0)));
+    }
   }
   if (lIni.SectionExists(cRacialGenital)) {
     CSimpleIniA::TNamesDepend lRaceRecords;
     CSimpleIniA::TNamesDepend::const_iterator lEntry;
     lIni.GetAllKeys(cRacialGenital, lRaceRecords);
     for (lEntry = lRaceRecords.begin(); lEntry != lRaceRecords.end(); lEntry++) {
-      std::string lShape = lIni.GetValue(cRacialGenital, lEntry->pItem);
+      std::string lAddon = lIni.GetValue(cRacialGenital, lEntry->pItem);
       const std::string lRaceRecord(lEntry->pItem);
-      if (!TngSizeShape::LoadRaceShape(lRaceRecord, lShape)) lIni.Delete(cRacialGenital, lEntry->pItem);
+      if (!TngSizeShape::LoadRaceAddn(lRaceRecord, lAddon)) lIni.Delete(cRacialGenital, lEntry->pItem);
     }
   }
   if (lIni.SectionExists(cRacialSize)) {
@@ -46,7 +48,7 @@ void TngInis::LoadMainIni() noexcept {
     for (lEntry = lRaceRecords.begin(); lEntry != lRaceRecords.end(); lEntry++) {
       auto lMult100 = lIni.GetLongValue(cRacialSize, lEntry->pItem);
       const std::string lRaceRecord(lEntry->pItem);
-      if (!TngSizeShape::LoadRaceMult(lRaceRecord, lMult100)) lIni.Delete(cRacialGenital, lEntry->pItem);
+      if (!TngSizeShape::LoadRaceMult(lRaceRecord, lMult100)) lIni.Delete(cRacialSize, lEntry->pItem);
     }
   }
   if (lIni.SectionExists(cNPCSizeSection)) {
@@ -56,17 +58,26 @@ void TngInis::LoadMainIni() noexcept {
     for (lEntry = lSizeRecords.begin(); lEntry != lSizeRecords.end(); lEntry++) {
       auto lSize = lIni.GetLongValue(cNPCSizeSection, lEntry->pItem);
       const std::string lNPCRecord(lEntry->pItem);
-      if (!TngSizeShape::LoadNPCSize(lNPCRecord, lSize)) lIni.Delete(cRacialGenital, lEntry->pItem);
+      if (!TngSizeShape::LoadNPCSize(lNPCRecord, lSize)) lIni.Delete(cNPCSizeSection, lEntry->pItem);
     }
   }
-  if (lIni.SectionExists(cNPCShapeSection)) {
-    CSimpleIniA::TNamesDepend lShapeRecords;
+  if (lIni.SectionExists(cNPCAddnSection)) {
+    CSimpleIniA::TNamesDepend lAddonRecords;
     CSimpleIniA::TNamesDepend::const_iterator lEntry;
-    lIni.GetAllKeys(cNPCShapeSection, lShapeRecords);
-    for (lEntry = lShapeRecords.begin(); lEntry != lShapeRecords.end(); lEntry++) {
-      std::string lShape = lIni.GetValue(cNPCShapeSection, lEntry->pItem);
+    lIni.GetAllKeys(cNPCAddnSection, lAddonRecords);
+    for (lEntry = lAddonRecords.begin(); lEntry != lAddonRecords.end(); lEntry++) {
+      std::string lAddon = lIni.GetValue(cNPCAddnSection, lEntry->pItem);
       const std::string lNPCRecord(lEntry->pItem);
-      if (!TngSizeShape::LoadNPCShape(lNPCRecord, lShape)) lIni.Delete(cRacialGenital, lEntry->pItem);
+      if (!TngSizeShape::LoadNPCAddn(lNPCRecord, lAddon)) lIni.Delete(cNPCAddnSection, lEntry->pItem);
+    }
+  }
+  if (lIni.SectionExists(cExcludeSection)) {
+    CSimpleIniA::TNamesDepend lExRecords;
+    CSimpleIniA::TNamesDepend::const_iterator lEntry;
+    lIni.GetAllKeys(cExcludeSection, lExRecords);
+    for (lEntry = lExRecords.begin(); lEntry != lExRecords.end(); lEntry++) {
+      const std::string lNPCRecord(lEntry->pItem);
+      TngSizeShape::ExcludeNPC(lNPCRecord);
     }
   }
   if (lIni.SectionExists(cRevealingRecord)) {
@@ -95,27 +106,36 @@ void TngInis::LoadTngInis() noexcept {
   for (const auto& entry : std::filesystem::directory_iterator(cTngInisPath)) {
     std::string lFileName = entry.path().filename().string();
     if (IsTngIni(lFileName)) {
-      Tng::gLogger::info("\tFound ini file {}:", lFileName);
       CSimpleIniA lIni;
       lIni.SetUnicode();
       lIni.SetMultiKey();
       lIni.LoadFile(entry.path().string().c_str());
+      if (lIni.KeyExists(cSkeleton, cValidModel)) {
+        CSimpleIniA::TNamesDepend lSkeletons;
+        lIni.GetAllValues(cSkeleton, cValidModel, lSkeletons);
+        CSimpleIniA::TNamesDepend::const_iterator lSkeleton;
+        for (lSkeleton = lSkeletons.begin(); lSkeleton != lSkeletons.end(); lSkeleton++) {
+          const std::string lModel(lSkeleton->pItem);
+          fValidSkeletons.insert(lModel);
+        }
+        Tng::gLogger::info("\t\t- Found [{}] skeleton models in ini file [{}].", lSkeletons.size(), lFileName);
+      }
       if (lIni.SectionExists(cSkinSection)) {
         if (lIni.KeyExists(cSkinSection, cSkinMod)) {
           CSimpleIniA::TNamesDepend lMods;
           lIni.GetAllValues(cSkinSection, cSkinMod, lMods);
-
           CSimpleIniA::TNamesDepend::const_iterator lMod;
           for (lMod = lMods.begin(); lMod != lMods.end(); lMod++) {
             const std::string lModName(lMod->pItem);
             fSkinMods.insert(lModName);
           }
+          Tng::gLogger::info("\t\t- Found [{}] skin mods in ini file [{}].", lMods.size(), lFileName);
         }
         if (lIni.KeyExists(cSkinSection, cSkinRecord)) {
           CSimpleIniA::TNamesDepend lModRecords;
           lIni.GetAllValues(cSkinSection, cSkinRecord, lModRecords);
           LoadModRecodPairs(lModRecords, fSingleSkinIDs);
-          Tng::gLogger::info("\t\t- Found skin records in ini file [{}].", lFileName);
+          Tng::gLogger::info("\t\t- Found [{}] skin records in ini file [{}].", lModRecords.size(), lFileName);
         }
       }
       if (lIni.SectionExists(cArmorSection)) {
@@ -126,18 +146,19 @@ void TngInis::LoadTngInis() noexcept {
             const std::string lModName(lMod.pItem);
             fRevealingMods.insert(lModName);
           }
+          Tng::gLogger::info("\t\t- Found [{}] revealing mods in ini file [{}].", lMods.size(), lFileName);
         }
         if (lIni.KeyExists(cArmorSection, cRevealingRecord)) {
           CSimpleIniA::TNamesDepend lModRecords;
-          lIni.GetAllValues(cArmorSection, cRevealingMod, lModRecords);
+          lIni.GetAllValues(cArmorSection, cRevealingRecord, lModRecords);
           LoadModRecodPairs(lModRecords, fSingleRevealingIDs);
-          Tng::gLogger::info("\t\t- Found revealing records in ini file [{}].", lFileName);
+          Tng::gLogger::info("\t\t- Found [{}] revealing records in ini file [{}].", lModRecords.size(), lFileName);
         }
         if (lIni.KeyExists(cArmorSection, cCoveringRecord)) {
           CSimpleIniA::TNamesDepend lModRecords;
           lIni.GetAllValues(cArmorSection, cCoveringRecord, lModRecords);
           LoadModRecodPairs(lModRecords, fSingleCoveringIDs);
-          Tng::gLogger::info("\t\t- Found covering records in ini file [{}].", lFileName);
+          Tng::gLogger::info("\t\t- Found [{}] covering records in ini file [{}].", lModRecords.size(), lFileName);
         }
       }
     } else {
@@ -174,38 +195,44 @@ void TngInis::SaveRaceMult(const std::size_t aRaceIdx, const float aRaceMult) no
   lIni.SaveFile(cSettings);
 }
 
-void TngInis::SaveRaceShape(const std::size_t aRaceIdx, const int aRaceShape) noexcept {
-  if ((aRaceShape < 0) && (static_cast<std::size_t>(aRaceShape) + 1 > TngSizeShape::GetAddonCount(false))) {
-    Tng::gLogger::error("Failed to set the race genital addon to {}! There are only {} addons.", aRaceShape, TngSizeShape::GetAddonCount(false));
-    return;
-  }
+void TngInis::SaveRaceAddn(const std::size_t aRaceIdx, int aChoice) noexcept {
   CSimpleIniA lIni;
   lIni.SetUnicode();
   lIni.LoadFile(cSettings);
   for (const auto& lRace : TngSizeShape::GetRacesByIdx(aRaceIdx)) {
     auto lRaceIDStr = RecordToStr(lRace);
     if (lRaceIDStr == "") continue;
-    if (aRaceShape == -1) {
+    if (aChoice == -2) {
       lIni.Delete(cRacialGenital, lRaceIDStr.c_str());
-      continue;
+    } else {
+      auto lAddon = TngSizeShape::GetAddonAt(false, aChoice);
+      auto lGenIDStr = RecordToStr(lAddon);
+      lIni.SetValue(cRacialGenital, lRaceIDStr.c_str(), lGenIDStr.c_str());
     }
-    auto lGenIDStr = RecordToStr(TngSizeShape::GetAddonAt(false, aRaceShape));
-    lIni.SetValue(cRacialGenital, lRaceIDStr.c_str(), lGenIDStr.c_str());
   }
   lIni.SaveFile(cSettings);
 }
 
-void TngInis::SaveActorShape(RE::TESNPC* aNPC, int aGenShape) noexcept {
-  if (aGenShape == -1) return;
+void TngInis::SaveNPCAddn(RE::TESNPC* aNPC, int aChoice) noexcept {
   auto lNPCIDStr = RecordToStr(aNPC);
   if (lNPCIDStr == "") return;
   CSimpleIniA lIni;
   lIni.SetUnicode();
   lIni.LoadFile(cSettings);
-  if (aGenShape == -2) lIni.Delete(cNPCShapeSection, lNPCIDStr.c_str());
-  if (aGenShape > -1) {
-    auto lGenIDStr = RecordToStr(TngSizeShape::GetAddonAt(false, aGenShape));
-    lIni.SetValue(cNPCShapeSection, lNPCIDStr.c_str(), lGenIDStr.c_str());
+  switch (aChoice) {
+    case -2:
+      lIni.Delete(cNPCAddnSection, lNPCIDStr.c_str());
+      break;
+    case -3:
+      lIni.Delete(cNPCAddnSection, lNPCIDStr.c_str());
+      lIni.SetBoolValue(cExcludeSection, lNPCIDStr.c_str(), true);
+      break;
+    default:
+      auto lAddon = TngSizeShape::GetAddonAt(aNPC->IsFemale(), aChoice);
+      auto lGenIDStr = RecordToStr(lAddon);
+      lIni.SetValue(cNPCAddnSection, lNPCIDStr.c_str(), lGenIDStr.c_str());
+      if (lIni.KeyExists(cExcludeSection, lNPCIDStr.c_str())) lIni.Delete(cExcludeSection, lNPCIDStr.c_str());
+      break;
   }
   lIni.SaveFile(cSettings);
 }
@@ -250,10 +277,13 @@ void TngInis::SaveBool(int aID, bool aValue) noexcept {
   switch (aID) {
     case 1:
       lIni.SetBoolValue(cAutoReveal, cFAutoReveal, aValue);
+      break;
     case 2:
       lIni.SetBoolValue(cAutoReveal, cMAutoReveal, aValue);
+      break;
     case 3:
       lIni.SetBoolValue(cGeneral, cDoubleCheck, aValue);
+      break;
     default:
       break;
   }
@@ -278,35 +308,13 @@ void TngInis::UpdateValidSkeletons(std::set<std::string> aValidSkeletons) noexce
   for (const auto& lModel : aValidSkeletons) fValidSkeletons.insert(lModel);
 }
 
-bool TngInis::IsValidSkeleton(std::string aModel) noexcept {
-  if (!std::filesystem::exists(cTngInisPath)) return (fValidSkeletons.find(aModel) != fValidSkeletons.end());
-  for (const auto& entry : std::filesystem::directory_iterator(cTngInisPath)) {
-    std::string lFileName = entry.path().filename().string();
-    if (IsTngIni(lFileName)) {
-      Tng::gLogger::info("\tFound ini file {}:", lFileName);
-      CSimpleIniA lIni;
-      lIni.SetUnicode();
-      lIni.SetMultiKey();
-      lIni.LoadFile(entry.path().string().c_str());
-      if (lIni.KeyExists(cSkeleton, cValidModel)) {
-        CSimpleIniA::TNamesDepend lSkeletons;
-        lIni.GetAllValues(cSkinSection, cSkinMod, lSkeletons);
-        CSimpleIniA::TNamesDepend::const_iterator lSkeleton;
-        for (lSkeleton = lSkeletons.begin(); lSkeleton != lSkeletons.end(); lSkeleton++) {
-          const std::string lModel(lSkeleton->pItem);
-          fValidSkeletons.insert(lModel);
-        }
-      }
-    }
-  }
-  return fValidSkeletons.find(aModel) != fValidSkeletons.end();
-}
+bool TngInis::IsValidSkeleton(std::string aModel) noexcept { return fValidSkeletons.find(aModel) != fValidSkeletons.end(); }
 
 void TngInis::LoadModRecodPairs(CSimpleIniA::TNamesDepend aModRecords, std::set<std::pair<std::string, RE::FormID>>& aField) noexcept {
   CSimpleIniA::TNamesDepend::const_iterator lEntry;
   for (lEntry = aModRecords.begin(); lEntry != aModRecords.end(); lEntry++) {
     const std::string lModRecord(lEntry->pItem);
-    aField.insert(std::make_pair<std::string,RE::FormID>(StrToRecord(lModRecord).first, StrToRecord(lModRecord).second));
+    aField.insert(StrToRecord(lModRecord));
   }
 }
 

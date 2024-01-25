@@ -1,7 +1,19 @@
 #pragma once
 
 class TngEvents : public RE::BSTEventSink<RE::TESObjectLoadedEvent>, public RE::BSTEventSink<RE::TESEquipEvent> {
+  public:
+    static void RegisterEvents() noexcept;
+
+  protected:
+    RE::BSEventNotifyControl ProcessEvent(const RE::TESEquipEvent* aEvent, RE::BSTEventSource<RE::TESEquipEvent>*) override;
+    RE::BSEventNotifyControl ProcessEvent(const RE::TESObjectLoadedEvent* aEvent, RE::BSTEventSource<RE::TESObjectLoadedEvent>*) override;
+
   private:
+    static void CheckForRevealing(RE::TESObjectARMO* aBodyArmor, RE::TESObjectARMO* aPelvisArmor) noexcept;
+    static void CheckForClipping(RE::Actor* aActor, RE::TESObjectARMO* aArmor) noexcept;
+    static void CheckActor(RE::Actor* aActor, RE::TESObjectARMO* aArmor = nullptr) noexcept;
+    static void CheckForAddons(RE::Actor* aActor) noexcept;
+
     RE::TESDataHandler* fDH;
     inline static RE::BGSKeyword* fPRaceKey;
     inline static RE::BGSKeyword* fCCKey;
@@ -13,18 +25,13 @@ class TngEvents : public RE::BSTEventSink<RE::TESObjectLoadedEvent>, public RE::
     inline static RE::BGSKeyword* fUAKey;
     inline static RE::BGSKeyword* fGWKey;
     inline static RE::BGSKeyword* fPSKey;
+    inline static RE::BGSKeyword* fExKey;
     inline static RE::TESGlobal* fGWChance;
     inline static RE::BGSListForm* fGentified;
+    inline static std::vector<RE::BGSKeyword*> fArmoKeys{fARKey, fRRKey, fACKey, fCCKey, fPAKey, fIAKey, fUAKey};
 
-  public:
-    static TngEvents* GetSingleton() {
-      static TngEvents aSingleton;
-      return &aSingleton;
-    }
+    inline static bool fInternal;
 
-    static void RegisterEvents() noexcept;
-
-  private:
     TngEvents() = default;
     TngEvents(const TngEvents&) = delete;
     TngEvents(TngEvents&&) = delete;
@@ -34,15 +41,8 @@ class TngEvents : public RE::BSTEventSink<RE::TESObjectLoadedEvent>, public RE::
     TngEvents& operator=(const TngEvents&) = delete;
     TngEvents& operator=(TngEvents&&) = delete;
 
-
-    inline static bool fInternal;
-
-    static void CheckForRevealing(RE::TESObjectARMO* aBodyArmor, RE::TESObjectARMO* aPelvisArmor) noexcept;
-    static void CheckForClipping(RE::Actor* aActor, RE::TESObjectARMO* aArmor) noexcept;
-    static void CheckActor(RE::Actor* aActor, RE::TESObjectARMO* aArmor = nullptr) noexcept;
-    static void CheckGentlewomen(RE::Actor* aActor) noexcept;
-
-  protected:
-    RE::BSEventNotifyControl ProcessEvent(const RE::TESEquipEvent* aEvent, RE::BSTEventSource<RE::TESEquipEvent>*) override;
-    RE::BSEventNotifyControl ProcessEvent(const RE::TESObjectLoadedEvent* aEvent, RE::BSTEventSource<RE::TESObjectLoadedEvent>*) override;
+    static TngEvents* GetSingleton() {
+      static TngEvents aSingleton;
+      return &aSingleton;
+    }
 };

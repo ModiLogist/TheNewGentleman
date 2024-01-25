@@ -15,7 +15,8 @@ class TngInis : public Singleton<TngInis> {
     inline static constexpr const char* cGlobalSize{"GlobalSizes"};
     inline static constexpr const char* cSizeNames[Tng::cSizeCategories]{"Size_XS", "Size__S", "Size__M", "Size__L", "Size_XL"};
     inline static constexpr const char* cNPCSizeSection{"NPCGenitalSize"};
-    inline static constexpr const char* cNPCShapeSection{"NPCGenitalShape"};
+    inline static constexpr const char* cNPCAddnSection{"NPCGenitalAddon"};
+    inline static constexpr const char* cExcludeSection{"ExcludedNPCs"};
 
     inline static constexpr RE::FormID cINTCtrlID{0xC00};
     inline static constexpr RE::FormID cNPCCtrlID{0xCB0};
@@ -66,6 +67,8 @@ class TngInis : public Singleton<TngInis> {
     inline static std::set<std::pair<std::string, RE::FormID>> fSingleRevealingIDs;
     inline static std::set<std::pair<std::string, RE::FormID>> fSingleCoveringIDs;
     inline static std::set<std::pair<std::string, RE::FormID>> fRunTimeRevealingIDs;
+    inline static std::set<std::pair<std::pair<std::string, RE::FormID>, int>> fNPCSizes;
+    inline static std::set<std::pair<std::pair<std::string, RE::FormID>, int>> fNPCAddns;
 
     static bool Init() noexcept;
     static void LoadMainIni() noexcept;
@@ -73,8 +76,8 @@ class TngInis : public Singleton<TngInis> {
     static bool GetAutoReveal(const bool aIsFemale) noexcept;
     static bool GetClipCheck() noexcept;
     static void SaveRaceMult(const std::size_t aRaceIdx, const float aRaceMult) noexcept;
-    static void SaveRaceShape(const std::size_t aRaceIdx, const int aRaceShape) noexcept;
-    static void SaveActorShape(RE::TESNPC* aNPC, int aGenShape) noexcept;
+    static void SaveRaceAddn(const std::size_t aRaceIdx, int aChoice) noexcept;
+    static void SaveNPCAddn(RE::TESNPC* aNPC, int aChoice) noexcept;
     static void SaveActorSize(RE::TESNPC* aNPC, int aGenSize) noexcept;
     static void SaveRevealingArmor(RE::TESObjectARMO* aArmor) noexcept;
     static void RemoveRevealingArmor(RE::TESObjectARMO* aArmor) noexcept;

@@ -8,14 +8,14 @@ class TngPapyrus : public Singleton<TngPapyrus> {
     static void SaveBoolValues(RE::StaticFunctionTag*, int aID, bool aValue);
 
     static std::vector<std::string> GetRaceNames(RE::StaticFunctionTag*);
-    static int GetRaceShape(RE::StaticFunctionTag*, int aRaceIdx);
+    static int GetRaceAddn(RE::StaticFunctionTag*, int aRaceIdx);
     static float GetRaceMult(RE::StaticFunctionTag*, int aRaceIdx);
-    static void SetRaceShape(RE::StaticFunctionTag*, int aRaceIdx, int aGenOption);
+    static void SetRaceAddn(RE::StaticFunctionTag*, int aRaceIdx, int aGenOption);
     static void SetRaceMult(RE::StaticFunctionTag*, int aRaceIdx, float aGenMult);
 
     static std::vector<std::string> GetAllPossibleAddons(RE::StaticFunctionTag*, bool aIsFemale);
     static int CanModifyActor(RE::StaticFunctionTag*, RE::Actor* aActor);
-    static int SetActorShape(RE::StaticFunctionTag*, RE::Actor* aActor, int aGenOption);
+    static int SetActorAddn(RE::StaticFunctionTag*, RE::Actor* aActor, int aGenOption);
     static int SetActorSize(RE::StaticFunctionTag*, RE::Actor* aActor, int aGenSize);    
     
     static bool SwapRevealing(RE::StaticFunctionTag*, RE::TESObjectARMO* aArmor);

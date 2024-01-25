@@ -11,14 +11,11 @@ bool TngPapyrus::GetAutoReveal(RE::StaticFunctionTag*, bool aIsFemale) { return 
 
 void TngPapyrus::SaveBoolValues(RE::StaticFunctionTag*, int aID, bool aValue) { TngInis::SaveBool(aID, aValue); }
 
-std::vector<std::string> TngPapyrus::GetRaceNames(RE::StaticFunctionTag*) {
-  auto lNames = TngSizeShape::GetRaceNames();
-  return std::vector<std::string>{lNames.begin(), lNames.end()};
-}
+std::vector<std::string> TngPapyrus::GetRaceNames(RE::StaticFunctionTag*) { return TngSizeShape::GetRaceNames(); }
 
-int TngPapyrus::GetRaceShape(RE::StaticFunctionTag*, int aRaceIdx) {
+int TngPapyrus::GetRaceAddn(RE::StaticFunctionTag*, int aRaceIdx) {
   if (aRaceIdx < 0) return Tng::pgErr;
-  return TngSizeShape::GetRaceShape(static_cast<int>(aRaceIdx));
+  return TngSizeShape::GetRaceAddn(static_cast<int>(aRaceIdx));
 }
 
 float TngPapyrus::GetRaceMult(RE::StaticFunctionTag*, int aRaceIdx) {
@@ -26,7 +23,7 @@ float TngPapyrus::GetRaceMult(RE::StaticFunctionTag*, int aRaceIdx) {
   return TngSizeShape::GetRaceMult(static_cast<int>(aRaceIdx));
 }
 
-void TngPapyrus::SetRaceShape(RE::StaticFunctionTag*, int aRaceIdx, int aGenOption) {
+void TngPapyrus::SetRaceAddn(RE::StaticFunctionTag*, int aRaceIdx, int aGenOption) {
   if (aRaceIdx < 0) return;
   TngCore::UpdateRaces(static_cast<int>(aRaceIdx), aGenOption);
 }
@@ -42,12 +39,7 @@ std::vector<std::string> TngPapyrus::GetAllPossibleAddons(RE::StaticFunctionTag*
 
 int TngPapyrus::CanModifyActor(RE::StaticFunctionTag*, RE::Actor* aActor) { return TngSizeShape::CanModifyActor(aActor); }
 
-int TngPapyrus::SetActorShape(RE::StaticFunctionTag*, RE::Actor* aActor, int aGenOption) {
-  auto lRes = TngSizeShape::SetActorSkin(aActor, aGenOption);
-  if (lRes < 0) return lRes;
-  if (!aActor->IsPlayerRef()) TngInis::SaveActorShape(aActor->GetActorBase(), aGenOption);
-  return lRes;
-}
+int TngPapyrus::SetActorAddn(RE::StaticFunctionTag*, RE::Actor* aActor, int aGenOption) { return TngCore::SetActorSkin(aActor, aGenOption); }
 
 int TngPapyrus::SetActorSize(RE::StaticFunctionTag*, RE::Actor* aActor, int aGenSize) {
   const auto lNPC = aActor ? aActor->GetActorBase() : nullptr;
@@ -75,13 +67,13 @@ bool TngPapyrus::BindPapyrus(RE::BSScript::IVirtualMachine* aVM) noexcept {
   aVM->RegisterFunction("GetAutoReveal", "TNG_PapyrusUtil", GetAutoReveal);
   aVM->RegisterFunction("SaveBoolValues", "TNG_PapyrusUtil", SaveBoolValues);
   aVM->RegisterFunction("GetRaceNames", "TNG_PapyrusUtil", GetRaceNames);
-  aVM->RegisterFunction("GetRaceShape", "TNG_PapyrusUtil", GetRaceShape);
+  aVM->RegisterFunction("GetRaceAddn", "TNG_PapyrusUtil", GetRaceAddn);
   aVM->RegisterFunction("GetRaceMult", "TNG_PapyrusUtil", GetRaceMult);
-  aVM->RegisterFunction("SetRaceShape", "TNG_PapyrusUtil", SetRaceShape);
+  aVM->RegisterFunction("SetRaceAddn", "TNG_PapyrusUtil", SetRaceAddn);
   aVM->RegisterFunction("SetRaceMult", "TNG_PapyrusUtil", SetRaceMult);
   aVM->RegisterFunction("GetAllPossibleAddons", "TNG_PapyrusUtil", GetAllPossibleAddons);
   aVM->RegisterFunction("CanModifyActor", "TNG_PapyrusUtil", CanModifyActor);
-  aVM->RegisterFunction("SetActorShape", "TNG_PapyrusUtil", SetActorShape);
+  aVM->RegisterFunction("SetActorAddn", "TNG_PapyrusUtil", SetActorAddn);
   aVM->RegisterFunction("SetActorSize", "TNG_PapyrusUtil", SetActorSize);
   aVM->RegisterFunction("SwapRevealing", "TNG_PapyrusUtil", SwapRevealing);
   return true;

@@ -36,7 +36,7 @@ Int fiPos = 0
 Bool fbMessageChanged = False
 
 ;Pointer to UI
-Int[] fIRaceTypeHdls
+Int[] fIRaceAddnHdls
 Int[] fIRaceSizeHdls
 Int[] fIGlblSizeHdls
 
@@ -121,7 +121,7 @@ Event OnConfigOpen()
   fSRaces[14]="$TNG_ROM"
   fSRaces[15]="$TNG_ROS"
   fSRaces[16]="$TNG_ROK"
-  fIRaceTypeHdls = new Int[20]
+  fIRaceAddnHdls = new Int[20]
   fIRaceSizeHdls = new Int[20]
   
   fSTypeOptions = new String[20]
@@ -213,7 +213,7 @@ Event OnPageReset(string asPage)
     AddHeaderOption("$TNG_OGS")
     Int liRace = 0
     While liRace < ciRaces
-      fIRaceTypeHdls[liRace] = AddMenuOption(fSRaces[liRace],fSTypeOptions[TNG_PapyrusUtil.GetGenType(liRace)])
+      fIRaceAddnHdls[liRace] = AddMenuOption(fSRaces[liRace],fSTypeOptions[TNG_PapyrusUtil.GetGenType(liRace)])
       fIRaceSizeHdls[liRace] = AddSliderOption("",TNG_PapyrusUtil.GetGenSize(liRace),"{2}")
       liRace += 1
     EndWhile
@@ -273,9 +273,9 @@ Event OnOptionDefault(Int aiOption)
       TNG_PapyrusUtil.SetActorSize(Game.GetPlayer(),-1)
       Return
     EndIf
-    If aiOption == fIRaceTypeHdls[liOpLoop]
+    If aiOption == fIRaceAddnHdls[liOpLoop]
       TNG_PapyrusUtil.UpdateRace(liOpLoop,-1,TNG_PapyrusUtil.GetGenSize(liOpLoop))
-      SetMenuOptionValue(fIRaceTypeHdls[liOpLoop],fSTypeOptions[TNG_PapyrusUtil.GetGenType(liOpLoop)])
+      SetMenuOptionValue(fIRaceAddnHdls[liOpLoop],fSTypeOptions[TNG_PapyrusUtil.GetGenType(liOpLoop)])
       Return
     EndIf
   EndWhile
@@ -359,7 +359,7 @@ Event OnOptionMenuOpen(Int aiOption)
   Int liRace = ciRaces
   While liRace
     liRace -= 1
-    If aiOption == fIRaceTypeHdls[liRace]
+    If aiOption == fIRaceAddnHdls[liRace]
       SetMenuDialogOptions(fSTypeOptions)
       SetMenuDialogStartIndex(TNG_PapyrusUtil.GetGenType(liRace))
       Return
@@ -371,10 +371,10 @@ Event OnOptionMenuAccept(int aiOption,int aiChoice)
 	Int liRace = ciRaces
   While liRace
     liRace -= 1
-    If aiOption == fIRaceTypeHdls[liRace]
+    If aiOption == fIRaceAddnHdls[liRace]
       If ShowMessage("$TNG_N_R",true,"$TNG__OK")
         TNG_PapyrusUtil.UpdateRace(liRace,aiChoice,TNG_PapyrusUtil.GetGenSize(liRace))
-        SetMenuOptionValue(fIRaceTypeHdls[liRace],fSTypeOptions[aiChoice])
+        SetMenuOptionValue(fIRaceAddnHdls[liRace],fSTypeOptions[aiChoice])
       EndIf
       Return
     EndIf
@@ -642,7 +642,7 @@ Function ShowTNGMenu(Actor akActor)
     Debug.Notification("$TNG_N_4")
   EndIf
   If liSkin < 4
-    Bool lbShowSize = TNG_PapyrusUtil.SetActorShape(akActor,liSkin)
+    Bool lbShowSize = TNG_PapyrusUtil.SetActorAddn(akActor,liSkin)
     If lbShowSize
       liSize = SizeMenu.Show()
       TNG_PapyrusUtil.SetActorSize(akActor,liSize)
@@ -650,7 +650,7 @@ Function ShowTNGMenu(Actor akActor)
   EndIf
   If liSkin == 4
     liSkin = -2
-    TNG_PapyrusUtil.SetActorShape(akActor,liSkin)
+    TNG_PapyrusUtil.SetActorAddn(akActor,liSkin)
     If lbIsFemale
       Gentified.RemoveAddedForm(akActor.GetActorBase())
     Else
