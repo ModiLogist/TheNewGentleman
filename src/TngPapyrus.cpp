@@ -11,25 +11,25 @@ bool TngPapyrus::GetAutoReveal(RE::StaticFunctionTag*, bool aIsFemale) { return 
 
 void TngPapyrus::SaveBoolValues(RE::StaticFunctionTag*, int aID, bool aValue) { TngInis::SaveBool(aID, aValue); }
 
-std::vector<std::string> TngPapyrus::GetRaceNames(RE::StaticFunctionTag*) { return TngSizeShape::GetRaceNames(); }
+std::vector<std::string> TngPapyrus::GetRaceGrpNames(RE::StaticFunctionTag*) { return TngSizeShape::GetRaceGrpNames(); }
 
-int TngPapyrus::GetRaceAddn(RE::StaticFunctionTag*, int aRaceIdx) {
+int TngPapyrus::GetRaceGrpAddn(RE::StaticFunctionTag*, int aRaceIdx) {
   if (aRaceIdx < 0) return Tng::pgErr;
-  return TngSizeShape::GetRaceAddn(static_cast<int>(aRaceIdx));
+  return TngSizeShape::GetRaceGrpAddn(static_cast<int>(aRaceIdx));
 }
 
-float TngPapyrus::GetRaceMult(RE::StaticFunctionTag*, int aRaceIdx) {
+float TngPapyrus::GetRaceGrpMult(RE::StaticFunctionTag*, int aRaceIdx) {
   if (aRaceIdx < 0) return -1.0f;
-  return TngSizeShape::GetRaceMult(static_cast<int>(aRaceIdx));
+  return TngSizeShape::GetRaceGrpMult(static_cast<int>(aRaceIdx));
 }
 
-void TngPapyrus::SetRaceAddn(RE::StaticFunctionTag*, int aRaceIdx, int aGenOption) {
+void TngPapyrus::SetRaceGrpAddn(RE::StaticFunctionTag*, int aRaceIdx, int aGenOption) {
   if (aRaceIdx < 0) return;
   TngCore::UpdateRaces(static_cast<int>(aRaceIdx), aGenOption);
 }
 
-void TngPapyrus::SetRaceMult(RE::StaticFunctionTag*, int aRaceIdx, float aGenMult) {
-  if (TngSizeShape::SetRaceMult(static_cast<int>(aRaceIdx), aGenMult)) TngInis::SaveRaceMult(static_cast<int>(aRaceIdx), aGenMult);
+void TngPapyrus::SetRaceGrpMult(RE::StaticFunctionTag*, int aRaceIdx, float aGenMult) {
+  if (TngSizeShape::SetRaceGrpMult(static_cast<int>(aRaceIdx), aGenMult)) TngInis::SaveRaceMult(static_cast<int>(aRaceIdx), aGenMult);
 }
 
 std::vector<std::string> TngPapyrus::GetAllPossibleAddons(RE::StaticFunctionTag*, bool aIsFemale) {
@@ -66,11 +66,11 @@ bool TngPapyrus::BindPapyrus(RE::BSScript::IVirtualMachine* aVM) noexcept {
   aVM->RegisterFunction("GetClipCheck", "TNG_PapyrusUtil", GetClipCheck);
   aVM->RegisterFunction("GetAutoReveal", "TNG_PapyrusUtil", GetAutoReveal);
   aVM->RegisterFunction("SaveBoolValues", "TNG_PapyrusUtil", SaveBoolValues);
-  aVM->RegisterFunction("GetRaceNames", "TNG_PapyrusUtil", GetRaceNames);
-  aVM->RegisterFunction("GetRaceAddn", "TNG_PapyrusUtil", GetRaceAddn);
-  aVM->RegisterFunction("GetRaceMult", "TNG_PapyrusUtil", GetRaceMult);
-  aVM->RegisterFunction("SetRaceAddn", "TNG_PapyrusUtil", SetRaceAddn);
-  aVM->RegisterFunction("SetRaceMult", "TNG_PapyrusUtil", SetRaceMult);
+  aVM->RegisterFunction("GetRaceGrpNames", "TNG_PapyrusUtil", GetRaceGrpNames);
+  aVM->RegisterFunction("GetRaceGrpAddn", "TNG_PapyrusUtil", GetRaceGrpAddn);
+  aVM->RegisterFunction("GetRaceGrpMult", "TNG_PapyrusUtil", GetRaceGrpMult);
+  aVM->RegisterFunction("SetRaceGrpAddn", "TNG_PapyrusUtil", SetRaceGrpAddn);
+  aVM->RegisterFunction("SetRaceGrpMult", "TNG_PapyrusUtil", SetRaceGrpMult);
   aVM->RegisterFunction("GetAllPossibleAddons", "TNG_PapyrusUtil", GetAllPossibleAddons);
   aVM->RegisterFunction("CanModifyActor", "TNG_PapyrusUtil", CanModifyActor);
   aVM->RegisterFunction("SetActorAddn", "TNG_PapyrusUtil", SetActorAddn);

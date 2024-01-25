@@ -46,9 +46,9 @@ void TngInis::LoadMainIni() noexcept {
     CSimpleIniA::TNamesDepend::const_iterator lEntry;
     lIni.GetAllKeys(cRacialSize, lRaceRecords);
     for (lEntry = lRaceRecords.begin(); lEntry != lRaceRecords.end(); lEntry++) {
-      auto lMult100 = lIni.GetLongValue(cRacialSize, lEntry->pItem);
+      auto lMult = lIni.GetLongValue(cRacialSize, lEntry->pItem);
       const std::string lRaceRecord(lEntry->pItem);
-      if (!TngSizeShape::LoadRaceMult(lRaceRecord, lMult100)) lIni.Delete(cRacialSize, lEntry->pItem);
+      if (!TngSizeShape::LoadRaceMult(lRaceRecord, static_cast<float>(lMult))) lIni.Delete(cRacialSize, lEntry->pItem);
     }
   }
   if (lIni.SectionExists(cNPCSizeSection)) {
@@ -185,12 +185,16 @@ void TngInis::SaveRaceMult(const std::size_t aRaceIdx, const float aRaceMult) no
   CSimpleIniA lIni;
   lIni.SetUnicode();
   lIni.LoadFile(cSettings);
-  for (const auto& lRace : TngSizeShape::GetRacesByIdx(aRaceIdx)) {
-    auto lRaceIDStr = RecordToStr(lRace);
-    if (lRaceIDStr == "") continue;
-    auto lMult100 = static_cast<int>(aRaceMult * 100.0f);
-    if ((lMult100 > 9) && (lMult100 < 1000)) lIni.SetLongValue(cRacialGenital, lRaceIDStr.c_str(), lMult100);
-    if (lMult100 == 0) lIni.Delete(cRacialGenital, lRaceIDStr.c_str());
+  auto lRace = TngSizeShape::GetRaceByIdx(aRaceIdx);
+  auto lRaceIDStr = RecordToStr(lRace);
+  if (lRaceIDStr == "") {
+    Tng::gLogger::critical("Failed to save the size multiplier for race [{:x}: {}]!", lRace->GetFormID(), lRace->GetFormEditorID());
+    return;
+  }
+  if (aRaceMult < 0) {
+    lIni.Delete(cRacialGenital, lRaceIDStr.c_str());
+  } else {
+    lIni.SetDoubleValue(cRacialGenital, lRaceIDStr.c_str(), static_cast<float>(aRaceMult));
   }
   lIni.SaveFile(cSettings);
 }
@@ -199,16 +203,18 @@ void TngInis::SaveRaceAddn(const std::size_t aRaceIdx, int aChoice) noexcept {
   CSimpleIniA lIni;
   lIni.SetUnicode();
   lIni.LoadFile(cSettings);
-  for (const auto& lRace : TngSizeShape::GetRacesByIdx(aRaceIdx)) {
-    auto lRaceIDStr = RecordToStr(lRace);
-    if (lRaceIDStr == "") continue;
-    if (aChoice == -2) {
-      lIni.Delete(cRacialGenital, lRaceIDStr.c_str());
-    } else {
-      auto lAddon = TngSizeShape::GetAddonAt(false, aChoice);
-      auto lGenIDStr = RecordToStr(lAddon);
-      lIni.SetValue(cRacialGenital, lRaceIDStr.c_str(), lGenIDStr.c_str());
-    }
+  auto lRace = TngSizeShape::GetRaceByIdx(aRaceIdx);
+  auto lRaceIDStr = RecordToStr(lRace);
+  if (lRaceIDStr == "") {
+    Tng::gLogger::critical("Failed to save the selected addon for race [{:x}: {}]!", lRace->GetFormID(), lRace->GetFormEditorID());
+    return;
+  }
+  if (aChoice == -2) {
+    lIni.Delete(cRacialGenital, lRaceIDStr.c_str());
+  } else {
+    auto lAddon = TngSizeShape::GetAddonAt(false, aChoice);
+    auto lGenIDStr = RecordToStr(lAddon);
+    lIni.SetValue(cRacialGenital, lRaceIDStr.c_str(), lGenIDStr.c_str());
   }
   lIni.SaveFile(cSettings);
 }

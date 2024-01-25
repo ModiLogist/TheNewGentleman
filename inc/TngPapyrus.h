@@ -7,11 +7,11 @@ class TngPapyrus : public Singleton<TngPapyrus> {
     static bool GetAutoReveal(RE::StaticFunctionTag*, bool aIsFemale);
     static void SaveBoolValues(RE::StaticFunctionTag*, int aID, bool aValue);
 
-    static std::vector<std::string> GetRaceNames(RE::StaticFunctionTag*);
-    static int GetRaceAddn(RE::StaticFunctionTag*, int aRaceIdx);
-    static float GetRaceMult(RE::StaticFunctionTag*, int aRaceIdx);
-    static void SetRaceAddn(RE::StaticFunctionTag*, int aRaceIdx, int aGenOption);
-    static void SetRaceMult(RE::StaticFunctionTag*, int aRaceIdx, float aGenMult);
+    static std::vector<std::string> GetRaceGrpNames(RE::StaticFunctionTag*);
+    static int GetRaceGrpAddn(RE::StaticFunctionTag*, int aRaceIdx);
+    static float GetRaceGrpMult(RE::StaticFunctionTag*, int aRaceIdx);
+    static void SetRaceGrpAddn(RE::StaticFunctionTag*, int aRaceIdx, int aGenOption);
+    static void SetRaceGrpMult(RE::StaticFunctionTag*, int aRaceIdx, float aGenMult);
 
     static std::vector<std::string> GetAllPossibleAddons(RE::StaticFunctionTag*, bool aIsFemale);
     static int CanModifyActor(RE::StaticFunctionTag*, RE::Actor* aActor);

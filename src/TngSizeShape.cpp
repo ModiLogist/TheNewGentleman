@@ -46,10 +46,10 @@ std::size_t TngSizeShape::GetAddonCount(bool aIsFemale) noexcept { return aIsFem
 
 RE::TESObjectARMO *TngSizeShape::GetAddonAt(bool aIsFemale, int aChoice) noexcept { return aIsFemale ? fFemAddons[aChoice] : fMalAddons[aChoice]; };
 
-std::set<std::string> TngSizeShape::GetAddonNames(bool aIsFemale) noexcept {
-  std::set<std::string> lRes{};
+std::vector<std::string> TngSizeShape::GetAddonNames(bool aIsFemale) noexcept {
+  std::vector<std::string> lRes{};
   auto &lList = aIsFemale ? fFemAddons : fMalAddons;
-  for (int i = 0; i < lList.size(); i++) lRes.insert(lList[i]->GetName());
+  for (int i = 0; i < lList.size(); i++) lRes.push_back(lList[i]->GetName());
   return lRes;
 }
 
@@ -66,18 +66,35 @@ std::vector<std::string> TngSizeShape::GetAllPossibleAddons(RE::Actor *aActor) n
   return lRes;
 }
 
-bool TngSizeShape::LoadRaceMult(const std::string aRaceRecord, const int aSize100) noexcept {
+std::size_t TngSizeShape::GetRaceGrp(RE::TESRace *aRace) noexcept {
+  for (std::size_t i = 0; i < fRacesInfo.size(); i++) {
+    auto lIt = std::find_if(fRacesInfo[i].races.begin(), fRacesInfo[i].races.end(), [&](auto &p) { return p == aRace; });
+    if (lIt != fRacesInfo[i].races.end()) return i;
+  }
+  if (aRace->armorParentRace && aRace->armorParentRace->skin == aRace->skin) {
+    fRacesInfo[GetRaceGrp(aRace->armorParentRace)].races.push_back(aRace);
+    return GetRaceGrp(aRace->armorParentRace);
+  } else {
+    fRacesInfo.push_back(RaceInfo{aRace->GetName(), std::vector{aRace}, 0, 0, 1.0f, aRace->skin});
+    return static_cast<std::size_t>(fRacesInfo.size() - 1);
+  }
+}
+
+void TngSizeShape::SetRaceGrp(RE::TESRace *aRace, std::size_t aIndex) noexcept {
+  if (fRacesInfo[aIndex].originalSkin != aRace->skin) {
+    Tng::gLogger::error("The race [{:x}: {}] cannot be set in the same group as indicated!", aRace->GetFormID(), aRace->GetFormEditorID());
+    return;
+  }
+  fRacesInfo[aIndex].races.push_back(aRace);
+}
+
+bool TngSizeShape::LoadRaceMult(const std::string aRaceRecord, const float aSize) noexcept {
   auto lRace = LoadForm<RE::TESRace>(aRaceRecord);
   if (!lRace) {
     Tng::gLogger::error("A previously saved race cannot be found anymore! It's information is removed from ini file.");
     return false;
   }
-  SetRaceMult(lRace, static_cast<float>(aSize100 / 100.0f));
-  auto lRaceEntry = std::find_if(fRaceInfo.begin(), fRaceInfo.end(), [&lRace](const std::pair<std::string, std::set<RE::TESRace *>> &p) { return p.first == lRace->GetName(); });
-  if (lRaceEntry == fRaceInfo.end())
-    fRaceInfo.push_back(std::make_pair<std::string, std::set<RE::TESRace *>>(lRace->GetName(), std::set<RE::TESRace *>{lRace}));
-  else
-    lRaceEntry->second.insert(lRace);
+  fRacesInfo[GetRaceGrp(lRace)].raceMult = aSize;
   return true;
 }
 
@@ -102,147 +119,117 @@ bool TngSizeShape::LoadRaceAddn(const std::string aRaceRecord, const std::string
     Tng::gLogger::error("A previously installed addon {} cannot be loaded anymore! Please report this issue. {} would use original skin.", aAddonRecord, lRace->GetName());
     return true;
   }
-  SetRaceAddn(lRace, lIdx);
+  SetRaceGrpAddn(lRace, lIdx);
   return true;
 }
 
-float TngSizeShape::GetRaceMult(RE::TESRace *aRace) noexcept {
-  if (!aRace) {
-    Tng::gLogger::critical("Failure in getting a race mult!");
-    return 1.0f;
-  }
-  for (auto lKw : aRace->GetKeywords()) {
-    const std::string lKwStr(lKw->formEditorID);
-    if (lKwStr.starts_with(cRaceMult)) {
-      const int lMult100 = std::strtol(lKwStr.substr(strlen(cRaceMult), 3).data(), nullptr, 0);
-      return static_cast<float>(lMult100) / 100.0f;
-    }
-  }
-  return 1.0f;
+float TngSizeShape::GetRaceGrpMult(RE::TESRace *aRace) noexcept {
+  if (!aRace) return -1.0f;
+  return fRacesInfo[GetRaceGrp(aRace)].raceMult;
 }
 
-bool TngSizeShape::SetRaceMult(RE::TESRace *aRace, const float aMult) noexcept {
-  if (!aRace) {
+float TngSizeShape::GetRaceGrpMult(const std::size_t aRaceIdx) noexcept {
+  if (fRacesInfo.size() <= aRaceIdx) return -1.0f;
+  return fRacesInfo[aRaceIdx].raceMult;
+}
+
+bool TngSizeShape::SetRaceGrpMult(RE::TESRace *aRace, const float aMult) noexcept {
+  if (!aRace || aMult < 0.1f || aMult >= 10.0f) {
     Tng::gLogger::critical("Failure in setting a race mult!");
     return false;
   }
-  auto &lAllKws = fDH->GetFormArray<RE::BGSKeyword>();
-  int lRaceMult100 = static_cast<int>(aMult * 100);
-  if (lRaceMult100 > 1000) {
-    Tng::gLogger::warn("Cannot set the race multiplier to a value equal or greater than 10! It was set 9.99");
-    lRaceMult100 = 999;
-  }
-  if (lRaceMult100 < 10) {
-    Tng::gLogger::warn("Cannot set the race multiplier to a value smaller than 0.1! It was set 0.1");
-    lRaceMult100 = 10;
-  }
-  std::string lReqKw = cRaceMult + (lRaceMult100 < 100 ? "0" + std::to_string(lRaceMult100) : std::to_string(lRaceMult100));
-  auto lKwIt = std::find_if(lAllKws.begin(), lAllKws.end(), [&](const auto &kw) { return kw && kw->formEditorID == lReqKw.c_str(); });
-  RE::BGSKeyword *lKw{nullptr};
-  if (lKwIt != lAllKws.end()) {
-    lKw = *lKwIt;
-  } else {
-    const auto lFactory = RE::IFormFactory::GetConcreteFormFactoryByType<RE::BGSKeyword>();
-    if (lKw = lFactory ? lFactory->Create() : nullptr; lKw) {
-      lKw->formEditorID = lReqKw;
-      lAllKws.push_back(lKw);
-    } else {
-      Tng::gLogger::info("Couldn't create keyword [{}]!", lReqKw);
-      return false;
-    }
-  }
-  for (const auto &lExistingKw : aRace->GetKeywords()) {
-    if (lExistingKw->formEditorID.contains(cRaceMult)) aRace->RemoveKeyword(lExistingKw);
-  }
-  aRace->AddKeyword(lKw);
+  fRacesInfo[GetRaceGrp(aRace)].raceMult = aMult;
   return true;
 }
 
-int TngSizeShape::GetRaceAddn(RE::TESRace *aRace) noexcept {
-  if (!aRace) {
-    Tng::gLogger::critical("Failure in getting a race shape!");
-    return Tng::pgErr;
+bool TngSizeShape::SetRaceGrpMult(const std::size_t aRaceIdx, const float aMult) noexcept {
+  if (fRacesInfo.size() <= aRaceIdx || aMult < 0.1f || aMult >= 10.0f) {
+    Tng::gLogger::critical("Failure in setting a race mult!");
+    return false;
   }
-  for (auto lKw : aRace->GetKeywords()) {
-    const std::string lKwStr(lKw->formEditorID);
-    if (lKwStr.starts_with(cRaceAddn)) {
-      return std::strtol(lKwStr.substr(strlen(cRaceAddn), 2).data(), nullptr, 0);
-    }
-  }
-  return Tng::pgErr;
-}
-
-void TngSizeShape::SetRaceAddn(RE::TESRace *aRace, int aChoice) noexcept {
-  if (!aRace) {
-    Tng::gLogger::critical("Failure in setting a race shape!");
-    return;
-  }
-  auto &lAllKws = fDH->GetFormArray<RE::BGSKeyword>();
-  auto lAddon = static_cast<std::size_t>(aChoice);
-  if ((fMalAddons.size() <= lAddon) || (lAddon < 0)) {
-    Tng::gLogger::critical("Cannot set the race {} to use addon {}! There are only {} addons.", aRace->GetFormEditorID(), lAddon + 1, fMalAddons.size());
-    lAddon = 0;
-  }
-  std::string lReqKw = cRaceAddn + (lAddon < 10 ? "0" + std::to_string(lAddon) : std::to_string(lAddon));
-  auto lKwIt = std::find_if(lAllKws.begin(), lAllKws.end(), [&](const auto &kw) { return kw && kw->formEditorID == lReqKw.c_str(); });
-  RE::BGSKeyword *lKw{nullptr};
-  if (lKwIt != lAllKws.end()) {
-    lKw = *lKwIt;
-  } else {
-    const auto lFactory = RE::IFormFactory::GetConcreteFormFactoryByType<RE::BGSKeyword>();
-    if (lKw = lFactory ? lFactory->Create() : nullptr; lKw) {
-      lKw->formEditorID = lReqKw;
-      lAllKws.push_back(lKw);
-    } else {
-      Tng::gLogger::info("Couldn't create keyword [{}]!", lReqKw);
-      return;
-    }
-  }
-  for (const auto &lExistingKw : aRace->GetKeywords()) {
-    if (lExistingKw->formEditorID.contains(cRaceAddn)) aRace->RemoveKeyword(lExistingKw);
-  }
-  aRace->AddKeyword(lKw);
-  auto lRaceEntry =
-      std::find_if(fRaceInfo.begin(), fRaceInfo.end(), [&aRace](const std::pair<std::string_view, std::set<RE::TESRace *>> &p) { return p.first == aRace->GetName(); });
-  if (lRaceEntry == fRaceInfo.end())
-    fRaceInfo.push_back(std::make_pair<std::string, std::set<RE::TESRace *>>(aRace->GetName(), std::set<RE::TESRace *>{aRace}));
-  else
-    lRaceEntry->second.insert(aRace);
-}
-
-float TngSizeShape::GetRaceMult(const std::size_t aRaceIdx) noexcept {
-  if (fRaceInfo.size() <= aRaceIdx) return -1.0f;
-  return GetRaceMult(*fRaceInfo[aRaceIdx].second.begin());
-}
-
-bool TngSizeShape::SetRaceMult(const std::size_t aRaceIdx, const float aMult) noexcept {
-  if (fRaceInfo.size() <= aRaceIdx) return false;
-  if (aMult < 0.1f || aMult >= 10.0f) return false;
-  for (const auto &lRace : fRaceInfo[aRaceIdx].second) SetRaceMult(lRace, aMult);
+  fRacesInfo[aRaceIdx].raceMult = aMult;
   return true;
 }
 
-int TngSizeShape::GetRaceAddn(const std::size_t aRaceIdx) noexcept {
-  if (fRaceInfo.size() <= aRaceIdx) return -1;
-  return GetRaceAddn(*fRaceInfo[aRaceIdx].second.begin());
+int TngSizeShape::GetRaceGrpDefAddn(RE::TESRace *aRace) noexcept {
+  if (!aRace) return Tng::pgErr;
+  return fRacesInfo[GetRaceGrp(aRace)].raceDefAddon;
 }
 
-bool TngSizeShape::SetRaceAddn(const std::size_t aRaceIdx, int aChoice) noexcept {
-  if (fRaceInfo.size() <= aRaceIdx) return false;
-  if (aChoice < GetAddonCount(false) + 1) return false;
-  for (const auto &lRace : fRaceInfo[aRaceIdx].second) SetRaceAddn(lRace, aChoice);
+int TngSizeShape::GetRaceGrpDefAddn(const std::size_t aRaceIdx) noexcept {
+  if (fRacesInfo.size() <= aRaceIdx) return Tng::pgErr;
+  return fRacesInfo[aRaceIdx].raceDefAddon;
 }
 
-std::set<RE::TESRace *> TngSizeShape::GetRacesByIdx(const std::size_t aRaceIdx) noexcept {
-  std::set<RE::TESRace *> lRes{};
-  if (fRaceInfo.size() < aRaceIdx + 1) return lRes;
-  return fRaceInfo[aRaceIdx].second;
+bool TngSizeShape::SetRaceGrpDefAddn(RE::TESRace *aRace, int aChoice) noexcept {
+  if (!aRace || aChoice >= GetAddonCount(false) || aChoice < 0) {
+    Tng::gLogger::critical("Failure in setting a race addon!");
+    return false;
+  }
+  fRacesInfo[GetRaceGrp(aRace)].raceDefAddon = aChoice;
+  return true;
 }
 
-std::vector<std::string> TngSizeShape::GetRaceNames() noexcept {
+bool TngSizeShape::SetRaceGrpDefAddn(const std::size_t aRaceIdx, int aChoice) noexcept {
+  if (fRacesInfo.size() <= aRaceIdx || aChoice >= GetAddonCount(false) || aChoice < 0) {
+    Tng::gLogger::critical("Failure in setting a race addon!");
+    return false;
+  }
+  fRacesInfo[aRaceIdx].raceDefAddon = aChoice;
+  return true;
+}
+
+int TngSizeShape::GetRaceGrpAddn(RE::TESRace *aRace) noexcept {
+  if (!aRace) return Tng::pgErr;
+  return fRacesInfo[GetRaceGrp(aRace)].raceAddn;
+}
+
+int TngSizeShape::GetRaceGrpAddn(const std::size_t aRaceIdx) noexcept {
+  if (fRacesInfo.size() <= aRaceIdx) return Tng::pgErr;
+  return fRacesInfo[aRaceIdx].raceAddn;
+}
+
+bool TngSizeShape::SetRaceGrpAddn(RE::TESRace *aRace, int aChoice) noexcept {
+  if (!aRace || aChoice >= GetAddonCount(false) || aChoice < 0) {
+    Tng::gLogger::critical("Failure in setting a race addon!");
+    return false;
+  }
+  fRacesInfo[GetRaceGrp(aRace)].raceAddn = aChoice;
+  return true;
+}
+
+bool TngSizeShape::SetRaceGrpAddn(const std::size_t aRaceIdx, int aChoice) noexcept {
+  if (fRacesInfo.size() <= aRaceIdx || aChoice >= GetAddonCount(false) || aChoice < 0) {
+    Tng::gLogger::critical("Failure in setting a race addon!");
+    return false;
+  }
+  fRacesInfo[aRaceIdx].raceAddn = aChoice;
+  return true;
+}
+
+RE::TESObjectARMO *TngSizeShape::GetRaceGrpSkinOg(const std::size_t aRaceIdx) noexcept { return fRacesInfo[aRaceIdx].originalSkin; }
+
+RE::TESObjectARMO *TngSizeShape::GetRaceGrpSkin(const std::size_t aRaceIdx) noexcept { return fRacesInfo[aRaceIdx].races[0]->skin; }
+
+void TngSizeShape::SetRaceGrpSkin(const std::size_t aRaceIdx, RE::TESObjectARMO *aSkin) noexcept {
+  for (auto &lRace : fRacesInfo[aRaceIdx].races) lRace->skin = aSkin;
+}
+
+std::size_t TngSizeShape::GroupCount() noexcept { return fRacesInfo.size(); }
+
+RE::TESRace *TngSizeShape::GetRaceByIdx(const std::size_t aRaceIdx) noexcept { return fRacesInfo[aRaceIdx].races[0]; }
+
+std::string TngSizeShape::GetRaceName(const std::size_t aRaceIdx) noexcept { return fRacesInfo[aRaceIdx].raceName; }
+
+std::vector<std::string> TngSizeShape::GetRaceGrpNames() noexcept {
   std::vector<std::string> lRes{};
-  for (const auto &lEntry : fRaceInfo) lRes.push_back(lEntry.first);
+  for (const auto &lEntry : fRacesInfo) lRes.push_back(lEntry.raceName);
   return lRes;
+}
+
+std::set<RE::TESObjectARMO *> TngSizeShape::GetRacialSkins() noexcept {
+  std::set<RE::TESObjectARMO *> lRes{};
+  for (auto &lEntry : fRacesInfo) lRes.insert(lEntry.originalSkin);
 }
 
 bool TngSizeShape::LoadNPCSize(const std::string aNPCRecord, const int aSize) noexcept {
@@ -275,7 +262,7 @@ bool TngSizeShape::LoadNPCAddn(const std::string aNPCRecord, const std::string a
     Tng::gLogger::error("A previously installed addon {} cannot be loaded anymore! Please report this issue. {} would use original skin.", aAddonRecord, lNPC->GetName());
     return false;
   }
-  if (lIdx == GetRaceAddn(lNPC->race)) return true;
+  if (lIdx == GetRaceGrpAddn(lNPC->race)) return true;
   return SetNPCAddn(lNPC, lIdx);
 }
 
@@ -403,7 +390,7 @@ void TngSizeShape::ScaleGenital(RE::Actor *aActor, RE::TESGlobal *aGlobal) noexc
   const auto lNPC = aActor ? aActor->GetActorBase() : nullptr;
   if (!aActor || !lNPC) return;
   if (!lNPC->race) return;
-  auto lScale = GetRaceMult(lNPC->race) * aGlobal->value;
+  auto lScale = GetRaceGrpMult(lNPC->race) * aGlobal->value;
   RE::NiAVObject *aBaseNode = aActor->GetNodeByName(cBaseBone);
   RE::NiAVObject *aScrtNode = aActor->GetNodeByName(cScrtBone);
   if (!aBaseNode || !aScrtNode) return;
