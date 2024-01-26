@@ -32,15 +32,16 @@ RE::BSEventNotifyControl TngEvents::ProcessEvent(const RE::TESEquipEvent* aEvent
   if (!aEvent || fInternal) return RE::BSEventNotifyControl::kContinue;
   const auto lActor = aEvent->actor->As<RE::Actor>();
   auto lArmor = RE::TESForm::LookupByID<RE::TESObjectARMO>(aEvent->baseObject);
-  if (!lArmor) return RE::BSEventNotifyControl::kContinue;
+  if (!lArmor || !lActor) return RE::BSEventNotifyControl::kContinue;
+  if (!lArmor->HasPartOf(Tng::cSlotBody)) return RE::BSEventNotifyControl::kContinue;
   if (aEvent->equipped) {
     aSource->notifying = false;
     if (!lArmor->GetPlayable()) return RE::BSEventNotifyControl::kContinue;
-    if (!lArmor->HasPartOf(Tng::cSlotBody)) return RE::BSEventNotifyControl::kContinue;
     CheckActor(lActor, lArmor);
     fInternal = false;
     aSource->notifying = true;
   } else {
+    CheckForAddons(lActor);
     TngSizeShape::RandomizeScale(lActor);
   }
   return RE::BSEventNotifyControl::kContinue;
@@ -49,6 +50,7 @@ RE::BSEventNotifyControl TngEvents::ProcessEvent(const RE::TESEquipEvent* aEvent
 RE::BSEventNotifyControl TngEvents::ProcessEvent(const RE::TESObjectLoadedEvent* aEvent, RE::BSTEventSource<RE::TESObjectLoadedEvent>*) {
   if (!aEvent || fInternal) return RE::BSEventNotifyControl::kContinue;
   const auto lActor = RE::TESForm::LookupByID<RE::Actor>(aEvent->formID);
+  if (!lActor) return RE::BSEventNotifyControl::kContinue;  
   CheckForAddons(lActor);
   CheckActor(lActor);
   return RE::BSEventNotifyControl::kContinue;
@@ -85,7 +87,7 @@ void TngEvents::CheckActor(RE::Actor* aActor, RE::TESObjectARMO* aArmor) noexcep
   TngSizeShape::RandomizeScale(aActor);
   const auto lGArmo = aActor->GetWornArmor(Tng::cSlotGenital);
   if (aArmor && !lGArmo) {
-    if (!aArmor->HasKeywordInArray(fArmoKeys, false)) TngCore::HandleArmor(aArmor, false);
+    TngCore::HandleArmor(aArmor, false);
     if (aArmor->HasKeyword(fCCKey) || aArmor->HasKeyword(fACKey)) CheckForClipping(aActor, aArmor);
     return;
   }
@@ -96,7 +98,6 @@ void TngEvents::CheckActor(RE::Actor* aActor, RE::TESObjectARMO* aArmor) noexcep
 
 void TngEvents::CheckForAddons(RE::Actor* aActor) noexcept {
   if (TngSizeShape::CanModifyActor(aActor) != Tng::resOkRaceP) return;
-  if (aActor->IsPlayerRef()) return;
   const auto lNPC = aActor->GetActorBase();
   int lNPCAddn = TngSizeShape::GetNPCAddn(lNPC);
   if (lNPCAddn > 0 && lNPCAddn != Tng::resOkNoAddon) {
