@@ -100,7 +100,7 @@ void TngEvents::CheckForAddons(RE::Actor* aActor) noexcept {
   if (TngSizeShape::CanModifyActor(aActor) != Tng::resOkRaceP) return;
   const auto lNPC = aActor->GetActorBase();
   int lNPCAddn = TngSizeShape::GetNPCAddn(lNPC);
-  if (lNPCAddn > 0 && lNPCAddn != Tng::resOkNoAddon) {
+  if (lNPCAddn >= 0 && lNPCAddn != Tng::resOkNoAddon) {
     TngCore::SetActorSkin(aActor, lNPCAddn);
     return;
   }

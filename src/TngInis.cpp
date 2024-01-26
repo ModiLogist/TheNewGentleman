@@ -66,8 +66,8 @@ void TngInis::LoadMainIni() noexcept {
     CSimpleIniA::TNamesDepend::const_iterator lEntry;
     lIni.GetAllKeys(cNPCAddnSection, lAddonRecords);
     for (lEntry = lAddonRecords.begin(); lEntry != lAddonRecords.end(); lEntry++) {
-      std::string lAddon = lIni.GetValue(cNPCAddnSection, lEntry->pItem);
       const std::string lNPCRecord(lEntry->pItem);
+      std::string lAddon = lIni.GetValue(cNPCAddnSection, lEntry->pItem);
       if (!TngSizeShape::LoadNPCAddn(lNPCRecord, lAddon)) lIni.Delete(cNPCAddnSection, lEntry->pItem);
     }
   }

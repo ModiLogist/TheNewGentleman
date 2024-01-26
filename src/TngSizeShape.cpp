@@ -244,8 +244,6 @@ bool TngSizeShape::LoadNPCSize(const std::string aNPCRecord, const int aSize) no
 bool TngSizeShape::LoadNPCAddn(const std::string aNPCRecord, const std::string aAddonRecord) noexcept {
   auto lNPC = LoadForm<RE::TESNPC>(aNPCRecord);
   if (!lNPC) return false;
-  if (!lNPC->race) return false;
-  if (!lNPC->race->skin) return false;
   auto lAddon = LoadForm<RE::TESObjectARMO>(aAddonRecord);
   if (!lAddon) {
     Tng::gLogger::error("The addon {} saved for NPC {} cannot be found anymore!", aAddonRecord, aNPCRecord);
