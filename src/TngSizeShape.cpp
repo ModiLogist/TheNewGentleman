@@ -75,7 +75,7 @@ std::size_t TngSizeShape::GetRaceGrp(RE::TESRace *aRace) noexcept {
     fRacesInfo[GetRaceGrp(aRace->armorParentRace)].races.push_back(aRace);
     return GetRaceGrp(aRace->armorParentRace);
   } else {
-    fRacesInfo.push_back(RaceInfo{aRace->GetName(), std::vector{aRace}, 0, 0, 1.0f, aRace->skin});
+    fRacesInfo.push_back(RaceInfo{aRace->GetName(), std::vector{aRace}, -1, -1, 1.0f, aRace->skin});
     return static_cast<std::size_t>(fRacesInfo.size() - 1);
   }
 }
