@@ -63,6 +63,7 @@ class TngSizeShape : public Singleton<TngSizeShape> {
 
   private:
     inline static RE::TESDataHandler* fDH;
+    inline static RE::TESRace* fDefRace;
     inline static RE::BGSKeyword* fFemAddKey;
     inline static RE::BGSKeyword* fMalAddKey;
     inline static RE::BGSKeyword* fPRaceKey;

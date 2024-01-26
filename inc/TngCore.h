@@ -3,7 +3,6 @@
 class TngCore : public Singleton<TngCore> {
   private:
     // Const
-    inline static constexpr RE::FormID cDefRaceID = 0x19;
     inline static constexpr RE::FormID cDefSkinAAID{0xD67};
     inline static constexpr int cVanillaRaceTypes{14};
     inline static constexpr int cEqRaceTypes{13};

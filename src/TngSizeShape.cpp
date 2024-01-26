@@ -2,6 +2,7 @@
 
 bool TngSizeShape::Init() noexcept {
   fDH = RE::TESDataHandler::GetSingleton();
+  fDefRace = fDH->LookupForm<RE::TESRace>(Tng::cDefRaceID, Tng::cSkyrim);
   fFemAddKey = fDH->LookupForm<RE::BGSKeyword>(Tng::cFemAddKeyID, Tng::cName);
   fMalAddKey = fDH->LookupForm<RE::BGSKeyword>(Tng::cMalAddKeyID, Tng::cName);
   fPRaceKey = fDH->LookupForm<RE::BGSKeyword>(Tng::cProcessedRaceKeyID, Tng::cName);
@@ -75,7 +76,7 @@ std::size_t TngSizeShape::GetRaceGrp(RE::TESRace *aRace) noexcept {
       return i;
     }    
   }
-  if (aRace->armorParentRace && aRace->armorParentRace->skin == aRace->skin) {
+  if (aRace->armorParentRace && aRace->armorParentRace != fDefRace && aRace->armorParentRace->skin == aRace->skin) {
     fRacesInfo[GetRaceGrp(aRace->armorParentRace)].races.push_back(aRace);
     return GetRaceGrp(aRace->armorParentRace);
   } else {

@@ -23,7 +23,7 @@ bool TngCore::Initialize() noexcept {
   fCrtKey = fDH->LookupForm<RE::BGSKeyword>(Tng::cCrtKeywID, Tng::cSkyrim);
   fSwPKey = fDH->LookupForm<RE::BGSKeyword>(Tng::cSkinWithPenisKeyID, Tng::cName);
   fGenSkinKey = fDH->LookupForm<RE::BGSKeyword>(Tng::cCustomSkinID, Tng::cName);
-  fDefRace = fDH->LookupForm<RE::TESRace>(cDefRaceID, Tng::cSkyrim);
+  fDefRace = fDH->LookupForm<RE::TESRace>(Tng::cDefRaceID, Tng::cSkyrim);
   fBeastDef = fDH->LookupForm<RE::TESRace>(cBaseRaceIDs[9].first, cBaseRaceIDs[9].second);
   fAllNPCs = fDH->GetFormArray<RE::TESNPC>();
   if (!(fPRaceKey && fRRaceKey && fIRaceKey && fARKey && fRRKey && fACKey && fCCKey && fPAKey && fIAKey && fUAKey && fNPCKey && fBstKey && fCrtKey && fSwPKey && fGenSkinKey &&
@@ -203,8 +203,7 @@ void TngCore::UpdateRacialAddons() noexcept {
     auto lRace = TngSizeShape::GetRaceByIdx(i);
     if (lRace->armorParentRace) continue;
     int lSubEqRace = FindEqVanilla(lRace);
-    if (lSubEqRace < 0) continue;
-    for (int j = 0; j< TngSizeShape::GetAddonCount(false); j++) {
+    for (int j = 0; j < TngSizeShape::GetAddonCount(false); j++) {
       auto lGen = TngSizeShape::GetAddonAt(false, j);
       for (auto& lGenAA : lGen->armorAddons) {
         std::set<RE::TESRace*> lGenAARaces{lGenAA->race};
@@ -246,6 +245,7 @@ RE::TESObjectARMO* TngCore::GentifySkin(RE::TESObjectARMO* aOgSkin, int aAddonCh
     lAARaces.insert(lAA->additionalRaces.begin(), lAA->additionalRaces.end());
     for (auto& lRace : lAARaces)
       if (lRace->HasKeyword(fPRaceKey) && (lRace->HasKeyword(fBstKey) == lIsBeastSkin)) lSkinRaces.insert(lRace);
+    if (lAA->race == fDefRace && lAA->additionalRaces.size() == 0) lSkinRaces.insert(fDefRace);
   }
   for (int i = 0; i < TngSizeShape::GetAddonCount(false); i++) {
     RE::TESObjectARMO* lSkin = nullptr;
@@ -257,7 +257,7 @@ RE::TESObjectARMO* TngCore::GentifySkin(RE::TESObjectARMO* aOgSkin, int aAddonCh
     auto lGen = TngSizeShape::GetAddonAt(false, i);
     for (const auto& lGenAA : lGen->armorAddons)
       if (lSkinRaces.find(lGenAA->race) != lSkinRaces.end()) lSkin->armorAddons.emplace_back(lGenAA);
-    fMalAddonSkins[i].insert(std::make_pair(aOgSkin->GetFormID(), lSkin));
+    if (lSkin->race) fMalAddonSkins[i].insert(std::make_pair(aOgSkin->GetFormID(), lSkin));
     fDH->GetFormArray<RE::TESObjectARMO>().push_back(lSkin);
     if (i == aAddonChoice) lRes = lSkin;
   }
