@@ -219,7 +219,7 @@ void TngCore::UpdateRacialAddons() noexcept {
       for (auto& lGenAA : lGen->armorAddons) {
         std::set<RE::TESRace*> lGenAARaces{lGenAA->race};
         lGenAARaces.insert(lGenAA->additionalRaces.begin(), lGenAA->additionalRaces.end());
-        if (lGenAARaces.find(fBaseRaces[lSubEqRace]) != lGenAARaces.end() && lGenAARaces.find(lRace) == lGenAARaces.end()) {
+        if (lGenAA->race == fBaseRaces[lSubEqRace] && lGenAARaces.find(lRace) == lGenAARaces.end()) {
           lGenAA->additionalRaces.emplace_back(lRace);
           break;
         }
@@ -245,7 +245,7 @@ RE::TESObjectARMO* TngCore::GentifySkin(RE::TESObjectARMO* aOgSkin, int aAddonCh
     lAARaces.insert(lAA->additionalRaces.begin(), lAA->additionalRaces.end());
     for (auto& lRace : lAARaces)
       if (lRace->HasKeyword(fPRaceKey) && (lRace->HasKeyword(fBstKey) == lIsBeastSkin)) lSkinRaces.insert(lRace);
-    if (lAA->race == fDefRace && lAA->additionalRaces.size() == 0) lSkinRaces.insert(fDefRace);
+    if (lAA->race == fDefRace) lSkinRaces.insert(fDefRace);
   }
   for (int i = 0; i < TngSizeShape::GetAddonCount(false); i++) {
     RE::TESObjectARMO* lSkin = nullptr;
