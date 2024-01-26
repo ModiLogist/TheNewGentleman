@@ -354,22 +354,20 @@ void TngSizeShape::SetGlobalSize(int aIdx, float aSize) noexcept {
 }
 
 void TngSizeShape::RandomizeScale(RE::Actor *aActor) noexcept {
-  RE::BGSKeyword *lSizeKws[Tng::cSizeCategories]{};
-  RE::TESGlobal *lSizeGlbs[Tng::cSizeCategories]{};
   const auto lNPC = aActor ? aActor->GetActorBase() : nullptr;
   if (!aActor || !lNPC) return;
   if (!lNPC->race) return;
   if (!lNPC->race->HasPartOf(Tng::cSlotGenital)) return;
 
   for (int i = 0; i < Tng::cSizeCategories; i++) {
-    if (lNPC->HasKeyword(lSizeKws[i])) {
-      ScaleGenital(aActor, lSizeGlbs[i]);
+    if (lNPC->HasKeyword(fSizeKws[i])) {
+      ScaleGenital(aActor, fSizeGlbs[i]);
       return;
     }
   }
   const int lDefSize = lNPC->formID % 5;
-  lNPC->AddKeyword(lSizeKws[lDefSize]);
-  ScaleGenital(aActor, lSizeGlbs[lDefSize]);
+  lNPC->AddKeyword(fSizeKws[lDefSize]);
+  ScaleGenital(aActor, fSizeGlbs[lDefSize]);
 }
 
 Tng::TNGRes TngSizeShape::SetActorSize(RE::Actor *aActor, int aGenSize) noexcept {
