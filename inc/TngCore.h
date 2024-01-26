@@ -140,6 +140,7 @@ class TngCore : public Singleton<TngCore> {
     static void CheckArmorPieces() noexcept;
     static Tng::TNGRes HandleArmor(RE::TESObjectARMO* aArmor, const bool aIfLog = true) noexcept;
     static bool SwapRevealing(RE::TESObjectARMO* aArmor) noexcept;
+    static void FixArmor(RE::TESObjectARMO* aArmor) noexcept;
 
   private:
     inline static std::set<RE::TESObjectARMA*> fSAAs;

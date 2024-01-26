@@ -87,7 +87,7 @@ void TngEvents::CheckActor(RE::Actor* aActor, RE::TESObjectARMO* aArmor) noexcep
   TngSizeShape::RandomizeScale(aActor);
   const auto lGArmo = aActor->GetWornArmor(Tng::cSlotGenital);
   if (aArmor && !lGArmo) {
-    TngCore::HandleArmor(aArmor, false);
+    TngCore::FixArmor(aArmor);
     if (aArmor->HasKeyword(fCCKey) || aArmor->HasKeyword(fACKey)) CheckForClipping(aActor, aArmor);
     return;
   }

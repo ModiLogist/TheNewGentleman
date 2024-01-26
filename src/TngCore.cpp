@@ -667,6 +667,19 @@ bool TngCore::SwapRevealing(RE::TESObjectARMO* aArmor) noexcept {
   return true;
 }
 
+void TngCore::FixArmor(RE::TESObjectARMO* aArmor) noexcept {
+  if (aArmor->HasKeywordInArray(fArmoKeys, false) && !aArmor->HasKeyword(fCCKey) && !aArmor->HasKeyword(fACKey)) return;
+  if (aArmor->HasPartOf(Tng::cSlotGenital)) return;
+  for (auto& lAA : aArmor->armorAddons)
+    if (lAA->HasPartOf(Tng::cSlotGenital)) return;
+  for (auto& lAA : aArmor->armorAddons)
+    if (lAA->HasPartOf(Tng::cSlotBody)) {
+      lAA->AddSlotToMask(Tng::cSlotGenital);
+      fCAAs.insert(lAA);
+    }
+  if (!aArmor->HasKeyword(fCCKey) && !aArmor->HasKeyword(fACKey)) aArmor->AddKeyword(fACKey);
+}
+
 void TngCore::CoverByArmor(RE::TESObjectARMO* aArmor) noexcept {
   aArmor->AddKeyword(fCCKey);
   const auto lID = (std::string(aArmor->GetName()).empty()) ? aArmor->GetFormEditorID() : aArmor->GetName();
