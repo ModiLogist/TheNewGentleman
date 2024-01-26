@@ -70,6 +70,10 @@ std::size_t TngSizeShape::GetRaceGrp(RE::TESRace *aRace) noexcept {
   for (std::size_t i = 0; i < fRacesInfo.size(); i++) {
     auto lIt = std::find_if(fRacesInfo[i].races.begin(), fRacesInfo[i].races.end(), [&](auto &p) { return p == aRace; });
     if (lIt != fRacesInfo[i].races.end()) return i;
+    if (fRacesInfo[i].raceName == aRace->GetName() && fRacesInfo[i].originalSkin == aRace->skin) {
+      fRacesInfo[i].races.push_back(aRace);
+      return i;
+    }    
   }
   if (aRace->armorParentRace && aRace->armorParentRace->skin == aRace->skin) {
     fRacesInfo[GetRaceGrp(aRace->armorParentRace)].races.push_back(aRace);
@@ -78,14 +82,6 @@ std::size_t TngSizeShape::GetRaceGrp(RE::TESRace *aRace) noexcept {
     fRacesInfo.push_back(RaceInfo{aRace->GetName(), std::vector{aRace}, -1, -1, 1.0f, aRace->skin});
     return static_cast<std::size_t>(fRacesInfo.size() - 1);
   }
-}
-
-void TngSizeShape::SetRaceGrp(RE::TESRace *aRace, std::size_t aIndex) noexcept {
-  if (fRacesInfo[aIndex].originalSkin != aRace->skin) {
-    Tng::gLogger::error("The race [{:x}: {}] cannot be set in the same group as indicated!", aRace->GetFormID(), aRace->GetFormEditorID());
-    return;
-  }
-  fRacesInfo[aIndex].races.push_back(aRace);
 }
 
 bool TngSizeShape::LoadRaceMult(const std::string aRaceRecord, const float aSize) noexcept {

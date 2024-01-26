@@ -28,7 +28,6 @@ class TngSizeShape : public Singleton<TngSizeShape> {
     static std::vector<std::string> GetAddonNames(bool aIsFemale) noexcept;
     static std::vector<std::string> GetAllPossibleAddons(RE::Actor* aActor) noexcept;
     static std::size_t GetRaceGrp(RE::TESRace* aRace) noexcept;
-    static void SetRaceGrp(RE::TESRace* aRace, std::size_t aIndex) noexcept;
     static bool LoadRaceMult(const std::string aRaceRecord, const float aSize) noexcept;
     static bool LoadRaceAddn(const std::string aRaceRecord, const std::string aAddonRecord) noexcept;
     static float GetRaceGrpMult(RE::TESRace* aRace) noexcept;
