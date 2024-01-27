@@ -26,6 +26,8 @@ void TngInis::LoadMainIni() noexcept {
   CSimpleIniA lIni;
   lIni.SetUnicode();
   lIni.LoadFile(cSettings);
+  int lIniVersion = lIni.GetLongValue(cIniVersion, cVersion, 1);
+  if (lIniVersion < 2) UpdateToVersion2(&lIni);
   if (lIni.SectionExists(cGlobalSize)) {
     for (int i = 0; i < Tng::cSizeCategories; i++) {
       TngSizeShape::SetGlobalSize(i, static_cast<float>(lIni.GetDoubleValue(cGlobalSize, cSizeNames[i], 1.0)));
@@ -337,4 +339,10 @@ bool TngInis::UpdateRevealing(const std::string aArmorRecod) noexcept {
   }
   fRunTimeRevealingIDs.insert(std::make_pair<std::string, RE::FormID>(StrToRecord(aArmorRecod).first, StrToRecord(aArmorRecod).second));
   return true;
+}
+
+void TngInis::UpdateToVersion2(CSimpleIniA* aIni) noexcept {
+  if (aIni->SectionExists(cRacialGenital)) aIni->Delete(cRacialGenital, NULL);
+  if (aIni->SectionExists(cRacialSize)) aIni->Delete(cRacialSize, NULL);
+  if (aIni->SectionExists(cShape)) aIni->Delete(cShape, NULL);
 }

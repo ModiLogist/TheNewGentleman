@@ -3,19 +3,23 @@
 class TngInis : public Singleton<TngInis> {
   private:
     // TNG setting
-    inline static constexpr const char* cSettings{R"(.\Data\SKSE\Plugins\The New Gentleman.ini)"};
+    inline static constexpr const char* cSettings{R"(.\Data\SKSE\Plugins\TheNewGentleman.ini)"};
+    inline static constexpr const char* cIniVersion{"IniVersion"};
+    inline static constexpr const char* cVersion{"Version"};
+
     inline static constexpr const char* cAutoReveal{"AutoReveal"};
     inline static constexpr const char* cFAutoReveal{"Female"};
     inline static constexpr const char* cMAutoReveal{"Male"};
     inline static constexpr const char* cGeneral{"General"};
     inline static constexpr const char* cDoubleCheck{"DoubleCheckClipping"};
-    inline static constexpr const char* cRacialGenital{"RaceGenitals"};
-    inline static constexpr const char* cRacialSize{"RaceSizeMultpliers"};
+    inline static constexpr const char* cRacialGenital{"RaceGenital"};
+    inline static constexpr const char* cRacialSize{"RaceSizeMultplier"};
 
     inline static constexpr const char* cGlobalSize{"GlobalSizes"};
     inline static constexpr const char* cSizeNames[Tng::cSizeCategories]{"Size_XS", "Size__S", "Size__M", "Size__L", "Size_XL"};
     inline static constexpr const char* cNPCSizeSection{"NPCGenitalSize"};
     inline static constexpr const char* cNPCAddnSection{"NPCGenitalAddon"};
+    
     inline static constexpr const char* cExcludeSection{"ExcludedNPCs"};
 
     inline static constexpr RE::FormID cINTCtrlID{0xC00};
@@ -91,4 +95,8 @@ class TngInis : public Singleton<TngInis> {
 
     static bool IsTngIni(const std::string_view aFileName) noexcept;
     static bool UpdateRevealing(const std::string aArmorRecod) noexcept;
+
+  private://Old Ini update
+    inline static constexpr const char* cShape{"NPCGenitalShape"};
+    static void UpdateToVersion2(CSimpleIniA* aIni) noexcept;
 };
