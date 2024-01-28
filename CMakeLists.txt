@@ -10,10 +10,27 @@ project(
   LANGUAGES CXX
 )
 
+configure_file(
+  ${CMAKE_CURRENT_SOURCE_DIR}/cmake/Version.h.in
+  ${CMAKE_CURRENT_BINARY_DIR}/include/Version.h
+  @ONLY
+)
+
+configure_file(
+  ${CMAKE_CURRENT_SOURCE_DIR}/cmake/version.rc.in
+  ${CMAKE_CURRENT_BINARY_DIR}/version.rc
+  @ONLY
+)
+
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_INTERPROCEDURAL_OPTIMIZATION ON)
 set(CMAKE_INTERPROCEDURAL_OPTIMIZATION_DEBUG OFF)
+
+add_compile_definitions(SKYRIM)
+set(CommonLibPath "extern/CommonLibSSE-NG")
+set(GameVersion "Skyrim")
+set(CommonLibName "CommonLibSSE")
 
 configure_file(
   ${CMAKE_CURRENT_SOURCE_DIR}/cmake/version.rc.in
@@ -46,17 +63,24 @@ source_group(
 ########################################################################################################################
 ## Configure target DLL
 ########################################################################################################################
-find_package(CommonLibSSE CONFIG REQUIRED)
+if (DEFINED CommonLibPath AND NOT ${CommonLibPath} STREQUAL "" AND IS_DIRECTORY ${CommonLibPath})
+  add_subdirectory(${CommonLibPath} ${CommonLibName} EXCLUDE_FROM_ALL)
+else ()
+  message(
+    FATAL_ERROR
+    "Variable ${CommonLibName}Path is not set."
+  )
+endif()
 
-add_commonlibsse_plugin(
+add_library(
   ${PROJECT_NAME}
-  AUTHOR ModiLogist
-  USE_ADDRESS_LIBRARY
-  USE_SIGNATURE_SCANNING
-  SOURCES ${headers} ${sources}
+  SHARED
+  ${headers}
+  ${sources}
+  ${CMAKE_CURRENT_BINARY_DIR}/include/Version.h
+  ${CMAKE_CURRENT_BINARY_DIR}/version.rc
+  .clang-format
 )
-
-add_library("${PROJECT_NAME}::${PROJECT_NAME}" ALIAS "${PROJECT_NAME}")
 
 target_compile_definitions(
     ${PROJECT_NAME}
@@ -88,6 +112,12 @@ target_include_directories(
   ${PROJECT_NAME}
   PRIVATE
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/inc>
+)
+
+target_link_libraries(
+  ${PROJECT_NAME}
+  PUBLIC
+    ${CommonLibName}::${CommonLibName}
 )
 
 target_precompile_headers(
