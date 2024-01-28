@@ -8,6 +8,9 @@ namespace Tng {
   inline static constexpr const char cColonChar{':'};
   inline static constexpr int cSizeCategories{5};
   inline static constexpr RE::FormID cDefRaceID = 0x19;
+  inline static constexpr RE::FormID cBstRaceID = 0x13745;
+  inline static constexpr int cVanillaRaceTypes{14};
+  inline static constexpr int cEqRaceTypes{13};
 
   inline static constexpr RE::BGSBipedObjectForm::BipedObjectSlot cSlotBody{RE::BGSBipedObjectForm::BipedObjectSlot::kBody};
   inline static constexpr RE::BGSBipedObjectForm::BipedObjectSlot cSlotGenital{RE::BGSBipedObjectForm::BipedObjectSlot::kModPelvisSecondary};

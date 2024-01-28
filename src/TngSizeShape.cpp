@@ -3,6 +3,7 @@
 bool TngSizeShape::Init() noexcept {
   fDH = RE::TESDataHandler::GetSingleton();
   fDefRace = fDH->LookupForm<RE::TESRace>(Tng::cDefRaceID, Tng::cSkyrim);
+  fBstKey = fDH->LookupForm<RE::BGSKeyword>(Tng::cBstKeywID, Tng::cSkyrim);
   fFemAddKey = fDH->LookupForm<RE::BGSKeyword>(Tng::cFemAddKeyID, Tng::cName);
   fMalAddKey = fDH->LookupForm<RE::BGSKeyword>(Tng::cMalAddKeyID, Tng::cName);
   fPRaceKey = fDH->LookupForm<RE::BGSKeyword>(Tng::cProcessedRaceKeyID, Tng::cName);
@@ -15,6 +16,18 @@ bool TngSizeShape::Init() noexcept {
   if (!(fFemAddKey && fMalAddKey && fPRaceKey && fRRaceKey && fIAKey && fSkinWithPenisKey && fGWKey && fExKey && fGentified)) {
     Tng::gLogger::critical("Could not find the base information required for shape variations!");
     return false;
+  }
+  for (int i = 0; i < Tng::cVanillaRaceTypes; i++) {
+    fBaseRaces[i] = fDH->LookupForm<RE::TESRace>(cBaseRaceIDs[i].first, cBaseRaceIDs[i].second);
+    if (!fBaseRaces[i]) return false;
+    fBaseRaces[i]->AddKeyword(fPRaceKey);
+    fRacesInfo.push_back(RaceInfo{fBaseRaces[i]->GetName(), std::vector{fBaseRaces[i]}, cVanillaRaceDefaults[i], cVanillaRaceDefaults[i], 1.0f, fBaseRaces[i]->skin});
+  }
+  for (int i = 0; i < Tng::cEqRaceTypes; i++) {
+    fEqRaces[i] = fDH->LookupForm<RE::TESRace>(cEquiRaceIDs[i].first.first, cEquiRaceIDs[i].first.second);
+    if (!fEqRaces[i]) return false;
+    fEqRaces[i]->AddKeyword(fPRaceKey);
+    fRacesInfo[cEquiRaceIDs->second].races.push_back(fEqRaces[i]);
   }
   for (int i = 0; i < Tng::cSizeCategories; i++) {
     fSizeKws[i] = fDH->LookupForm<RE::BGSKeyword>(cSizeKeyWIDs[i], Tng::cName);
@@ -41,6 +54,7 @@ void TngSizeShape::LoadAddons() noexcept {
       lArmor->AddKeyword(fIAKey);
     }
   }
+  CategorizeAddons();
 }
 
 std::size_t TngSizeShape::GetAddonCount(bool aIsFemale) noexcept { return aIsFemale ? fFemAddons.size() : fMalAddons.size(); }
@@ -69,12 +83,12 @@ std::vector<std::string> TngSizeShape::GetAllPossibleAddons(RE::Actor *aActor) n
 
 std::size_t TngSizeShape::GetRaceGrp(RE::TESRace *aRace) noexcept {
   for (std::size_t i = 0; i < fRacesInfo.size(); i++) {
-    auto lIt = std::find_if(fRacesInfo[i].races.begin(), fRacesInfo[i].races.end(), [&](auto &p) { return p == aRace; });
+    auto lIt = std::find(fRacesInfo[i].races.begin(), fRacesInfo[i].races.end(), aRace);
     if (lIt != fRacesInfo[i].races.end()) return i;
     if (fRacesInfo[i].raceName == aRace->GetName() && fRacesInfo[i].originalSkin == aRace->skin) {
       fRacesInfo[i].races.push_back(aRace);
       return i;
-    }    
+    }
   }
   if (aRace->armorParentRace && aRace->armorParentRace != fDefRace && aRace->armorParentRace->skin == aRace->skin) {
     fRacesInfo[GetRaceGrp(aRace->armorParentRace)].races.push_back(aRace);
@@ -355,8 +369,7 @@ void TngSizeShape::RandomizeScale(RE::Actor *aActor) noexcept {
   const auto lNPC = aActor ? aActor->GetActorBase() : nullptr;
   if (!aActor || !lNPC) return;
   if (!lNPC->race) return;
-  if (!lNPC->race->HasPartOf(Tng::cSlotGenital)) return;
-
+  if (!(lNPC->race->HasKeyword(fPRaceKey) || lNPC->race->HasKeyword(fRRaceKey))) return;
   for (int i = 0; i < Tng::cSizeCategories; i++) {
     if (lNPC->HasKeyword(fSizeKws[i])) {
       ScaleGenital(aActor, fSizeGlbs[i]);
@@ -390,4 +403,94 @@ void TngSizeShape::ScaleGenital(RE::Actor *aActor, RE::TESGlobal *aGlobal) noexc
   if (!aBaseNode || !aScrtNode) return;
   aBaseNode->local.scale = lScale;
   aScrtNode->local.scale = 1.0f / lScale;
+}
+
+std::set<RE::TESObjectARMA *> TngSizeShape::GetAddonAAs(TNGRaceTypes aRaceType, int aAddonIdx, bool aIsFemale) {
+  return aIsFemale ? fFemAddonAAs[aRaceType][aAddonIdx] : fMalAddonAAs[aRaceType][aAddonIdx];
+}
+
+void TngSizeShape::UpdateAddons(RE::TESRace *aRace) noexcept {
+  auto lBaseRace = fBaseRaces[FindEqVanilla(aRace)];
+  std::vector<RE::TESObjectARMO *> lAllAddons{fMalAddons.begin(), fMalAddons.end()};
+  lAllAddons.insert(lAllAddons.end(), fFemAddons.begin(), fFemAddons.end());
+  for (auto &lAddon : lAllAddons) {
+    bool lSupports = false;
+    for (auto &lAA : lAddon->armorAddons) {
+      if (lAA->race == aRace || std::find(lAA->additionalRaces.begin(), lAA->additionalRaces.end(), aRace) != lAA->additionalRaces.end()) {
+        lSupports = true;
+        break;
+      }
+      auto lIt = std::find(lAA->additionalRaces.begin(), lAA->additionalRaces.end(), lBaseRace);
+      if (lAA->race == lBaseRace || lIt != lAA->additionalRaces.end()) {
+        lAA->additionalRaces.emplace_back(aRace);
+        lSupports = true;
+        break;
+      }
+    }
+    if (!lSupports)
+      Tng::gLogger::error("The addon [0x{:x}] from file [{}] cannot support the race [{:x}: {}]!", lAddon->GetLocalFormID(), lAddon->GetFile(0)->GetFilename(),
+                          aRace->GetLocalFormID(), aRace->GetFormEditorID());
+  }
+};
+
+TngSizeShape::TNGRaceTypes TngSizeShape::GetSkinType(RE::TESObjectARMO *aSkin) noexcept {
+  if (aSkin->race == fDefRace) return raceManMer;
+  if (aSkin->race->HasKeyword(fBstKey)) return raceBeast;
+  if (aSkin->race == fBaseRaces[10]) return raceDremora;
+  if (aSkin->race == fBaseRaces[11]) return raceElder;
+  if (aSkin->race == fBaseRaces[12]) return raceAfflicted;
+  if (aSkin->race == fBaseRaces[13]) return raceSnowElf;
+  return raceManMer;
+}
+
+void TngSizeShape::CategorizeAddons() noexcept {
+  auto lEmptySet = std::set<RE::TESObjectARMA *>{};
+  for (auto &lCAs : fMalAddonAAs) lCAs = std::vector<std::set<RE::TESObjectARMA *>>(fMalAddons.size(), lEmptySet);
+  for (auto &lCAs : fFemAddonAAs) lCAs = std::vector<std::set<RE::TESObjectARMA *>>(fFemAddons.size(), lEmptySet);
+  for (int i = 0; i < fMalAddons.size(); i++) CategorizeAddon(fMalAddons[i], i, false);
+  for (int i = 0; i < fFemAddons.size(); i++) CategorizeAddon(fFemAddons[i], i, true);
+}
+
+void TngSizeShape::CategorizeAddon(RE::TESObjectARMO *aAddon, const int aIdx, bool aIsFemale) noexcept {
+  auto &lAddonAAs = aIsFemale ? fFemAddonAAs : fMalAddonAAs;
+  for (const auto &lAA : aAddon->armorAddons) {
+    if (!lAA->HasPartOf(Tng::cSlotGenital)) continue;
+    std::set<RE::TESRace *> lAARaces{lAA->race};
+    if (lAA->race != fBaseRaces[12]) lAARaces.insert(lAA->additionalRaces.begin(), lAA->additionalRaces.end());    
+    for (const auto &lRace : lAARaces) {
+      if (lRace->HasKeyword(fBstKey)) {
+        lAddonAAs[raceBeast][aIdx].insert(lAA);
+        continue;
+      }
+      if (lRace == fBaseRaces[10] || lRace == fEqRaces[10]) {
+        lAddonAAs[raceDremora][aIdx].insert(lAA);
+        continue;
+      }
+      if (lRace == fBaseRaces[11] || lRace == fEqRaces[11]) {
+        lAddonAAs[raceElder][aIdx].insert(lAA);
+        continue;
+      }
+      if (lRace == fBaseRaces[12]) {
+        lAddonAAs[raceAfflicted][aIdx].insert(lAA);
+        continue;
+      }
+      if (lRace == fBaseRaces[13]) {
+        lAddonAAs[raceSnowElf][aIdx].insert(lAA);
+        continue;
+      }
+      lAddonAAs[raceManMer][aIdx].insert(lAA);
+    }
+  }
+}
+
+int TngSizeShape::FindEqVanilla(RE::TESRace *aRace) noexcept {
+  for (const auto &lRace : fBaseRaces)
+    if (aRace == lRace) return -1;
+  for (const auto &lRace : fEqRaces)
+    if (aRace == lRace) return -1;
+  const auto lRaceDesc = std::string(aRace->GetFormEditorID()) + std::string(aRace->GetName());
+  for (int i = 0; i < Tng::cVanillaRaceTypes; i++) {
+    if (lRaceDesc.contains(cRaceNames[i].first[0]) || lRaceDesc.contains(cRaceNames[i].first[1]) && (aRace->HasKeyword(fBstKey) == cRaceNames[i].second)) return i;
+  }
+  return aRace->HasKeyword(fBstKey) ? 9 : 0;
 }

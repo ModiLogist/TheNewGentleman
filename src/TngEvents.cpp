@@ -41,8 +41,8 @@ RE::BSEventNotifyControl TngEvents::ProcessEvent(const RE::TESEquipEvent* aEvent
     fInternal = false;
     aSource->notifying = true;
   } else {
-    CheckForAddons(lActor);
     TngSizeShape::RandomizeScale(lActor);
+    CheckForAddons(lActor);
   }
   return RE::BSEventNotifyControl::kContinue;
 }

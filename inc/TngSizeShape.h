@@ -6,6 +6,58 @@ class TngSizeShape : public Singleton<TngSizeShape> {
     inline static const char* cScrtBone{"NPC GenitalsScrotum [GenScrot]"};
     inline static const char* cNPCAddn{"TNG_ActorAddn:"};
 
+    inline static constexpr std::pair<RE::FormID, std::string_view> cBaseRaceIDs[Tng::cVanillaRaceTypes] = {
+        {0x13746, "Skyrim.esm"},     // Nord
+        {0x13748, "Skyrim.esm"},     // Redguard
+        {0x13741, "Skyrim.esm"},     // Breton
+        {0x13744, "Skyrim.esm"},     // Imperial
+        {0x13743, "Skyrim.esm"},     // Altmer
+        {0x13749, "Skyrim.esm"},     // Bosmer
+        {0x13742, "Skyrim.esm"},     // Dunmer
+        {0x13747, "Skyrim.esm"},     // Orsimer
+        {0x13740, "Skyrim.esm"},     // Saxhleel
+        {0x13745, "Skyrim.esm"},     // Khajiit
+        {0x131F0, "Skyrim.esm"},     // Dremora
+        {0x67CD8, "Skyrim.esm"},     // Elder
+        {0x97A3D, "Skyrim.esm"},     // Afflicted
+        {0x0377D, "Dawnguard.esm"},  // SnowElf
+    };
+    inline static constexpr std::pair<std::pair<RE::FormID, std::string_view>, int> cEquiRaceIDs[Tng::cEqRaceTypes] = {
+        {{0x88794, "Skyrim.esm"}, 0},       // Nord Vampire
+        {{0x88846, "Skyrim.esm"}, 1},       // Redguard Vampire
+        {{0x8883C, "Skyrim.esm"}, 2},       // Breton Vampire
+        {{0x88844, "Skyrim.esm"}, 3},       // Imperial Vampire
+        {{0x88840, "Skyrim.esm"}, 4},       // Altmer Vampire
+        {{0x88884, "Skyrim.esm"}, 5},       // Bosmer Vampire
+        {{0x8883D, "Skyrim.esm"}, 6},       // Dunmer Vampire
+        {{0xA82B9, "Skyrim.esm"}, 7},       // Orsimer Vampire
+        {{0x8883A, "Skyrim.esm"}, 8},       // Saxhleel Vampire
+        {{0x88845, "Skyrim.esm"}, 9},       // Khajiit Vampire
+        {{0x35538, "Dragonborn.esm"}, 10},  // DLC2 Dremora
+        {{0xA82BA, "Skyrim.esm"}, 11},      // Elder Vampire
+        {{0x0E88A, "Dawnguard.esm"}, 0},    // DLC1 Nord
+    };
+    inline static constexpr int cVanillaRaceDefaults[Tng::cVanillaRaceTypes]{
+        2,  // TNG_GenitalNord
+        1,  // TNG_GenitalRedguard
+        0,  // TNG_GenitalBreton
+        2,  // TNG_GenitalImperial
+        0,  // TNG_GenitalAltmer
+        0,  // TNG_GenitalBosmer
+        1,  // TNG_GenitalDunmer
+        2,  // TNG_GenitalOrsimer
+        0,  // TNG_GenitalSaxhleel
+        2,  // TNG_GenitalKhajiit
+        1,  // TNG_GenitalDremora
+        2,  // TNG_GenitalElder
+        0,  // TNG_GenitalAfflicted
+        0,  // TNG_GenitalSnowElf
+    };
+    inline static constexpr std::pair<std::array<std::string_view, 2>, bool> cRaceNames[Tng::cVanillaRaceTypes]{
+        {{"Nord", "nord"}, false},       {{"Redguard", "redguard"}, false}, {{"Breton", "Reachmen"}, false},     {{"Imperial", "imperial"}, false}, {{"Altmer", "HighElf"}, false},
+        {{"Bosmer", "WoodElf"}, false},  {{"Dunmer", "DarkElf"}, false},    {{"Orsimer", "Orc"}, false},         {{"Saxhleel", "Argonian"}, true},  {{"Khajiit", "Rhat"}, true},
+        {{"Dremora", "dremora"}, false}, {{"Elder", "elder"}, false},       {{"Afflicted", "afflicted"}, false}, {{"SnowElf", "Falmer"}, false}};
+
     inline static constexpr RE::FormID cNoGenSkinIDs[4]{0xAFF, 0xAFE, 0xAFD, 0xAFC};
     inline static constexpr RE::FormID cSizeKeyWIDs[Tng::cSizeCategories]{0xFE1, 0xFE2, 0xFE3, 0xFE4, 0xFE5};
     inline static constexpr RE::FormID cSizeGlobIDs[Tng::cSizeCategories]{0xC01, 0xC02, 0xC03, 0xC04, 0xC05};
@@ -63,7 +115,10 @@ class TngSizeShape : public Singleton<TngSizeShape> {
 
   private:
     inline static RE::TESDataHandler* fDH;
+    inline static RE::TESRace* fBaseRaces[Tng::cVanillaRaceTypes];
+    inline static RE::TESRace* fEqRaces[Tng::cEqRaceTypes];
     inline static RE::TESRace* fDefRace;
+    inline static RE::BGSKeyword* fBstKey;
     inline static RE::BGSKeyword* fFemAddKey;
     inline static RE::BGSKeyword* fMalAddKey;
     inline static RE::BGSKeyword* fPRaceKey;
@@ -81,4 +136,18 @@ class TngSizeShape : public Singleton<TngSizeShape> {
 
 
     static void ScaleGenital(RE::Actor* aActor, RE::TESGlobal* aGlobal) noexcept;
+
+  public:
+    enum TNGRaceTypes { raceManMer, raceBeast, raceDremora, raceAfflicted, raceElder, raceSnowElf };
+    static std::set<RE::TESObjectARMA*> GetAddonAAs(TNGRaceTypes aRaceType, int aAddonIdx, bool aIsFemale);
+    static void UpdateAddons(RE::TESRace* aRace) noexcept;
+    static TNGRaceTypes GetSkinType(RE::TESObjectARMO* aSkin) noexcept;
+  private:
+
+    
+    inline static std::vector<std::set<RE::TESObjectARMA*>> fMalAddonAAs[6];
+    inline static std::vector<std::set<RE::TESObjectARMA*>> fFemAddonAAs[6];
+    static void CategorizeAddons() noexcept;
+    static void CategorizeAddon(RE::TESObjectARMO* aAddon, const int aIdx, bool aIsFemale) noexcept;
+    static int FindEqVanilla(RE::TESRace* aRace) noexcept;
 };
