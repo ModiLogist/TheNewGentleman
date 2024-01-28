@@ -28,6 +28,7 @@ void TngInis::LoadMainIni() noexcept {
   lIni.LoadFile(cSettings);
   int lIniVersion = lIni.GetLongValue(cIniVersion, cVersion, 1);
   if (lIniVersion < 2) UpdateToVersion2(&lIni);
+  lIni.SetLongValue(cIniVersion, cVersion, cCurrVersion);
   if (lIni.SectionExists(cGlobalSize)) {
     for (int i = 0; i < Tng::cSizeCategories; i++) {
       TngSizeShape::SetGlobalSize(i, static_cast<float>(lIni.GetDoubleValue(cGlobalSize, cSizeNames[i], 1.0)));
@@ -238,6 +239,7 @@ void TngInis::SaveNPCAddn(RE::TESNPC* aNPC, int aChoice) noexcept {
     default:
       auto lAddon = TngSizeShape::GetAddonAt(aNPC->IsFemale(), aChoice);
       auto lGenIDStr = RecordToStr(lAddon);
+      lIni.Delete(cExcludeSection, lNPCIDStr.c_str());
       lIni.SetValue(cNPCAddnSection, lNPCIDStr.c_str(), lGenIDStr.c_str());
       if (lIni.KeyExists(cExcludeSection, lNPCIDStr.c_str())) lIni.Delete(cExcludeSection, lNPCIDStr.c_str());
       break;
