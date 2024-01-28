@@ -301,6 +301,7 @@ bool TngSizeShape::SetNPCAddn(RE::TESNPC *aNPC, int aAddon) noexcept {
     Tng::gLogger::critical("Cannot set the NPC {} to use addon {}! There are only {} addons.", aNPC->GetFormEditorID(), aAddon + 1, lList.size());
     return false;
   }
+  if (aNPC->HasKeyword(fExKey)) aNPC->RemoveKeyword(fExKey);
   auto lChoice = static_cast<std::size_t>(aAddon);
   auto &lAllKws = fDH->GetFormArray<RE::BGSKeyword>();
   std::string lReqKw = cNPCAddn + (lChoice < 10 ? "0" + std::to_string(lChoice) : std::to_string(lChoice));

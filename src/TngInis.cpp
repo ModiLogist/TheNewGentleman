@@ -241,7 +241,6 @@ void TngInis::SaveNPCAddn(RE::TESNPC* aNPC, int aChoice) noexcept {
       auto lGenIDStr = RecordToStr(lAddon);
       lIni.Delete(cExcludeSection, lNPCIDStr.c_str());
       lIni.SetValue(cNPCAddnSection, lNPCIDStr.c_str(), lGenIDStr.c_str());
-      if (lIni.KeyExists(cExcludeSection, lNPCIDStr.c_str())) lIni.Delete(cExcludeSection, lNPCIDStr.c_str());
       break;
   }
   lIni.SaveFile(cSettings);

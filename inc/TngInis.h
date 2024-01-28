@@ -3,6 +3,7 @@
 class TngInis : public Singleton<TngInis> {
   private:
     // TNG setting
+    inline static constexpr int cCurrVersion = 2;
     inline static constexpr const char* cSettings{R"(.\Data\SKSE\Plugins\TheNewGentleman.ini)"};
     inline static constexpr const char* cIniVersion{"IniVersion"};
     inline static constexpr const char* cVersion{"Version"};
