@@ -452,11 +452,13 @@ void TngCore::CheckArmorPieces() noexcept {
   for (auto& lAA : fCAAs) {
     if (fRAAs.find(lAA) != fRAAs.end()) {
       Tng::gLogger::error(
-          "The armor addon [:x] is shared between two or more armors; and some are marked revealing and others are marked covering! Any armor using that addon would be "
-          "revealing.");
+          "The armor addon [0x{:x}] is shared between two or more armors; and some are marked revealing and others are marked covering! Any armor using that addon would be "
+          "revealing.", lAA->GetFormID());
       fCAAs.erase(lAA);
     }
     lAA->AddSlotToMask(Tng::cSlotGenital);
+    if (lAA->data.priorities[0] == 0 || lAA->data.priorities[1] == 0)
+      Tng::gLogger::warn("The armor addon [0x{:x}] from file has wrong priorities. This can cause genital clipping through.", lAA->GetFormID());
   }
   Tng::gLogger::info("Processed {} armor pieces with slot 32 or 52:", lRR + lAR + lAC + lCC + lPA);
   if (lPA > 0) Tng::gLogger::warn("\t{}: seems to be problematic!", lPA);
