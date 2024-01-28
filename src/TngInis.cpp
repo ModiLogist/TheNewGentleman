@@ -194,9 +194,9 @@ void TngInis::SaveRaceMult(const std::size_t aRaceIdx, const float aRaceMult) no
     return;
   }
   if (aRaceMult < 0) {
-    lIni.Delete(cRacialGenital, lRaceIDStr.c_str());
+    lIni.Delete(cRacialSize, lRaceIDStr.c_str());
   } else {
-    lIni.SetDoubleValue(cRacialGenital, lRaceIDStr.c_str(), static_cast<float>(aRaceMult));
+    lIni.SetDoubleValue(cRacialSize, lRaceIDStr.c_str(), static_cast<float>(aRaceMult));
   }
   lIni.SaveFile(cSettings);
 }
