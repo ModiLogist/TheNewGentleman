@@ -29,7 +29,7 @@ void TngPapyrus::SetRaceGrpAddn(RE::StaticFunctionTag*, int aRaceIdx, int aGenOp
 }
 
 void TngPapyrus::SetRaceGrpMult(RE::StaticFunctionTag*, int aRaceIdx, float aGenMult) {
-  if (TngSizeShape::SetRaceGrpMult(static_cast<int>(aRaceIdx), aGenMult)) TngInis::SaveRaceMult(static_cast<int>(aRaceIdx), aGenMult);
+  if (TngSizeShape::SetRaceGrpMult(static_cast<std::size_t>(aRaceIdx), aGenMult)) TngInis::SaveRaceMult(static_cast<int>(aRaceIdx), aGenMult);
 }
 
 std::vector<std::string> TngPapyrus::GetAllPossibleAddons(RE::StaticFunctionTag*, bool aIsFemale) {
