@@ -266,7 +266,6 @@ Tng::TNGRes TngCore::SetActorSkin(RE::Actor* aActor, int aAddon) noexcept {
   auto lSkin = (lSkinP == lSkinsToLook.end()) || !lSkinP->second[aAddon] ? ProduceAddonSkin(GetOgSkin(lNPC), aAddon, lNPC->IsFemale()) : lSkinP->second[aAddon];
   TngSizeShape::SetNPCAddn(lNPC, aAddon);
   if (lSkin != lCurrSkin) {
-    Tng::gLogger::info("Setting {} skin to be {:x}.", lNPC->GetName(), lSkin->GetFormID());
     lNPC->skin = lSkin;
     if (!aActor->IsPlayerRef()) TngInis::SaveNPCAddn(lNPC, aAddon);
   }
