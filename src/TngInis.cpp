@@ -224,7 +224,7 @@ void TngInis::SaveRaceAddn(const std::size_t aRaceIdx, int aChoice) noexcept {
 
 void TngInis::SaveNPCAddn(RE::TESNPC* aNPC, int aChoice) noexcept {
   auto lNPCIDStr = RecordToStr(aNPC);
-  if (lNPCIDStr == "") return;
+  if (lNPCIDStr.empty()) return;
   CSimpleIniA lIni;
   lIni.SetUnicode();
   lIni.LoadFile(cSettings);
@@ -248,7 +248,7 @@ void TngInis::SaveNPCAddn(RE::TESNPC* aNPC, int aChoice) noexcept {
 
 void TngInis::SaveActorSize(RE::TESNPC* aNPC, int aGenSize) noexcept {
   auto lNPCIDStr = RecordToStr(aNPC);
-  if (lNPCIDStr == "") return;
+  if (lNPCIDStr.empty()) return;
   CSimpleIniA lIni;
   lIni.SetUnicode();
   lIni.LoadFile(cSettings);
@@ -261,7 +261,7 @@ void TngInis::SaveActorSize(RE::TESNPC* aNPC, int aGenSize) noexcept {
 
 void TngInis::SaveRevealingArmor(RE::TESObjectARMO* aArmor) noexcept {
   auto lArmoIDStr = RecordToStr(aArmor);
-  if (lArmoIDStr == "") return;
+  if (lArmoIDStr.empty()) return;
   CSimpleIniA lIni;
   lIni.SetUnicode();
   lIni.LoadFile(cSettings);
@@ -271,7 +271,7 @@ void TngInis::SaveRevealingArmor(RE::TESObjectARMO* aArmor) noexcept {
 
 void TngInis::RemoveRevealingArmor(RE::TESObjectARMO* aArmor) noexcept {
   auto lArmoIDStr = RecordToStr(aArmor);
-  if (lArmoIDStr == "") return;
+  if (lArmoIDStr.empty()) return;
   CSimpleIniA lIni;
   lIni.SetUnicode();
   lIni.LoadFile(cSettings);
@@ -342,8 +342,8 @@ bool TngInis::UpdateRevealing(const std::string aArmorRecod) noexcept {
   return true;
 }
 
-void TngInis::UpdateToVersion2(CSimpleIniA* aIni) noexcept {
-  if (aIni->SectionExists(cRacialGenital)) aIni->Delete(cRacialGenital, NULL);
-  if (aIni->SectionExists(cRacialSize)) aIni->Delete(cRacialSize, NULL);
-  if (aIni->SectionExists(cShape)) aIni->Delete(cShape, NULL);
+void TngInis::UpdateToVersion2(CSimpleIniA* aIni) noexcept { 
+  CSimpleIniA::TNamesDepend lSections;
+  aIni->GetAllSections(lSections);
+  for (CSimpleIniA::TNamesDepend::const_iterator lSection = lSections.begin(); lSection != lSections.end(); lSection++) aIni->Delete(lSection->pItem, NULL);  
 }
