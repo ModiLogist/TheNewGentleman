@@ -4,11 +4,12 @@ class TngCore : public Singleton<TngCore> {
   private:
     // Const
     inline static constexpr RE::FormID cDefSkinAAID{0xD67};
-    
-    inline static constexpr std::pair<RE::FormID, std::string_view> cExclRaceIDs[3] = {
-        {0x07EAF3, "Skyrim.esm"},     // AstridRace
-        {0x10760A, "Skyrim.esm"},     // ManakinRace
-        {0x004D31, "Dawnguard.esm"},  // TestRace
+
+    inline static constexpr std::pair<RE::FormID, std::string_view> cExclRaceIDs[4] = {
+        {0x07EAF3, "Skyrim.esm"},       // AstridRace
+        {0x10760A, "Skyrim.esm"},       // ManakinRace
+        {0x004D31, "Dawnguard.esm"},    // TestRace
+        {0x03CA97, "Dragonborn.esm"},  // Miraak
     };
     inline static constexpr std::string_view cGenSkin{"TNGSkin_"};
 
