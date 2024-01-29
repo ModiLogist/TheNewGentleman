@@ -323,7 +323,7 @@ bool TngCore::FixSkin(RE::TESObjectARMO* aSkin, const char* const aName) noexcep
 void TngCore::RevertNPCSkin(RE::TESNPC* aNPC) {
   auto lOgSkin = GetOgSkin(aNPC);
   if (lOgSkin)
-    aNPC->skin = lOgSkin;
+    aNPC->skin = lOgSkin == aNPC->race->skin ? nullptr : lOgSkin;
   else {
     Tng::gLogger::critical("Failed to revert the skin of [{}] to its original value!", aNPC->GetName());
   }
