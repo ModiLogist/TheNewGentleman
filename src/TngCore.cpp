@@ -77,35 +77,36 @@ void TngCore::GenitalizeRaces() noexcept {
       }
     }
   }
-  for (int i = 0; i < TngSizeShape::GroupCount(); i++) TngSizeShape::SetRaceGrpSkin(i, GentifySkin(TngSizeShape::GetRaceGrpSkinOg(i), TngSizeShape::GetRaceGrpAddn(i), false));
+  for (int i = 0; i < TngSizeShape::GroupCount(); i++) {
+    auto lSkinAAs = TngSizeShape::GentifySkin(i);
+    auto lRacialSkin = TngSizeShape::GetRaceGrpSkin(i);
+    lRacialSkin->RemoveKeywords(fArmoKeys);
+    lRacialSkin->AddKeyword(fIAKey);
+    fSAAs.insert(lSkinAAs.begin(), lSkinAAs.end());
+  }
   Tng::gLogger::info("Recognized assigned genitals to [{}] races, found [{}] races to be ready and ignored [{}] races.", lPR, lRR, lIR);
   if (lPP > 0) Tng::gLogger::error("Faced errors for [{}] races.", lPP);
 }
 
 bool TngCore::UpdateRaces(const std::size_t aRaceIdx, int aAddon) noexcept {
   int lChoice = aAddon >= 0 ? aAddon : TngSizeShape::GetRaceGrpDefAddn(aRaceIdx);
-  auto lOgFormID = TngSizeShape::GetRaceGrpSkinOg(aRaceIdx)->formID;
-  auto lSkinEntry = fMalAddonSkins.find(lOgFormID);
-  auto lSkin =
-      lSkinEntry == fMalAddonSkins.end() || !lSkinEntry->second[aAddon] ? GentifySkin(TngSizeShape::GetRaceGrpSkinOg(aRaceIdx), lChoice, false) : lSkinEntry->second[lChoice];
-  TngSizeShape::SetRaceGrpSkin(aRaceIdx, lSkin);
-  TngSizeShape::SetRaceGrpAddn(aRaceIdx, lChoice);
+  TngSizeShape::UpdateRaceGrpAddn(aRaceIdx, lChoice);
   TngInis::SaveRaceAddn(aRaceIdx, aAddon);
   return true;
 }
 
 bool TngCore::IgnoreRace(RE::TESRace* aRace) noexcept {
+  bool lIsReady = false;
   if (aRace->skin) {
     aRace->skin->RemoveKeywords(fArmoKeys);
     aRace->skin->AddKeyword(fIAKey);
-    for (const auto& lAA : aRace->skin->armorAddons)
-      if (lAA->HasPartOf(Tng::cSlotGenital)) {
-        aRace->AddKeyword(fRRaceKey);
-        return true;
-      }
+    for (const auto& lAA : aRace->skin->armorAddons) {
+      if (lAA->HasPartOf(Tng::cSlotBody)) fSAAs.insert(lAA);
+      if (lAA->HasPartOf(Tng::cSlotGenital)) lIsReady = true;
+    }
   }
-  aRace->AddKeyword(fIRaceKey);
-  return false;
+  aRace->AddKeyword(lIsReady ? fRRaceKey : fIRaceKey);
+  return lIsReady;
 }
 
 bool TngCore::CheckRace(RE::TESRace* aRace) {
@@ -157,10 +158,16 @@ bool TngCore::CheckRace(RE::TESRace* aRace) {
 }
 
 Tng::TNGRes TngCore::AddRace(RE::TESRace* aRace) noexcept {
-  if (aRace->HasPartOf(Tng::cSlotGenital)) {
+  if (aRace->HasPartOf(Tng::cSlotGenital) || aRace->skin->HasPartOf(Tng::cSlotGenital)) {
     Tng::gLogger::info("The race [{}] seems to be ready for TNG. It was not modified.", aRace->GetFormEditorID());
     return IgnoreRace(aRace) ? Tng::resOkRaceR : Tng::raceErr;
   }
+  for (const auto lAA : aRace->skin->armorAddons)
+    if (lAA->HasPartOf(Tng::cSlotGenital)) {
+      Tng::gLogger::info("The race [{}] seems to be ready for TNG. It was not modified.", aRace->GetFormEditorID());
+      return IgnoreRace(aRace) ? Tng::resOkRaceR : Tng::raceErr;
+    }
+
   auto lRaceIdx = TngSizeShape::GetRaceGrp(aRace);
   if (aRace != TngSizeShape::GetRaceByIdx(lRaceIdx)) {
     auto lRaceName = TngSizeShape::GetRaceName(lRaceIdx);
@@ -168,35 +175,30 @@ Tng::TNGRes TngCore::AddRace(RE::TESRace* aRace) noexcept {
   } else {
     Tng::gLogger::info("The race [0x{:x}: {}] was recognized as a new group.", aRace->GetFormID(), aRace->GetFormEditorID());
   }
-  int lChoice = TngSizeShape::GetRaceGrpAddn(aRace) < 0 ? 0 : TngSizeShape::GetRaceGrpAddn(aRace);
   aRace->AddKeyword(fPRaceKey);
   aRace->AddSlotToMask(Tng::cSlotGenital);
-  TngSizeShape::SetRaceGrpAddn(aRace, lChoice);
-  TngSizeShape::SetRaceGrpDefAddn(aRace, 0);
+  auto lSkin = aRace->skin;
+  fBaseSkins.insert(lSkin);
+  lSkin->RemoveKeywords(fArmoKeys);
+  lSkin->AddKeyword(fIAKey);
   auto lRaceToPatch = aRace->armorParentRace ? aRace->armorParentRace : aRace;
-  if (lRaceToPatch != fDefRace) TngSizeShape::UpdateAddons(aRace);
+  if (lRaceToPatch != fDefRace) TngSizeShape::UpdateAddons(lRaceToPatch);
   return Tng::resOkRaceP;
 }
 
-RE::TESObjectARMO* TngCore::GentifySkin(RE::TESObjectARMO* aOgSkin, int aAddonChoice, bool aIsFemale) noexcept {
+RE::TESObjectARMO* TngCore::ProduceAddonSkin(RE::TESObjectARMO* aOgSkin, int aAddonChoice, bool aIsFemale) noexcept {
   auto& lSkins = aIsFemale ? fFemAddonSkins : fMalAddonSkins;
-  if (auto lIt = lSkins.find(aOgSkin->formID); lIt != lSkins.end() && lIt->second[aAddonChoice]) return lIt->second[aAddonChoice];
-  fOgSkins.insert(aOgSkin);
-  aOgSkin->RemoveKeywords(fArmoKeys);
-  aOgSkin->AddKeyword(fIAKey);
-  auto lAAsToAdd = TngSizeShape::GetAddonAAs(TngSizeShape::GetSkinType(aOgSkin), aAddonChoice, aIsFemale);
+  if (auto lIt = lSkins.find(aOgSkin); (lIt != lSkins.end()) && lIt->second[aAddonChoice]) return lIt->second[aAddonChoice];
   RE::TESObjectARMO* lSkin = nullptr;
   lSkin = aOgSkin->CreateDuplicateForm(true, (void*)lSkin)->As<RE::TESObjectARMO>();
   lSkin->Copy(aOgSkin);
   lSkin->AddKeyword(fGenSkinKey);
-  lSkin->AddKeyword(fIAKey);
-  lSkin->AddSlotToMask(Tng::cSlotGenital);
   if (TngSizeShape::GetAddonAt(aIsFemale, aAddonChoice)->HasKeyword(fSwPKey)) lSkin->AddKeyword(fSwPKey);
-  for (const auto& lGenAA : lAAsToAdd) lSkin->armorAddons.emplace_back(lGenAA);
-  if (auto lIt = lSkins.find(aOgSkin->formID); lIt != lSkins.end()){
+  TngSizeShape::GentifySkin(lSkin, aAddonChoice, aIsFemale);
+  if (auto lIt = lSkins.find(aOgSkin); lIt != lSkins.end()) {
     lIt->second[aAddonChoice] = lSkin;
   } else {
-    auto lInsert = lSkins.insert({aOgSkin->GetFormID(), std::vector<RE::TESObjectARMO*>(TngSizeShape::GetAddonCount(aIsFemale))});
+    auto lInsert = lSkins.insert({aOgSkin, std::vector<RE::TESObjectARMO*>(TngSizeShape::GetAddonCount(aIsFemale))});
     lInsert.first->second[aAddonChoice] = lSkin;
   }
   return lSkin;
@@ -247,52 +249,37 @@ Tng::TNGRes TngCore::SetActorSkin(RE::Actor* aActor, int aAddon) noexcept {
   if (!lNPC->race) return Tng::raceErr;
   if (!lNPC->race->HasKeyword(fPRaceKey)) return Tng::raceErr;
   if (aAddon == -1) return !lNPC->IsFemale() || lNPC->skin->HasKeyword(fSwPKey) ? Tng::resOkGen : Tng::resOkNoGen;
-  if (aAddon == -2 && lNPC->IsFemale()) {
-    TngSizeShape::SetNPCAddn(lNPC, aAddon);
+  if (aAddon == -2) {
     RevertNPCSkin(lNPC);
-    if (!aActor->IsPlayerRef()) TngInis::SaveNPCAddn(lNPC, -3);
-    return Tng::resOkNoGen;
+    TngSizeShape::SetNPCAddn(lNPC, aAddon);
+    if (!aActor->IsPlayerRef()) TngInis::SaveNPCAddn(lNPC, lNPC->IsFemale() ? -3 : aAddon);
+    return lNPC->IsFemale() ? Tng::resOkNoGen : Tng::resOkGen;
   }
   auto lCurrSkin = lNPC->skin ? lNPC->skin : lNPC->race->skin;
-  auto lOgFormID = GetOgSkinID(lNPC);
-  if (lOgFormID == 0) {
+  auto lOgSkin = GetOgSkin(lNPC);
+  if (!lOgSkin) {
     Tng::gLogger::critical("Failed to get the previously created skin for an NPC!");
     return Tng::pgErr;
   }
-  int lChoice = aAddon == -2 ? TngSizeShape::GetRaceGrpAddn(lNPC->race) : aAddon;
   auto& lSkinsToLook = lNPC->IsFemale() ? fFemAddonSkins : fMalAddonSkins;
-  auto lSkinP = lSkinsToLook.find(lOgFormID);
-  auto lSkin = lSkinP == lSkinsToLook.end() || !lSkinP->second[aAddon] ? GentifySkin(GetOgSkin(lNPC), lChoice, lNPC->IsFemale()) : lSkinP->second[lChoice];
+  auto lSkinP = lSkinsToLook.find(lOgSkin);
+  auto lSkin = (lSkinP == lSkinsToLook.end()) || !lSkinP->second[aAddon] ? ProduceAddonSkin(GetOgSkin(lNPC), aAddon, lNPC->IsFemale()) : lSkinP->second[aAddon];
   TngSizeShape::SetNPCAddn(lNPC, aAddon);
   if (lSkin != lCurrSkin) {
+    Tng::gLogger::info("Setting {} skin to be {:x}.", lNPC->GetName(), lSkin->GetFormID());
     lNPC->skin = lSkin;
     if (!aActor->IsPlayerRef()) TngInis::SaveNPCAddn(lNPC, aAddon);
   }
   return !lNPC->IsFemale() || lNPC->skin->HasKeyword(fSwPKey) ? Tng::resOkGen : Tng::resOkNoGen;
 }
 
-RE::FormID TngCore::GetOgSkinID(RE::TESNPC* aNPC) noexcept {
-  auto lCurrSkin = aNPC->skin ? aNPC->skin : aNPC->race->skin;
-  if (lCurrSkin->HasKeyword(fGenSkinKey)) {
-    auto lAddnIdx = aNPC->skin ? TngSizeShape::GetNPCAddn(aNPC) : TngSizeShape::GetRaceGrpAddn(aNPC->race);
-    auto& lSkinsToLook = aNPC->IsFemale() && aNPC->skin ? fFemAddonSkins : fMalAddonSkins;
-    for (const auto& lAddonEntry : lSkinsToLook) {
-      if (lAddonEntry.second[lAddnIdx] == lCurrSkin) return lAddonEntry.first;
-    }
-    return RE::FormID{0};
-  } else {
-    return lCurrSkin->GetFormID();
-  }
-}
-
 RE::TESObjectARMO* TngCore::GetOgSkin(RE::TESNPC* aNPC) noexcept {
   auto lSkin = aNPC->skin ? aNPC->skin : aNPC->race->skin;
   if (!lSkin->HasKeyword(fGenSkinKey)) return lSkin;
-  auto lID = GetOgSkinID(aNPC);
-  if (lID > 0) {
-    auto lSkinEntry = std::find_if(fOgSkins.begin(), fOgSkins.end(), [&](const auto& p) { return p->GetFormID() == lID; });
-    if (lSkinEntry != fOgSkins.end()) return *lSkinEntry;
-  }
+  auto& lSkinsToLook = aNPC->IsFemale() ? fFemAddonSkins : fMalAddonSkins;
+  for (const auto& lAddonEntry : lSkinsToLook)
+    for (const auto& lAddnSkin : lAddonEntry.second)
+      if (lAddnSkin == lSkin) return lAddonEntry.first;
   return nullptr;
 }
 
@@ -306,16 +293,12 @@ bool TngCore::FixSkin(RE::TESObjectARMO* aSkin, const char* const aName) noexcep
       if (lAA->HasPartOf(Tng::cSlotBody)) fSAAs.insert(lAA);
     return true;
   }
-  std::set<RE::TESRace*> lSkinRaces{};
-  for (const auto& lAA : aSkin->armorAddons) {
-    if (lAA->race->HasKeyword(fPRaceKey)) lSkinRaces.insert(lAA->race);
-    for (const auto& lAAAddRace : lAA->additionalRaces)
-      if (lAAAddRace->HasKeyword(fPRaceKey)) lSkinRaces.insert(lAAAddRace);
-  }
-  for (const auto& lRace : lSkinRaces) {
-    GentifySkin(aSkin, TngSizeShape::GetRaceGrpAddn(lRace), false);
-    GentifySkin(aSkin, TngSizeShape::GetRaceGrpAddn(lRace), true);
-  }
+  fBaseSkins.insert(aSkin);
+  aSkin->RemoveKeywords(fArmoKeys);
+  aSkin->AddKeyword(fIAKey);
+  aSkin->AddSlotToMask(Tng::cSlotGenital);
+  auto lSkinAAs = TngSizeShape::GentifySkin(aSkin);
+  fSAAs.insert(lSkinAAs.begin(), lSkinAAs.end());
   if (aName) Tng::gLogger::info("The skin [0x{:x}: {}] added as extra skin.", aSkin->GetFormID(), aName);
   return true;
 }
@@ -453,12 +436,13 @@ void TngCore::CheckArmorPieces() noexcept {
     if (fRAAs.find(lAA) != fRAAs.end()) {
       Tng::gLogger::error(
           "The armor addon [0x{:x}] is shared between two or more armors; and some are marked revealing and others are marked covering! Any armor using that addon would be "
-          "revealing.", lAA->GetFormID());
+          "revealing.",
+          lAA->GetFormID());
       fCAAs.erase(lAA);
     }
     lAA->AddSlotToMask(Tng::cSlotGenital);
     if (lAA->data.priorities[0] == 0 || lAA->data.priorities[1] == 0)
-      Tng::gLogger::warn("The armor addon [0x{:x}] from file has wrong priorities. This can cause genital clipping through.", lAA->GetFormID());
+      Tng::gLogger::warn("The armor addon [0x{:x}] might have wrong priorities. This can cause genital clipping through.", lAA->GetFormID());
   }
   Tng::gLogger::info("Processed {} armor pieces with slot 32 or 52:", lRR + lAR + lAC + lCC + lPA);
   if (lPA > 0) Tng::gLogger::warn("\t{}: seems to be problematic!", lPA);

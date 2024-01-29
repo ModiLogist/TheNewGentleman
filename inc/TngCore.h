@@ -24,7 +24,7 @@ class TngCore : public Singleton<TngCore> {
     static bool IgnoreRace(RE::TESRace* aRace) noexcept;
     static bool CheckRace(RE::TESRace* aRace);
     static Tng::TNGRes AddRace(RE::TESRace* aRace) noexcept;
-    static RE::TESObjectARMO* GentifySkin(RE::TESObjectARMO* aOgSkin, int aAddonChoice, bool aIsFemale) noexcept;
+    static RE::TESObjectARMO* ProduceAddonSkin(RE::TESObjectARMO* aOgSkin, int aAddonChoice, bool aIsFemale) noexcept;
 
   public:
     static void GenitalizeNPCSkins() noexcept;
@@ -32,7 +32,6 @@ class TngCore : public Singleton<TngCore> {
     static void RevertNPCSkin(RE::TESNPC* aNPC);
 
   private:
-    static RE::FormID GetOgSkinID(RE::TESNPC* aNPC) noexcept;
     static RE::TESObjectARMO* GetOgSkin(RE::TESNPC* aNPC) noexcept;
     static bool FixSkin(RE::TESObjectARMO* aSkin, const char* const aName) noexcept;
 
@@ -71,8 +70,8 @@ class TngCore : public Singleton<TngCore> {
     inline static RE::TESRace* fDefRace;
     inline static RE::TESRace* fBeastDef;
     inline static RE::BSTArray<RE::TESNPC*> fAllNPCs;
-    inline static std::set<RE::TESObjectARMO*> fOgSkins;
     inline static std::set<RE::TESRace*> fPatchedRaces;
-    inline static std::map<RE::FormID, std::vector<RE::TESObjectARMO*>> fMalAddonSkins;
-    inline static std::map<RE::FormID, std::vector<RE::TESObjectARMO*>> fFemAddonSkins;
+    inline static std::map<RE::TESObjectARMO*, std::vector<RE::TESObjectARMO*>> fMalAddonSkins;
+    inline static std::map<RE::TESObjectARMO*, std::vector<RE::TESObjectARMO*>> fFemAddonSkins;
+    inline static std::set<RE::TESObjectARMO*> fBaseSkins;
 };

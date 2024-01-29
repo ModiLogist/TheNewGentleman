@@ -53,7 +53,7 @@ class TngSizeShape : public Singleton<TngSizeShape> {
         0,  // TNG_GenitalAfflicted
         0,  // TNG_GenitalSnowElf
     };
-    inline static constexpr std::pair<std::array<std::string_view, 2>, bool> cRaceNames[Tng::cVanillaRaceTypes]{
+    inline static constexpr std::pair<std::array<const char*, 2>, bool> cRaceNames[Tng::cVanillaRaceTypes]{
         {{"Nord", "nord"}, false},       {{"Redguard", "redguard"}, false}, {{"Breton", "Reachmen"}, false},     {{"Imperial", "imperial"}, false}, {{"Altmer", "HighElf"}, false},
         {{"Bosmer", "WoodElf"}, false},  {{"Dunmer", "DarkElf"}, false},    {{"Orsimer", "Orc"}, false},         {{"Saxhleel", "Argonian"}, true},  {{"Khajiit", "Rhat"}, true},
         {{"Dremora", "dremora"}, false}, {{"Elder", "elder"}, false},       {{"Afflicted", "afflicted"}, false}, {{"SnowElf", "Falmer"}, false}};
@@ -63,12 +63,13 @@ class TngSizeShape : public Singleton<TngSizeShape> {
     inline static constexpr RE::FormID cSizeGlobIDs[Tng::cSizeCategories]{0xC01, 0xC02, 0xC03, 0xC04, 0xC05};
 
     struct RaceInfo {
-        std::string raceName;
-        std::vector<RE::TESRace*> races;
-        int raceAddn = -1;
-        int raceDefAddon = -1;
-        float raceMult = 1.0f;
+        const char* raceName{""};
+        std::vector<RE::TESRace*> races{};
+        std::set<RE::TESRace*> armorRaces{};
         RE::TESObjectARMO* originalSkin = nullptr;
+        int raceDefAddon = -1;
+        int raceAddn = -1;
+        float raceMult = 1.0f;
     };
 
   public:
@@ -92,16 +93,12 @@ class TngSizeShape : public Singleton<TngSizeShape> {
     static bool SetRaceGrpDefAddn(const std::size_t aRaceIdx, int aChoice) noexcept;
     static int GetRaceGrpAddn(RE::TESRace* aRace) noexcept;
     static int GetRaceGrpAddn(const std::size_t aRaceIdx) noexcept;
-    static bool SetRaceGrpAddn(RE::TESRace* aRace, int aChoice) noexcept;
-    static bool SetRaceGrpAddn(const std::size_t aRaceIdx, int aChoice) noexcept;
-    static RE::TESObjectARMO* GetRaceGrpSkinOg(const std::size_t aRaceIdx) noexcept;
-    static RE::TESObjectARMO* GetRaceGrpSkin(const std::size_t aRaceIdx) noexcept;
-    static void SetRaceGrpSkin(const std::size_t aRaceIdx, RE::TESObjectARMO* aSkin) noexcept;
+    static void UpdateRaceGrpAddn(const std::size_t aRaceIdx, const int aAddon) noexcept;
     static std::size_t GroupCount() noexcept;
     static RE::TESRace* GetRaceByIdx(const std::size_t aRaceIdx) noexcept;
     static std::string GetRaceName(const std::size_t aRaceIdx) noexcept;
     static std::vector<std::string> GetRaceGrpNames() noexcept;
-    static std::set<RE::TESObjectARMO*> GetRacialSkins() noexcept;
+    static RE::TESObjectARMO* GetRaceGrpSkin(int aRaceIdx) noexcept;
     static bool LoadNPCSize(const std::string aNPCRecord, const int aSize) noexcept;
     static bool LoadNPCAddn(const std::string aNPCRecord, const std::string aAddonRecord) noexcept;
     static void ExcludeNPC(const std::string aNPCRecord) noexcept; 
@@ -138,7 +135,7 @@ class TngSizeShape : public Singleton<TngSizeShape> {
     static void ScaleGenital(RE::Actor* aActor, RE::TESGlobal* aGlobal) noexcept;
 
   public:
-    enum TNGRaceTypes { raceManMer, raceBeast, raceDremora, raceAfflicted, raceElder, raceSnowElf };
+    enum TNGRaceTypes { raceManMer, raceBeast, raceElder, raceDremora, raceAfflicted, raceSnowElf };
     static std::set<RE::TESObjectARMA*> GetAddonAAs(TNGRaceTypes aRaceType, int aAddonIdx, bool aIsFemale);
     static void UpdateAddons(RE::TESRace* aRace) noexcept;
     static TNGRaceTypes GetSkinType(RE::TESObjectARMO* aSkin) noexcept;
@@ -150,4 +147,9 @@ class TngSizeShape : public Singleton<TngSizeShape> {
     static void CategorizeAddons() noexcept;
     static void CategorizeAddon(RE::TESObjectARMO* aAddon, const int aIdx, bool aIsFemale) noexcept;
     static int FindEqVanilla(RE::TESRace* aRace) noexcept;
+
+  public:
+    static std::set<RE::TESObjectARMA*> GentifySkin(RE::TESObjectARMO* aSkin, int aAddon = -1, bool aIsFemale = false) noexcept;
+    static std::set<RE::TESObjectARMA*> GentifySkin(int aRaceGrp) noexcept;
+    static std::set<RE::TESObjectARMA*> GetCombinedAddons(TNGRaceTypes aRaceType, std::set<RE::TESRace*> aReqRaces) noexcept;
 };
