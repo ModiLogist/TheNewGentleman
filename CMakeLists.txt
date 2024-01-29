@@ -29,7 +29,7 @@ set(CMAKE_INTERPROCEDURAL_OPTIMIZATION ON)
 set(CMAKE_INTERPROCEDURAL_OPTIMIZATION_DEBUG OFF)
 
 add_compile_definitions(SKYRIM)
-set(CommonLibPath "extern/CommonLibSSE-NG")
+set(CommonLibPath "${CMAKE_CURRENT_SOURCE_DIR}/extern/CommonLibSSE-NG")
 set(GameVersion "Skyrim")
 set(CommonLibName "CommonLibSSE")
 
