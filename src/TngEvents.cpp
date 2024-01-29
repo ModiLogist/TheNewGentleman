@@ -83,7 +83,7 @@ void TngEvents::CheckActor(RE::Actor* aActor, RE::TESObjectARMO* aArmor) noexcep
   const auto lNPC = aActor ? aActor->GetActorBase() : nullptr;
   if (!aActor || !lNPC) return;
   if (!lNPC->race) return;
-  if (!lNPC->race->HasKeyword(fPRaceKey)) return;
+  if (!lNPC->race->HasKeyword(fPRaceKey) && !lNPC->race->HasKeyword(fRRKey)) return;
   TngSizeShape::RandomizeScale(aActor);
   const auto lGArmo = aActor->GetWornArmor(Tng::cSlotGenital);
   if (aArmor && !lGArmo) {
@@ -100,12 +100,12 @@ void TngEvents::CheckForAddons(RE::Actor* aActor) noexcept {
   if (TngSizeShape::CanModifyActor(aActor) != Tng::resOkRaceP) return;
   const auto lNPC = aActor->GetActorBase();
   int lNPCAddn = TngSizeShape::GetNPCAddn(lNPC);
-  if (lNPCAddn >= 0 && lNPCAddn != Tng::resOkNoAddon) {
-    TngCore::SetActorSkin(aActor, lNPCAddn);
-    return;
-  }
   if (lNPCAddn == Tng::pgErr) {
     Tng::gLogger::critical("Faced an issue retrieving information for {}!", lNPC->GetName());
+    return;
+  }
+  if (lNPCAddn >= 0 && lNPCAddn != Tng::resOkNoAddon) {
+    TngCore::SetActorSkin(aActor, lNPCAddn);
     return;
   }
   if (!lNPC->IsFemale() && lNPC->HasKeyword(fExKey)) TngCore::RevertNPCSkin(lNPC);
