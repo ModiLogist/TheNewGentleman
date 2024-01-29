@@ -296,7 +296,6 @@ bool TngCore::FixSkin(RE::TESObjectARMO* aSkin, const char* const aName) noexcep
   fBaseSkins.insert(aSkin);
   aSkin->RemoveKeywords(fArmoKeys);
   aSkin->AddKeyword(fIAKey);
-  aSkin->AddSlotToMask(Tng::cSlotGenital);
   auto lSkinAAs = TngSizeShape::GentifySkin(aSkin);
   fSAAs.insert(lSkinAAs.begin(), lSkinAAs.end());
   if (aName) Tng::gLogger::info("The skin [0x{:x}: {}] added as extra skin.", aSkin->GetFormID(), aName);

@@ -73,7 +73,6 @@ class TngSizeShape : public Singleton<TngSizeShape> {
     };
 
   public:
-
     static bool Init() noexcept;
     static void LoadAddons() noexcept;
     static std::size_t GetAddonCount(bool aIsFemale) noexcept;
@@ -101,9 +100,9 @@ class TngSizeShape : public Singleton<TngSizeShape> {
     static RE::TESObjectARMO* GetRaceGrpSkin(int aRaceIdx) noexcept;
     static bool LoadNPCSize(const std::string aNPCRecord, const int aSize) noexcept;
     static bool LoadNPCAddn(const std::string aNPCRecord, const std::string aAddonRecord) noexcept;
-    static void ExcludeNPC(const std::string aNPCRecord) noexcept; 
+    static void ExcludeNPC(const std::string aNPCRecord) noexcept;
     static int GetNPCAddn(RE::TESNPC* aNPC) noexcept;
-    static bool SetNPCAddn(RE::TESNPC* aNPC, int aAddon) noexcept;   
+    static bool SetNPCAddn(RE::TESNPC* aNPC, int aAddon) noexcept;
     static Tng::TNGRes CanModifyActor(RE::Actor* aActor) noexcept;
     static float GetGlobalSize(int aIdx) noexcept;
     static void SetGlobalSize(int aIdx, float aSize) noexcept;
@@ -131,7 +130,6 @@ class TngSizeShape : public Singleton<TngSizeShape> {
     inline static std::vector<RE::TESObjectARMO*> fFemAddons;
     inline static std::vector<RaceInfo> fRacesInfo;
 
-
     static void ScaleGenital(RE::Actor* aActor, RE::TESGlobal* aGlobal) noexcept;
 
   public:
@@ -139,14 +137,13 @@ class TngSizeShape : public Singleton<TngSizeShape> {
     static std::set<RE::TESObjectARMA*> GetAddonAAs(TNGRaceTypes aRaceType, int aAddonIdx, bool aIsFemale);
     static void UpdateAddons(RE::TESRace* aRace) noexcept;
     static TNGRaceTypes GetSkinType(RE::TESObjectARMO* aSkin) noexcept;
-  private:
 
-    
+  private:
     inline static std::vector<std::set<RE::TESObjectARMA*>> fMalAddonAAs[6];
     inline static std::vector<std::set<RE::TESObjectARMA*>> fFemAddonAAs[6];
     static void CategorizeAddons() noexcept;
     static void CategorizeAddon(RE::TESObjectARMO* aAddon, const int aIdx, bool aIsFemale) noexcept;
-    static int FindEqVanilla(RE::TESRace* aRace) noexcept;
+    static RE::TESRace* FindEqVanilla(RE::TESRace* aRace) noexcept;
 
   public:
     static std::set<RE::TESObjectARMA*> GentifySkin(RE::TESObjectARMO* aSkin, int aAddon = -1, bool aIsFemale = false) noexcept;
