@@ -31,10 +31,11 @@ RE::BSEventNotifyControl TngEvents::ProcessEvent(const RE::TESEquipEvent* aEvent
   const auto lActor = aEvent->actor->As<RE::Actor>();
   auto lArmor = RE::TESForm::LookupByID<RE::TESObjectARMO>(aEvent->baseObject);
   if (!lArmor || !lActor) return RE::BSEventNotifyControl::kContinue;
+  if (!((1 << TngCore::CanModifyActor(lActor)) & ((1 << Tng::resOkRaceP) | (1 << Tng::resOkRaceR)))) return RE::BSEventNotifyControl::kContinue;
   if (!lArmor->HasPartOf(Tng::cSlotBody)) return RE::BSEventNotifyControl::kContinue;
+  if (!lArmor->GetPlayable()) return RE::BSEventNotifyControl::kContinue;
   if (aEvent->equipped) {
     aSource->notifying = false;
-    if (!lArmor->GetPlayable()) return RE::BSEventNotifyControl::kContinue;
     CheckActor(lActor, lArmor);
     fInternal = false;
     aSource->notifying = true;
@@ -49,6 +50,7 @@ RE::BSEventNotifyControl TngEvents::ProcessEvent(const RE::TESObjectLoadedEvent*
   if (!aEvent || fInternal) return RE::BSEventNotifyControl::kContinue;
   const auto lActor = RE::TESForm::LookupByID<RE::Actor>(aEvent->formID);
   if (!lActor) return RE::BSEventNotifyControl::kContinue;
+  if (!((1 << TngCore::CanModifyActor(lActor)) & ((1 << Tng::resOkRaceP) | (1 << Tng::resOkRaceR)))) return RE::BSEventNotifyControl::kContinue;
   CheckForAddons(lActor);
   CheckActor(lActor);
   return RE::BSEventNotifyControl::kContinue;
@@ -95,15 +97,16 @@ void TngEvents::CheckActor(RE::Actor* aActor, RE::TESObjectARMO* aArmor) noexcep
 }
 
 void TngEvents::CheckForAddons(RE::Actor* aActor) noexcept {
-  if (TngSizeShape::CanModifyActor(aActor) != Tng::resOkRaceP) return;
-  const auto lNPC = aActor->GetActorBase();
+  const auto lNPC = aActor ? aActor->GetActorBase() : nullptr;
+  if (!aActor || !lNPC) return;
+  if (aActor->IsPlayerRef()) return;
   int lNPCAddn = TngSizeShape::GetNPCAddn(lNPC);
   if (lNPCAddn == Tng::pgErr) {
     Tng::gLogger::critical("Faced an issue retrieving information for {}!", lNPC->GetName());
     return;
   }
   if (lNPCAddn >= 0 && lNPCAddn != Tng::resOkNoAddon) {
-    TngCore::SetActorSkin(aActor, lNPCAddn);
+    TngCore::SetNPCSkin(lNPC, lNPCAddn);
     return;
   }
   if (!lNPC->IsFemale() && lNPC->HasKeyword(fExKey)) TngCore::RevertNPCSkin(lNPC);
@@ -111,7 +114,7 @@ void TngEvents::CheckForAddons(RE::Actor* aActor) noexcept {
   const auto lFAddonCount = TngSizeShape::GetAddonCount(true);
   if (lFAddonCount == 0) return;
   if ((lNPC->GetFormID() % 100) < (std::floor(fGWChance->value) + 1)) {
-    TngCore::SetActorSkin(aActor, lNPC->GetFormID() % lFAddonCount);
+    TngCore::SetNPCSkin(lNPC, lNPC->GetFormID() % lFAddonCount);
     if (lNPC->skin->HasKeyword(fPSKey)) {
       lNPC->AddKeyword(fGWKey);
       if (!fGentified->HasForm(lNPC)) fGentified->AddForm(lNPC);
