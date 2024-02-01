@@ -15,21 +15,21 @@ std::vector<std::string> TngPapyrus::GetRaceGrpNames(RE::StaticFunctionTag*) { r
 
 int TngPapyrus::GetRaceGrpAddn(RE::StaticFunctionTag*, int aRaceIdx) {
   if (aRaceIdx < 0) return Tng::pgErr;
-  return TngSizeShape::GetRaceGrpAddn(static_cast<int>(aRaceIdx));
+  return TngSizeShape::GetRaceGrpAddn(static_cast<std::size_t>(aRaceIdx));
 }
 
 float TngPapyrus::GetRaceGrpMult(RE::StaticFunctionTag*, int aRaceIdx) {
   if (aRaceIdx < 0) return -1.0f;
-  return TngSizeShape::GetRaceGrpMult(static_cast<int>(aRaceIdx));
+  return TngSizeShape::GetRaceGrpMult(static_cast<std::size_t>(aRaceIdx));
 }
 
 void TngPapyrus::SetRaceGrpAddn(RE::StaticFunctionTag*, int aRaceIdx, int aGenOption) {
   if (aRaceIdx < 0) return;
-  TngCore::UpdateRaces(static_cast<int>(aRaceIdx), aGenOption);
+  TngCore::UpdateRaceGrpAddn(static_cast<int>(aRaceIdx), aGenOption);
 }
 
 void TngPapyrus::SetRaceGrpMult(RE::StaticFunctionTag*, int aRaceIdx, float aGenMult) {
-  if (TngSizeShape::SetRaceGrpMult(static_cast<std::size_t>(aRaceIdx), aGenMult)) TngInis::SaveRaceMult(static_cast<int>(aRaceIdx), aGenMult);
+  if (TngSizeShape::SetRaceGrpMult(static_cast<std::size_t>(aRaceIdx), aGenMult)) TngInis::SaveRaceMult(static_cast<std::size_t>(aRaceIdx), aGenMult);
 }
 
 std::vector<std::string> TngPapyrus::GetAllPossibleAddons(RE::StaticFunctionTag*, bool aIsFemale) {
@@ -37,9 +37,13 @@ std::vector<std::string> TngPapyrus::GetAllPossibleAddons(RE::StaticFunctionTag*
   return std::vector<std::string>{lNames.begin(), lNames.end()};
 }
 
-int TngPapyrus::CanModifyActor(RE::StaticFunctionTag*, RE::Actor* aActor) { return TngSizeShape::CanModifyActor(aActor); }
+int TngPapyrus::CanModifyActor(RE::StaticFunctionTag*, RE::Actor* aActor) { return TngCore::CanModifyActor(aActor); }
 
-int TngPapyrus::SetActorAddn(RE::StaticFunctionTag*, RE::Actor* aActor, int aGenOption) { return TngCore::SetActorSkin(aActor, aGenOption); }
+int TngPapyrus::SetActorAddn(RE::StaticFunctionTag*, RE::Actor* aActor, int aGenOption) {
+  const auto lNPC = aActor ? aActor->GetActorBase() : nullptr;
+  if (!aActor || !lNPC) return Tng::npcErr;
+  return TngCore::SetNPCSkin(lNPC, aGenOption);
+}
 
 int TngPapyrus::SetActorSize(RE::StaticFunctionTag*, RE::Actor* aActor, int aGenSize) {
   const auto lNPC = aActor ? aActor->GetActorBase() : nullptr;
