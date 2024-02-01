@@ -18,6 +18,7 @@ bool TngCore::Initialize() noexcept {
   fPAKey = fDH->LookupForm<RE::BGSKeyword>(Tng::cProblemArmoKeyID, Tng::cName);
   fIAKey = fDH->LookupForm<RE::BGSKeyword>(Tng::cIgnoredArmoKeyID, Tng::cName);
   fUAKey = fDH->LookupForm<RE::BGSKeyword>(Tng::cUnderwearKeyID, Tng::cName);
+  fExKey = fDH->LookupForm<RE::BGSKeyword>(Tng::cExcludeKeyID, Tng::cName);
   fNPCKey = fDH->LookupForm<RE::BGSKeyword>(Tng::cNPCKeywID, Tng::cSkyrim);
   fCrtKey = fDH->LookupForm<RE::BGSKeyword>(Tng::cCrtKeywID, Tng::cSkyrim);
   fSwPKey = fDH->LookupForm<RE::BGSKeyword>(Tng::cSkinWithPenisKeyID, Tng::cName);
@@ -25,11 +26,19 @@ bool TngCore::Initialize() noexcept {
   fDefRace = fDH->LookupForm<RE::TESRace>(Tng::cDefRaceID, Tng::cSkyrim);
   fBeastDef = fDH->LookupForm<RE::TESRace>(Tng::cBstRaceID, Tng::cSkyrim);
   fAllNPCs = fDH->GetFormArray<RE::TESNPC>();
-  if (!(fPRaceKey && fRRaceKey && fIRaceKey && fARKey && fRRKey && fACKey && fCCKey && fPAKey && fIAKey && fUAKey && fNPCKey && fCrtKey && fSwPKey && fGenSkinKey && fDefRace &&
-        fBeastDef)) {
+  if (!(fPRaceKey && fRRaceKey && fIRaceKey && fARKey && fRRKey && fACKey && fCCKey && fPAKey && fIAKey && fUAKey && fExKey && fNPCKey && fCrtKey && fSwPKey && fGenSkinKey &&
+        fDefRace && fBeastDef)) {
     Tng::gLogger::critical("The original TNG information could not be found!");
     return false;
   }
+  for (std::size_t i = TngSizeShape::raceManMer; i < TngSizeShape::raceSnowElf; i++) {
+    fExSkins[i] = fDH->LookupForm<RE::TESObjectARMO>(cExSkinIDs[i],Tng::cName);
+    if (!fExSkins) {
+      Tng::gLogger::critical("Skins for excluded NPCs cannot be loaded.");
+    }
+  }
+    
+  
   std::set<std::string> lDefSks{};
   lDefSks.insert(fDefRace->skeletonModels[0].model.data());
   lDefSks.insert(fDefRace->skeletonModels[1].model.data());
@@ -89,7 +98,7 @@ void TngCore::GenitalizeRaces() noexcept {
   if (lPP > 0) Tng::gLogger::error("Faced errors for [{}] races.", lPP);
 }
 
-bool TngCore::UpdateRaces(const std::size_t aRaceIdx, int aAddon) noexcept {
+bool TngCore::UpdateRaceGrpAddn(const std::size_t aRaceIdx, int aAddon) noexcept {
   int lChoice = aAddon >= 0 ? aAddon : TngSizeShape::GetRaceGrpDefAddn(aRaceIdx);
   TngSizeShape::UpdateRaceGrpAddn(aRaceIdx, lChoice);
   TngInis::SaveRaceAddn(aRaceIdx, aAddon);
@@ -179,7 +188,6 @@ Tng::TNGRes TngCore::AddRace(RE::TESRace* aRace) noexcept {
   aRace->AddKeyword(fPRaceKey);
   aRace->AddSlotToMask(Tng::cSlotGenital);
   auto lSkin = aRace->skin;
-  fBaseSkins.insert(lSkin);
   lSkin->RemoveKeywords(fArmoKeys);
   lSkin->AddKeyword(fIAKey);
   auto lRaceToPatch = aRace->armorParentRace ? aRace->armorParentRace : aRace;
@@ -209,6 +217,7 @@ void TngCore::GenitalizeNPCSkins() noexcept {
   Tng::gLogger::info("Checking NPCs for custom skins.");
   std::set<RE::TESObjectARMO*> lSkinsToPatch{};
   std::map<std::string_view, int> lCustomSkinMods{};
+  if (TngInis::fHardExcluded.size() > 0) LoadHardExcluded();
   for (const auto& lNPC : fAllNPCs) {
     const auto lNPCRace = lNPC->race;
     if (!lNPCRace) {
@@ -219,12 +228,13 @@ void TngCore::GenitalizeNPCSkins() noexcept {
     const auto lSkin = lNPC->skin;
     if (!lSkin) continue;
     if (lSkin->HasKeyword(fIAKey)) continue;
+    lSkin->AddKeyword(fIAKey);
     if (!lSkin->HasPartOf(Tng::cSlotBody)) continue;
     if (lSkin->HasPartOf(Tng::cSlotGenital)) {
       Tng::gLogger::info("The skin [0x{:x}] used in NPC [{}] cannot have a male genital.", lSkin->GetFormID(), lNPC->GetName());
       continue;
     }
-    if (!lNPC->IsFemale()) lSkinsToPatch.insert(lSkin);
+    lSkinsToPatch.insert(lSkin);
   }
   for (auto lSkin : lSkinsToPatch) {
     if (!FixSkin(lSkin, nullptr)) continue;
@@ -241,34 +251,41 @@ void TngCore::GenitalizeNPCSkins() noexcept {
     }
     Tng::gLogger::info("\t\t[{}] skins were not patched.", lTot);
   }
+  for (const auto& lNPC : fAllNPCs)
+    if (auto lAddn = TngSizeShape::GetNPCAddn(lNPC); lAddn >= 0) SetNPCSkin(lNPC, lAddn);
 }
 
-Tng::TNGRes TngCore::SetActorSkin(RE::Actor* aActor, int aAddon) noexcept {
-  const auto lNPC = aActor ? aActor->GetActorBase() : nullptr;
-  if (!aActor || !lNPC) return Tng::npcErr;
-  if (!lNPC->race) return Tng::raceErr;
-  if (!lNPC->race->HasKeyword(fPRaceKey)) return Tng::raceErr;
-  if (aAddon == -1) return !lNPC->IsFemale() || lNPC->skin->HasKeyword(fSwPKey) ? Tng::resOkGen : Tng::resOkNoGen;
+Tng::TNGRes TngCore::CanModifyActor(RE::Actor* aActor) noexcept {
+  auto lRes = TngSizeShape::CanModifyActor(aActor);
+  if (lRes < 0) return lRes;
+  auto lNPC = aActor->GetActorBase();
+  return (fHardExcludedNPCs.find(lNPC) != fHardExcludedNPCs.end()) ? Tng::npcErr : lRes;
+}
+
+Tng::TNGRes TngCore::SetNPCSkin(RE::TESNPC* aNPC, int aAddon) noexcept {
+  if (!aNPC->race || !aNPC->race->HasKeyword(fPRaceKey)) return Tng::raceErr;
+  if (fHardExcludedNPCs.find(aNPC) != fHardExcludedNPCs.end()) return Tng::npcErr;
+  if (aAddon == -1) return !aNPC->IsFemale() || aNPC->skin->HasKeyword(fSwPKey) ? Tng::resOkGen : Tng::resOkNoGen;
   if (aAddon == -2) {
-    RevertNPCSkin(lNPC);
-    TngSizeShape::SetNPCAddn(lNPC, aAddon);
-    if (!aActor->IsPlayerRef()) TngInis::SaveNPCAddn(lNPC, lNPC->IsFemale() ? -3 : aAddon);
-    return lNPC->IsFemale() ? Tng::resOkNoGen : Tng::resOkGen;
+    RevertNPCSkin(aNPC);
+    TngSizeShape::SetNPCAddn(aNPC, aAddon);
+    if (!aNPC->IsPlayer()) TngInis::SaveNPCAddn(aNPC, aNPC->IsFemale() ? -3 : aAddon);
+    return aNPC->IsFemale() ? Tng::resOkNoGen : Tng::resOkGen;
   }
-  auto lCurrSkin = lNPC->skin ? lNPC->skin : lNPC->race->skin;
-  auto lOgSkin = GetOgSkin(lNPC);
+  auto lCurrSkin = aNPC->skin ? aNPC->skin : aNPC->race->skin;
+  auto lOgSkin = GetOgSkin(aNPC);
   if (!lOgSkin) {
     Tng::gLogger::critical("Failed to get the previously created skin for an NPC!");
     return Tng::pgErr;
   }
   if (lOgSkin->armorAddons.size() == 0 || !lOgSkin->race) return Tng::skinErr;
-  auto lSkin = ProduceAddonSkin(lOgSkin, aAddon, lNPC->IsFemale());
-  TngSizeShape::SetNPCAddn(lNPC, aAddon);
+  auto lSkin = ProduceAddonSkin(lOgSkin, aAddon, aNPC->IsFemale());
+  TngSizeShape::SetNPCAddn(aNPC, aAddon);
   if (lSkin != lCurrSkin) {
-    lNPC->skin = lSkin;
-    if (!aActor->IsPlayerRef()) TngInis::SaveNPCAddn(lNPC, aAddon);
+    aNPC->skin = lSkin;
+    if (!aNPC->IsPlayer()) TngInis::SaveNPCAddn(aNPC, aAddon);
   }
-  return !lNPC->IsFemale() || lNPC->skin->HasKeyword(fSwPKey) ? Tng::resOkGen : Tng::resOkNoGen;
+  return !aNPC->IsFemale() || aNPC->skin->HasKeyword(fSwPKey) ? Tng::resOkGen : Tng::resOkNoGen;
 }
 
 RE::TESObjectARMO* TngCore::GetOgSkin(RE::TESNPC* aNPC) noexcept {
@@ -293,14 +310,23 @@ bool TngCore::FixSkin(RE::TESObjectARMO* aSkin, const char* const aName) noexcep
       if (lAA->HasPartOf(Tng::cSlotBody)) fSAAs.insert(lAA);
     return true;
   }
-  fBaseSkins.insert(aSkin);
   auto lSkinAAs = TngSizeShape::GentifyMalSkin(aSkin);
   fSAAs.insert(lSkinAAs.begin(), lSkinAAs.end());
   if (aName) Tng::gLogger::info("The skin [0x{:x}: {}] added as extra skin.", aSkin->GetFormID(), aName);
   return true;
 }
 
+void TngCore::LoadHardExcluded() noexcept {
+  for (const auto& lRecord : TngInis::fHardExcluded) {
+    auto lNPC = fDH->LookupForm<RE::TESNPC>(lRecord.second, lRecord.first);
+    if (lNPC) fHardExcludedNPCs.insert(lNPC);
+    lNPC->AddKeyword(fExKey);
+    if (lNPC->race) lNPC->skin = fExSkins[TngSizeShape::GetRaceType(lNPC->race)];
+  }
+}
+
 void TngCore::RevertNPCSkin(RE::TESNPC* aNPC) {
+  if (fHardExcludedNPCs.find(aNPC) != fHardExcludedNPCs.end()) return;
   auto lOgSkin = GetOgSkin(aNPC);
   if (lOgSkin)
     aNPC->skin = lOgSkin == aNPC->race->skin ? nullptr : lOgSkin;

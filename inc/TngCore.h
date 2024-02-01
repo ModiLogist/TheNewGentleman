@@ -4,11 +4,19 @@ class TngCore : public Singleton<TngCore> {
   private:
     // Const
     inline static constexpr RE::FormID cDefSkinAAID{0xD67};
+    inline static constexpr RE::FormID cExSkinIDs[6] = {
+        0xAFF,  // raceManMer
+        0xAFE,  // raceBeast
+        0xAFF,  // raceElder
+        0xAFF,  // raceDremora
+        0xAFD,  // raceAfflicted
+        0xAFC,  // raceSnowElf
+    };
 
     inline static constexpr std::pair<RE::FormID, std::string_view> cExclRaceIDs[4] = {
-        {0x07EAF3, "Skyrim.esm"},       // AstridRace
-        {0x10760A, "Skyrim.esm"},       // ManakinRace
-        {0x004D31, "Dawnguard.esm"},    // TestRace
+        {0x07EAF3, "Skyrim.esm"},      // AstridRace
+        {0x10760A, "Skyrim.esm"},      // ManakinRace
+        {0x004D31, "Dawnguard.esm"},   // TestRace
         {0x03CA97, "Dragonborn.esm"},  // Miraak
     };
     inline static constexpr std::string_view cGenSkin{"TNGSkin_"};
@@ -18,7 +26,7 @@ class TngCore : public Singleton<TngCore> {
 
   public:
     static void GenitalizeRaces() noexcept;
-    static bool UpdateRaces(const std::size_t aRaceIdx, int aAddon) noexcept;
+    static bool UpdateRaceGrpAddn(const std::size_t aRaceIdx, int aAddon) noexcept;
 
   private:
     static bool IgnoreRace(RE::TESRace* aRace) noexcept;
@@ -28,12 +36,16 @@ class TngCore : public Singleton<TngCore> {
 
   public:
     static void GenitalizeNPCSkins() noexcept;
-    static Tng::TNGRes SetActorSkin(RE::Actor* aActor, int aAddon) noexcept;
+    static Tng::TNGRes CanModifyActor(RE::Actor* aActor) noexcept;
+    static Tng::TNGRes SetNPCSkin(RE::TESNPC* aNPC, int aAddon) noexcept;
     static void RevertNPCSkin(RE::TESNPC* aNPC);
 
   private:
+    inline static RE::TESObjectARMO* fExSkins[6];
+    inline static std::set<RE::TESNPC*> fHardExcludedNPCs;
     static RE::TESObjectARMO* GetOgSkin(RE::TESNPC* aNPC) noexcept;
     static bool FixSkin(RE::TESObjectARMO* aSkin, const char* const aName) noexcept;
+    static void LoadHardExcluded() noexcept;
 
   public:
     static void CheckArmorPieces() noexcept;
@@ -61,6 +73,7 @@ class TngCore : public Singleton<TngCore> {
     inline static RE::BGSKeyword* fPAKey;
     inline static RE::BGSKeyword* fIAKey;
     inline static RE::BGSKeyword* fUAKey;
+    inline static RE::BGSKeyword* fExKey;
     inline static std::vector<RE::BGSKeyword*> fArmoKeys{fARKey, fRRKey, fACKey, fCCKey, fPAKey, fIAKey, fUAKey};
     inline static RE::BGSKeyword* fNPCKey;
     inline static RE::BGSKeyword* fBstKey;
@@ -73,5 +86,4 @@ class TngCore : public Singleton<TngCore> {
     inline static std::set<RE::TESRace*> fPatchedRaces;
     inline static std::map<RE::TESObjectARMO*, std::vector<RE::TESObjectARMO*>> fMalAddonSkins;
     inline static std::map<RE::TESObjectARMO*, std::vector<RE::TESObjectARMO*>> fFemAddonSkins;
-    inline static std::set<RE::TESObjectARMO*> fBaseSkins;
 };
