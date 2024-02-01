@@ -108,6 +108,7 @@ class TngSizeShape : public Singleton<TngSizeShape> {
     static void SetGlobalSize(int aIdx, float aSize) noexcept;
     static void RandomizeScale(RE::Actor* aActor) noexcept;
     static Tng::TNGRes SetActorSize(RE::Actor* aActor, int aGenSize) noexcept;
+    static std::set<RE::TESObjectARMA*> GentifyGrpSkin(int aRaceGrp) noexcept;
 
   private:
     inline static RE::TESDataHandler* fDH;
@@ -134,11 +135,11 @@ class TngSizeShape : public Singleton<TngSizeShape> {
 
   public:
     enum TNGRaceTypes { raceManMer, raceBeast, raceElder, raceDremora, raceAfflicted, raceSnowElf };
-    static std::set<RE::TESObjectARMA*> GetAddonAAs(TNGRaceTypes aRaceType, int aAddonIdx, bool aIsFemale);
     static void UpdateAddons(RE::TESRace* aRace) noexcept;
     static TNGRaceTypes GetSkinType(RE::TESObjectARMO* aSkin) noexcept;
 
   private:
+    inline static std::set<RE::TESObjectARMA*> fAllMalAAs;
     inline static std::vector<std::set<RE::TESObjectARMA*>> fMalAddonAAs[6];
     inline static std::vector<std::set<RE::TESObjectARMA*>> fFemAddonAAs[6];
     static void CategorizeAddons() noexcept;
@@ -146,7 +147,10 @@ class TngSizeShape : public Singleton<TngSizeShape> {
     static RE::TESRace* FindEqVanilla(RE::TESRace* aRace) noexcept;
 
   public:
-    static std::set<RE::TESObjectARMA*> GentifySkin(RE::TESObjectARMO* aSkin, int aAddon = -1, bool aIsFemale = false) noexcept;
-    static std::set<RE::TESObjectARMA*> GentifySkin(int aRaceGrp) noexcept;
-    static std::set<RE::TESObjectARMA*> GetCombinedAddons(TNGRaceTypes aRaceType, std::set<RE::TESRace*> aReqRaces) noexcept;
+    static std::set<RE::TESObjectARMA*> GentifyMalSkin(RE::TESObjectARMO* aSkin, int aAddon = -1) noexcept;
+    static std::set<RE::TESObjectARMA*> GentifyFemSkin(RE::TESObjectARMO* aSkin, int aAddon) noexcept;
+
+  private:
+    static std::map<RE::TESRace*, RE::TESObjectARMA*> GetCombinedAddons(TNGRaceTypes aRaceType, RE::TESObjectARMO* aSkin) noexcept;
+    static std::map<RE::TESRace*, RE::TESObjectARMA*> GetAddonAAs(TNGRaceTypes aRaceType, int aAddonIdx, bool aIsFemale);
 };

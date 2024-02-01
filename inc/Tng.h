@@ -40,6 +40,7 @@ namespace Tng {
 
   enum TNGRes {
     pgErr = -9,
+    skinErr = -5,
     armoErr = -4,
     addonErr = -3,
     npcErr = -2,
