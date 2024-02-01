@@ -11,15 +11,13 @@ void TngEvents::RegisterEvents() noexcept {
   fACKey = fDH->LookupForm<RE::BGSKeyword>(Tng::cAutoCoverKeyID, Tng::cName);
   fARKey = fDH->LookupForm<RE::BGSKeyword>(Tng::cAutoRvealKeyID, Tng::cName);
   fRRKey = fDH->LookupForm<RE::BGSKeyword>(Tng::cRevealingKeyID, Tng::cName);
-  fPAKey = fDH->LookupForm<RE::BGSKeyword>(Tng::cProblemArmoKeyID, Tng::cName);
-  fIAKey = fDH->LookupForm<RE::BGSKeyword>(Tng::cIgnoredArmoKeyID, Tng::cName);
   fUAKey = fDH->LookupForm<RE::BGSKeyword>(Tng::cUnderwearKeyID, Tng::cName);
   fGWKey = fDH->LookupForm<RE::BGSKeyword>(Tng::cGentleWomanKeyID, Tng::cName);
   fPSKey = fDH->LookupForm<RE::BGSKeyword>(Tng::cSkinWithPenisKeyID, Tng::cName);
   fExKey = fDH->LookupForm<RE::BGSKeyword>(Tng::cExcludeKeyID, Tng::cName);
   fGWChance = fDH->LookupForm<RE::TESGlobal>(Tng::cWomenChanceID, Tng::cName);
-  fGentified = fGentified ? fGentified : fDH->LookupForm<RE::BGSListForm>(Tng::cGentifiedID, Tng::cName);
-  if (!(fPRaceKey && fCCKey && fACKey && fARKey && fRRKey && fPAKey && fIAKey && fUAKey && fGWKey && fPSKey && fExKey && fGWChance && fGentified)) {
+  fGentified = fDH->LookupForm<RE::BGSListForm>(Tng::cGentifiedID, Tng::cName);
+  if (!(fPRaceKey && fCCKey && fACKey && fARKey && fRRKey && fUAKey && fGWKey && fPSKey && fExKey && fGWChance && fGentified)) {
     Tng::gLogger::critical("Failed to register events. There might be functionality issues. Please report this issue.");
     return;
   }
@@ -50,7 +48,7 @@ RE::BSEventNotifyControl TngEvents::ProcessEvent(const RE::TESEquipEvent* aEvent
 RE::BSEventNotifyControl TngEvents::ProcessEvent(const RE::TESObjectLoadedEvent* aEvent, RE::BSTEventSource<RE::TESObjectLoadedEvent>*) {
   if (!aEvent || fInternal) return RE::BSEventNotifyControl::kContinue;
   const auto lActor = RE::TESForm::LookupByID<RE::Actor>(aEvent->formID);
-  if (!lActor) return RE::BSEventNotifyControl::kContinue;  
+  if (!lActor) return RE::BSEventNotifyControl::kContinue;
   CheckForAddons(lActor);
   CheckActor(lActor);
   return RE::BSEventNotifyControl::kContinue;

@@ -36,6 +36,7 @@ bool TngCore::Initialize() noexcept {
   lDefSks.insert(fBeastDef->skeletonModels[0].model.data());
   lDefSks.insert(fBeastDef->skeletonModels[1].model.data());
   TngInis::UpdateValidSkeletons(lDefSks);
+  fArmoKeys = {fARKey, fRRKey, fACKey, fCCKey, fPAKey, fIAKey, fUAKey};
   return true;
 }
 

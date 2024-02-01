@@ -20,15 +20,12 @@ class TngEvents : public RE::BSTEventSink<RE::TESObjectLoadedEvent>, public RE::
     inline static RE::BGSKeyword* fACKey;
     inline static RE::BGSKeyword* fARKey;
     inline static RE::BGSKeyword* fRRKey;
-    inline static RE::BGSKeyword* fPAKey;
-    inline static RE::BGSKeyword* fIAKey;
     inline static RE::BGSKeyword* fUAKey;
     inline static RE::BGSKeyword* fGWKey;
     inline static RE::BGSKeyword* fPSKey;
     inline static RE::BGSKeyword* fExKey;
     inline static RE::TESGlobal* fGWChance;
     inline static RE::BGSListForm* fGentified;
-    inline static std::vector<RE::BGSKeyword*> fArmoKeys{fARKey, fRRKey, fACKey, fCCKey, fPAKey, fIAKey, fUAKey};
 
     inline static bool fInternal;
 
