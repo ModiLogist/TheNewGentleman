@@ -427,13 +427,18 @@ void TngSizeShape::UpdateAddons(RE::TESRace *aRace) noexcept {
   }
 };
 
-TngSizeShape::TNGRaceTypes TngSizeShape::GetSkinType(RE::TESObjectARMO *aSkin) noexcept {
-  if (aSkin->race == fDefRace) return raceManMer;
-  if (aSkin->race->HasKeyword(fBstKey)) return raceBeast;
-  if (aSkin->race == fBaseRaces[10]) return raceDremora;
-  if (aSkin->race == fBaseRaces[11]) return raceElder;
-  if (aSkin->race == fBaseRaces[12]) return raceAfflicted;
-  if (aSkin->race == fBaseRaces[13]) return raceSnowElf;
+TngSizeShape::RaceType TngSizeShape::GetSkinType(RE::TESObjectARMO *aSkin) noexcept {
+  return GetRaceType(aSkin->race);
+}
+
+TngSizeShape::RaceType TngSizeShape::GetRaceType(RE::TESRace *aRace) noexcept {
+  if (!aRace) return raceManMer;
+  if (aRace == fDefRace) return raceManMer;
+  if (aRace->HasKeyword(fBstKey)) return raceBeast;
+  if (aRace == fBaseRaces[10]) return raceDremora;
+  if (aRace == fBaseRaces[11]) return raceElder;
+  if (aRace == fBaseRaces[12]) return raceAfflicted;
+  if (aRace == fBaseRaces[13]) return raceSnowElf;
   return raceManMer;
 }
 
@@ -506,7 +511,7 @@ std::set<RE::TESObjectARMA *> TngSizeShape::GentifyMalSkin(RE::TESObjectARMO *aS
   auto lType = GetSkinType(aSkin);
   auto lAddons = aAddon >= 0 ? GetAddonAAs(lType, aAddon, false) : GetCombinedAddons(lType, aSkin);
   if (lHasAddons) {
-    for (int i = 0; i < aSkin->armorAddons.size(); i++)
+    for (std::uint32_t i = 0; i < aSkin->armorAddons.size(); i++)
       if (fAllMalAAs.find(aSkin->armorAddons[i]) != fAllMalAAs.end()) aSkin->armorAddons[i] = lAddons.at(aSkin->armorAddons[i]->race);
   } else {
     for (auto &lAA : lAddons) aSkin->armorAddons.emplace_back(lAA.second);
@@ -519,20 +524,26 @@ std::set<RE::TESObjectARMA *> TngSizeShape::GentifyFemSkin(RE::TESObjectARMO *aS
   if (aAddon < 0) return lRes;
   if (!aSkin->HasPartOf(Tng::cSlotGenital)) aSkin->AddSlotToMask(Tng::cSlotGenital);
   if (aSkin)
-  for (auto &lAA : aSkin->armorAddons)
-    if (lAA->HasPartOf(Tng::cSlotBody) && lAA->race && ((lAA->race == fDefRace) || lAA->race->HasKeyword(fPRaceKey))) lRes.insert(lAA);
+    for (auto &lAA : aSkin->armorAddons)
+      if (lAA->HasPartOf(Tng::cSlotBody) && lAA->race && ((lAA->race == fDefRace) || lAA->race->HasKeyword(fPRaceKey))) lRes.insert(lAA);
   auto lType = GetSkinType(aSkin);
-  auto lAddonsToAdd = aAddon >= 0 ? GetAddonAAs(lType, aAddon, tr) : GetCombinedAddons(lType, aSkin);
+  auto lAddonsToAdd = GetAddonAAs(lType, aAddon, true);
+  bool lHasMalAddons{false};
   for (const auto &lAA : aSkin->armorAddons) {
-    if (fAllMalAAs.find(lAA) == fAllMalAAs.end()) continue;
+    if (fAllMalAAs.find(lAA) != fAllMalAAs.end()) {
+      lHasMalAddons = true;
+      break;
+    }
   }
-  for (const auto &lAA : lAddonsToAdd) aSkin->armorAddons.emplace_back(lAA);
+  while (lHasMalAddons) {
+    aSkin->armorAddons.pop_back();
+    lHasMalAddons = (aSkin->armorAddons.size() > 0) && (fAllMalAAs.find(aSkin->armorAddons.back())!= fAllMalAAs.end());
+  }
+  for (const auto &lAA : lAddonsToAdd) aSkin->armorAddons.emplace_back(lAA.second);
   return lRes;
 }
 
-
-
-std::map<RE::TESRace *, RE::TESObjectARMA *> TngSizeShape::GetCombinedAddons(TNGRaceTypes aRaceType, RE::TESObjectARMO *aSkin) noexcept {
+std::map<RE::TESRace *, RE::TESObjectARMA *> TngSizeShape::GetCombinedAddons(RaceType aRaceType, RE::TESObjectARMO *aSkin) noexcept {
   std::map<RE::TESRace *, RE::TESObjectARMA *> lRes{};
   std::set<RE::TESRace *> lReqRaces{};
   for (const auto &lAA : aSkin->armorAddons) {
@@ -552,7 +563,7 @@ std::map<RE::TESRace *, RE::TESObjectARMA *> TngSizeShape::GetCombinedAddons(TNG
   return lRes;
 }
 
-std::map<RE::TESRace *, RE::TESObjectARMA *> TngSizeShape::GetAddonAAs(TNGRaceTypes aRaceType, int aAddonIdx, bool aIsFemale) {
+std::map<RE::TESRace *, RE::TESObjectARMA *> TngSizeShape::GetAddonAAs(RaceType aRaceType, int aAddonIdx, bool aIsFemale) {
   std::map<RE::TESRace *, RE::TESObjectARMA *> lRes{};
   auto &lList = aIsFemale ? fFemAddonAAs[aRaceType][aAddonIdx] : fMalAddonAAs[aRaceType][aAddonIdx];
   for (auto lAA : lList) lRes.insert({lAA->race, lAA});

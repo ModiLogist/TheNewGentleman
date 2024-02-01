@@ -134,9 +134,10 @@ class TngSizeShape : public Singleton<TngSizeShape> {
     static void ScaleGenital(RE::Actor* aActor, RE::TESGlobal* aGlobal) noexcept;
 
   public:
-    enum TNGRaceTypes { raceManMer, raceBeast, raceElder, raceDremora, raceAfflicted, raceSnowElf };
+    enum RaceType { raceManMer, raceBeast, raceElder, raceDremora, raceAfflicted, raceSnowElf };
     static void UpdateAddons(RE::TESRace* aRace) noexcept;
-    static TNGRaceTypes GetSkinType(RE::TESObjectARMO* aSkin) noexcept;
+    static RaceType GetSkinType(RE::TESObjectARMO* aSkin) noexcept;
+    static RaceType GetRaceType(RE::TESRace* aRace) noexcept;
 
   private:
     inline static std::set<RE::TESObjectARMA*> fAllMalAAs;
@@ -151,6 +152,6 @@ class TngSizeShape : public Singleton<TngSizeShape> {
     static std::set<RE::TESObjectARMA*> GentifyFemSkin(RE::TESObjectARMO* aSkin, int aAddon) noexcept;
 
   private:
-    static std::map<RE::TESRace*, RE::TESObjectARMA*> GetCombinedAddons(TNGRaceTypes aRaceType, RE::TESObjectARMO* aSkin) noexcept;
-    static std::map<RE::TESRace*, RE::TESObjectARMA*> GetAddonAAs(TNGRaceTypes aRaceType, int aAddonIdx, bool aIsFemale);
+    static std::map<RE::TESRace*, RE::TESObjectARMA*> GetCombinedAddons(RaceType aRaceType, RE::TESObjectARMO* aSkin) noexcept;
+    static std::map<RE::TESRace*, RE::TESObjectARMA*> GetAddonAAs(RaceType aRaceType, int aAddonIdx, bool aIsFemale);
 };
