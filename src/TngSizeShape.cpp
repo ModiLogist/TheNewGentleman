@@ -221,7 +221,7 @@ int TngSizeShape::GetRaceGrpAddn(const std::size_t aRaceIdx) noexcept {
 
 void TngSizeShape::UpdateRaceGrpAddn(const std::size_t aRaceIdx, const int aAddon) noexcept {
   fRacesInfo[aRaceIdx].raceAddn = aAddon;
-  GentifySkin(fRacesInfo[aRaceIdx].originalSkin);
+  GentifyMalSkin(fRacesInfo[aRaceIdx].originalSkin);
   for (auto lRace : fRacesInfo[aRaceIdx].races) lRace->skin = fRacesInfo[aRaceIdx].originalSkin;
 }
 
@@ -389,6 +389,8 @@ Tng::TNGRes TngSizeShape::SetActorSize(RE::Actor *aActor, int aGenSize) noexcept
   return Tng::resOkGen;
 }
 
+std::set<RE::TESObjectARMA *> TngSizeShape::GentifyGrpSkin(int aRaceGrp) noexcept { return GentifyMalSkin(fRacesInfo[aRaceGrp].originalSkin); }
+
 void TngSizeShape::ScaleGenital(RE::Actor *aActor, RE::TESGlobal *aGlobal) noexcept {
   const auto lNPC = aActor ? aActor->GetActorBase() : nullptr;
   if (!aActor || !lNPC) return;
@@ -399,10 +401,6 @@ void TngSizeShape::ScaleGenital(RE::Actor *aActor, RE::TESGlobal *aGlobal) noexc
   if (!aBaseNode || !aScrtNode) return;
   aBaseNode->local.scale = lScale;
   aScrtNode->local.scale = 1.0f / lScale;
-}
-
-std::set<RE::TESObjectARMA *> TngSizeShape::GetAddonAAs(TNGRaceTypes aRaceType, int aAddonIdx, bool aIsFemale) {
-  return aIsFemale ? fFemAddonAAs[aRaceType][aAddonIdx] : fMalAddonAAs[aRaceType][aAddonIdx];
 }
 
 void TngSizeShape::UpdateAddons(RE::TESRace *aRace) noexcept {
@@ -451,6 +449,7 @@ void TngSizeShape::CategorizeAddon(RE::TESObjectARMO *aAddon, const int aIdx, bo
   auto &lAddonAAs = aIsFemale ? fFemAddonAAs : fMalAddonAAs;
   for (const auto &lAA : aAddon->armorAddons) {
     if (!lAA->HasPartOf(Tng::cSlotGenital)) continue;
+    if (!aIsFemale) fAllMalAAs.insert(lAA);
     std::set<RE::TESRace *> lAARaces{lAA->race};
     if (lAA->race != fBaseRaces[12]) lAARaces.insert(lAA->additionalRaces.begin(), lAA->additionalRaces.end());
     for (const auto &lRace : lAARaces) {
@@ -460,10 +459,17 @@ void TngSizeShape::CategorizeAddon(RE::TESObjectARMO *aAddon, const int aIdx, bo
       }
       if (lRace == fBaseRaces[10] || lRace == fEqRaces[10]) {
         lAddonAAs[raceDremora][aIdx].insert(lAA);
+        lAddonAAs[raceManMer][aIdx].insert(lAA);
+        continue;
+      }
+      if (lRace == fBaseRaces[6] || lRace == fEqRaces[6]) {
+        lAddonAAs[raceDremora][aIdx].insert(lAA);
+        lAddonAAs[raceManMer][aIdx].insert(lAA);
         continue;
       }
       if (lRace == fBaseRaces[11] || lRace == fEqRaces[11]) {
         lAddonAAs[raceElder][aIdx].insert(lAA);
+        lAddonAAs[raceManMer][aIdx].insert(lAA);
         continue;
       }
       if (lRace == fBaseRaces[12]) {
@@ -489,42 +495,66 @@ RE::TESRace *TngSizeShape::FindEqVanilla(RE::TESRace *aRace) noexcept {
   return aRace->HasKeyword(fBstKey) ? fBaseRaces[9] : fBaseRaces[0];
 }
 
-std::set<RE::TESObjectARMA *> TngSizeShape::GentifySkin(RE::TESObjectARMO *aSkin, int aAddon, bool aIsFemale) noexcept {
+std::set<RE::TESObjectARMA *> TngSizeShape::GentifyMalSkin(RE::TESObjectARMO *aSkin, int aAddon) noexcept {
   auto lRes = std::set<RE::TESObjectARMA *>{};
   if (!aSkin->HasPartOf(Tng::cSlotGenital)) aSkin->AddSlotToMask(Tng::cSlotGenital);
-  for (auto &lAA : aSkin->armorAddons)
-    if (lAA->HasPartOf(Tng::cSlotBody) && (lAA->race == fDefRace) || lAA->race->HasKeyword(fPRaceKey)) lRes.insert(lAA);
-  std::set<RE::TESRace *> lReqRaces{};
-  bool lHasAddons = false;
-  for (const auto &lAA : aSkin->armorAddons) {
-    if (lAA->HasPartOf(Tng::cSlotGenital)) lHasAddons = true;
-    if (!lAA->HasPartOf(Tng::cSlotBody)) continue;
-    if (lAA->race->HasKeyword(fPRaceKey)) lReqRaces.insert(fRacesInfo[GetRaceGrp(lAA->race)].armorRaces.begin(), fRacesInfo[GetRaceGrp(lAA->race)].armorRaces.end());
-    for (const auto &lAAAddRace : lAA->additionalRaces)
-      if (lAAAddRace->HasKeyword(fPRaceKey)) lReqRaces.insert(fRacesInfo[GetRaceGrp(lAAAddRace)].armorRaces.begin(), fRacesInfo[GetRaceGrp(lAAAddRace)].armorRaces.end());
-  }
-  while (lHasAddons) {
-    auto lAA = aSkin->armorAddons.back();
-    lHasAddons = lAA->HasPartOf(Tng::cSlotGenital);
-    if (lHasAddons) aSkin->armorAddons.pop_back();
+  bool lHasAddons{false};
+  for (auto &lAA : aSkin->armorAddons) {
+    if (fAllMalAAs.find(lAA) != fAllMalAAs.end()) lHasAddons = true;
+    if (lAA->HasPartOf(Tng::cSlotBody) && lAA->race && ((lAA->race == fDefRace) || lAA->race->HasKeyword(fPRaceKey))) lRes.insert(lAA);
   }
   auto lType = GetSkinType(aSkin);
-  auto lAddonsToAdd = aAddon >= 0 ? GetAddonAAs(lType, aAddon, aIsFemale) : GetCombinedAddons(lType, lReqRaces);
+  auto lAddons = aAddon >= 0 ? GetAddonAAs(lType, aAddon, false) : GetCombinedAddons(lType, aSkin);
+  if (lHasAddons) {
+    for (int i = 0; i < aSkin->armorAddons.size(); i++)
+      if (fAllMalAAs.find(aSkin->armorAddons[i]) != fAllMalAAs.end()) aSkin->armorAddons[i] = lAddons.at(aSkin->armorAddons[i]->race);
+  } else {
+    for (auto &lAA : lAddons) aSkin->armorAddons.emplace_back(lAA.second);
+  }
+  return lRes;
+}
+
+std::set<RE::TESObjectARMA *> TngSizeShape::GentifyFemSkin(RE::TESObjectARMO *aSkin, int aAddon) noexcept {
+  auto lRes = std::set<RE::TESObjectARMA *>{};
+  if (aAddon < 0) return lRes;
+  if (!aSkin->HasPartOf(Tng::cSlotGenital)) aSkin->AddSlotToMask(Tng::cSlotGenital);
+  if (aSkin)
+  for (auto &lAA : aSkin->armorAddons)
+    if (lAA->HasPartOf(Tng::cSlotBody) && lAA->race && ((lAA->race == fDefRace) || lAA->race->HasKeyword(fPRaceKey))) lRes.insert(lAA);
+  auto lType = GetSkinType(aSkin);
+  auto lAddonsToAdd = aAddon >= 0 ? GetAddonAAs(lType, aAddon, tr) : GetCombinedAddons(lType, aSkin);
+  for (const auto &lAA : aSkin->armorAddons) {
+    if (fAllMalAAs.find(lAA) == fAllMalAAs.end()) continue;
+  }
   for (const auto &lAA : lAddonsToAdd) aSkin->armorAddons.emplace_back(lAA);
   return lRes;
 }
 
-std::set<RE::TESObjectARMA *> TngSizeShape::GentifySkin(int aRaceGrp) noexcept { return GentifySkin(fRacesInfo[aRaceGrp].originalSkin); }
 
-std::set<RE::TESObjectARMA *> TngSizeShape::GetCombinedAddons(TNGRaceTypes aRaceType, std::set<RE::TESRace *> aReqRaces) noexcept {
-  std::set<RE::TESObjectARMA *> lRes{};
-  for (const auto &lRace : aReqRaces) {
+
+std::map<RE::TESRace *, RE::TESObjectARMA *> TngSizeShape::GetCombinedAddons(TNGRaceTypes aRaceType, RE::TESObjectARMO *aSkin) noexcept {
+  std::map<RE::TESRace *, RE::TESObjectARMA *> lRes{};
+  std::set<RE::TESRace *> lReqRaces{};
+  for (const auto &lAA : aSkin->armorAddons) {
+    if (!lAA->HasPartOf(Tng::cSlotBody) || !lAA->race) continue;
+    if (lAA->race->HasKeyword(fPRaceKey)) lReqRaces.insert(fRacesInfo[GetRaceGrp(lAA->race)].armorRaces.begin(), fRacesInfo[GetRaceGrp(lAA->race)].armorRaces.end());
+    for (const auto &lAAAddRace : lAA->additionalRaces)
+      if (lAAAddRace->HasKeyword(fPRaceKey)) lReqRaces.insert(fRacesInfo[GetRaceGrp(lAAAddRace)].armorRaces.begin(), fRacesInfo[GetRaceGrp(lAAAddRace)].armorRaces.end());
+  }
+  for (const auto &lRace : lReqRaces) {
     for (const auto &lAA : fMalAddonAAs[aRaceType][GetRaceGrpAddn(lRace)]) {
       if ((lAA->race == lRace) || (std::find(lAA->additionalRaces.begin(), lAA->additionalRaces.end(), lRace) != lAA->additionalRaces.end())) {
-        lRes.insert(lAA);
+        lRes.insert_or_assign(lAA->race, lAA);
         break;
       }
     }
   }
+  return lRes;
+}
+
+std::map<RE::TESRace *, RE::TESObjectARMA *> TngSizeShape::GetAddonAAs(TNGRaceTypes aRaceType, int aAddonIdx, bool aIsFemale) {
+  std::map<RE::TESRace *, RE::TESObjectARMA *> lRes{};
+  auto &lList = aIsFemale ? fFemAddonAAs[aRaceType][aAddonIdx] : fMalAddonAAs[aRaceType][aAddonIdx];
+  for (auto lAA : lList) lRes.insert({lAA->race, lAA});
   return lRes;
 }
