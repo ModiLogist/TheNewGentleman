@@ -74,6 +74,7 @@ class TngInis : public Singleton<TngInis> {
     inline static std::set<std::pair<std::string, RE::FormID>> fRunTimeRevealingIDs;
     inline static std::set<std::pair<std::pair<std::string, RE::FormID>, int>> fNPCSizes;
     inline static std::set<std::pair<std::pair<std::string, RE::FormID>, int>> fNPCAddns;
+    inline static std::map<std::string,RE::FormID> fHardExcluded;
 
     static bool Init() noexcept;
     static void LoadMainIni() noexcept;
@@ -96,8 +97,4 @@ class TngInis : public Singleton<TngInis> {
 
     static bool IsTngIni(const std::string_view aFileName) noexcept;
     static bool UpdateRevealing(const std::string aArmorRecod) noexcept;
-
-  private://Old Ini update
-    inline static constexpr const char* cShape{"NPCGenitalShape"};
-    static void UpdateToVersion2(CSimpleIniA* aIni) noexcept;
 };

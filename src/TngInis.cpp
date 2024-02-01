@@ -27,7 +27,11 @@ void TngInis::LoadMainIni() noexcept {
   lIni.SetUnicode();
   lIni.LoadFile(cSettings);
   int lIniVersion = lIni.GetLongValue(cIniVersion, cVersion, 1);
-  if (lIniVersion < 2) UpdateToVersion2(&lIni);
+  if (lIniVersion < 2) {
+    CSimpleIniA::TNamesDepend lSections;
+    lIni.GetAllSections(lSections);
+    for (CSimpleIniA::TNamesDepend::const_iterator lSection = lSections.begin(); lSection != lSections.end(); lSection++) lIni.Delete(lSection->pItem, NULL);  
+  }
   lIni.SetLongValue(cIniVersion, cVersion, cCurrVersion);
   if (lIni.SectionExists(cGlobalSize)) {
     for (int i = 0; i < Tng::cSizeCategories; i++) {
@@ -113,6 +117,15 @@ void TngInis::LoadTngInis() noexcept {
       lIni.SetUnicode();
       lIni.SetMultiKey();
       lIni.LoadFile(entry.path().string().c_str());
+      if (lIni.SectionExists(cExcludeSection)) {
+        CSimpleIniA::TNamesDepend lExRecords;
+        CSimpleIniA::TNamesDepend::const_iterator lEntry;
+        lIni.GetAllKeys(cExcludeSection, lExRecords);
+        for (lEntry = lExRecords.begin(); lEntry != lExRecords.end(); lEntry++) {
+          auto lRecord = StrToRecord(lEntry->pItem);
+          fHardExcluded.insert_or_assign(lRecord.first,lRecord.second);
+        }
+      }
       if (lIni.KeyExists(cSkeleton, cValidModel)) {
         CSimpleIniA::TNamesDepend lSkeletons;
         lIni.GetAllValues(cSkeleton, cValidModel, lSkeletons);
@@ -340,10 +353,4 @@ bool TngInis::UpdateRevealing(const std::string aArmorRecod) noexcept {
   }
   fRunTimeRevealingIDs.insert(std::make_pair<std::string, RE::FormID>(StrToRecord(aArmorRecod).first, StrToRecord(aArmorRecod).second));
   return true;
-}
-
-void TngInis::UpdateToVersion2(CSimpleIniA* aIni) noexcept { 
-  CSimpleIniA::TNamesDepend lSections;
-  aIni->GetAllSections(lSections);
-  for (CSimpleIniA::TNamesDepend::const_iterator lSection = lSections.begin(); lSection != lSections.end(); lSection++) aIni->Delete(lSection->pItem, NULL);  
 }
