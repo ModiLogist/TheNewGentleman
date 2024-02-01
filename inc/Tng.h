@@ -74,8 +74,6 @@ static std::string RecordToStr(RE::TESForm* aForm) noexcept {
 
 template <typename FormType>
 static constexpr FormType* LoadForm(std::string aFormRecord) {
-  const size_t lSepLoc = aFormRecord.find(Tng::cDelimChar);
-  const RE::FormID lFormID = std::strtol(aFormRecord.substr(0, lSepLoc).data(), nullptr, 0);
-  const std::string lModName = aFormRecord.substr(lSepLoc + 1);
-  return RE::TESDataHandler::GetSingleton()->LookupForm<FormType>(lFormID, lModName);
+  auto lRecod = StrToRecord(aFormRecord);
+  return RE::TESDataHandler::GetSingleton()->LookupForm<FormType>(lRecod.second,lRecod.first);
 };
