@@ -32,13 +32,13 @@ bool TngCore::Initialize() noexcept {
     return false;
   }
   for (std::size_t i = TngSizeShape::raceManMer; i < TngSizeShape::raceSnowElf; i++) {
-    fExSkins[i] = fDH->LookupForm<RE::TESObjectARMO>(cExSkinIDs[i],Tng::cName);
+    fExSkins[i] = fDH->LookupForm<RE::TESObjectARMO>(cExSkinIDs[i], Tng::cName);
     if (!fExSkins) {
       Tng::gLogger::critical("Skins for excluded NPCs cannot be loaded.");
+      return false;
     }
   }
-    
-  
+
   std::set<std::string> lDefSks{};
   lDefSks.insert(fDefRace->skeletonModels[0].model.data());
   lDefSks.insert(fDefRace->skeletonModels[1].model.data());
@@ -219,6 +219,7 @@ void TngCore::GenitalizeNPCSkins() noexcept {
   std::map<std::string_view, int> lCustomSkinMods{};
   if (TngInis::fHardExcluded.size() > 0) LoadHardExcluded();
   for (const auto& lNPC : fAllNPCs) {
+    if (fHardExcludedNPCs.find(lNPC) != fHardExcludedNPCs.end()) continue;
     const auto lNPCRace = lNPC->race;
     if (!lNPCRace) {
       Tng::gLogger::warn("The NPC [0x{:x}: {}] does not have a race! They cannot be modified by TNG.", lNPC->GetFormID(), lNPC->GetName());
@@ -258,7 +259,8 @@ void TngCore::GenitalizeNPCSkins() noexcept {
 Tng::TNGRes TngCore::CanModifyActor(RE::Actor* aActor) noexcept {
   auto lRes = TngSizeShape::CanModifyActor(aActor);
   if (lRes < 0) return lRes;
-  auto lNPC = aActor->GetActorBase();
+  auto lNPC = aActor ? aActor->GetActorBase() : nullptr;
+  if (!lNPC || !aActor) return Tng::npcErr;
   return (fHardExcludedNPCs.find(lNPC) != fHardExcludedNPCs.end()) ? Tng::npcErr : lRes;
 }
 
@@ -319,7 +321,9 @@ bool TngCore::FixSkin(RE::TESObjectARMO* aSkin, const char* const aName) noexcep
 void TngCore::LoadHardExcluded() noexcept {
   for (const auto& lRecord : TngInis::fHardExcluded) {
     auto lNPC = fDH->LookupForm<RE::TESNPC>(lRecord.second, lRecord.first);
-    if (lNPC) fHardExcludedNPCs.insert(lNPC);
+    if (!lNPC) continue;
+    Tng::gLogger::info("The NPC [{}] would be excluded from TNG.", lNPC->GetName());
+    fHardExcludedNPCs.insert(lNPC);
     lNPC->AddKeyword(fExKey);
     if (lNPC->race) lNPC->skin = fExSkins[TngSizeShape::GetRaceType(lNPC->race)];
   }
