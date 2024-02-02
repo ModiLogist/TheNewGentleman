@@ -54,7 +54,6 @@ namespace Tng {
     resOkAR = 6,
     resOkRR = 7,
     resOkIR = 8,
-    resOkNoAddon = 9,
   };
 }
 

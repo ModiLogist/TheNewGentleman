@@ -290,7 +290,7 @@ int TngSizeShape::GetNPCAddn(RE::TESNPC *aNPC) noexcept {
       return std::strtol(lKwStr.substr(strlen(cNPCAddn), 2).data(), nullptr, 0);
     }
   }
-  return Tng::resOkNoAddon;
+  return -1;
 }
 
 bool TngSizeShape::SetNPCAddn(RE::TESNPC *aNPC, int aAddon) noexcept {

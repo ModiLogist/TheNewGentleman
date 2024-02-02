@@ -105,7 +105,7 @@ void TngEvents::CheckForAddons(RE::Actor* aActor) noexcept {
     Tng::gLogger::critical("Faced an issue retrieving information for {}!", lNPC->GetName());
     return;
   }
-  if (lNPCAddn >= 0 && lNPCAddn != Tng::resOkNoAddon) {
+  if (lNPCAddn >= 0) {
     TngCore::SetNPCSkin(lNPC, lNPCAddn);
     return;
   }
