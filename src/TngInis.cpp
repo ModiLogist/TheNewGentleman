@@ -210,7 +210,7 @@ void TngInis::SaveRaceMult(const std::size_t aRaceIdx, const float aRaceMult) no
   if (aRaceMult < 0) {
     lIni.Delete(cRacialSize, lRaceIDStr.c_str());
   } else {
-    lIni.SetDoubleValue(cRacialSize, lRaceIDStr.c_str(), static_cast<float>(aRaceMult));
+    lIni.SetDoubleValue(cRacialSize, lRaceIDStr.c_str(), static_cast<double>(aRaceMult));
   }
   lIni.SaveFile(cSettings);
 }
@@ -225,7 +225,7 @@ void TngInis::SaveRaceAddn(const std::size_t aRaceIdx, int aChoice) noexcept {
     Tng::gLogger::critical("Failed to save the selected addon for race [{:x}: {}]!", lRace->GetFormID(), lRace->GetFormEditorID());
     return;
   }
-  if (aChoice == -2) {
+  if (aChoice == -1) {
     lIni.Delete(cRacialGenital, lRaceIDStr.c_str());
   } else {
     auto lAddon = TngSizeShape::GetAddonAt(false, aChoice);
