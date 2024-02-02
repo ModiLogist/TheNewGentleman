@@ -53,7 +53,7 @@ void TngInis::LoadMainIni() noexcept {
     CSimpleIniA::TNamesDepend::const_iterator lEntry;
     lIni.GetAllKeys(cRacialSize, lRaceRecords);
     for (lEntry = lRaceRecords.begin(); lEntry != lRaceRecords.end(); lEntry++) {
-      auto lMult = lIni.GetLongValue(cRacialSize, lEntry->pItem);
+      auto lMult = lIni.GetDoubleValue(cRacialSize, lEntry->pItem);
       const std::string lRaceRecord(lEntry->pItem);
       if (!TngSizeShape::LoadRaceMult(lRaceRecord, static_cast<float>(lMult))) lIni.Delete(cRacialSize, lEntry->pItem);
     }
