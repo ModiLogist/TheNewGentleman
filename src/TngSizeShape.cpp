@@ -427,9 +427,7 @@ void TngSizeShape::UpdateAddons(RE::TESRace *aRace) noexcept {
   }
 };
 
-TngSizeShape::RaceType TngSizeShape::GetSkinType(RE::TESObjectARMO *aSkin) noexcept {
-  return GetRaceType(aSkin->race);
-}
+TngSizeShape::RaceType TngSizeShape::GetSkinType(RE::TESObjectARMO *aSkin) noexcept { return GetRaceType(aSkin->race); }
 
 TngSizeShape::RaceType TngSizeShape::GetRaceType(RE::TESRace *aRace) noexcept {
   if (!aRace) return raceManMer;
@@ -537,7 +535,7 @@ std::set<RE::TESObjectARMA *> TngSizeShape::GentifyFemSkin(RE::TESObjectARMO *aS
   }
   while (lHasMalAddons) {
     aSkin->armorAddons.pop_back();
-    lHasMalAddons = (aSkin->armorAddons.size() > 0) && (fAllMalAAs.find(aSkin->armorAddons.back())!= fAllMalAAs.end());
+    lHasMalAddons = (aSkin->armorAddons.size() > 0) && (fAllMalAAs.find(aSkin->armorAddons.back()) != fAllMalAAs.end());
   }
   for (const auto &lAA : lAddonsToAdd) aSkin->armorAddons.emplace_back(lAA.second);
   return lRes;

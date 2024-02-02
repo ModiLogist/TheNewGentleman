@@ -125,6 +125,7 @@ void TngInis::LoadTngInis() noexcept {
           auto lRecord = StrToRecord(lEntry->pItem);
           fHardExcluded.insert_or_assign(lRecord.first,lRecord.second);
         }
+        Tng::gLogger::info("\t- Found [{}] excluded NPCs in ini file [{}].", lExRecords.size(), lFileName);
       }
       if (lIni.KeyExists(cSkeleton, cValidModel)) {
         CSimpleIniA::TNamesDepend lSkeletons;
@@ -134,7 +135,7 @@ void TngInis::LoadTngInis() noexcept {
           const std::string lModel(lSkeleton->pItem);
           fValidSkeletons.insert(lModel);
         }
-        Tng::gLogger::info("\t\t- Found [{}] skeleton models in ini file [{}].", lSkeletons.size(), lFileName);
+        Tng::gLogger::info("\t- Found [{}] skeleton models in ini file [{}].", lSkeletons.size(), lFileName);
       }
       if (lIni.SectionExists(cSkinSection)) {
         if (lIni.KeyExists(cSkinSection, cSkinMod)) {
@@ -145,13 +146,13 @@ void TngInis::LoadTngInis() noexcept {
             const std::string lModName(lMod->pItem);
             fSkinMods.insert(lModName);
           }
-          Tng::gLogger::info("\t\t- Found [{}] skin mods in ini file [{}].", lMods.size(), lFileName);
+          Tng::gLogger::info("\t- Found [{}] skin mods in ini file [{}].", lMods.size(), lFileName);
         }
         if (lIni.KeyExists(cSkinSection, cSkinRecord)) {
           CSimpleIniA::TNamesDepend lModRecords;
           lIni.GetAllValues(cSkinSection, cSkinRecord, lModRecords);
           LoadModRecodPairs(lModRecords, fSingleSkinIDs);
-          Tng::gLogger::info("\t\t- Found [{}] skin records in ini file [{}].", lModRecords.size(), lFileName);
+          Tng::gLogger::info("\t- Found [{}] skin records in ini file [{}].", lModRecords.size(), lFileName);
         }
       }
       if (lIni.SectionExists(cArmorSection)) {
@@ -162,19 +163,19 @@ void TngInis::LoadTngInis() noexcept {
             const std::string lModName(lMod.pItem);
             fRevealingMods.insert(lModName);
           }
-          Tng::gLogger::info("\t\t- Found [{}] revealing mods in ini file [{}].", lMods.size(), lFileName);
+          Tng::gLogger::info("\t- Found [{}] revealing mods in ini file [{}].", lMods.size(), lFileName);
         }
         if (lIni.KeyExists(cArmorSection, cRevealingRecord)) {
           CSimpleIniA::TNamesDepend lModRecords;
           lIni.GetAllValues(cArmorSection, cRevealingRecord, lModRecords);
           LoadModRecodPairs(lModRecords, fSingleRevealingIDs);
-          Tng::gLogger::info("\t\t- Found [{}] revealing records in ini file [{}].", lModRecords.size(), lFileName);
+          Tng::gLogger::info("\t- Found [{}] revealing records in ini file [{}].", lModRecords.size(), lFileName);
         }
         if (lIni.KeyExists(cArmorSection, cCoveringRecord)) {
           CSimpleIniA::TNamesDepend lModRecords;
           lIni.GetAllValues(cArmorSection, cCoveringRecord, lModRecords);
           LoadModRecodPairs(lModRecords, fSingleCoveringIDs);
-          Tng::gLogger::info("\t\t- Found [{}] covering records in ini file [{}].", lModRecords.size(), lFileName);
+          Tng::gLogger::info("\t- Found [{}] covering records in ini file [{}].", lModRecords.size(), lFileName);
         }
       }
     } else {

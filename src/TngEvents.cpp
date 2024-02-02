@@ -31,8 +31,8 @@ RE::BSEventNotifyControl TngEvents::ProcessEvent(const RE::TESEquipEvent* aEvent
   const auto lActor = aEvent->actor->As<RE::Actor>();
   auto lArmor = RE::TESForm::LookupByID<RE::TESObjectARMO>(aEvent->baseObject);
   if (!lArmor || !lActor) return RE::BSEventNotifyControl::kContinue;
-  if (!((1 << TngCore::CanModifyActor(lActor)) & ((1 << Tng::resOkRaceP) | (1 << Tng::resOkRaceR)))) return RE::BSEventNotifyControl::kContinue;
   if (!lArmor->HasPartOf(Tng::cSlotBody)) return RE::BSEventNotifyControl::kContinue;
+  if (!((1 << TngCore::CanModifyActor(lActor)) & ((1 << Tng::resOkRaceP) | (1 << Tng::resOkRaceR)))) return RE::BSEventNotifyControl::kContinue;
   if (!lArmor->GetPlayable()) return RE::BSEventNotifyControl::kContinue;
   if (aEvent->equipped) {
     aSource->notifying = false;
