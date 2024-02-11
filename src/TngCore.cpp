@@ -570,6 +570,11 @@ void TngCore::ProcessArmor(RE::TESObjectARMO* aArmor, bool aAcceptAR) noexcept {
     aArmor->AddKeyword(fCCKey);
     return;
   }
+  for (const auto& lKw : aArmor->GetKeywords())
+    if (strcmp(lKw->GetFormEditorID(), cSOSR) == 0) {
+      aArmor->AddKeyword(fRRKey);
+      return;
+    }
 }
 
 bool TngCore::SwapRevealing(RE::TESObjectARMO* aArmor) noexcept {
