@@ -265,14 +265,15 @@ Tng::TNGRes TngCore::CanModifyActor(RE::Actor* aActor) noexcept {
 }
 
 Tng::TNGRes TngCore::SetNPCSkin(RE::TESNPC* aNPC, int aAddon) noexcept {
+  auto lMaxRes = (aNPC->IsPlayer() && TngInis::GetExcludePlayer()) ? Tng::resOkNoGen : Tng::resOkGen;
   if (!aNPC->race || !aNPC->race->HasKeyword(fPRaceKey)) return Tng::raceErr;
   if (fHardExcludedNPCs.find(aNPC) != fHardExcludedNPCs.end()) return Tng::npcErr;
-  if (aAddon == -1) return !aNPC->IsFemale() || aNPC->skin->HasKeyword(fSwPKey) ? Tng::resOkGen : Tng::resOkNoGen;
+  if (aAddon == -1) return !aNPC->IsFemale() || aNPC->skin->HasKeyword(fSwPKey) ? lMaxRes : Tng::resOkNoGen;
   if (aAddon == -2) {
     RevertNPCSkin(aNPC);
     TngSizeShape::SetNPCAddn(aNPC, aAddon);
     if (!aNPC->IsPlayer()) TngInis::SaveNPCAddn(aNPC, aNPC->IsFemale() ? -3 : aAddon);
-    return aNPC->IsFemale() ? Tng::resOkNoGen : Tng::resOkGen;
+    return !aNPC->IsFemale() ? lMaxRes : Tng::resOkNoGen;
   }
   auto lCurrSkin = aNPC->skin ? aNPC->skin : aNPC->race->skin;
   auto lOgSkin = GetOgSkin(aNPC);
@@ -287,7 +288,13 @@ Tng::TNGRes TngCore::SetNPCSkin(RE::TESNPC* aNPC, int aAddon) noexcept {
     aNPC->skin = lSkin;
     if (!aNPC->IsPlayer()) TngInis::SaveNPCAddn(aNPC, aAddon);
   }
-  return !aNPC->IsFemale() || aNPC->skin->HasKeyword(fSwPKey) ? Tng::resOkGen : Tng::resOkNoGen;
+  return !aNPC->IsFemale() || aNPC->skin->HasKeyword(fSwPKey) ? lMaxRes : Tng::resOkNoGen;
+}
+
+Tng::TNGRes TngCore::SetActorSize(RE::Actor* aActor, int aGenSize) noexcept {
+  if (!aActor) return Tng::npcErr;
+  int lGenSize = (aActor->IsPlayerRef() && TngInis::GetExcludePlayer()) ? -2 : aGenSize;
+  return TngSizeShape::SetActorSize(aActor, lGenSize);
 }
 
 RE::TESObjectARMO* TngCore::GetOgSkin(RE::TESNPC* aNPC) noexcept {

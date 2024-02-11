@@ -6,7 +6,7 @@ namespace Tng {
   inline static constexpr std::string_view cSkyrim{"Skyrim.esm"};
   inline static constexpr const char cDelimChar{'~'};
   inline static constexpr const char cColonChar{':'};
-  inline static constexpr int cSizeCategories{5};
+  inline static constexpr std::size_t cSizeCategories{5};
   inline static constexpr RE::FormID cDefRaceID = 0x19;
   inline static constexpr RE::FormID cBstRaceID = 0x13745;
   inline static constexpr int cVanillaRaceTypes{14};

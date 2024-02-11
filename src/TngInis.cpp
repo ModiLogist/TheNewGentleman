@@ -42,8 +42,7 @@ void TngInis::LoadMainIni() noexcept {
     const std::string lRaceRecord(lEntry->pItem);
     if (!TngSizeShape::LoadRaceAddn(lRaceRecord, lAddon)) lIni.Delete(cRacialGenital, lEntry->pItem);
   }
-  CSimpleIniA::TNamesDepend lRaceRecords;
-  CSimpleIniA::TNamesDepend::const_iterator lEntry;
+  lRaceRecords.clear();
   lIni.GetAllKeys(cRacialSize, lRaceRecords);
   for (lEntry = lRaceRecords.begin(); lEntry != lRaceRecords.end(); lEntry++) {
     auto lMult = lIni.GetDoubleValue(cRacialSize, lEntry->pItem);
@@ -51,7 +50,6 @@ void TngInis::LoadMainIni() noexcept {
     if (!TngSizeShape::LoadRaceMult(lRaceRecord, static_cast<float>(lMult))) lIni.Delete(cRacialSize, lEntry->pItem);
   }
   CSimpleIniA::TNamesDepend lSizeRecords;
-  CSimpleIniA::TNamesDepend::const_iterator lEntry;
   lIni.GetAllKeys(cNPCSizeSection, lSizeRecords);
   for (lEntry = lSizeRecords.begin(); lEntry != lSizeRecords.end(); lEntry++) {
     auto lSize = lIni.GetLongValue(cNPCSizeSection, lEntry->pItem);
@@ -59,7 +57,6 @@ void TngInis::LoadMainIni() noexcept {
     if (!TngSizeShape::LoadNPCSize(lNPCRecord, lSize)) lIni.Delete(cNPCSizeSection, lEntry->pItem);
   }
   CSimpleIniA::TNamesDepend lAddonRecords;
-  CSimpleIniA::TNamesDepend::const_iterator lEntry;
   lIni.GetAllKeys(cNPCAddnSection, lAddonRecords);
   for (lEntry = lAddonRecords.begin(); lEntry != lAddonRecords.end(); lEntry++) {
     const std::string lNPCRecord(lEntry->pItem);
@@ -67,14 +64,12 @@ void TngInis::LoadMainIni() noexcept {
     if (!TngSizeShape::LoadNPCAddn(lNPCRecord, lAddon)) lIni.Delete(cNPCAddnSection, lEntry->pItem);
   }
   CSimpleIniA::TNamesDepend lExRecords;
-  CSimpleIniA::TNamesDepend::const_iterator lEntry;
   lIni.GetAllKeys(cExcludeSection, lExRecords);
   for (lEntry = lExRecords.begin(); lEntry != lExRecords.end(); lEntry++) {
     const std::string lNPCRecord(lEntry->pItem);
     TngSizeShape::ExcludeNPC(lNPCRecord);
   }
   CSimpleIniA::TNamesDepend lRevRecords;
-  CSimpleIniA::TNamesDepend::const_iterator lEntry;
   lIni.GetAllKeys(cRevealingRecord, lRevRecords);
   for (lEntry = lRevRecords.begin(); lEntry != lRevRecords.end(); lEntry++) {
     auto lIsRevealing = lIni.GetBoolValue(cRevealingRecord, lEntry->pItem);
@@ -299,7 +294,7 @@ void TngInis::SaveGlobals() noexcept {
   CSimpleIniA lIni;
   lIni.SetUnicode();
   lIni.LoadFile(cSettings);
-  for (int i = 0; i < Tng::cSizeCategories; i++) lIni.SetDoubleValue(cGlobalSize, cSizeNames[i], TngSizeShape::GetGlobalSize(i));
+  for (std::size_t i = 0; i < Tng::cSizeCategories; i++) lIni.SetDoubleValue(cGlobalSize, cSizeNames[i], TngSizeShape::GetGlobalSize(i));
   lIni.SetBoolValue(cControls, cINTCtrl, fINTCtrl->value > 1.0f);
   lIni.SetLongValue(cControls, cNPCCtrl, static_cast<int>(fNPCCtrl->value));
   lIni.SetLongValue(cControls, cUPGCtrl, static_cast<int>(fUPGCtrl->value));

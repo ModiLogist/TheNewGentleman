@@ -42,7 +42,7 @@ RE::BSEventNotifyControl TngEvents::ProcessEvent(const RE::TESEquipEvent* aEvent
     fInternal = false;
     aSource->notifying = true;
   } else {
-    if (!lActor->IsPlayerRef() || !TngInis::GetExcludePlayer()) TngSizeShape::RandomizeScale(lActor);
+    if (!lActor->IsPlayerRef() || !TngInis::GetExcludePlayer()) TngCore::SetActorSize(lActor, -1);
     CheckForAddons(lActor);
   }
   return RE::BSEventNotifyControl::kContinue;
@@ -101,7 +101,7 @@ void TngEvents::CheckActor(RE::Actor* aActor, RE::TESObjectARMO* aArmor) noexcep
   if (!aActor || !lNPC) return;
   if (!lNPC->race) return;
   if (!lNPC->race->HasKeyword(fPRaceKey) && !lNPC->race->HasKeyword(fRRKey)) return;
-  if (!aActor->IsPlayerRef() || !TngInis::GetExcludePlayer()) TngSizeShape::RandomizeScale(aActor);
+  if (!aActor->IsPlayerRef() || !TngInis::GetExcludePlayer()) TngCore::SetActorSize(aActor, -1);
   const auto lGArmo = aActor->GetWornArmor(Tng::cSlotGenital);
   if (aArmor && !lGArmo) {
     TngCore::FixArmor(aArmor);

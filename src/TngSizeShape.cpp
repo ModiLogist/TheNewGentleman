@@ -35,9 +35,9 @@ bool TngSizeShape::Init() noexcept {
     fEqRaces[i]->AddKeyword(fPRaceKey);
     GetRaceGrp(fEqRaces[i]);
   }
-  for (int i = 0; i < Tng::cSizeCategories; i++) {
-    fSizeKws[i] = fDH->LookupForm<RE::BGSKeyword>(cSizeKeyWIDs[i], Tng::cName);
-    fSizeGlbs[i] = fDH->LookupForm<RE::TESGlobal>(cSizeGlobIDs[i], Tng::cName);
+  for (std::size_t i = 0; i < Tng::cSizeCategories; i++) {
+    fSizeKws.push_back(fDH->LookupForm<RE::BGSKeyword>(cSizeKeyWIDs[i], Tng::cName));
+    fSizeGlbs.push_back(fDH->LookupForm<RE::TESGlobal>(cSizeGlobIDs[i], Tng::cName));
     if (!fSizeKws[i] || !fSizeGlbs[i]) {
       Tng::gLogger::error("Could not find the information required to load saved size information for NPCs!");
       return false;
@@ -242,8 +242,7 @@ RE::TESObjectARMO *TngSizeShape::GetRaceGrpSkin(int aRaceIdx) noexcept { return 
 bool TngSizeShape::LoadNPCSize(const std::string aNPCRecord, const int aSize) noexcept {
   auto lNPC = LoadForm<RE::TESNPC>(aNPCRecord);
   if (!lNPC) return false;
-  for (int i = 0; i < Tng::cSizeCategories; i++)
-    if (lNPC->HasKeyword(fSizeKws[i])) lNPC->RemoveKeyword(fSizeKws[i]);
+  lNPC->RemoveKeywords(fSizeKws);
   lNPC->AddKeyword(fSizeKws[aSize]);
   return true;
 }
@@ -351,30 +350,14 @@ Tng::TNGRes TngSizeShape::CanModifyActor(RE::Actor *aActor) noexcept {
   return Tng::raceErr;
 }
 
-float TngSizeShape::GetGlobalSize(int aIdx) noexcept {
+float TngSizeShape::GetGlobalSize(std::size_t aIdx) noexcept {
   if (aIdx < 0 || aIdx >= Tng::cSizeCategories) return 1.0f;
   return fSizeGlbs[aIdx]->value;
 }
 
-void TngSizeShape::SetGlobalSize(int aIdx, float aSize) noexcept {
+void TngSizeShape::SetGlobalSize(std::size_t aIdx, float aSize) noexcept {
   if (aIdx < 0 || aIdx >= Tng::cSizeCategories) return;
   fSizeGlbs[aIdx]->value = aSize;
-}
-
-void TngSizeShape::RandomizeScale(RE::Actor *aActor) noexcept {
-  const auto lNPC = aActor ? aActor->GetActorBase() : nullptr;
-  if (!aActor || !lNPC) return;
-  if (!lNPC->race) return;
-  if (!(lNPC->race->HasKeyword(fPRaceKey) || lNPC->race->HasKeyword(fRRaceKey))) return;
-  for (int i = 0; i < Tng::cSizeCategories; i++) {
-    if (lNPC->HasKeyword(fSizeKws[i])) {
-      ScaleGenital(aActor, fSizeGlbs[i]);
-      return;
-    }
-  }
-  const int lDefSize = lNPC->formID % 5;
-  lNPC->AddKeyword(fSizeKws[lDefSize]);
-  ScaleGenital(aActor, fSizeGlbs[lDefSize]);
 }
 
 Tng::TNGRes TngSizeShape::SetActorSize(RE::Actor *aActor, int aGenSize) noexcept {
@@ -382,14 +365,26 @@ Tng::TNGRes TngSizeShape::SetActorSize(RE::Actor *aActor, int aGenSize) noexcept
   if (!aActor || !lNPC) return Tng::npcErr;
   if (!lNPC->race) return Tng::raceErr;
   if (!(lNPC->race->HasKeyword(fPRaceKey) || lNPC->race->HasKeyword(fRRaceKey))) return Tng::raceErr;
-  for (int i = 0; i < Tng::cSizeCategories; i++)
-    if (lNPC->HasKeyword(fSizeKws[i])) lNPC->RemoveKeyword(fSizeKws[i]);
+  auto lCurSize = GetScale(lNPC);
+  if (lCurSize == aGenSize || aGenSize == -1) {
+    ScaleGenital(aActor, fSizeGlbs[lCurSize]);
+    return Tng::resOkGen;
+  }
+  lNPC->RemoveKeywords(fSizeKws);
+  if (aActor->IsPlayerRef() && aGenSize == -2) return Tng::resOkNoGen;
   lNPC->AddKeyword(fSizeKws[aGenSize]);
   ScaleGenital(aActor, fSizeGlbs[aGenSize]);
   return Tng::resOkGen;
 }
 
 std::set<RE::TESObjectARMA *> TngSizeShape::GentifyGrpSkin(int aRaceGrp) noexcept { return GentifyMalSkin(fRacesInfo[aRaceGrp].originalSkin); }
+
+int TngSizeShape::GetScale(RE::TESNPC *aNPC) noexcept {
+  for (int i = 0; i < Tng::cSizeCategories; i++) {
+    if (aNPC->HasKeyword(fSizeKws[i])) return i;
+  }
+  return (aNPC->formID % 5);
+}
 
 void TngSizeShape::ScaleGenital(RE::Actor *aActor, RE::TESGlobal *aGlobal) noexcept {
   const auto lNPC = aActor ? aActor->GetActorBase() : nullptr;

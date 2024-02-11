@@ -104,9 +104,8 @@ class TngSizeShape : public Singleton<TngSizeShape> {
     static int GetNPCAddn(RE::TESNPC* aNPC) noexcept;
     static bool SetNPCAddn(RE::TESNPC* aNPC, int aAddon) noexcept;
     static Tng::TNGRes CanModifyActor(RE::Actor* aActor) noexcept;
-    static float GetGlobalSize(int aIdx) noexcept;
-    static void SetGlobalSize(int aIdx, float aSize) noexcept;
-    static void RandomizeScale(RE::Actor* aActor) noexcept;
+    static float GetGlobalSize(std::size_t aIdx) noexcept;
+    static void SetGlobalSize(std::size_t aIdx, float aSize) noexcept;
     static Tng::TNGRes SetActorSize(RE::Actor* aActor, int aGenSize) noexcept;
     static std::set<RE::TESObjectARMA*> GentifyGrpSkin(int aRaceGrp) noexcept;
 
@@ -125,12 +124,13 @@ class TngSizeShape : public Singleton<TngSizeShape> {
     inline static RE::BGSKeyword* fGWKey;
     inline static RE::BGSKeyword* fExKey;
     inline static RE::BGSListForm* fGentified;
-    inline static RE::BGSKeyword* fSizeKws[Tng::cSizeCategories];
-    inline static RE::TESGlobal* fSizeGlbs[Tng::cSizeCategories];
+    inline static std::vector<RE::BGSKeyword*> fSizeKws;
+    inline static std::vector<RE::TESGlobal*> fSizeGlbs;
     inline static std::vector<RE::TESObjectARMO*> fMalAddons;
     inline static std::vector<RE::TESObjectARMO*> fFemAddons;
     inline static std::vector<RaceInfo> fRacesInfo;
 
+    static int GetScale(RE::TESNPC* aNPC) noexcept;
     static void ScaleGenital(RE::Actor* aActor, RE::TESGlobal* aGlobal) noexcept;
 
   public:
