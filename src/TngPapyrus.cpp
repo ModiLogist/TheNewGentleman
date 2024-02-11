@@ -15,21 +15,31 @@ std::vector<std::string> TngPapyrus::GetRaceGrpNames(RE::StaticFunctionTag*) { r
 
 int TngPapyrus::GetRaceGrpAddn(RE::StaticFunctionTag*, int aRaceIdx) {
   if (aRaceIdx < 0) return Tng::pgErr;
-  return TngSizeShape::GetRaceGrpAddn(static_cast<int>(aRaceIdx));
+  return TngSizeShape::GetRaceGrpAddn(static_cast<std::size_t>(aRaceIdx));
 }
 
 float TngPapyrus::GetRaceGrpMult(RE::StaticFunctionTag*, int aRaceIdx) {
   if (aRaceIdx < 0) return -1.0f;
-  return TngSizeShape::GetRaceGrpMult(static_cast<int>(aRaceIdx));
+  return TngSizeShape::GetRaceGrpMult(static_cast<std::size_t>(aRaceIdx));
 }
 
 void TngPapyrus::SetRaceGrpAddn(RE::StaticFunctionTag*, int aRaceIdx, int aGenOption) {
   if (aRaceIdx < 0) return;
-  TngCore::UpdateRaces(static_cast<int>(aRaceIdx), aGenOption);
+  TngCore::UpdateRaceGrpAddn(static_cast<int>(aRaceIdx), aGenOption);
 }
 
 void TngPapyrus::SetRaceGrpMult(RE::StaticFunctionTag*, int aRaceIdx, float aGenMult) {
-  if (TngSizeShape::SetRaceGrpMult(static_cast<std::size_t>(aRaceIdx), aGenMult)) TngInis::SaveRaceMult(static_cast<int>(aRaceIdx), aGenMult);
+  if (TngSizeShape::SetRaceGrpMult(static_cast<std::size_t>(aRaceIdx), aGenMult)) TngInis::SaveRaceMult(static_cast<std::size_t>(aRaceIdx), aGenMult);
+}
+
+bool TngPapyrus::GetAddonStatus(RE::StaticFunctionTag*, int aFemaleAddn) {
+  if (aFemaleAddn < 0 || aFemaleAddn >= TngSizeShape::GetAddonCount(true)) return false;
+  return TngSizeShape::GetAddonStatus(static_cast<int>(aFemaleAddn));
+}
+
+void TngPapyrus::SetAddonStatus(RE::StaticFunctionTag*, int aFemaleAddn, bool aStatus) {
+  if (aFemaleAddn < 0 || aFemaleAddn >= TngSizeShape::GetAddonCount(true)) return;
+  TngInis::SaveActiveAddon(aFemaleAddn, aStatus);
 }
 
 std::vector<std::string> TngPapyrus::GetAllPossibleAddons(RE::StaticFunctionTag*, bool aIsFemale) {
@@ -37,24 +47,15 @@ std::vector<std::string> TngPapyrus::GetAllPossibleAddons(RE::StaticFunctionTag*
   return std::vector<std::string>{lNames.begin(), lNames.end()};
 }
 
-int TngPapyrus::CanModifyActor(RE::StaticFunctionTag*, RE::Actor* aActor) { return TngSizeShape::CanModifyActor(aActor); }
+int TngPapyrus::CanModifyActor(RE::StaticFunctionTag*, RE::Actor* aActor) { return TngCore::CanModifyActor(aActor); }
 
-int TngPapyrus::SetActorAddn(RE::StaticFunctionTag*, RE::Actor* aActor, int aGenOption) { return TngCore::SetActorSkin(aActor, aGenOption); }
-
-int TngPapyrus::SetActorSize(RE::StaticFunctionTag*, RE::Actor* aActor, int aGenSize) {
+int TngPapyrus::SetActorAddn(RE::StaticFunctionTag*, RE::Actor* aActor, int aGenOption) {
   const auto lNPC = aActor ? aActor->GetActorBase() : nullptr;
-  if (!aActor || !lNPC) return false;
-  auto lRes = Tng::resOkGen;
-  if (aGenSize == -1) {
-    TngSizeShape::RandomizeScale(aActor);
-  } else {
-    lRes = TngSizeShape::SetActorSize(aActor, aGenSize);
-  }
-  if (!aActor->IsPlayerRef()) {
-    TngInis::SaveActorSize(lNPC, aGenSize);
-  }
-  return lRes;
+  if (!aActor || !lNPC) return Tng::npcErr;
+  return TngCore::SetNPCSkin(lNPC, aGenOption);
 }
+
+int TngPapyrus::SetActorSize(RE::StaticFunctionTag*, RE::Actor* aActor, int aGenSize) { return TngCore::SetActorSize(aActor, aGenSize); }
 
 bool TngPapyrus::SwapRevealing(RE::StaticFunctionTag*, RE::TESObjectARMO* aArmor) {
   if (!aArmor) return false;
@@ -71,6 +72,8 @@ bool TngPapyrus::BindPapyrus(RE::BSScript::IVirtualMachine* aVM) noexcept {
   aVM->RegisterFunction("GetRaceGrpMult", "TNG_PapyrusUtil", GetRaceGrpMult);
   aVM->RegisterFunction("SetRaceGrpAddn", "TNG_PapyrusUtil", SetRaceGrpAddn);
   aVM->RegisterFunction("SetRaceGrpMult", "TNG_PapyrusUtil", SetRaceGrpMult);
+  aVM->RegisterFunction("GetAddonStatus", "TNG_PapyrusUtil", GetAddonStatus);
+  aVM->RegisterFunction("SetAddonStatus", "TNG_PapyrusUtil", SetAddonStatus);
   aVM->RegisterFunction("GetAllPossibleAddons", "TNG_PapyrusUtil", GetAllPossibleAddons);
   aVM->RegisterFunction("CanModifyActor", "TNG_PapyrusUtil", CanModifyActor);
   aVM->RegisterFunction("SetActorAddn", "TNG_PapyrusUtil", SetActorAddn);

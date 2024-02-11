@@ -6,7 +6,7 @@ message("Using toolchain file ${CMAKE_TOOLCHAIN_FILE}.")
 ########################################################################################################################
 project(
   TheNewGentleman
-  VERSION 2.0.2
+  VERSION 2.1.2
   LANGUAGES CXX
 )
 

@@ -6,11 +6,12 @@ namespace Tng {
   inline static constexpr std::string_view cSkyrim{"Skyrim.esm"};
   inline static constexpr const char cDelimChar{'~'};
   inline static constexpr const char cColonChar{':'};
-  inline static constexpr int cSizeCategories{5};
+  inline static constexpr std::size_t cSizeCategories{5};
   inline static constexpr RE::FormID cDefRaceID = 0x19;
   inline static constexpr RE::FormID cBstRaceID = 0x13745;
   inline static constexpr int cVanillaRaceTypes{14};
   inline static constexpr int cEqRaceTypes{13};
+  enum RaceType { raceManMer, raceBeast, raceElder, raceDremora, raceAfflicted, raceSnowElf, cRaceTypeCount };
 
   inline static constexpr RE::BGSBipedObjectForm::BipedObjectSlot cSlotBody{RE::BGSBipedObjectForm::BipedObjectSlot::kBody};
   inline static constexpr RE::BGSBipedObjectForm::BipedObjectSlot cSlotGenital{RE::BGSBipedObjectForm::BipedObjectSlot::kModPelvisSecondary};
@@ -40,6 +41,7 @@ namespace Tng {
 
   enum TNGRes {
     pgErr = -9,
+    skinErr = -5,
     armoErr = -4,
     addonErr = -3,
     npcErr = -2,
@@ -53,7 +55,6 @@ namespace Tng {
     resOkAR = 6,
     resOkRR = 7,
     resOkIR = 8,
-    resOkNoAddon = 9,
   };
 }
 
@@ -73,8 +74,6 @@ static std::string RecordToStr(RE::TESForm* aForm) noexcept {
 
 template <typename FormType>
 static constexpr FormType* LoadForm(std::string aFormRecord) {
-  const size_t lSepLoc = aFormRecord.find(Tng::cDelimChar);
-  const RE::FormID lFormID = std::strtol(aFormRecord.substr(0, lSepLoc).data(), nullptr, 0);
-  const std::string lModName = aFormRecord.substr(lSepLoc + 1);
-  return RE::TESDataHandler::GetSingleton()->LookupForm<FormType>(lFormID, lModName);
+  auto lRecod = StrToRecord(aFormRecord);
+  return RE::TESDataHandler::GetSingleton()->LookupForm<FormType>(lRecod.second,lRecod.first);
 };
