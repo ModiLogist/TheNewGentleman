@@ -127,7 +127,7 @@ void TngEvents::CheckForAddons(RE::Actor* aActor) noexcept {
     return;
   }
   if (!lNPC->IsFemale() && lNPC->HasKeyword(fExKey)) TngCore::RevertNPCSkin(lNPC);
-  if (!lNPC->IsFemale() || lNPC->HasKeyword(fExKey) || fGWChance->value < 1) return;
+  if (!lNPC->IsFemale() || lNPC->IsPlayer() || lNPC->HasKeyword(fExKey) || fGWChance->value < 1) return;
   const auto lFAddonCount = TngSizeShape::GetAddonCount(true);
   if (lFAddonCount == 0) return;
   if ((lNPC->GetFormID() % 100) < (std::floor(fGWChance->value) + 1)) {
