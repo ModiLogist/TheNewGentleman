@@ -4,7 +4,7 @@ class TngCore : public Singleton<TngCore> {
   private:
     // Const
     inline static constexpr RE::FormID cDefSkinAAID{0xD67};
-    inline static constexpr RE::FormID cExSkinIDs[6] = {
+    inline static constexpr RE::FormID cExSkinIDs[Tng::cRaceTypeCount] = {
         0xAFF,  // raceManMer
         0xAFE,  // raceBeast
         0xAFF,  // raceElder
@@ -38,12 +38,12 @@ class TngCore : public Singleton<TngCore> {
   public:
     static void GenitalizeNPCSkins() noexcept;
     static Tng::TNGRes CanModifyActor(RE::Actor* aActor) noexcept;
-    static Tng::TNGRes SetNPCSkin(RE::TESNPC* aNPC, int aAddon) noexcept;
+    static Tng::TNGRes SetNPCSkin(RE::TESNPC* aNPC, int aAddon, bool aIsUser = true) noexcept;
     static Tng::TNGRes SetActorSize(RE::Actor* aActor, int aGenSize) noexcept;
     static void RevertNPCSkin(RE::TESNPC* aNPC);
 
   private:
-    inline static RE::TESObjectARMO* fExSkins[6];
+    inline static RE::TESObjectARMO* fExSkins[Tng::cRaceTypeCount];
     inline static std::set<RE::TESNPC*> fHardExcludedNPCs;
     static RE::TESObjectARMO* GetOgSkin(RE::TESNPC* aNPC) noexcept;
     static bool FixSkin(RE::TESObjectARMO* aSkin, const char* const aName) noexcept;

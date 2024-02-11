@@ -32,6 +32,16 @@ void TngPapyrus::SetRaceGrpMult(RE::StaticFunctionTag*, int aRaceIdx, float aGen
   if (TngSizeShape::SetRaceGrpMult(static_cast<std::size_t>(aRaceIdx), aGenMult)) TngInis::SaveRaceMult(static_cast<std::size_t>(aRaceIdx), aGenMult);
 }
 
+bool TngPapyrus::GetAddonStatus(RE::StaticFunctionTag*, int aFemaleAddn) {
+  if (aFemaleAddn < 0 || aFemaleAddn >= TngSizeShape::GetAddonCount(true)) return false;
+  return TngSizeShape::GetAddonStatus(static_cast<int>(aFemaleAddn));
+}
+
+void TngPapyrus::SetAddonStatus(RE::StaticFunctionTag*, int aFemaleAddn, bool aStatus) {
+  if (aFemaleAddn < 0 || aFemaleAddn >= TngSizeShape::GetAddonCount(true)) return;
+  TngInis::SaveActiveAddon(aFemaleAddn, aStatus);
+}
+
 std::vector<std::string> TngPapyrus::GetAllPossibleAddons(RE::StaticFunctionTag*, bool aIsFemale) {
   auto lNames = TngSizeShape::GetAddonNames(aIsFemale);
   return std::vector<std::string>{lNames.begin(), lNames.end()};
@@ -62,6 +72,8 @@ bool TngPapyrus::BindPapyrus(RE::BSScript::IVirtualMachine* aVM) noexcept {
   aVM->RegisterFunction("GetRaceGrpMult", "TNG_PapyrusUtil", GetRaceGrpMult);
   aVM->RegisterFunction("SetRaceGrpAddn", "TNG_PapyrusUtil", SetRaceGrpAddn);
   aVM->RegisterFunction("SetRaceGrpMult", "TNG_PapyrusUtil", SetRaceGrpMult);
+  aVM->RegisterFunction("GetAddonStatus", "TNG_PapyrusUtil", GetAddonStatus);
+  aVM->RegisterFunction("SetAddonStatus", "TNG_PapyrusUtil", SetAddonStatus);
   aVM->RegisterFunction("GetAllPossibleAddons", "TNG_PapyrusUtil", GetAllPossibleAddons);
   aVM->RegisterFunction("CanModifyActor", "TNG_PapyrusUtil", CanModifyActor);
   aVM->RegisterFunction("SetActorAddn", "TNG_PapyrusUtil", SetActorAddn);

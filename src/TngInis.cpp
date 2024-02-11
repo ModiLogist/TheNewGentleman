@@ -71,6 +71,10 @@ void TngInis::LoadMainIni() noexcept {
     const std::string lArmorRecord(lEntry->pItem);
     if (lIsRevealing) UpdateRevealing(lArmorRecord);
   }
+  for (std::size_t i = 0; i < TngSizeShape::GetAddonCount(true); i++) {
+    auto lAddon = TngSizeShape::GetAddonAt(true, i);
+    TngSizeShape::SetAddonStatus(i, lIni.GetBoolValue(cActiveAddons, RecordToStr(lAddon).c_str(),false));
+  }
   if (lIni.KeyExists(cControls, cINTCtrl)) fINTCtrl->value = lIni.GetBoolValue(cControls, cINTCtrl) ? 2.0f : 0.0f;
   if (lIni.KeyExists(cControls, cNPCCtrl)) fNPCCtrl->value = static_cast<float>(lIni.GetLongValue(cControls, cNPCCtrl));
   if (lIni.KeyExists(cControls, cUPGCtrl)) fUPGCtrl->value = static_cast<float>(lIni.GetLongValue(cControls, cUPGCtrl));
@@ -245,6 +249,16 @@ void TngInis::SaveRevealingArmor(RE::TESObjectARMO* aArmor) noexcept {
   lIni.SetUnicode();
   lIni.LoadFile(cSettings);
   lIni.SetBoolValue(cRevealingRecord, lArmoIDStr.c_str(), true);
+  lIni.SaveFile(cSettings);
+}
+
+void TngInis::SaveActiveAddon(int aFemaleAddon, bool aStatus) noexcept {
+  auto lAddonStr = RecordToStr(TngSizeShape::GetAddonAt(true, aFemaleAddon));
+  if (lAddonStr.empty()) return;
+  CSimpleIniA lIni;
+  lIni.SetUnicode();
+  lIni.LoadFile(cSettings);
+  lIni.SetBoolValue(cActiveAddons, lAddonStr.c_str(), aStatus);
   lIni.SaveFile(cSettings);
 }
 

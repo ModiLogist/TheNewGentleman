@@ -35,6 +35,7 @@ class TngInis : public Singleton<TngInis> {
     inline static constexpr const char* cNPCSizeSection{"NPCGenitalSize"};
     inline static constexpr const char* cNPCAddnSection{"NPCGenitalAddon"};
     inline static constexpr const char* cExcludeSection{"ExcludedNPCs"};
+    inline static constexpr const char* cActiveAddons{"ActiveFemaleAddons"};
 
     inline static constexpr const char* cGentleWomen{"GentleWomen"};
     inline static constexpr const char* cGentleWomenChance{"Chance"};
@@ -91,6 +92,7 @@ class TngInis : public Singleton<TngInis> {
     static void SaveNPCAddn(RE::TESNPC* aNPC, int aChoice) noexcept;
     static void SaveActorSize(RE::TESNPC* aNPC, int aGenSize) noexcept;
     static void SaveRevealingArmor(RE::TESObjectARMO* aArmor) noexcept;
+    static void SaveActiveAddon(int aFemaleAddon, bool aStatus) noexcept;
     static void RemoveRevealingArmor(RE::TESObjectARMO* aArmor) noexcept;
     static void SaveBool(int aID, bool aValue) noexcept;
     static void SaveGlobals() noexcept;

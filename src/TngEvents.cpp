@@ -117,24 +117,20 @@ void TngEvents::CheckForAddons(RE::Actor* aActor) noexcept {
   const auto lNPC = aActor ? aActor->GetActorBase() : nullptr;
   if (!aActor || !lNPC) return;
   if (aActor->IsPlayerRef()) return;
-  int lNPCAddn = TngSizeShape::GetNPCAddn(lNPC);
-  if (lNPCAddn == Tng::pgErr) {
+  auto lNPCAddn = TngSizeShape::GetNPCAddn(lNPC);
+  if (lNPCAddn.second < 0) {
+    if (!lNPC->IsFemale() && lNPC->HasKeyword(fExKey)) TngCore::RevertNPCSkin(lNPC);
+    if (lNPC->IsPlayer() || !lNPC->IsFemale() || lNPC->HasKeyword(fExKey) || fGWChance->value < 1) return;
+  }
+  if (lNPCAddn.second == Tng::pgErr) {
     Tng::gLogger::critical("Faced an issue retrieving information for {}!", lNPC->GetName());
     return;
   }
-  if (lNPCAddn >= 0) {
-    TngCore::SetNPCSkin(lNPC, lNPCAddn);
-    return;
-  }
-  if (!lNPC->IsFemale() && lNPC->HasKeyword(fExKey)) TngCore::RevertNPCSkin(lNPC);
-  if (!lNPC->IsFemale() || lNPC->IsPlayer() || lNPC->HasKeyword(fExKey) || fGWChance->value < 1) return;
-  const auto lFAddonCount = TngSizeShape::GetAddonCount(true);
-  if (lFAddonCount == 0) return;
-  if ((lNPC->GetFormID() % 100) < (std::floor(fGWChance->value) + 1)) {
-    TngCore::SetNPCSkin(lNPC, lNPC->GetFormID() % lFAddonCount);
-    if (lNPC->skin->HasKeyword(fPSKey)) {
-      lNPC->AddKeyword(fGWKey);
-      if (!fGentified->HasForm(lNPC)) fGentified->AddForm(lNPC);
-    }
-  }
+  auto lAddn = lNPCAddn.first ? lNPCAddn.second : GetNPCAutoAddn(lNPC);
+  TngCore::SetNPCSkin(lNPC, lAddn, lNPCAddn.first);
+}
+
+int TngEvents::GetNPCAutoAddn(RE::TESNPC* aNPC) noexcept {
+  const auto lFDistAddnCount = TngSizeShape::GetActiveFAddnCount();
+  return (((aNPC->GetFormID() % 100) < (std::floor(fGWChance->value) + 1))) ? aNPC->GetFormID() % lFDistAddnCount : -1;
 }

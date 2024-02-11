@@ -4,7 +4,8 @@ class TngSizeShape : public Singleton<TngSizeShape> {
   private:
     inline static const char* cBaseBone{"NPC GenitalsBase [GenBase]"};
     inline static const char* cScrtBone{"NPC GenitalsScrotum [GenScrot]"};
-    inline static const char* cNPCAddn{"TNG_ActorAddn:"};
+    inline static const char* cNPCAutoAddn{"TNG_ActorAddnAuto:"};
+    inline static const char* cNPCUserAddn{"TNG_ActorAddnUser:"};
 
     inline static constexpr std::pair<RE::FormID, std::string_view> cBaseRaceIDs[Tng::cVanillaRaceTypes] = {
         {0x13746, "Skyrim.esm"},     // Nord
@@ -76,7 +77,11 @@ class TngSizeShape : public Singleton<TngSizeShape> {
     static bool Init() noexcept;
     static void LoadAddons() noexcept;
     static std::size_t GetAddonCount(bool aIsFemale) noexcept;
-    static RE::TESObjectARMO* GetAddonAt(bool aIsFemale, int aChoice) noexcept;
+    static std::size_t GetActiveFAddnCount() noexcept;
+    static int GetActualAddon(int aActiveAddon) noexcept;
+    static RE::TESObjectARMO* GetAddonAt(bool aIsFemale, std::size_t aChoice) noexcept;
+    static bool GetAddonStatus(std::size_t aFemaleAddon) noexcept;
+    static void SetAddonStatus(std::size_t aFemaleAddon, bool aIsActive) noexcept;
     static std::vector<std::string> GetAddonNames(bool aIsFemale) noexcept;
     static std::vector<std::string> GetAllPossibleAddons(RE::Actor* aActor) noexcept;
     static std::size_t GetRaceGrp(RE::TESRace* aRace) noexcept;
@@ -101,8 +106,8 @@ class TngSizeShape : public Singleton<TngSizeShape> {
     static bool LoadNPCSize(const std::string aNPCRecord, const int aSize) noexcept;
     static bool LoadNPCAddn(const std::string aNPCRecord, const std::string aAddonRecord) noexcept;
     static void ExcludeNPC(const std::string aNPCRecord) noexcept;
-    static int GetNPCAddn(RE::TESNPC* aNPC) noexcept;
-    static bool SetNPCAddn(RE::TESNPC* aNPC, int aAddon) noexcept;
+    static std::pair<bool, int> GetNPCAddn(RE::TESNPC* aNPC) noexcept;
+    static bool SetNPCAddn(RE::TESNPC* aNPC, int aAddon, bool aIsUser) noexcept;
     static Tng::TNGRes CanModifyActor(RE::Actor* aActor) noexcept;
     static float GetGlobalSize(std::size_t aIdx) noexcept;
     static void SetGlobalSize(std::size_t aIdx, float aSize) noexcept;
@@ -128,16 +133,16 @@ class TngSizeShape : public Singleton<TngSizeShape> {
     inline static std::vector<RE::TESGlobal*> fSizeGlbs;
     inline static std::vector<RE::TESObjectARMO*> fMalAddons;
     inline static std::vector<RE::TESObjectARMO*> fFemAddons;
+    inline static std::vector<bool> fActiveFemAddons;
     inline static std::vector<RaceInfo> fRacesInfo;
 
     static int GetScale(RE::TESNPC* aNPC) noexcept;
     static void ScaleGenital(RE::Actor* aActor, RE::TESGlobal* aGlobal) noexcept;
 
   public:
-    enum RaceType { raceManMer, raceBeast, raceElder, raceDremora, raceAfflicted, raceSnowElf };
     static void UpdateAddons(RE::TESRace* aRace) noexcept;
-    static RaceType GetSkinType(RE::TESObjectARMO* aSkin) noexcept;
-    static RaceType GetRaceType(RE::TESRace* aRace) noexcept;
+    static Tng::RaceType GetSkinType(RE::TESObjectARMO* aSkin) noexcept;
+    static Tng::RaceType GetRaceType(RE::TESRace* aRace) noexcept;
 
   private:
     inline static std::set<RE::TESObjectARMA*> fAllMalAAs;
@@ -152,6 +157,6 @@ class TngSizeShape : public Singleton<TngSizeShape> {
     static std::set<RE::TESObjectARMA*> GentifyFemSkin(RE::TESObjectARMO* aSkin, int aAddon) noexcept;
 
   private:
-    static std::map<RE::TESRace*, RE::TESObjectARMA*> GetCombinedAddons(RaceType aRaceType, RE::TESObjectARMO* aSkin) noexcept;
-    static std::map<RE::TESRace*, RE::TESObjectARMA*> GetAddonAAs(RaceType aRaceType, int aAddonIdx, bool aIsFemale);
+    static std::map<RE::TESRace*, RE::TESObjectARMA*> GetCombinedAddons(Tng::RaceType aRaceType, RE::TESObjectARMO* aSkin) noexcept;
+    static std::map<RE::TESRace*, RE::TESObjectARMA*> GetAddonAAs(Tng::RaceType aRaceType, int aAddonIdx, bool aIsFemale);
 };

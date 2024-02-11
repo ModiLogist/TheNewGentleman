@@ -11,6 +11,7 @@ namespace Tng {
   inline static constexpr RE::FormID cBstRaceID = 0x13745;
   inline static constexpr int cVanillaRaceTypes{14};
   inline static constexpr int cEqRaceTypes{13};
+  enum RaceType { raceManMer, raceBeast, raceElder, raceDremora, raceAfflicted, raceSnowElf, cRaceTypeCount };
 
   inline static constexpr RE::BGSBipedObjectForm::BipedObjectSlot cSlotBody{RE::BGSBipedObjectForm::BipedObjectSlot::kBody};
   inline static constexpr RE::BGSBipedObjectForm::BipedObjectSlot cSlotGenital{RE::BGSBipedObjectForm::BipedObjectSlot::kModPelvisSecondary};

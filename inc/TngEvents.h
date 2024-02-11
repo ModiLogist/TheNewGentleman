@@ -14,6 +14,7 @@ class TngEvents : public RE::BSTEventSink<RE::TESObjectLoadedEvent>, public RE::
     static void CheckForClipping(RE::Actor* aActor, RE::TESObjectARMO* aArmor) noexcept;
     static void CheckActor(RE::Actor* aActor, RE::TESObjectARMO* aArmor = nullptr) noexcept;
     static void CheckForAddons(RE::Actor* aActor) noexcept;
+    static int GetNPCAutoAddn(RE::TESNPC* aNPC) noexcept;
 
     RE::TESDataHandler* fDH;
     inline static RE::BGSKeyword* fPRaceKey;
