@@ -16,7 +16,7 @@ class TngInis : public Singleton<TngInis> {
 
     inline static constexpr const char* cGlobalSize{"GlobalSizes"};
     inline static constexpr const char* cSizeNames[Tng::cSizeCategories]{"Size_XS", "Size__S", "Size__M", "Size__L", "Size_XL"};
-    inline static constexpr float cDefSizes[Tng::cSizeCategories]{0.8, 0.9, 1.0, 1.2, 1.4};
+    inline static constexpr double cDefSizes[Tng::cSizeCategories]{0.8, 0.9, 1.0, 1.2, 1.4};
 
     inline static constexpr const char* cControls{"Controls"};
     inline static constexpr const char* cNPCCtrl{"NPCEdit"};
