@@ -15,14 +15,16 @@ void TngEvents::RegisterEvents() noexcept {
   fGWKey = fDH->LookupForm<RE::BGSKeyword>(Tng::cGentleWomanKeyID, Tng::cName);
   fPSKey = fDH->LookupForm<RE::BGSKeyword>(Tng::cSkinWithPenisKeyID, Tng::cName);
   fExKey = fDH->LookupForm<RE::BGSKeyword>(Tng::cExcludeKeyID, Tng::cName);
+  fGenSkinKey = fDH->LookupForm<RE::BGSKeyword>(Tng::cCustomSkinID, Tng::cName);
   fGWChance = fDH->LookupForm<RE::TESGlobal>(Tng::cWomenChanceID, Tng::cName);
   fGentified = fDH->LookupForm<RE::BGSListForm>(Tng::cGentifiedID, Tng::cName);
-  if (!(fPRaceKey && fCCKey && fACKey && fARKey && fRRKey && fUAKey && fGWKey && fPSKey && fExKey && fGWChance && fGentified)) {
+  if (!(fPRaceKey && fCCKey && fACKey && fARKey && fRRKey && fUAKey && fGWKey && fPSKey && fExKey && fGenSkinKey && fGWChance && fGentified)) {
     Tng::gLogger::critical("Failed to register events. There might be functionality issues. Please report this issue.");
     return;
   }
   lSourceHolder->AddEventSink<RE::TESEquipEvent>(GetSingleton());
   lSourceHolder->AddEventSink<RE::TESObjectLoadedEvent>(GetSingleton());
+  lSourceHolder->AddEventSink<RE::TESSwitchRaceCompleteEvent>(GetSingleton());
   Tng::gLogger::info("Registered for necessary events.");
 }
 
@@ -40,7 +42,7 @@ RE::BSEventNotifyControl TngEvents::ProcessEvent(const RE::TESEquipEvent* aEvent
     fInternal = false;
     aSource->notifying = true;
   } else {
-    TngSizeShape::RandomizeScale(lActor);
+    if (!lActor->IsPlayerRef() || !TngInis::GetExcludePlayer()) TngSizeShape::RandomizeScale(lActor);
     CheckForAddons(lActor);
   }
   return RE::BSEventNotifyControl::kContinue;
@@ -53,6 +55,21 @@ RE::BSEventNotifyControl TngEvents::ProcessEvent(const RE::TESObjectLoadedEvent*
   if (!((1 << TngCore::CanModifyActor(lActor)) & ((1 << Tng::resOkRaceP) | (1 << Tng::resOkRaceR)))) return RE::BSEventNotifyControl::kContinue;
   CheckForAddons(lActor);
   CheckActor(lActor);
+  return RE::BSEventNotifyControl::kContinue;
+}
+
+RE::BSEventNotifyControl TngEvents::ProcessEvent(const RE::TESSwitchRaceCompleteEvent* aEvent, RE::BSTEventSource<RE::TESSwitchRaceCompleteEvent>*) {
+  auto lActor = aEvent->subject.get()->As<RE::Actor>();
+  auto lNPC = lActor ? lActor->GetActorBase() : nullptr;
+  if (!lActor || !lNPC || !lNPC->skin) return RE::BSEventNotifyControl::kContinue;
+  if (lNPC->skin->HasKeyword(fGenSkinKey) && !lNPC->race->HasKeyword(fPRaceKey)) {
+    fOldSkins.insert_or_assign(lNPC->GetFormID(), lNPC->skin);
+    lNPC->skin = lNPC->race->skin;
+    return RE::BSEventNotifyControl::kContinue;
+  }
+  if (auto lIt = fOldSkins.find(lNPC->GetFormID()); lIt != fOldSkins.end()) {
+    lNPC->skin = lIt->second;
+  }
   return RE::BSEventNotifyControl::kContinue;
 }
 
@@ -84,7 +101,7 @@ void TngEvents::CheckActor(RE::Actor* aActor, RE::TESObjectARMO* aArmor) noexcep
   if (!aActor || !lNPC) return;
   if (!lNPC->race) return;
   if (!lNPC->race->HasKeyword(fPRaceKey) && !lNPC->race->HasKeyword(fRRKey)) return;
-  TngSizeShape::RandomizeScale(aActor);
+  if (!aActor->IsPlayerRef() || !TngInis::GetExcludePlayer()) TngSizeShape::RandomizeScale(aActor);
   const auto lGArmo = aActor->GetWornArmor(Tng::cSlotGenital);
   if (aArmor && !lGArmo) {
     TngCore::FixArmor(aArmor);
