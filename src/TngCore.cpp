@@ -435,7 +435,7 @@ void TngCore::CheckArmorPieces() noexcept {
     }
     if (lArmor->HasPartOf(Tng::cSlotGenital) && !lArmor->HasKeyword(fUAKey)) {
       ProcessArmor(lArmor);
-      Tng::gLogger::warn("The armor [0x{:x}: {}] would cover genitals and might cause conflicts with chest armor pieces!", lArmor->GetFormID(), lID);
+      Tng::gLogger::warn("The armor [0x{:x}: {}] would cover genitals and would have a conflict with non-revealing chest armor pieces!", lArmor->GetFormID(), lID);
       lCC++;
       continue;
     }
@@ -580,7 +580,9 @@ void TngCore::ProcessArmor(RE::TESObjectARMO* aArmor, bool aAcceptAR) noexcept {
   }
   for (const auto& lKw : aArmor->GetKeywords())
     if (strcmp(lKw->GetFormEditorID(), cSOSR) == 0) {
+      Tng::gLogger::info("The armor [0x {:x}:{}] was marked revealing since it has the [SOS_Revealing] keyword", aArmor->GetFormID(), aArmor->GetFormEditorID());
       aArmor->AddKeyword(fRRKey);
+      fRAAs.insert(lBods.begin(), lBods.end());
       return;
     }
 }
