@@ -63,10 +63,22 @@ void EventListener(SKSE::MessagingInterface::Message* aMessage) noexcept {
   }
 }
 
+extern "C" __declspec(dllexport) constinit auto SKSEPlugin_Version = []() {
+  SKSE::PluginVersionData v;
+  v.PluginVersion(Version::MAJOR);
+  v.PluginName(Version::PROJECT);
+  v.AuthorName("ModiLogist");
+  v.UsesAddressLibrary(true);
+  v.CompatibleVersions({SKSE::RUNTIME_SSE_LATEST_AE});
+  v.UsesNoStructs(true);
+
+  return v;
+}();
+
 extern "C" __declspec(dllexport) bool SKSEAPI SKSEPlugin_Query(const SKSE::QueryInterface* a_skse, SKSE::PluginInfo* a_info) {
   a_info->infoVersion = SKSE::PluginInfo::kVersion;
-  a_info->name = "TheNewGentleman";
-  a_info->version = 2;
+  a_info->name = Version::PROJECT.data();
+  a_info->version = Version::MAJOR;
 
   return true;
 }

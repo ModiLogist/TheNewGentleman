@@ -12,7 +12,7 @@ project(
 
 configure_file(
   ${CMAKE_CURRENT_SOURCE_DIR}/cmake/Version.h.in
-  ${CMAKE_CURRENT_BINARY_DIR}/include/Version.h
+  ${CMAKE_CURRENT_BINARY_DIR}/inc/Version.h
   @ONLY
 )
 
@@ -78,7 +78,7 @@ add_library(
   SHARED
   ${headers}
   ${sources}
-  ${CMAKE_CURRENT_BINARY_DIR}/include/Version.h
+  ${CMAKE_CURRENT_BINARY_DIR}/inc/Version.h
   ${CMAKE_CURRENT_BINARY_DIR}/version.rc
   .clang-format
 )
@@ -125,7 +125,8 @@ target_precompile_headers(
   ${PROJECT_NAME}
   PRIVATE
     inc/PCH.h
-    inc/Tng.h
+    inc/Tng.h    
+    ${CMAKE_CURRENT_BINARY_DIR}/inc/Version.h
     ${SIMPLEINI_INCLUDE_DIRS}/SimpleIni.h
 )
 
