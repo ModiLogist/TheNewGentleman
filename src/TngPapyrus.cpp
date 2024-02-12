@@ -5,11 +5,14 @@
 
 void TngPapyrus::SaveGlobals(RE::StaticFunctionTag*) { TngInis::SaveGlobals(); }
 
-bool TngPapyrus::GetClipCheck(RE::StaticFunctionTag*) { return TngInis::GetClipCheck(); }
+bool TngPapyrus::GetBoolValue(RE::StaticFunctionTag*, int aID) {
+  if (TngInis::cNoneBoolID < aID && aID < TngInis::cBoolIDsCount) return TngInis::GetSettingBool(static_cast<TngInis::IniBoolIDs>(aID));
+  return false;
+}
 
-bool TngPapyrus::GetAutoReveal(RE::StaticFunctionTag*, bool aIsFemale) { return TngInis::GetAutoReveal(aIsFemale); }
-
-void TngPapyrus::SaveBoolValues(RE::StaticFunctionTag*, int aID, bool aValue) { TngInis::SaveBool(aID, aValue); }
+void TngPapyrus::SetBoolValue(RE::StaticFunctionTag*, int aID, bool aValue) {
+  if (TngInis::cNoneBoolID < aID && aID < TngInis::cBoolIDsCount) TngInis::SaveSettingBool(static_cast<TngInis::IniBoolIDs>(aID), aValue);
+}
 
 std::vector<std::string> TngPapyrus::GetRaceGrpNames(RE::StaticFunctionTag*) { return TngSizeShape::GetRaceGrpNames(); }
 
@@ -64,9 +67,8 @@ bool TngPapyrus::SwapRevealing(RE::StaticFunctionTag*, RE::TESObjectARMO* aArmor
 
 bool TngPapyrus::BindPapyrus(RE::BSScript::IVirtualMachine* aVM) noexcept {
   aVM->RegisterFunction("SaveGlobals", "TNG_PapyrusUtil", SaveGlobals);
-  aVM->RegisterFunction("GetClipCheck", "TNG_PapyrusUtil", GetClipCheck);
-  aVM->RegisterFunction("GetAutoReveal", "TNG_PapyrusUtil", GetAutoReveal);
-  aVM->RegisterFunction("SaveBoolValues", "TNG_PapyrusUtil", SaveBoolValues);
+  aVM->RegisterFunction("GetBoolValue", "TNG_PapyrusUtil", GetBoolValue);
+  aVM->RegisterFunction("SetBoolValue", "TNG_PapyrusUtil", SetBoolValue);
   aVM->RegisterFunction("GetRaceGrpNames", "TNG_PapyrusUtil", GetRaceGrpNames);
   aVM->RegisterFunction("GetRaceGrpAddn", "TNG_PapyrusUtil", GetRaceGrpAddn);
   aVM->RegisterFunction("GetRaceGrpMult", "TNG_PapyrusUtil", GetRaceGrpMult);

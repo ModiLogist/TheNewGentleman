@@ -3,9 +3,8 @@ class TngPapyrus : public Singleton<TngPapyrus> {
   private:
     static void SaveGlobals(RE::StaticFunctionTag*);
 
-    static bool GetClipCheck(RE::StaticFunctionTag*);
-    static bool GetAutoReveal(RE::StaticFunctionTag*, bool aIsFemale);
-    static void SaveBoolValues(RE::StaticFunctionTag*, int aID, bool aValue);
+    static bool GetBoolValue(RE::StaticFunctionTag*, int aID);
+    static void SetBoolValue(RE::StaticFunctionTag*, int aID, bool aValue);
 
     static std::vector<std::string> GetRaceGrpNames(RE::StaticFunctionTag*);
     static int GetRaceGrpAddn(RE::StaticFunctionTag*, int aRaceIdx);
@@ -18,10 +17,9 @@ class TngPapyrus : public Singleton<TngPapyrus> {
     static std::vector<std::string> GetAllPossibleAddons(RE::StaticFunctionTag*, bool aIsFemale);
     static int CanModifyActor(RE::StaticFunctionTag*, RE::Actor* aActor);
     static int SetActorAddn(RE::StaticFunctionTag*, RE::Actor* aActor, int aGenOption);
-    static int SetActorSize(RE::StaticFunctionTag*, RE::Actor* aActor, int aGenSize);    
-    
+    static int SetActorSize(RE::StaticFunctionTag*, RE::Actor* aActor, int aGenSize);
+
     static bool SwapRevealing(RE::StaticFunctionTag*, RE::TESObjectARMO* aArmor);
-    
 
   public:
     static bool BindPapyrus(RE::BSScript::IVirtualMachine* aVM) noexcept;

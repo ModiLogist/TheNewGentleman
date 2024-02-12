@@ -73,7 +73,7 @@ void TngInis::LoadMainIni() noexcept {
   }
   for (std::size_t i = 0; i < TngSizeShape::GetAddonCount(true); i++) {
     auto lAddon = TngSizeShape::GetAddonAt(true, i);
-    TngSizeShape::SetAddonStatus(i, lIni.GetBoolValue(cActiveAddons, RecordToStr(lAddon).c_str(),false));
+    TngSizeShape::SetAddonStatus(i, lIni.GetBoolValue(cActiveAddons, RecordToStr(lAddon).c_str(), false));
   }
   if (lIni.KeyExists(cControls, cINTCtrl)) fINTCtrl->value = lIni.GetBoolValue(cControls, cINTCtrl) ? 2.0f : 0.0f;
   if (lIni.KeyExists(cControls, cNPCCtrl)) fNPCCtrl->value = static_cast<float>(lIni.GetLongValue(cControls, cNPCCtrl));
@@ -159,6 +159,48 @@ void TngInis::LoadTngInis() noexcept {
       Tng::gLogger::warn("The file {} in TNG ini folder is not named correctly or is not a TNG ini file.", lFileName);
     }
   }
+}
+
+bool TngInis::GetSettingBool(IniBoolIDs aID) noexcept {
+  switch (aID) {
+    case TngInis::femaleAutoReveal:
+      return fAutoReveal[1];
+    case TngInis::maleAutoReveal:
+      return fAutoReveal[0];
+    case TngInis::checkClipping:
+      return fClipCheck;
+    case TngInis::excludePlayerSize:
+      return fExlPC;
+    default:
+      return false;
+  }
+}
+
+void TngInis::SaveSettingBool(IniBoolIDs aID, bool aValue) noexcept {
+  CSimpleIniA lIni;
+  lIni.SetUnicode();
+  lIni.LoadFile(cSettings);
+  switch (aID) {
+    case femaleAutoReveal:
+      lIni.SetBoolValue(cGeneral, cFAutoReveal, aValue);
+      fAutoReveal[1] = aValue;
+      break;
+    case maleAutoReveal:
+      lIni.SetBoolValue(cGeneral, cMAutoReveal, aValue);
+      fAutoReveal[0] = aValue;
+      break;
+    case checkClipping:
+      lIni.SetBoolValue(cGeneral, cDoubleCheck, aValue);
+      fClipCheck = aValue;
+      break;
+    case excludePlayerSize:
+      lIni.SetBoolValue(cGeneral, cExlPC, aValue);
+      fExlPC = aValue;
+      break;
+    default:
+      break;
+  }
+  lIni.SaveFile(cSettings);
 }
 
 bool TngInis::GetAutoReveal(const bool aIsFemale) noexcept { return (aIsFemale ? fAutoReveal[1] : fAutoReveal[0]); }
@@ -269,33 +311,6 @@ void TngInis::RemoveRevealingArmor(RE::TESObjectARMO* aArmor) noexcept {
   lIni.SetUnicode();
   lIni.LoadFile(cSettings);
   lIni.Delete(cRevealingRecord, lArmoIDStr.c_str());
-  lIni.SaveFile(cSettings);
-}
-
-void TngInis::SaveBool(int aID, bool aValue) noexcept {
-  CSimpleIniA lIni;
-  lIni.SetUnicode();
-  lIni.LoadFile(cSettings);
-  switch (aID) {
-    case 1:
-      lIni.SetBoolValue(cGeneral, cFAutoReveal, aValue);
-      fAutoReveal[1] = aValue;
-      break;
-    case 2:
-      lIni.SetBoolValue(cGeneral, cMAutoReveal, aValue);
-      fAutoReveal[0] = aValue;
-      break;
-    case 3:
-      lIni.SetBoolValue(cGeneral, cDoubleCheck, aValue);
-      fClipCheck = aValue;
-      break;
-    case 4:
-      lIni.SetBoolValue(cGeneral, cExlPC, aValue);
-      fExlPC = aValue;
-      break;
-    default:
-      break;
-  }
   lIni.SaveFile(cSettings);
 }
 
