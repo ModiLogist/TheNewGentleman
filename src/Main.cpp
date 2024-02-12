@@ -64,21 +64,21 @@ void EventListener(SKSE::MessagingInterface::Message* aMessage) noexcept {
 }
 
 extern "C" __declspec(dllexport) constinit auto SKSEPlugin_Version = []() {
-  SKSE::PluginVersionData v;
-  v.PluginVersion(Version::MAJOR);
-  v.PluginName(Version::PROJECT);
-  v.AuthorName("ModiLogist");
-  v.UsesAddressLibrary(true);
-  v.CompatibleVersions({SKSE::RUNTIME_SSE_LATEST_AE});
-  v.UsesNoStructs(true);
+  SKSE::PluginVersionData lVData;
+  lVData.PluginVersion(Version::MAJOR);
+  lVData.PluginName(Version::PROJECT);
+  lVData.AuthorName("ModiLogist");
+  lVData.UsesAddressLibrary(true);
+  lVData.CompatibleVersions({SKSE::RUNTIME_SSE_LATEST_AE});
+  lVData.UsesNoStructs(true);
 
-  return v;
+  return lVData;
 }();
 
-extern "C" __declspec(dllexport) bool SKSEAPI SKSEPlugin_Query(const SKSE::QueryInterface* a_skse, SKSE::PluginInfo* a_info) {
-  a_info->infoVersion = SKSE::PluginInfo::kVersion;
-  a_info->name = Version::PROJECT.data();
-  a_info->version = Version::MAJOR;
+extern "C" __declspec(dllexport) bool SKSEAPI SKSEPlugin_Query(const SKSE::QueryInterface*, SKSE::PluginInfo* aInfo) {
+  aInfo->infoVersion = SKSE::PluginInfo::kVersion;
+  aInfo->name = Version::PROJECT.data();
+  aInfo->version = Version::MAJOR;
 
   return true;
 }
