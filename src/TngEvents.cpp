@@ -132,5 +132,6 @@ void TngEvents::CheckForAddons(RE::Actor* aActor) noexcept {
 
 int TngEvents::GetNPCAutoAddn(RE::TESNPC* aNPC) noexcept {
   const auto lFDistAddnCount = TngSizeShape::GetActiveFAddnCount();
+  if (lFDistAddnCount == 0) return -1;
   return (((aNPC->GetFormID() % 100) < (std::floor(fGWChance->value) + 1))) ? aNPC->GetFormID() % lFDistAddnCount : -1;
 }

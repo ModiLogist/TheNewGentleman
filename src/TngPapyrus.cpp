@@ -43,6 +43,7 @@ bool TngPapyrus::GetAddonStatus(RE::StaticFunctionTag*, int aFemaleAddn) {
 void TngPapyrus::SetAddonStatus(RE::StaticFunctionTag*, int aFemaleAddn, bool aStatus) {
   if (aFemaleAddn < 0 || aFemaleAddn >= TngSizeShape::GetAddonCount(true)) return;
   TngInis::SaveActiveAddon(aFemaleAddn, aStatus);
+  TngSizeShape::SetAddonStatus(aFemaleAddn, aStatus);
 }
 
 std::vector<std::string> TngPapyrus::GetAllPossibleAddons(RE::StaticFunctionTag*, bool aIsFemale) {
