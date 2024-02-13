@@ -28,7 +28,7 @@ void TngEvents::RegisterEvents() noexcept {
   Tng::gLogger::info("Registered for necessary events.");
 }
 
-RE::BSEventNotifyControl TngEvents::ProcessEvent(const RE::TESEquipEvent* aEvent, RE::BSTEventSource<RE::TESEquipEvent>* aSource) {
+RE::BSEventNotifyControl TngEvents::ProcessEvent(const RE::TESEquipEvent* aEvent, RE::BSTEventSource<RE::TESEquipEvent>*) {
   if (!aEvent || fInternal) return RE::BSEventNotifyControl::kContinue;
   const auto lActor = aEvent->actor->As<RE::Actor>();
   auto lArmor = RE::TESForm::LookupByID<RE::TESObjectARMO>(aEvent->baseObject);
@@ -37,10 +37,8 @@ RE::BSEventNotifyControl TngEvents::ProcessEvent(const RE::TESEquipEvent* aEvent
   if (!((1 << TngCore::CanModifyActor(lActor)) & ((1 << Tng::resOkRaceP) | (1 << Tng::resOkRaceR)))) return RE::BSEventNotifyControl::kContinue;
   if (!lArmor->GetPlayable()) return RE::BSEventNotifyControl::kContinue;
   if (aEvent->equipped) {
-    aSource->notifying = false;
     CheckActor(lActor, lArmor);
     fInternal = false;
-    aSource->notifying = true;
   } else {
     if (!lActor->IsPlayerRef() || !TngInis::GetExcludePlayer()) TngCore::SetActorSize(lActor, -1);
     CheckForAddons(lActor);
