@@ -71,6 +71,7 @@ class TngInis : public Singleton<TngInis> {
     inline static std::set<std::string> fValidSkeletons;
 
   public:
+    enum IniBoolIDs { cNoneBoolID, femaleAutoReveal, maleAutoReveal, checkClipping, excludePlayerSize, cBoolIDsCount };
     inline static std::set<std::string> fSkinMods;
     inline static std::set<std::pair<std::string, RE::FormID>> fSingleSkinIDs;
     inline static std::set<std::string> fRevealingMods;
@@ -87,6 +88,8 @@ class TngInis : public Singleton<TngInis> {
     static bool GetAutoReveal(const bool aIsFemale) noexcept;
     static bool GetClipCheck() noexcept;
     static bool GetExcludePlayer() noexcept;
+    static bool GetSettingBool(IniBoolIDs aID) noexcept;
+    static void SaveSettingBool(IniBoolIDs aID, bool aValue) noexcept;
     static void SaveRaceMult(const std::size_t aRaceIdx, const float aRaceMult) noexcept;
     static void SaveRaceAddn(const std::size_t aRaceIdx, int aChoice) noexcept;
     static void SaveNPCAddn(RE::TESNPC* aNPC, int aChoice) noexcept;
@@ -94,7 +97,6 @@ class TngInis : public Singleton<TngInis> {
     static void SaveRevealingArmor(RE::TESObjectARMO* aArmor) noexcept;
     static void SaveActiveAddon(int aFemaleAddon, bool aStatus) noexcept;
     static void RemoveRevealingArmor(RE::TESObjectARMO* aArmor) noexcept;
-    static void SaveBool(int aID, bool aValue) noexcept;
     static void SaveGlobals() noexcept;
     static void UpdateValidSkeletons(std::set<std::string> aValidSkeletons) noexcept;
     static bool IsValidSkeleton(std::string aModel) noexcept;

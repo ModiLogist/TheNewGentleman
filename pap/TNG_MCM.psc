@@ -15,16 +15,23 @@ Int Property PlayerSkin auto
 Int Property PlayerSize auto
 Actor Property PlayerRef auto
 
+;Constants
+Int cuFemAR = 1
+Int cuMalAR = 2
+Int cuClipCheck = 3
+Int cuExPCSize = 4
+
 ;Kinda constant
 Int ciSizes
 Int ciRaces
+Float[] cFSizeDefaults
 
 ;Local initialized variable (Don't change these)
 String[] fSRaces
-String[] fSTypeOptions
+String[] fSMalOptions
+String[] fSFemOptions
 String[] fSSizeGlobals
 String[] fSGlobalWarnings
-Float[] fFSizeDefaults
 Actor fkLastActor = None
 GlobalVariable fkDAK = None
 Int fiPos = 0
@@ -33,11 +40,13 @@ Int fiPos = 0
 Int[] fIRaceTypeHdls
 Int[] fIRaceSizeHdls
 Int[] fIGlblSizeHdls
+Int[] fIFemAddons
 
 Int fiDoubleCheck
 Int fiAutoRevealF
 Int fiAutoRevealM
 Int fiNotifs
+Int fiExPCSize
 
 Int fiDAK
 Int fiNPCKey
@@ -45,8 +54,6 @@ Int fiRevealKey
 Int fiUpKey
 Int fiDownKey
 Int fiWomenChance
-
-
 
 Int Function GetVersion()
 	Return 2
@@ -83,16 +90,19 @@ Event OnConfigOpen()
   fIRaceTypeHdls = new Int[120]
   fIRaceSizeHdls = new Int[120]
   
-  fSTypeOptions = TNG_PapyrusUtil.GetAllPossibleAddons(False)
-
+  fSMalOptions = TNG_PapyrusUtil.GetAllPossibleAddons(False)
+  fSFemOptions = TNG_PapyrusUtil.GetAllPossibleAddons(True)
+  fIFemAddons = new Int[120]
   
-  fFSizeDefaults = new Float[20]
-  fFSizeDefaults[0] = 0.8
-  fFSizeDefaults[1] = 0.9
-  fFSizeDefaults[2] = 1.0
-  fFSizeDefaults[3] = 1.2
-  fFSizeDefaults[4] = 1.4
+  
+  cFSizeDefaults = new Float[20]
+  cFSizeDefaults[0] = 0.8
+  cFSizeDefaults[1] = 0.9
+  cFSizeDefaults[2] = 1.0
+  cFSizeDefaults[3] = 1.2
+  cFSizeDefaults[4] = 1.4
   fIGlblSizeHdls = new Int[5]
+  
 EndEvent
 
 Event OnConfigClose()
@@ -100,6 +110,7 @@ Event OnConfigClose()
 EndEvent
 
 Event OnGameReload()
+  Gentified.Revert()
 	Parent.OnGameReload()
   If Game.GetModByName("Dynamic Activation Key.esp")
     fkDAK = Game.GetFormFromFile(0x801,"Dynamic Activation Key.esp") As GlobalVariable
@@ -138,30 +149,96 @@ Event OnGameReload()
 EndEvent
 
 Event OnOptionHighlight(Int aiOption)
-	If aiOption == fiDAK
-    SetInfoText("$TNG_H_1")
+  If CurrentPage == Pages[0]
+    If aiOption == fiDAK
+      SetInfoText("$TNG_HGD")
+      Return
+    EndIf 
+    If aiOption == fiDoubleCheck
+      SetInfoText("$TNG_HGC")
+      Return
+    EndIf
+    If aiOption == fiAutoRevealF
+      SetInfoText("$TNG_HGF")
+      Return
+    EndIf
+    If aiOption == fiAutoRevealM
+      SetInfoText("$TNG_HGM")
+      Return
+    EndIf
+    If aiOption == fiNotifs
+      SetInfoText("$TNG_HGN")
+      Return
+    EndIf
+    If aiOption == fiExPCSize
+      SetInfoText("$TNG_HGE")
+      Return
+    EndIf
+    If (aiOption == fiUpKey) || (aiOption == fiDownKey)
+      SetInfoText("$TNG_HKU")
+      Return
+    EndIf
+    If aiOption == fiNPCKey
+      SetInfoText("$TNG_HKN")
+      Return
+    EndIf    
+    If aiOption == fiRevealKey
+      SetInfoText("$TNG_HKS")
+      Return
+    EndIf
+    Int liCurr = ciSizes
+    While liCurr
+      liCurr -= 1
+      If aiOption == fIGlblSizeHdls[liCurr]
+        SetInfoText("$TNG_H_S")
+        Return
+      EndIf
+    EndWhile
     Return
-  EndIf 
-  If aiOption == fiDoubleCheck
-    SetInfoText("$TNG_H_2")
+  EndIf  
+  
+  If CurrentPage == Pages[1]
+    Int liCurr = fSRaces.Length
+    While liCurr
+      liCurr -= 1
+      If aiOption == fIRaceTypeHdls[liCurr]
+        SetInfoText("$TNG_HOA")
+        Return
+      EndIf
+      If aiOption == fIRaceSizeHdls[liCurr]
+        SetInfoText("$TNG_HOS")
+        Return
+      EndIf
+    EndWhile
     Return
   EndIf
-  If aiOption == fiAutoRevealF
-    SetInfoText("$TNG_HFA")
+  
+  If CurrentPage == Pages[2]
+    If aiOption == fiWomenChance
+      SetInfoText("$TNG_HAC")
+      Return
+    EndIf    
+    Int liCurr = 0
+    While liCurr < fSFemOptions.Length
+      If aiOption == fIFemAddons[liCurr]
+        SetInfoText("$TNG_HAD")
+        Return
+      EndIf
+      liCurr += 1
+    EndWhile
     Return
   EndIf
-  If aiOption == fiAutoRevealM
-    SetInfoText("$TNG_HMA")
-    Return
-  EndIf
+  
 EndEvent
 
 Event OnPageReset(String asPage)
 	If asPage == Pages[0]
-    fiDoubleCheck = AddToggleOption("$TNG_GRC", TNG_PapyrusUtil.GetClipCheck())    
+    fiDoubleCheck = AddToggleOption("$TNG_GRC", TNG_PapyrusUtil.GetBoolValue(cuClipCheck))    
     fiNotifs = AddToggleOption("$TNG_GNT",Notifs)
-		fiAutoRevealF = AddToggleOption("$TNG_GRF",TNG_PapyrusUtil.GetAutoReveal(True))
-    fiAutoRevealM = AddToggleOption("$TNG_GRM",TNG_PapyrusUtil.GetAutoReveal(False))
+		fiAutoRevealF = AddToggleOption("$TNG_GRF",TNG_PapyrusUtil.GetBoolValue(cuFemAR))
+    fiAutoRevealM = AddToggleOption("$TNG_GRM",TNG_PapyrusUtil.GetBoolValue(cuMalAR))
+    fiExPCSize = AddToggleOption("$TNG_GEP", TNG_PapyrusUtil.GetBoolValue(cuExPCSize))
+    AddEmptyOption()
     AddHeaderOption("$TNG_KyH")
     AddHeaderOption("")
     fkDAK = None
@@ -195,7 +272,7 @@ Event OnPageReset(String asPage)
     AddHeaderOption("$TNG_OGS")
     Int liRace = 0
     While liRace < fSRaces.Length
-      fIRaceTypeHdls[liRace] = AddMenuOption(fSRaces[liRace],fSTypeOptions[TNG_PapyrusUtil.GetRaceGrpAddn(liRace)])
+      fIRaceTypeHdls[liRace] = AddMenuOption(fSRaces[liRace],fSMalOptions[TNG_PapyrusUtil.GetRaceGrpAddn(liRace)])
       fIRaceSizeHdls[liRace] = AddSliderOption("",TNG_PapyrusUtil.GetRaceGrpMult(liRace),"{2}")
       liRace += 1
     EndWhile
@@ -205,36 +282,26 @@ Event OnPageReset(String asPage)
   If asPage == Pages[2]
     AddHeaderOption("$TNG_A_W")
     AddHeaderOption("$TNG_A_M")
-    Int liLines = 0
-    String[] lSFAddons = TNG_PapyrusUtil.GetAllPossibleAddons(True)
-    String[] lSMAddons = TNG_PapyrusUtil.GetAllPossibleAddons(False)
-    If lSMAddons.Length > lSFAddons.Length
-      liLines = lSMAddons.Length
-    Else
-      liLines = lSFAddons.Length
-    EndIf
-    If lSFAddons.Length == 0
+    If fSFemOptions.Length == 0
       AddTextOption("$TNG_ANW","")
     Else
       fiWomenChance = AddSliderOption("$TNG_AWC",WomenChance.GetValue(),"{0}%");
     EndIf
-    If lSMAddons.Length == 0
+    If fSMalOptions.Length == 0
       AddTextOption("$TNG_ANM","")
-    Else
-      AddEmptyOption()
     EndIf
-    If liLines == 0
+    If (fSFemOptions.Length == 0) && (fSMalOptions.Length == 0)
       Return
     EndIf
     Int liCurr = 0
-    While liCurr < liLines
-      If liCurr < lSFAddons.Length
-        AddTextOption(lSFAddons[liCurr],"")
+    While liCurr < fSFemOptions.Length || liCurr < fSMalOptions.Length
+      If liCurr < fSMalOptions.Length
+        AddTextOption(fSMalOptions[liCurr],"")
       Else
         AddEmptyOption()
       EndIf
-      If liCurr < lSMAddons.Length
-        AddTextOption(lSMAddons[liCurr],"")
+      If liCurr < fSFemOptions.Length
+        fIFemAddons[liCurr] = AddToggleOption(fSFemOptions[liCurr],TNG_PapyrusUtil.GetAddonStatus(liCurr))
       Else
         AddEmptyOption()
       EndIf
@@ -257,7 +324,7 @@ Event OnOptionDefault(Int aiOption)
     EndIf
     If aiOption == fIRaceTypeHdls[liOpLoop]
       TNG_PapyrusUtil.SetRaceGrpAddn(liOpLoop,-1)
-      SetMenuOptionValue(fIRaceTypeHdls[liOpLoop],fSTypeOptions[TNG_PapyrusUtil.GetRaceGrpAddn(liOpLoop)])
+      SetMenuOptionValue(fIRaceTypeHdls[liOpLoop],fSMalOptions[TNG_PapyrusUtil.GetRaceGrpAddn(liOpLoop)])
       Return
     EndIf
   EndWhile
@@ -265,25 +332,39 @@ Event OnOptionDefault(Int aiOption)
   While liOpLoop
     liOpLoop -= 1
     If aiOption == fIGlblSizeHdls[liOpLoop]      
-      GlobalSizes[liOpLoop].SetValue(fFSizeDefaults[liOpLoop])
+      GlobalSizes[liOpLoop].SetValue(cFSizeDefaults[liOpLoop])
       SetSliderOptionValue(fIGlblSizeHdls[liOpLoop],GlobalSizes[liOpLoop].GetValue(),"{2}")
       TNG_PapyrusUtil.SetActorSize(PlayerRef,-1)
       Return
     EndIf
+  EndWhile  
+  liOpLoop = 0
+  While liOpLoop < fSFemOptions.Length
+    If aiOption == fIFemAddons[liOpLoop]
+      TNG_PapyrusUtil.SetAddonStatus(liOpLoop,False)
+      SetToggleOptionValue(aiOption,False)
+      Return
+    EndIf
+    liOpLoop += 1
   EndWhile
-  If aiOption == fiDoubleCheck
-    TNG_PapyrusUtil.SaveBoolValues(3,True)
-    SetToggleOptionValue(fiDoubleCheck,TNG_PapyrusUtil.GetClipCheck())
-    Return
-  EndIf
   If aiOption == fiAutoRevealF
-    TNG_PapyrusUtil.SaveBoolValues(1,True)  
-		SetToggleOptionValue(fiAutoRevealF,TNG_PapyrusUtil.GetAutoReveal(True))
+    TNG_PapyrusUtil.SetBoolValue(cuFemAR,True)  
+		SetToggleOptionValue(fiAutoRevealF,TNG_PapyrusUtil.GetBoolValue(cuFemAR))
     Return
   EndIf
   If aiOption == fiAutoRevealM
-    TNG_PapyrusUtil.SaveBoolValues(2,False)    
-		SetToggleOptionValue(fiAutoRevealM,TNG_PapyrusUtil.GetAutoReveal(False))
+    TNG_PapyrusUtil.SetBoolValue(cuMalAR,False)    
+		SetToggleOptionValue(fiAutoRevealM,TNG_PapyrusUtil.GetBoolValue(cuMalAR))
+    Return
+  EndIf
+  If aiOption == fiDoubleCheck
+    TNG_PapyrusUtil.SetBoolValue(cuClipCheck,True)
+    SetToggleOptionValue(fiDoubleCheck,TNG_PapyrusUtil.GetBoolValue(cuClipCheck))
+    Return
+  EndIf
+  If aiOption == fiExPCSize
+    TNG_PapyrusUtil.SetBoolValue(cuExPCSize,False)
+    SetToggleOptionValue(cuExPCSize,TNG_PapyrusUtil.GetBoolValue(cuExPCSize))
     Return
   EndIf
   If aiOption == fiNotifs
@@ -347,7 +428,7 @@ Event OnOptionMenuOpen(Int aiOption)
   While liRace
     liRace -= 1
     If aiOption == fIRaceTypeHdls[liRace]
-      SetMenuDialogOptions(fSTypeOptions)
+      SetMenuDialogOptions(fSMalOptions)
       SetMenuDialogStartIndex(TNG_PapyrusUtil.GetRaceGrpAddn(liRace))
       Return
     EndIf
@@ -360,7 +441,7 @@ Event OnOptionMenuAccept(Int aiOption,Int aiChoice)
     liRace -= 1
     If aiOption == fIRaceTypeHdls[liRace]
       TNG_PapyrusUtil.SetRaceGrpAddn(liRace,aiChoice)
-      SetMenuOptionValue(fIRaceTypeHdls[liRace],fSTypeOptions[aiChoice])
+      SetMenuOptionValue(fIRaceTypeHdls[liRace],fSMalOptions[aiChoice])
       Return
     EndIf
   EndWhile
@@ -373,7 +454,7 @@ Event OnOptionSliderOpen(Int aiOption)
       liSize -= 1
       If aiOption == fIGlblSizeHdls[liSize]
         SetSliderDialogStartValue(GlobalSizes[liSize].GetValue())
-        SetSliderDialogDefaultValue(fFSizeDefaults[liSize])
+        SetSliderDialogDefaultValue(cFSizeDefaults[liSize])
         SetSliderDialogRange(0.1,4.0)
         SetSliderDialogInterval(0.01)
         Return
@@ -438,39 +519,62 @@ Event OnOptionSliderAccept(Int aiOption,Float afValue)
   EndIf
 EndEvent
 
-Event OnOptionSelect(Int aiOption)	
-	If aiOption == fiAutoRevealF
-    TNG_PapyrusUtil.SaveBoolValues(1,!TNG_PapyrusUtil.GetAutoReveal(True))    
-		SetToggleOptionValue(fiAutoRevealF,TNG_PapyrusUtil.GetAutoReveal(True))
-    Return
-  EndIf
-  If aiOption == fiAutoRevealM
-    TNG_PapyrusUtil.SaveBoolValues(2,!TNG_PapyrusUtil.GetAutoReveal(False))    
-		SetToggleOptionValue(fiAutoRevealM,TNG_PapyrusUtil.GetAutoReveal(False))
-    Return
-  EndIf
-  If aiOption == fiDoubleCheck
-    TNG_PapyrusUtil.SaveBoolValues(3,!TNG_PapyrusUtil.GetClipCheck())    
-		SetToggleOptionValue(fiDoubleCheck,TNG_PapyrusUtil.GetClipCheck())
-    Return
-  EndIf
-  If aiOption == fiNotifs
-    Notifs = !Notifs
-    SetToggleOptionValue(fiNotifs,Notifs)
-    Return
-  EndIf
-  If aiOption == fiDAK
-    DAKIntegration.SetValue(2.0 - DAKIntegration.GetValue())
-    SetToggleOptionValue(fiDAK,DAKIntegration.GetValue() > 1)
-    If DAKIntegration.GetValue() < 1
-      Bool lbResetAll = ShowMessage("$TNG_DKN",true,"$TNG_Yes","$TNG__No")
-      If lbResetAll
-        OnOptionDefault(fiNPCKey)
-        OnOptionDefault(fiRevealKey)
-        OnOptionDefault(fiUpKey)
-        OnOptionDefault(fiDownKey)
-      EndIf
+Event OnOptionSelect(Int aiOption)
+	If CurrentPage == Pages[0]
+    If aiOption == fiAutoRevealF
+      TNG_PapyrusUtil.SetBoolValue(cuFemAR,!TNG_PapyrusUtil.GetBoolValue(cuFemAR))    
+      SetToggleOptionValue(fiAutoRevealF,TNG_PapyrusUtil.GetBoolValue(cuFemAR))
+      Return
     EndIf
+    If aiOption == fiAutoRevealM
+      TNG_PapyrusUtil.SetBoolValue(cuMalAR,!TNG_PapyrusUtil.GetBoolValue(cuMalAR))    
+      SetToggleOptionValue(fiAutoRevealM,TNG_PapyrusUtil.GetBoolValue(cuMalAR))
+      Return
+    EndIf
+    If aiOption == fiDoubleCheck
+      TNG_PapyrusUtil.SetBoolValue(cuClipCheck,!TNG_PapyrusUtil.GetBoolValue(cuClipCheck))    
+      SetToggleOptionValue(fiDoubleCheck,TNG_PapyrusUtil.GetBoolValue(cuClipCheck))
+      Return
+    EndIf
+    If aiOption == fiExPCSize
+      TNG_PapyrusUtil.SetBoolValue(cuExPCSize,!TNG_PapyrusUtil.GetBoolValue(cuExPCSize))    
+      SetToggleOptionValue(fiExPCSize,TNG_PapyrusUtil.GetBoolValue(cuExPCSize))
+      If TNG_PapyrusUtil.GetBoolValue(cuExPCSize) 
+        PlayerSize = -1
+      EndIf
+      Return
+    EndIf
+    If aiOption == fiNotifs
+      Notifs = !Notifs
+      SetToggleOptionValue(fiNotifs,Notifs)
+      Return
+    EndIf
+    If aiOption == fiDAK
+      DAKIntegration.SetValue(2.0 - DAKIntegration.GetValue())
+      SetToggleOptionValue(fiDAK,DAKIntegration.GetValue() > 1)
+      If DAKIntegration.GetValue() < 1
+        Bool lbResetAll = ShowMessage("$TNG_DKN",true,"$TNG_Yes","$TNG__No")
+        If lbResetAll
+          OnOptionDefault(fiNPCKey)
+          OnOptionDefault(fiRevealKey)
+          OnOptionDefault(fiUpKey)
+          OnOptionDefault(fiDownKey)
+        EndIf
+      EndIf
+      Return
+    EndIf
+    Return
+  EndIf
+  If CurrentPage == Pages[2]
+    Int liCurr = 0
+    While liCurr < fSFemOptions.Length
+      If aiOption == fIFemAddons[liCurr]
+        TNG_PapyrusUtil.SetAddonStatus(liCurr,!TNG_PapyrusUtil.GetAddonStatus(liCurr))
+        SetToggleOptionValue(fIFemAddons[liCurr],TNG_PapyrusUtil.GetAddonStatus(liCurr))
+        Return
+      EndIf
+      liCurr += 1
+    EndWhile
     Return
   EndIf
 EndEvent
@@ -522,9 +626,11 @@ Event OnKeyDown(Int aiKey)
     ActorBase lkNPC = lkActor.GetLeveledActorBase()
     If !lkNPC
       lkActor = PlayerRef
+      lkNPC = lkActor.GetActorBase()
     EndIf
-    If (lkNPC.GetSex() == 0) && !Gentified.HasForm(lkNPC)
+    If (lkNPC.GetSex() == 1) && !Gentified.HasForm(lkNPC)
       lkActor = PlayerRef
+      lkNPC = lkActor.GetActorBase()
     EndIf
     If lkActor != fkLastActor
       fkLastActor = lkActor
@@ -540,6 +646,15 @@ Event OnKeyDown(Int aiKey)
     Actor lkActor = TargetOrPlayer
     If !lkActor
       Return
+    EndIf
+    ActorBase lkNPC = lkActor.GetLeveledActorBase()
+    If !lkNPC
+      lkActor = PlayerRef
+      lkNPC = lkActor.GetActorBase()
+    EndIf
+    If (lkNPC.GetSex() == 1) && (!Gentified.HasForm(lkNPC))
+      lkActor = PlayerRef
+      lkNPC = lkActor.GetActorBase()
     EndIf
     If lkActor != fkLastActor
       fkLastActor = lkActor
@@ -685,10 +800,6 @@ Function ShowTNGMenu(Actor akActor)
     EndIf
     If akActor == PlayerRef
       PlayerSize = liSize - 2
-    EndIf
-  Else
-    If Gentified.HasForm(akActor.GetLeveledActorBase())
-      Gentified.RemoveAddedForm(akActor.GetLeveledActorBase())
     EndIf
   EndIf
 EndFunction

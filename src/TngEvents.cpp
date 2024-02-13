@@ -28,7 +28,7 @@ void TngEvents::RegisterEvents() noexcept {
   Tng::gLogger::info("Registered for necessary events.");
 }
 
-RE::BSEventNotifyControl TngEvents::ProcessEvent(const RE::TESEquipEvent* aEvent, RE::BSTEventSource<RE::TESEquipEvent>* aSource) {
+RE::BSEventNotifyControl TngEvents::ProcessEvent(const RE::TESEquipEvent* aEvent, RE::BSTEventSource<RE::TESEquipEvent>*) {
   if (!aEvent || fInternal) return RE::BSEventNotifyControl::kContinue;
   const auto lActor = aEvent->actor->As<RE::Actor>();
   auto lArmor = RE::TESForm::LookupByID<RE::TESObjectARMO>(aEvent->baseObject);
@@ -37,10 +37,8 @@ RE::BSEventNotifyControl TngEvents::ProcessEvent(const RE::TESEquipEvent* aEvent
   if (!((1 << TngCore::CanModifyActor(lActor)) & ((1 << Tng::resOkRaceP) | (1 << Tng::resOkRaceR)))) return RE::BSEventNotifyControl::kContinue;
   if (!lArmor->GetPlayable()) return RE::BSEventNotifyControl::kContinue;
   if (aEvent->equipped) {
-    aSource->notifying = false;
     CheckActor(lActor, lArmor);
     fInternal = false;
-    aSource->notifying = true;
   } else {
     if (!lActor->IsPlayerRef() || !TngInis::GetExcludePlayer()) TngCore::SetActorSize(lActor, -1);
     CheckForAddons(lActor);
@@ -90,7 +88,7 @@ void TngEvents::CheckForRevealing(RE::TESObjectARMO* aBodyArmor, RE::TESObjectAR
 }
 
 void TngEvents::CheckForClipping(RE::Actor* aActor, RE::TESObjectARMO* aArmor) noexcept {
-  if (!aActor || !aArmor) return;
+  if (!aActor || !aArmor || !TngInis::GetClipCheck()) return;
   fInternal = true;
   static RE::ActorEquipManager* lEquipManager = lEquipManager ? lEquipManager : RE::ActorEquipManager::GetSingleton();
   lEquipManager->EquipObject(aActor, aArmor, nullptr, 1, nullptr, false, false, false, true);
@@ -105,6 +103,7 @@ void TngEvents::CheckActor(RE::Actor* aActor, RE::TESObjectARMO* aArmor) noexcep
   const auto lGArmo = aActor->GetWornArmor(Tng::cSlotGenital);
   if (aArmor && !lGArmo) {
     TngCore::FixArmor(aArmor);
+    if (lNPC->HasKeyword(fExKey)) return;
     if (aArmor->HasKeyword(fCCKey) || aArmor->HasKeyword(fACKey)) CheckForClipping(aActor, aArmor);
     return;
   }
@@ -132,5 +131,6 @@ void TngEvents::CheckForAddons(RE::Actor* aActor) noexcept {
 
 int TngEvents::GetNPCAutoAddn(RE::TESNPC* aNPC) noexcept {
   const auto lFDistAddnCount = TngSizeShape::GetActiveFAddnCount();
+  if (lFDistAddnCount == 0) return -1;
   return (((aNPC->GetFormID() % 100) < (std::floor(fGWChance->value) + 1))) ? aNPC->GetFormID() % lFDistAddnCount : -1;
 }
