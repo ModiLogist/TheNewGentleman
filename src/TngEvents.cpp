@@ -90,7 +90,7 @@ void TngEvents::CheckForRevealing(RE::TESObjectARMO* aBodyArmor, RE::TESObjectAR
 }
 
 void TngEvents::CheckForClipping(RE::Actor* aActor, RE::TESObjectARMO* aArmor) noexcept {
-  if (!aActor || !aArmor) return;
+  if (!aActor || !aArmor || !TngInis::GetClipCheck()) return;
   fInternal = true;
   static RE::ActorEquipManager* lEquipManager = lEquipManager ? lEquipManager : RE::ActorEquipManager::GetSingleton();
   lEquipManager->EquipObject(aActor, aArmor, nullptr, 1, nullptr, false, false, false, true);
@@ -105,6 +105,7 @@ void TngEvents::CheckActor(RE::Actor* aActor, RE::TESObjectARMO* aArmor) noexcep
   const auto lGArmo = aActor->GetWornArmor(Tng::cSlotGenital);
   if (aArmor && !lGArmo) {
     TngCore::FixArmor(aArmor);
+    if (lNPC->HasKeyword(fExKey)) return;
     if (aArmor->HasKeyword(fCCKey) || aArmor->HasKeyword(fACKey)) CheckForClipping(aActor, aArmor);
     return;
   }
