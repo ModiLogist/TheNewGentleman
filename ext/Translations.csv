@@ -1,54 +1,39 @@
 ﻿$TNG_Gnl,General
-,
 $TNG_Rac,Races
 $TNG_Add,Addons
-,
-$TNG_RNO,Nord
-$TNG_RRE,Redguard
-$TNG_RBR,Breton
-$TNG_RIM,Imperial
-$TNG_RAL,Altmer
-$TNG_RBL,Bosmer
-$TNG_RDU,Dunmer
-$TNG_ROR,Orsimer
-$TNG_RSA,Saxhleel
-$TNG_RKH,Khajiit
-$TNG_RDR,Dremora
-$TNG_REL,Elderly
-$TNG_RAF,Afflicted
-$TNG_RSN,Snow Elf
-$TNG_ROM,Other Man or Mer
-$TNG_ROS,Other Saxhleel
-$TNG_ROK,Other Khajiit
 ,
 $TNG_TCT,Circumcised
 $TNG_TMT,Muscular Uncircumcised
 $TNG_TRT,Regular Uncircumcised
 ,
+$TNG_SOH,Default Sizes
 $TNG_SXS,X-Small
 $TNG_S_S,Small
 $TNG_S_M,Medium
 $TNG_S_L,Large
 $TNG_SXL,X-Large
 ,
-$TNG_GRH,Auto Reveal Options
-$TNG_GRF,Female NPCs
-$TNG_GRM,Male NPCs
+$TNG_GRC,Clipping Check
+$TNG_GNT,Notifications
+$TNG_GRF,Female: Auto-reveal
+$TNG_GRM,Male: Auto-reveal
+$TNG_GEP,Don't change player size
 ,
 $TNG_KyH,Controls
 $TNG_DAK,Integration with DAK
 $TNG_DKN,DAK integration has been removed. This can cause conflicts between the assigned keys with other mods. Do you want to reset all of them?
-$TNG_K_N,NPC Customization
-$TNG_K_R,Make Armor Revealing
+$TNG_K_N,Addon/Size Customization
+$TNG_K_R,Swap Revealing/Covering
 $TNG_K_U,Rise genital
 $TNG_K_D,Drop genital
 ,
-$TNG_SOH,Default Sizes
+,
 $TNG_OGT,Genital Type
 $TNG_OGS,Genital Size Multiplier
 ,
-$TNG_OOP,Oops!
 $TNG_AWC,Women chance for an addon
+$TNG_ASS,Select the size:
+$TNG_AST,Select the addon:
 $TNG_A_W,Gentlewomen Addons
 $TNG_A_M,Gentlemen Addons
 $TNG_ANW,There seems to be no addons installed for women!
@@ -58,21 +43,34 @@ $TNG_Yes,Yes
 $TNG__No,No
 $TNG__OK,OK
 $TNG_RES,Reset Skin
-$TNG_NEX,Next Addons
 ,
-$TNG_E_H,Error
-$TNG_E_0,The New Gentleman DLL cannot be loaded successfully! Make sure you have all the requirements installed!
-,
-$TNG_N_H,Interface
-$TNG_N_T,Show notifications
-$TNG_N_R,You changed the default genital of a race! Some changes would not be applied until you launch the game another time. (To avoid unforseen issues)
-$TNG_N_1,The actor is not wearing the armor!
-$TNG_N_2,The armor was marked as revealing successfully!
-$TNG_N_3,The armor cannot be made revealing!
-$TNG_N_4,The selected actor has a custom skin. Genital shape cannot be modified for custom skins!
+$TNG_N_1,Could not find a relevant armor!
+$TNG_N_2,The armor was handled successfully!
+$TNG_N_3,The armor cannot be modified!
+$TNG_N_4,There are no addons for the current NPC!
 ,
 $TNG_W_1,No actor can be selected!
-$TNG_W_2,The selected actor cannot be modified since they are using a custom skin!
-$TNG_W_2,DAK Integration is enabled but relevant information cannot be found. Please open MCM and disable DAK integration.
+$TNG_W_3,DAK Integration is enabled but relevant information cannot be found. Please open MCM and disable DAK integration.
 ,
-$TNG_H_1,To avoid conflicts use the key from Dynamic activation key in combination with the keys to activate them.
+$TNG_WN1,The current race cannot be modified by TNG.
+$TNG_WN2,The current actor cannot be modified by TNG.
+$TNG_WN3,TNG tried to access an addon that cannot be reached anymore. All those using that addon would revert to their original shape.
+$TNG_WN9,"TNG faced an internal error. If the error can be reproduced, please report this error on the mod page as a bug report!"
+,
+$TNG_WPT,The players genital addon was reverted to original to avoid issues.
+$TNG_WPS,The players genital size was reverted to original to avoid issues.
+,
+$TNG_HGD,To avoid hotkey conflicts you can use the key from Dynamic activation key in combination with the selected keys below to activate them.
+$TNG_HGC,Double check for clipping issues when an armor is equipped.
+$TNG_HGF,"Automatically mark armor on female characters to revealing if they have an item equipped on slot 52. Note that if armor is shared between men and women, it would aslo become revealing for men."
+$TNG_HGM,"Automatically mark armor on male characters to revealing if they have an item equipped on slot 52. Note that if armor is shared between men and women, it would aslo become revealing for women."
+$TNG_HGN,Show or hide notifications on the hud.
+$TNG_HGE,Leave player size to be modified in the race menu using the XP32 racemenu addon.
+$TNG_HKU,"Move the genital up or down. If there is an NPC with genital under the cursor it would move the NPC's genital, otherwise the player's."
+$TNG_HKN,"Customize player or NPCs addon and size. If there is an NPC under cursor it would customize the NPC, otherwise it would customize the player."
+$TNG_HKS,Swap revealing/covering
+$TNG_H_S,Changes the size category multiplier. Each actor gets a size category randomly and can be customized using the customization key. Their final genital size would be: (their race multiplier) * (their size category)
+$TNG_HOA,The default addon for the race. Every character in this race would receive the default genital by default but can be customized using the customization keyword.
+$TNG_HOS,Changes the race multiplier. Each actor gets a size category randomly and can be customized using the customization key. Their final genital size would be: (their race multiplier) * (their size category)
+$TNG_HAC,The chance that women receive any of the selected addons below.
+$TNG_HAD,Wheter to distribute this addon to NPCs. All addons are always available in customization menu.
