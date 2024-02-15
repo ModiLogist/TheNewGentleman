@@ -331,8 +331,9 @@ bool TngSizeShape::SetNPCAddn(RE::TESNPC *aNPC, int aAddon, bool aIsUser) noexce
   }
   if (aAddon == -2) {
     if (aNPC->IsFemale()) aNPC->AddKeyword(fExKey);
-    for (auto lIt = fGentified->forms.begin(); lIt != fGentified->forms.end(); lIt++)
+    for (RE::BSTArray<RE::TESForm *>::const_iterator lIt = fGentified->forms.begin(); lIt < fGentified->forms.end(); lIt++) {
       if ((*lIt)->As<RE::TESNPC>() == aNPC) fGentified->forms.erase(lIt);
+    }
     return true;
   }
   if (lList.size() <= aAddon || aAddon < 0) {
