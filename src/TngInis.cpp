@@ -89,7 +89,7 @@ void TngInis::LoadTngInis() noexcept {
   Tng::gLogger::info("Loading ini files:");
   for (const auto& entry : std::filesystem::directory_iterator(cTngInisPath)) {
     std::string lFileName = entry.path().filename().string();
-    if (IsTngIni(lFileName)) {
+    if (lFileName.ends_with(cTngIniEnding)) {
       CSimpleIniA lIni;
       lIni.SetUnicode();
       lIni.SetMultiKey();
@@ -368,11 +368,6 @@ void TngInis::LoadModRecodPairs(CSimpleIniA::TNamesDepend aModRecords, std::set<
     const std::string lModRecord(lEntry->pItem);
     aField.insert(StrToRecord(lModRecord));
   }
-}
-
-bool TngInis::IsTngIni(const std::string_view aFileName) noexcept {
-  if (aFileName.size() < cTngIniEnding.size()) return false;
-  return std::equal(cTngIniEnding.rbegin(), cTngIniEnding.rend(), aFileName.rbegin());
 }
 
 bool TngInis::UpdateRevealing(const std::string aArmorRecod) noexcept {

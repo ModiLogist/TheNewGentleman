@@ -43,7 +43,7 @@ class TngInis : public Singleton<TngInis> {
     // Ini files
     inline static constexpr const char* cTngInisPath{R"(.\Data\SKSE\Plugins\TNG)"};
 
-    inline static constexpr std::string cTngIniEnding{"TNG.ini"};
+    inline static constexpr const char* cTngIniEnding{"TNG.ini"};
 
     inline static constexpr const char* cSkeleton{"Skeleton"};
     inline static constexpr const char* cValidModel{"ValidModel"};
@@ -104,7 +104,5 @@ class TngInis : public Singleton<TngInis> {
   private:
     static void UpdateIniVersion() noexcept;
     static void LoadModRecodPairs(CSimpleIniA::TNamesDepend aModRecords, std::set<std::pair<std::string, RE::FormID>>& aField) noexcept;
-
-    static bool IsTngIni(const std::string_view aFileName) noexcept;
     static bool UpdateRevealing(const std::string aArmorRecod) noexcept;
 };
