@@ -99,19 +99,6 @@ std::vector<std::string> TngSizeShape::GetAddonNames(bool aIsFemale) noexcept {
   return lRes;
 }
 
-std::vector<std::string> TngSizeShape::GetAllPossibleAddons(RE::Actor *aActor) noexcept {
-  std::vector<std::string> lRes{};
-  const auto lNPC = aActor ? aActor->GetActorBase() : nullptr;
-  if (!aActor || !lNPC) return lRes;
-  lRes.push_back("$TNG_AST");
-  lRes.push_back(aActor->GetName());
-  lRes.push_back("$TNG_ASR");
-  for (auto lSkin : lNPC->IsFemale() ? fFemAddons : fMalAddons) {
-    lRes.push_back(lSkin->GetName());
-  }
-  return lRes;
-}
-
 std::size_t TngSizeShape::GetRaceGrp(RE::TESRace *aRace) noexcept {
   for (std::size_t i = 0; i < fRacesInfo.size(); i++) {
     auto lIt = std::find(fRacesInfo[i].races.begin(), fRacesInfo[i].races.end(), aRace);

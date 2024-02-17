@@ -463,8 +463,8 @@ void TngCore::CheckArmorPieces() noexcept {
         lAC++;
         break;
       default:
-        lArmor->AddKeyword(fPAKey);
         lPA++;
+        lArmor->AddKeyword(fPAKey);
         break;
     }
   }
