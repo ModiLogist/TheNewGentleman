@@ -22,11 +22,9 @@ Int cuClipCheck = 3
 Int cuExPCSize = 4
 
 ;Kinda constant
-Int ciSizes
-Int ciRaces
 Float[] cFSizeDefaults
 
-;Local initialized variable (Don't change these)
+;Local variable
 String[] fSRaces
 String[] fSMalOptions
 String[] fSFemOptions
@@ -56,53 +54,53 @@ Int fiDownKey
 Int fiWomenChance
 
 Int Function GetVersion()
-	Return 2
+	Return 3
 EndFunction
 
-Event OnConfigInit()  
+Event OnConfigInit()
 	Pages = new String[3]
 	Pages[0] = "$TNG_Gnl"
 	Pages[1] = "$TNG_Rac"
-	Pages[2] = "$TNG_Add"  
-  ciSizes = 5
-  ciRaces = 120
-EndEvent
-
-Event OnVersionUpdate(Int aiVersion)
-  If (aiVersion >= 2 && CurrentVersion < 2)
-		fSSizeGlobals = new String[5]
-    fSSizeGlobals[0] = "$TNG_SXS"
-    fSSizeGlobals[1] = "$TNG_S_S"
-    fSSizeGlobals[2] = "$TNG_S_M"
-    fSSizeGlobals[3] = "$TNG_S_L"
-    fSSizeGlobals[4] = "$TNG_SXL"  
-    
-    fSGlobalWarnings = new String[10]
-    fSGlobalWarnings[1] = "$TNG_WN1"
-    fSGlobalWarnings[2] = "$TNG_WN2"
-    fSGlobalWarnings[3] = "$TNG_WN3"
-    fSGlobalWarnings[9] = "$TNG_WN9"
-	EndIf 
-EndEvent
-
-Event OnConfigOpen()
-  fSRaces = TNG_PapyrusUtil.GetRaceGrpNames()
+	Pages[2] = "$TNG_Add"    
+  
   fIRaceTypeHdls = new Int[120]
   fIRaceSizeHdls = new Int[120]
+  fIGlblSizeHdls = new Int[5]
+  fIFemAddons = new Int[120]  
   
-  fSMalOptions = TNG_PapyrusUtil.GetAllPossibleAddons(False)
-  fSFemOptions = TNG_PapyrusUtil.GetAllPossibleAddons(True)
-  fIFemAddons = new Int[120]
+  fSSizeGlobals = new String[5]
+  fSSizeGlobals[0] = "$TNG_SXS"
+  fSSizeGlobals[1] = "$TNG_S_S"
+  fSSizeGlobals[2] = "$TNG_S_M"
+  fSSizeGlobals[3] = "$TNG_S_L"
+  fSSizeGlobals[4] = "$TNG_SXL"  
   
+  fSGlobalWarnings = new String[100]
+  fSGlobalWarnings[1] = "$TNG_WN1"
+  fSGlobalWarnings[2] = "$TNG_WN2"
+  fSGlobalWarnings[3] = "$TNG_WN3"
+  fSGlobalWarnings[4] = "$TNG_WN4"
+  fSGlobalWarnings[5] = "$TNG_WN5"
+  fSGlobalWarnings[9] = "$TNG_WN9"  
   
-  cFSizeDefaults = new Float[20]
+  cFSizeDefaults = new Float[5]
   cFSizeDefaults[0] = 0.8
   cFSizeDefaults[1] = 0.9
   cFSizeDefaults[2] = 1.0
   cFSizeDefaults[3] = 1.2
   cFSizeDefaults[4] = 1.4
-  fIGlblSizeHdls = new Int[5]
-  
+EndEvent
+
+Event OnVersionUpdate(Int aiVersion)
+  If (aiVersion > CurrentVersion)
+    OnConfigInit()
+	EndIf 
+EndEvent
+
+Event OnConfigOpen()    
+  fSRaces = TNG_PapyrusUtil.GetRaceGrpNames()
+  fSMalOptions = TNG_PapyrusUtil.GetAllPossibleAddons(False)
+  fSFemOptions = TNG_PapyrusUtil.GetAllPossibleAddons(True)  
 EndEvent
 
 Event OnConfigClose()
@@ -110,8 +108,11 @@ Event OnConfigClose()
 EndEvent
 
 Event OnGameReload()
+  Parent.OnGameReload()
+  
   Gentified.Revert()
-	Parent.OnGameReload()
+  
+  
   If Game.GetModByName("Dynamic Activation Key.esp")
     fkDAK = Game.GetFormFromFile(0x801,"Dynamic Activation Key.esp") As GlobalVariable
   EndIf
@@ -149,6 +150,7 @@ Event OnGameReload()
 EndEvent
 
 Event OnOptionHighlight(Int aiOption)
+
   If CurrentPage == Pages[0]
     If aiOption == fiDAK
       SetInfoText("$TNG_HGD")
@@ -186,7 +188,7 @@ Event OnOptionHighlight(Int aiOption)
       SetInfoText("$TNG_HKS")
       Return
     EndIf
-    Int liCurr = ciSizes
+    Int liCurr = fSSizeGlobals.Length
     While liCurr
       liCurr -= 1
       If aiOption == fIGlblSizeHdls[liCurr]
@@ -259,7 +261,7 @@ Event OnPageReset(String asPage)
     AddHeaderOption("$TNG_SOH")
     AddHeaderOption("")
     Int liGlbSize = 0
-    While liGlbSize < ciSizes
+    While liGlbSize < fSSizeGlobals.Length
       fIGlblSizeHdls[liGlbSize] = AddSliderOption(fSSizeGlobals[liGlbSize],GlobalSizes[liGlbSize].GetValue(),"{2}")
       AddEmptyOption()
       liGlbSize += 1
@@ -328,7 +330,7 @@ Event OnOptionDefault(Int aiOption)
       Return
     EndIf
   EndWhile
-  liOpLoop = ciSizes
+  liOpLoop = fSSizeGlobals.Length
   While liOpLoop
     liOpLoop -= 1
     If aiOption == fIGlblSizeHdls[liOpLoop]      
@@ -449,7 +451,7 @@ EndEvent
 
 Event OnOptionSliderOpen(Int aiOption)
 	If CurrentPage == Pages[0]
-    Int liSize = ciSizes
+    Int liSize = fSSizeGlobals.Length
     While liSize
       liSize -= 1
       If aiOption == fIGlblSizeHdls[liSize]
@@ -487,7 +489,7 @@ EndEvent
 
 Event OnOptionSliderAccept(Int aiOption,Float afValue)
 	If CurrentPage == Pages[0]
-    Int liSize = ciSizes
+    Int liSize = fSSizeGlobals.Length
     While liSize
       liSize -= 1
       If aiOption == fIGlblSizeHdls[liSize]
@@ -500,7 +502,7 @@ Event OnOptionSliderAccept(Int aiOption,Float afValue)
     Return
   EndIf
   If CurrentPage == Pages[1]
-    Int liRace = ciRaces
+    Int liRace = fSRaces.Length
     While liRace
       liRace -= 1
       If aiOption == fIRaceSizeHdls[liRace]
@@ -619,51 +621,11 @@ Event OnKeyDown(Int aiKey)
     Return
 	EndIf
   If aiKey  == GenUpKey.GetValueInt()
-    Actor lkActor = TargetOrPlayer
-    If !lkActor
-      Return
-    EndIf
-    ActorBase lkNPC = lkActor.GetLeveledActorBase()
-    If !lkNPC
-      lkActor = PlayerRef
-      lkNPC = lkActor.GetActorBase()
-    EndIf
-    If (lkNPC.GetSex() == 1) && !Gentified.HasForm(lkNPC)
-      lkActor = PlayerRef
-      lkNPC = lkActor.GetActorBase()
-    EndIf
-    If lkActor != fkLastActor
-      fkLastActor = lkActor
-      fiPos = 0
-    EndIf    
-    If fiPos < 9
-      fiPos += 1
-      Debug.SendAnimationEvent(lkActor,"SOSBend" + fiPos)
-    EndIf
+    RiseAndDrop(True)
     Return
   EndIf
   If aiKey == GenDownKey.GetValueInt()
-    Actor lkActor = TargetOrPlayer
-    If !lkActor
-      Return
-    EndIf
-    ActorBase lkNPC = lkActor.GetLeveledActorBase()
-    If !lkNPC
-      lkActor = PlayerRef
-      lkNPC = lkActor.GetActorBase()
-    EndIf
-    If (lkNPC.GetSex() == 1) && (!Gentified.HasForm(lkNPC))
-      lkActor = PlayerRef
-      lkNPC = lkActor.GetActorBase()
-    EndIf
-    If lkActor != fkLastActor
-      fkLastActor = lkActor
-      fiPos = 0
-    EndIf    
-    If fiPos > -9
-      fiPos -= 1
-      Debug.SendAnimationEvent(lkActor,"SOSBend" + fiPos)
-    EndIf
+    RiseAndDrop(False)
     Return
   EndIf
   If aiKey == RevealKey.GetValueInt()
@@ -786,7 +748,7 @@ Function ShowTNGMenu(Actor akActor)
     Int i = 0
     lkSizeMenu.AddEntryItem("$TNG_ASS")
     lkSizeMenu.AddEntryItem(akActor.GetLeveledActorBase().GetName())
-    While i < ciSizes
+    While i < fSSizeGlobals.Length
       lkSizeMenu.AddEntryItem(fSSizeGlobals[i])
       i += 1
     EndWhile
@@ -803,6 +765,34 @@ Function ShowTNGMenu(Actor akActor)
     EndIf
   EndIf
 EndFunction
+
+Function RiseAndDrop(Bool aIfRise)
+  Actor lkActor = TargetOrPlayer
+  Int aDir = -1
+  If aIfRise
+    aDir = 1
+  EndIf
+  If !lkActor
+    Return
+  EndIf
+  ActorBase lkNPC = lkActor.GetLeveledActorBase()
+  If !lkNPC
+    lkActor = PlayerRef
+    lkNPC = lkActor.GetActorBase()
+  EndIf
+  If (lkNPC.GetSex() == 1) && (!Gentified.HasForm(lkNPC))
+    lkActor = PlayerRef
+    lkNPC = lkActor.GetActorBase()
+  EndIf
+  If lkActor != fkLastActor
+    fkLastActor = lkActor
+    fiPos = 0
+  EndIf
+  If (fiPos*aDir) < 9
+    fiPos += aDir
+    Debug.SendAnimationEvent(lkActor,"SOSBend" + fiPos)
+  EndIf
+EndFunction    
 
 Function HandleWarnings(Int aRes)
   If aRes > 0
