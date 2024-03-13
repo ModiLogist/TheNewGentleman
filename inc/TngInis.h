@@ -93,7 +93,7 @@ class TngInis : public Singleton<TngInis> {
     static void SaveRaceMult(const std::size_t aRaceIdx, const float aRaceMult) noexcept;
     static void SaveRaceAddn(const std::size_t aRaceIdx, int aChoice) noexcept;
     static void SaveNPCAddn(RE::TESNPC* aNPC, int aChoice) noexcept;
-    static void SaveActorSize(RE::TESNPC* aNPC, int aGenSize) noexcept;
+    static void SaveNPCSize(RE::TESNPC* aNPC, int aGenSize) noexcept;
     static void SaveRevealingArmor(RE::TESObjectARMO* aArmor) noexcept;
     static void SaveActiveAddon(int aFemaleAddon, bool aStatus) noexcept;
     static void RemoveRevealingArmor(RE::TESObjectARMO* aArmor) noexcept;

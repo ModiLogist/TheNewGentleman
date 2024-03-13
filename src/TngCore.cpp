@@ -292,10 +292,13 @@ Tng::TNGRes TngCore::SetNPCSkin(RE::TESNPC* aNPC, int aAddon, bool aIsUser) noex
   return !aNPC->IsFemale() || aNPC->skin->HasKeyword(fSwPKey) ? lMaxRes : Tng::resOkNoGen;
 }
 
-Tng::TNGRes TngCore::SetActorSize(RE::Actor* aActor, int aGenSize) noexcept {
-  if (!aActor) return Tng::npcErr;
-  int lGenSize = (aActor->IsPlayerRef() && TngInis::GetExcludePlayer()) ? -2 : aGenSize;
-  return TngSizeShape::SetActorSize(aActor, lGenSize);
+Tng::TNGRes TngCore::SetCharSize(RE::Actor* aActor, RE::TESNPC* aNPC, int aGenSize) noexcept {
+  if (!aNPC->race) return Tng::raceErr;
+  if (!(aNPC->race->HasKeyword(fPRaceKey) || aNPC->race->HasKeyword(fRRaceKey))) return Tng::raceErr;
+  int lGenSize = (aNPC->IsPlayer() && TngInis::GetExcludePlayer()) ? -2 : aGenSize;
+  auto lRes = TngSizeShape::SetCharSize(aActor, aNPC, lGenSize);
+  if (!aNPC->IsPlayer() && lRes == Tng::resOkGen && lGenSize >= 0) TngInis::SaveNPCSize(aNPC, lGenSize);
+  return lRes;
 }
 
 RE::TESObjectARMO* TngCore::GetOgSkin(RE::TESNPC* aNPC) noexcept {

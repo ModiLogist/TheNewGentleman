@@ -271,7 +271,7 @@ void TngInis::SaveNPCAddn(RE::TESNPC* aNPC, int aChoice) noexcept {
   lIni.SaveFile(cSettings);
 }
 
-void TngInis::SaveActorSize(RE::TESNPC* aNPC, int aGenSize) noexcept {
+void TngInis::SaveNPCSize(RE::TESNPC* aNPC, int aGenSize) noexcept {
   auto lNPCIDStr = RecordToStr(aNPC);
   if (lNPCIDStr.empty()) return;
   CSimpleIniA lIni;

@@ -39,7 +39,7 @@ class TngCore : public Singleton<TngCore> {
     static void GenitalizeNPCSkins() noexcept;
     static Tng::TNGRes CanModifyActor(RE::Actor* aActor) noexcept;
     static Tng::TNGRes SetNPCSkin(RE::TESNPC* aNPC, int aAddon, bool aIsUser = true) noexcept;
-    static Tng::TNGRes SetActorSize(RE::Actor* aActor, int aGenSize) noexcept;
+    static Tng::TNGRes SetCharSize(RE::Actor* aActor, RE::TESNPC* aNPC, int aGenSize) noexcept;
     static void RevertNPCSkin(RE::TESNPC* aNPC);
 
   private:

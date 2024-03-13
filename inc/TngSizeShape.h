@@ -110,7 +110,7 @@ class TngSizeShape : public Singleton<TngSizeShape> {
     static Tng::TNGRes CanModifyActor(RE::Actor* aActor) noexcept;
     static float GetGlobalSize(std::size_t aIdx) noexcept;
     static void SetGlobalSize(std::size_t aIdx, float aSize) noexcept;
-    static Tng::TNGRes SetActorSize(RE::Actor* aActor, int aGenSize) noexcept;
+    static Tng::TNGRes SetCharSize(RE::Actor* aActor, RE::TESNPC* aNPC, int aGenSize) noexcept;
     static std::set<RE::TESObjectARMA*> GentifyGrpSkin(int aRaceGrp) noexcept;
 
   private:

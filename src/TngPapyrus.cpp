@@ -59,7 +59,10 @@ int TngPapyrus::SetActorAddn(RE::StaticFunctionTag*, RE::Actor* aActor, int aGen
   return TngCore::SetNPCSkin(lNPC, aGenOption);
 }
 
-int TngPapyrus::SetActorSize(RE::StaticFunctionTag*, RE::Actor* aActor, int aGenSize) { return TngCore::SetActorSize(aActor, aGenSize); }
+int TngPapyrus::SetActorSize(RE::StaticFunctionTag*, RE::Actor* aActor, int aGenSize) {   
+  const auto lNPC = aActor ? aActor->GetActorBase() : nullptr;
+  if (!aActor || !lNPC) return Tng::npcErr;
+  return TngCore::SetCharSize(aActor, lNPC, aGenSize); }
 
 bool TngPapyrus::SwapRevealing(RE::StaticFunctionTag*, RE::TESObjectARMO* aArmor) {
   if (!aArmor) return false;

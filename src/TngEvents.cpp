@@ -31,18 +31,14 @@ void TngEvents::RegisterEvents() noexcept {
 RE::BSEventNotifyControl TngEvents::ProcessEvent(const RE::TESEquipEvent* aEvent, RE::BSTEventSource<RE::TESEquipEvent>*) {
   if (!aEvent) return RE::BSEventNotifyControl::kContinue;
   const auto lActor = aEvent->actor->As<RE::Actor>();
-  auto lArmor = RE::TESForm::LookupByID<RE::TESObjectARMO>(aEvent->baseObject);
+  auto lArmor = aEvent->equipped ? RE::TESForm::LookupByID<RE::TESObjectARMO>(aEvent->baseObject) : nullptr;
   if (!lArmor || !lActor) return RE::BSEventNotifyControl::kContinue;
   if (fActiveActors.find(lActor) != fActiveActors.end()) return RE::BSEventNotifyControl::kContinue;
   if (!lArmor->HasPartOf(Tng::cSlotBody)) return RE::BSEventNotifyControl::kContinue;
   if (!((1 << TngCore::CanModifyActor(lActor)) & ((1 << Tng::resOkRaceP) | (1 << Tng::resOkRaceR)))) return RE::BSEventNotifyControl::kContinue;
   if (!lArmor->GetPlayable()) return RE::BSEventNotifyControl::kContinue;
-  if (aEvent->equipped) {
-    CheckActor(lActor, lArmor);
-  } else {
-    if (!lActor->IsPlayerRef() || !TngInis::GetExcludePlayer()) TngCore::SetActorSize(lActor, -1);
-    CheckForAddons(lActor);
-  }
+  CheckActor(lActor, lArmor);
+  CheckForAddons(lActor);
   if (fActiveActors.find(lActor) != fActiveActors.end()) fActiveActors.erase(lActor);
   return RE::BSEventNotifyControl::kContinue;
 }
@@ -109,7 +105,7 @@ void TngEvents::CheckActor(RE::Actor* aActor, RE::TESObjectARMO* aArmor) noexcep
   if (!aActor || !lNPC) return;
   if (!lNPC->race) return;
   if (!lNPC->race->HasKeyword(fPRaceKey) && !lNPC->race->HasKeyword(fRRKey)) return;
-  if (!aActor->IsPlayerRef() || !TngInis::GetExcludePlayer()) TngCore::SetActorSize(aActor, -1);
+  if (!aActor->IsPlayerRef() || !TngInis::GetExcludePlayer()) TngCore::SetCharSize(aActor, lNPC, -1);
   const auto lGArmo = aActor->GetWornArmor(Tng::cSlotGenital);
   if (aArmor && !lGArmo) {
     TngCore::FixArmor(aArmor);

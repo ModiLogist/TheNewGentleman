@@ -294,7 +294,8 @@ std::pair<bool, int> TngSizeShape::GetNPCAddn(RE::TESNPC *aNPC) noexcept {
     return std::make_pair(false, Tng::pgErr);
   }
   for (auto lKw : aNPC->GetKeywords()) {
-    const std::string lKwStr(lKw->formEditorID);
+    if (!lKw || lKw->GetFormEditorID() == NULL) continue;
+    const std::string lKwStr(lKw->GetFormEditorID());
     if (lKwStr.starts_with(cNPCAutoAddn)) {
       return std::make_pair(false, std::strtol(lKwStr.substr(strlen(cNPCAutoAddn), 2).data(), nullptr, 0));
     }
@@ -371,19 +372,15 @@ void TngSizeShape::SetGlobalSize(std::size_t aIdx, float aSize) noexcept {
   fSizeGlbs[aIdx]->value = aSize;
 }
 
-Tng::TNGRes TngSizeShape::SetActorSize(RE::Actor *aActor, int aGenSize) noexcept {
-  const auto lNPC = aActor ? aActor->GetActorBase() : nullptr;
-  if (!aActor || !lNPC) return Tng::npcErr;
-  if (!lNPC->race) return Tng::raceErr;
-  if (!(lNPC->race->HasKeyword(fPRaceKey) || lNPC->race->HasKeyword(fRRaceKey))) return Tng::raceErr;
-  auto lCurSize = GetScale(lNPC);
+Tng::TNGRes TngSizeShape::SetCharSize(RE::Actor *aActor, RE::TESNPC *aNPC, int aGenSize) noexcept {
+  auto lCurSize = GetScale(aNPC);
   if (lCurSize == aGenSize || aGenSize == -1) {
     ScaleGenital(aActor, fSizeGlbs[lCurSize]);
     return Tng::resOkGen;
   }
-  lNPC->RemoveKeywords(fSizeKws);
+  aNPC->RemoveKeywords(fSizeKws);
   if (aActor->IsPlayerRef() && aGenSize == -2) return Tng::resOkNoGen;
-  lNPC->AddKeyword(fSizeKws[aGenSize]);
+  aNPC->AddKeyword(fSizeKws[aGenSize]);
   ScaleGenital(aActor, fSizeGlbs[aGenSize]);
   return Tng::resOkGen;
 }
