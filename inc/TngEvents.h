@@ -30,7 +30,7 @@ class TngEvents : public RE::BSTEventSink<RE::TESObjectLoadedEvent>, public RE::
     inline static RE::TESGlobal* fGWChance;
     inline static RE::BGSListForm* fGentified;
 
-    inline static bool fInternal;
+    inline static std::set<RE::Actor*> fActiveActors;
     inline static std::map<RE::FormID, RE::TESObjectARMO*> fOldSkins;
 
     TngEvents() = default;

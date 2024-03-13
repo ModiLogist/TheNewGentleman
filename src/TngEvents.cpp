@@ -29,27 +29,29 @@ void TngEvents::RegisterEvents() noexcept {
 }
 
 RE::BSEventNotifyControl TngEvents::ProcessEvent(const RE::TESEquipEvent* aEvent, RE::BSTEventSource<RE::TESEquipEvent>*) {
-  if (!aEvent || fInternal) return RE::BSEventNotifyControl::kContinue;
+  if (!aEvent) return RE::BSEventNotifyControl::kContinue;
   const auto lActor = aEvent->actor->As<RE::Actor>();
   auto lArmor = RE::TESForm::LookupByID<RE::TESObjectARMO>(aEvent->baseObject);
   if (!lArmor || !lActor) return RE::BSEventNotifyControl::kContinue;
+  if (fActiveActors.find(lActor) != fActiveActors.end()) return RE::BSEventNotifyControl::kContinue;
   if (!lArmor->HasPartOf(Tng::cSlotBody)) return RE::BSEventNotifyControl::kContinue;
   if (!((1 << TngCore::CanModifyActor(lActor)) & ((1 << Tng::resOkRaceP) | (1 << Tng::resOkRaceR)))) return RE::BSEventNotifyControl::kContinue;
   if (!lArmor->GetPlayable()) return RE::BSEventNotifyControl::kContinue;
   if (aEvent->equipped) {
     CheckActor(lActor, lArmor);
-    fInternal = false;
   } else {
     if (!lActor->IsPlayerRef() || !TngInis::GetExcludePlayer()) TngCore::SetActorSize(lActor, -1);
     CheckForAddons(lActor);
   }
+  if (fActiveActors.find(lActor) != fActiveActors.end()) fActiveActors.erase(lActor);
   return RE::BSEventNotifyControl::kContinue;
 }
 
 RE::BSEventNotifyControl TngEvents::ProcessEvent(const RE::TESObjectLoadedEvent* aEvent, RE::BSTEventSource<RE::TESObjectLoadedEvent>*) {
-  if (!aEvent || fInternal) return RE::BSEventNotifyControl::kContinue;
+  if (!aEvent) return RE::BSEventNotifyControl::kContinue;
   const auto lActor = RE::TESForm::LookupByID<RE::Actor>(aEvent->formID);
   if (!lActor) return RE::BSEventNotifyControl::kContinue;
+  if (fActiveActors.find(lActor) != fActiveActors.end()) return RE::BSEventNotifyControl::kContinue;
   if (!((1 << TngCore::CanModifyActor(lActor)) & ((1 << Tng::resOkRaceP) | (1 << Tng::resOkRaceR)))) return RE::BSEventNotifyControl::kContinue;
   CheckForAddons(lActor);
   CheckActor(lActor);
@@ -60,6 +62,7 @@ RE::BSEventNotifyControl TngEvents::ProcessEvent(const RE::TESSwitchRaceComplete
   auto lActor = aEvent->subject.get()->As<RE::Actor>();
   auto lNPC = lActor ? lActor->GetActorBase() : nullptr;
   if (!lActor || !lNPC || !lNPC->skin) return RE::BSEventNotifyControl::kContinue;
+  if (fActiveActors.find(lActor) != fActiveActors.end()) return RE::BSEventNotifyControl::kContinue;
   if (lNPC->skin->HasKeyword(fGenSkinKey) && !lNPC->race->HasKeyword(fPRaceKey)) {
     fOldSkins.insert_or_assign(lNPC->GetFormID(), lNPC->skin);
     lNPC->skin = lNPC->race->skin;
@@ -89,7 +92,7 @@ void TngEvents::CheckForRevealing(RE::TESObjectARMO* aBodyArmor, RE::TESObjectAR
 
 void TngEvents::CheckForClipping(RE::Actor* aActor, RE::TESObjectARMO* aArmor) noexcept {
   if (!aActor || !aArmor || !TngInis::GetClipCheck()) return;
-  fInternal = true;
+  fActiveActors.insert(aActor);
   static RE::ActorEquipManager* lEquipManager = lEquipManager ? lEquipManager : RE::ActorEquipManager::GetSingleton();
   lEquipManager->EquipObject(aActor, aArmor, nullptr, 1, nullptr, false, false, false, true);
 }
