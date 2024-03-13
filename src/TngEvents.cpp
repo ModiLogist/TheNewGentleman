@@ -115,7 +115,6 @@ void TngEvents::CheckActor(RE::Actor* aActor, RE::TESObjectARMO* aArmor) noexcep
 void TngEvents::CheckForAddons(RE::Actor* aActor) noexcept {
   const auto lNPC = aActor ? aActor->GetActorBase() : nullptr;
   if (!aActor || !lNPC) return;
-  if (aActor->IsPlayerRef()) return;
   auto lNPCAddn = TngSizeShape::GetNPCAddn(lNPC);
   if (lNPCAddn.second < 0) {
     if (!lNPC->IsFemale() && lNPC->HasKeyword(fExKey)) TngCore::RevertNPCSkin(lNPC);
