@@ -94,7 +94,14 @@ void TngEvents::CheckForClipping(RE::Actor* aActor, RE::TESObjectARMO* aArmor) n
   if (!aActor || !aArmor || !TngInis::GetClipCheck()) return;
   fActiveActors.insert(aActor);
   static RE::ActorEquipManager* lEquipManager = lEquipManager ? lEquipManager : RE::ActorEquipManager::GetSingleton();
-  lEquipManager->EquipObject(aActor, aArmor, nullptr, 1, nullptr, false, false, false, true);
+  auto lInv = aActor->GetInventory(RE::TESObjectREFR::DEFAULT_INVENTORY_FILTER, true);
+  for (const auto& lItem : lInv | std::views::keys) {
+    if (lItem->GetFormID() == aArmor->GetFormID()) {
+      lItem->InitializeData();
+      lEquipManager->EquipObject(aActor, lItem, nullptr, 1, nullptr, false, true, false, true);
+      return;
+    }
+  }
 }
 
 void TngEvents::CheckActor(RE::Actor* aActor, RE::TESObjectARMO* aArmor) noexcept {
