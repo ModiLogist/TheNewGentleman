@@ -584,7 +584,7 @@ void TngCore::ProcessArmor(RE::TESObjectARMO* aArmor, bool aAcceptAR) noexcept {
     return;
   }
   for (const auto& lKw : aArmor->GetKeywords())
-    if (strcmp(lKw->GetFormEditorID(), cSOSR) == 0) {
+    if (lKw && lKw->Is(RE::FormType::Keyword) && (lKw->GetFormEditorID() != NULL) && strcmp(lKw->GetFormEditorID(), cSOSR) == 0) {
       Tng::gLogger::info("The armor [0x {:x}:{}] was marked revealing since it has the [SOS_Revealing] keyword", aArmor->GetFormID(), aArmor->GetFormEditorID());
       aArmor->AddKeyword(fRRKey);
       fRAAs.insert(lBods.begin(), lBods.end());
