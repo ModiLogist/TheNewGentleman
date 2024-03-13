@@ -475,6 +475,11 @@ void TngCore::CheckArmorPieces() noexcept {
           "revealing.",
           lAA->GetFormID());
       fCAAs.erase(lAA);
+      continue;
+    }
+    if (fSAAs.find(lAA) != fSAAs.end()) {
+      fCAAs.erase(lAA);
+      continue;
     }
     lAA->AddSlotToMask(Tng::cSlotGenital);
     if (lAA->data.priorities[0] == 0 || lAA->data.priorities[1] == 0)
