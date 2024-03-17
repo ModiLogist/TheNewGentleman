@@ -161,6 +161,17 @@ void TngInis::LoadTngInis() noexcept {
   }
 }
 
+void TngInis::LoadHoteKeys() noexcept {
+  CSimpleIniA lIni;
+  lIni.SetUnicode();
+  lIni.LoadFile(cSettings);
+  if (lIni.KeyExists(cControls, cINTCtrl)) fINTCtrl->value = lIni.GetBoolValue(cControls, cINTCtrl) ? 2.0f : 0.0f;
+  if (lIni.KeyExists(cControls, cNPCCtrl)) fNPCCtrl->value = static_cast<float>(lIni.GetLongValue(cControls, cNPCCtrl));
+  if (lIni.KeyExists(cControls, cUPGCtrl)) fUPGCtrl->value = static_cast<float>(lIni.GetLongValue(cControls, cUPGCtrl));
+  if (lIni.KeyExists(cControls, cDOWCtrl)) fDOWCtrl->value = static_cast<float>(lIni.GetLongValue(cControls, cDOWCtrl));
+  if (lIni.KeyExists(cControls, cREVCtrl)) fREVCtrl->value = static_cast<float>(lIni.GetLongValue(cControls, cREVCtrl));
+}
+
 bool TngInis::GetSettingBool(IniBoolIDs aID) noexcept {
   switch (aID) {
     case TngInis::femaleAutoReveal:

@@ -85,6 +85,7 @@ class TngInis : public Singleton<TngInis> {
     static bool Init() noexcept;
     static void LoadMainIni() noexcept;
     static void LoadTngInis() noexcept;
+    static void LoadHoteKeys() noexcept;
     static bool GetAutoReveal(const bool aIsFemale) noexcept;
     static bool GetClipCheck() noexcept;
     static bool GetExcludePlayer() noexcept;

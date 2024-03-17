@@ -61,6 +61,9 @@ void EventListener(SKSE::MessagingInterface::Message* aMessage) noexcept {
       return;
     }
   }
+  if (aMessage->type == SKSE::MessagingInterface::kNewGame || aMessage->type == SKSE::MessagingInterface::kPostLoadGame) {
+    TngInis::LoadHoteKeys();
+  }
 }
 
 SKSEPluginLoad(const SKSE::LoadInterface* aSkse) {
