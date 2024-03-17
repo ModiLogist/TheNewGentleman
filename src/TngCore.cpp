@@ -146,25 +146,7 @@ bool TngCore::CheckRace(RE::TESRace* aRace) {
     IgnoreRace(aRace);
     return false;
   }
-  if (aRace->GetPlayable()) return true;
-  bool lHasMaleNPCs = false;
-  bool lHasNPCs = false;
-
-  for (const auto& lNPC : fAllNPCs) {
-    if (lNPC->race == aRace) {
-      if (lNPC->IsFemale())
-        lHasNPCs = true;
-      else
-        lHasMaleNPCs = true;
-      if (lHasMaleNPCs) break;
-    }
-  }
-  bool lAdd = lHasMaleNPCs || (!lHasNPCs);
-  if (!lAdd) {
-    IgnoreRace(aRace);
-    Tng::gLogger::info("The race [0x{:x}: {}] has only female NPC references and is ignored by TNG.", aRace->GetFormID(), aRace->GetFormEditorID());
-  }
-  return lAdd;
+  return true;
 }
 
 Tng::TNGRes TngCore::AddRace(RE::TESRace* aRace) noexcept {
@@ -177,7 +159,6 @@ Tng::TNGRes TngCore::AddRace(RE::TESRace* aRace) noexcept {
       Tng::gLogger::info("The race [{}] seems to be ready for TNG. It was not modified.", aRace->GetFormEditorID());
       return IgnoreRace(aRace) ? Tng::resOkRaceR : Tng::raceErr;
     }
-
   auto lRaceIdx = TngSizeShape::GetRaceGrp(aRace);
   if (aRace != TngSizeShape::GetRaceByIdx(lRaceIdx)) {
     auto lRaceName = TngSizeShape::GetRaceName(lRaceIdx);
