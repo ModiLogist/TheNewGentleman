@@ -54,7 +54,7 @@ namespace Tng {
     resOkCC = 5,
     resOkAR = 6,
     resOkRR = 7,
-    resOkIR = 8,
+    resOkIA = 8,
   };
 }
 

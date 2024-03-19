@@ -20,7 +20,7 @@ class TngCore : public Singleton<TngCore> {
         {0x03CA97, "Dragonborn.esm"},  // Miraak
     };
     inline static constexpr std::string_view cGenSkin{"TNGSkin_"};
-    inline static const char* cSOSR{"SOS_Revealing"};
+    inline static constexpr std::string_view cSOSR{"SOS_Revealing"};
 
   public:
     static bool Initialize() noexcept;
@@ -53,17 +53,17 @@ class TngCore : public Singleton<TngCore> {
     static void CheckArmorPieces() noexcept;
     static Tng::TNGRes HandleArmor(RE::TESObjectARMO* aArmor, const bool aIfLog = true) noexcept;
     static bool SwapRevealing(RE::TESObjectARMO* aArmor) noexcept;
-    static void FixArmor(RE::TESObjectARMO* aArmor) noexcept;
+    static bool TryMakeArmorCovering(RE::TESObjectARMO* aArmor, bool aIsCC) noexcept;
+    static bool TryMakeArmorRevealing(RE::TESObjectARMO* aArmor, bool aIsRR) noexcept;
 
   private:
     inline static std::set<RE::TESObjectARMA*> fSAAs;
     inline static std::set<RE::TESObjectARMA*> fRAAs;
     inline static std::set<RE::TESObjectARMA*> fCAAs;
-    static void ProcessArmor(RE::TESObjectARMO* aArmor, bool aAcceptAR = false) noexcept;
-    static void CoverByArmor(RE::TESObjectARMO* aArmor) noexcept;
+    
 
   private:
-    // Shard Variables
+    // Shared Variables
     inline static RE::TESDataHandler* fDH;
     inline static RE::BGSKeyword* fPRaceKey;
     inline static RE::BGSKeyword* fRRaceKey;
