@@ -29,7 +29,6 @@ void TngInis::LoadMainIni() noexcept {
   lIni.LoadFile(cSettings);
   fAutoReveal[0] = lIni.GetBoolValue(cGeneral, cMAutoReveal, false);
   fAutoReveal[1] = lIni.GetBoolValue(cGeneral, cFAutoReveal, true);
-  fClipCheck = lIni.GetBoolValue(cGeneral, cDoubleCheck, true);
   fExlPC = lIni.GetBoolValue(cGeneral, cExlPC, false);
   for (std::size_t i = 0; i < Tng::cSizeCategories; i++) {
     TngSizeShape::SetGlobalSize(i, static_cast<float>(lIni.GetDoubleValue(cGlobalSize, cSizeNames[i], cDefSizes[i])));
@@ -178,8 +177,6 @@ bool TngInis::GetSettingBool(IniBoolIDs aID) noexcept {
       return fAutoReveal[1];
     case TngInis::maleAutoReveal:
       return fAutoReveal[0];
-    case TngInis::checkClipping:
-      return fClipCheck;
     case TngInis::excludePlayerSize:
       return fExlPC;
     default:
@@ -200,10 +197,6 @@ void TngInis::SaveSettingBool(IniBoolIDs aID, bool aValue) noexcept {
       lIni.SetBoolValue(cGeneral, cMAutoReveal, aValue);
       fAutoReveal[0] = aValue;
       break;
-    case checkClipping:
-      lIni.SetBoolValue(cGeneral, cDoubleCheck, aValue);
-      fClipCheck = aValue;
-      break;
     case excludePlayerSize:
       lIni.SetBoolValue(cGeneral, cExlPC, aValue);
       fExlPC = aValue;
@@ -215,8 +208,6 @@ void TngInis::SaveSettingBool(IniBoolIDs aID, bool aValue) noexcept {
 }
 
 bool TngInis::GetAutoReveal(const bool aIsFemale) noexcept { return (aIsFemale ? fAutoReveal[1] : fAutoReveal[0]); }
-
-bool TngInis::GetClipCheck() noexcept { return fClipCheck; }
 
 bool TngInis::GetExcludePlayer() noexcept { return fExlPC; }
 

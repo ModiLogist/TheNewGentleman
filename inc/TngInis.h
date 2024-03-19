@@ -11,7 +11,6 @@ class TngInis : public Singleton<TngInis> {
     inline static constexpr const char* cGeneral{"General"};
     inline static constexpr const char* cFAutoReveal{"FemaleAutoReveal"};
     inline static constexpr const char* cMAutoReveal{"MaleAutoReveal"};
-    inline static constexpr const char* cDoubleCheck{"DoubleCheckClipping"};
     inline static constexpr const char* cExlPC{"ExcludePlayerSize"};
 
     inline static constexpr const char* cGlobalSize{"GlobalSizes"};
@@ -58,7 +57,6 @@ class TngInis : public Singleton<TngInis> {
     inline static constexpr const char* cCoveringRecord{"CoveringRecord"};
 
     inline static bool fAutoReveal[2];
-    inline static bool fClipCheck;
     inline static bool fExlPC;
 
     inline static RE::TESDataHandler* fDH;
@@ -71,7 +69,7 @@ class TngInis : public Singleton<TngInis> {
     inline static std::set<std::string> fValidSkeletons;
 
   public:
-    enum IniBoolIDs { cNoneBoolID, femaleAutoReveal, maleAutoReveal, checkClipping, excludePlayerSize, cBoolIDsCount };
+    enum IniBoolIDs { cNoneBoolID, femaleAutoReveal, maleAutoReveal, excludePlayerSize, cBoolIDsCount };
     inline static std::set<std::string> fSkinMods;
     inline static std::set<std::pair<std::string, RE::FormID>> fSingleSkinIDs;
     inline static std::set<std::string> fRevealingMods;
@@ -87,7 +85,6 @@ class TngInis : public Singleton<TngInis> {
     static void LoadTngInis() noexcept;
     static void LoadHoteKeys() noexcept;
     static bool GetAutoReveal(const bool aIsFemale) noexcept;
-    static bool GetClipCheck() noexcept;
     static bool GetExcludePlayer() noexcept;
     static bool GetSettingBool(IniBoolIDs aID) noexcept;
     static void SaveSettingBool(IniBoolIDs aID, bool aValue) noexcept;
