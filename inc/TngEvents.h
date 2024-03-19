@@ -12,11 +12,9 @@ class TngEvents : public RE::BSTEventSink<RE::TESObjectLoadedEvent>,
     RE::BSEventNotifyControl ProcessEvent(const RE::TESSwitchRaceCompleteEvent* aEvent, RE::BSTEventSource<RE::TESSwitchRaceCompleteEvent>*) override;
 
   private:
-    static void CheckForRevealing(RE::TESObjectARMO* aBodyArmor, RE::TESObjectARMO* aPelvisArmor) noexcept;
-    static void CheckForClipping(RE::Actor* aActor, RE::TESObjectARMO* aArmor) noexcept;
-    static void CheckActor(RE::Actor* aActor, RE::TESObjectARMO* aArmor = nullptr) noexcept;
     static void CheckForAddons(RE::Actor* aActor) noexcept;
     static int GetNPCAutoAddn(RE::TESNPC* aNPC) noexcept;
+    static void CheckActorArmor(RE::Actor* aActor, RE::TESObjectARMO* aArmor = nullptr) noexcept;
 
     RE::TESDataHandler* fDH;
     inline static RE::BGSKeyword* fPRaceKey;
@@ -32,7 +30,6 @@ class TngEvents : public RE::BSTEventSink<RE::TESObjectLoadedEvent>,
     inline static RE::TESGlobal* fGWChance;
     inline static RE::BGSListForm* fGentified;
 
-    inline static std::set<RE::Actor*> fActiveActors;
     inline static std::map<RE::FormID, RE::TESObjectARMO*> fOldSkins;
 
     TngEvents() = default;
