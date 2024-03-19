@@ -1,6 +1,6 @@
 #pragma once
 
-class TngSizeShape : public Singleton<TngSizeShape> {
+class TngCoreBase : public Singleton<TngCoreBase> {
   private:
     inline static const char* cBaseBone{"NPC GenitalsBase [GenBase]"};
     inline static const char* cScrtBone{"NPC GenitalsScrotum [GenScrot]"};
@@ -62,9 +62,10 @@ class TngSizeShape : public Singleton<TngSizeShape> {
     inline static constexpr RE::FormID cNoGenSkinIDs[4]{0xAFF, 0xAFE, 0xAFD, 0xAFC};
     inline static constexpr RE::FormID cSizeKeyWIDs[Tng::cSizeCategories]{0xFE1, 0xFE2, 0xFE3, 0xFE4, 0xFE5};
     inline static constexpr RE::FormID cSizeGlobIDs[Tng::cSizeCategories]{0xC01, 0xC02, 0xC03, 0xC04, 0xC05};
+    inline static constexpr RE::FormID cGenCoverID{0x8FF};
 
     struct RaceInfo {
-        const char* raceName{""};
+        std::string raceName{""};
         std::vector<RE::TESRace*> races{};
         std::set<RE::TESRace*> armorRaces{};
         RE::TESObjectARMO* originalSkin = nullptr;
@@ -124,6 +125,8 @@ class TngSizeShape : public Singleton<TngSizeShape> {
     inline static RE::BGSKeyword* fPRaceKey;
     inline static RE::BGSKeyword* fRRaceKey;
     inline static RE::BGSKeyword* fIAKey;
+    inline static RE::BGSKeyword* fACKey;
+    inline static RE::BGSKeyword* fCCKey;
     inline static RE::BGSKeyword* fSkinWithPenisKey;
     inline static RE::BGSKeyword* fGWKey;
     inline static RE::BGSKeyword* fExKey;
@@ -142,9 +145,12 @@ class TngSizeShape : public Singleton<TngSizeShape> {
     static void UpdateAddons(RE::TESRace* aRace) noexcept;
     static Tng::RaceType GetSkinType(RE::TESObjectARMO* aSkin) noexcept;
     static Tng::RaceType GetRaceType(RE::TESRace* aRace) noexcept;
+    static void VisitArmorAddons(RE::Actor* aActor, RE::TESObjectARMA* aArmorAddon, std::function<void(RE::TESObjectARMA*)> aVisit) noexcept;
 
   private:
+    inline static RE::TESObjectARMA* fGenCover;
     inline static std::set<RE::TESObjectARMA*> fAllMalAAs;
+    inline static std::set<RE::TESObjectARMA*> fAllFemAAs;
     inline static std::vector<std::set<RE::TESObjectARMA*>> fMalAddonAAs[6];
     inline static std::vector<std::set<RE::TESObjectARMA*>> fFemAddonAAs[6];
     static void CategorizeAddons() noexcept;

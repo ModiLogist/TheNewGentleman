@@ -1,7 +1,7 @@
 #include <TngCore.h>
+#include <TngCoreBase.h>
 #include <TngEvents.h>
 #include <TngInis.h>
-#include <TngSizeShape.h>
 
 void TngEvents::RegisterEvents() noexcept {
   const auto lSourceHolder = RE::ScriptEventSourceHolder::GetSingleton();
@@ -67,7 +67,7 @@ RE::BSEventNotifyControl TngEvents::ProcessEvent(const RE::TESSwitchRaceComplete
 void TngEvents::CheckForAddons(RE::Actor* aActor) noexcept {
   const auto lNPC = aActor ? aActor->GetActorBase() : nullptr;
   if (!aActor || !lNPC) return;
-  auto lNPCAddn = TngSizeShape::GetNPCAddn(lNPC);
+  auto lNPCAddn = TngCoreBase::GetNPCAddn(lNPC);
   if (lNPCAddn.second < 0) {
     if (!lNPC->IsFemale() && lNPC->HasKeyword(fExKey)) TngCore::RevertNPCSkin(lNPC);
     if (lNPC->IsPlayer() || !lNPC->IsFemale() || lNPC->HasKeyword(fExKey) || fGWChance->value < 1) return;
@@ -81,7 +81,7 @@ void TngEvents::CheckForAddons(RE::Actor* aActor) noexcept {
 }
 
 int TngEvents::GetNPCAutoAddn(RE::TESNPC* aNPC) noexcept {
-  const auto lFDistAddnCount = TngSizeShape::GetActiveFAddnCount();
+  const auto lFDistAddnCount = TngCoreBase::GetActiveFAddnCount();
   if (lFDistAddnCount == 0) return -1;
   return (((aNPC->GetFormID() % 100) < (std::floor(fGWChance->value) + 1))) ? aNPC->GetFormID() % lFDistAddnCount : -1;
 }

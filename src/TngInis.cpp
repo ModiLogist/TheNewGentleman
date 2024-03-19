@@ -1,5 +1,5 @@
 #include <TngInis.h>
-#include <TngSizeShape.h>
+#include <TngCoreBase.h>
 
 bool TngInis::Init() noexcept {
   fDH = RE::TESDataHandler::GetSingleton();
@@ -31,7 +31,7 @@ void TngInis::LoadMainIni() noexcept {
   fAutoReveal[1] = lIni.GetBoolValue(cGeneral, cFAutoReveal, true);
   fExlPC = lIni.GetBoolValue(cGeneral, cExlPC, false);
   for (std::size_t i = 0; i < Tng::cSizeCategories; i++) {
-    TngSizeShape::SetGlobalSize(i, static_cast<float>(lIni.GetDoubleValue(cGlobalSize, cSizeNames[i], cDefSizes[i])));
+    TngCoreBase::SetGlobalSize(i, static_cast<float>(lIni.GetDoubleValue(cGlobalSize, cSizeNames[i], cDefSizes[i])));
   }
   CSimpleIniA::TNamesDepend::const_iterator lEntry;
   CSimpleIniA::TNamesDepend lSectionRecords;
@@ -39,30 +39,30 @@ void TngInis::LoadMainIni() noexcept {
   for (lEntry = lSectionRecords.begin(); lEntry != lSectionRecords.end(); lEntry++) {
     std::string lAddon = lIni.GetValue(cRacialGenital, lEntry->pItem);
     const std::string lRaceRecord(lEntry->pItem);
-    if (!TngSizeShape::LoadRaceAddn(lRaceRecord, lAddon)) lIni.Delete(cRacialGenital, lEntry->pItem);
+    if (!TngCoreBase::LoadRaceAddn(lRaceRecord, lAddon)) lIni.Delete(cRacialGenital, lEntry->pItem);
   }
   lIni.GetAllKeys(cRacialSize, lSectionRecords);
   for (lEntry = lSectionRecords.begin(); lEntry != lSectionRecords.end(); lEntry++) {
     auto lMult = lIni.GetDoubleValue(cRacialSize, lEntry->pItem);
     const std::string lRaceRecord(lEntry->pItem);
-    if (!TngSizeShape::LoadRaceMult(lRaceRecord, static_cast<float>(lMult))) lIni.Delete(cRacialSize, lEntry->pItem);
+    if (!TngCoreBase::LoadRaceMult(lRaceRecord, static_cast<float>(lMult))) lIni.Delete(cRacialSize, lEntry->pItem);
   }
   lIni.GetAllKeys(cNPCSizeSection, lSectionRecords);
   for (lEntry = lSectionRecords.begin(); lEntry != lSectionRecords.end(); lEntry++) {
     auto lSize = lIni.GetLongValue(cNPCSizeSection, lEntry->pItem);
     const std::string lNPCRecord(lEntry->pItem);
-    if (!TngSizeShape::LoadNPCSize(lNPCRecord, lSize)) lIni.Delete(cNPCSizeSection, lEntry->pItem);
+    if (!TngCoreBase::LoadNPCSize(lNPCRecord, lSize)) lIni.Delete(cNPCSizeSection, lEntry->pItem);
   }
   lIni.GetAllKeys(cNPCAddnSection, lSectionRecords);
   for (lEntry = lSectionRecords.begin(); lEntry != lSectionRecords.end(); lEntry++) {
     const std::string lNPCRecord(lEntry->pItem);
     std::string lAddon = lIni.GetValue(cNPCAddnSection, lEntry->pItem);
-    if (!TngSizeShape::LoadNPCAddn(lNPCRecord, lAddon)) lIni.Delete(cNPCAddnSection, lEntry->pItem);
+    if (!TngCoreBase::LoadNPCAddn(lNPCRecord, lAddon)) lIni.Delete(cNPCAddnSection, lEntry->pItem);
   }
   lIni.GetAllKeys(cExcludeSection, lSectionRecords);
   for (lEntry = lSectionRecords.begin(); lEntry != lSectionRecords.end(); lEntry++) {
     const std::string lNPCRecord(lEntry->pItem);
-    TngSizeShape::ExcludeNPC(lNPCRecord);
+    TngCoreBase::ExcludeNPC(lNPCRecord);
   }
   lIni.GetAllKeys(cRevealingRecord, lSectionRecords);
   for (lEntry = lSectionRecords.begin(); lEntry != lSectionRecords.end(); lEntry++) {
@@ -70,9 +70,9 @@ void TngInis::LoadMainIni() noexcept {
     const std::string lArmorRecord(lEntry->pItem);
     if (lIsRevealing) UpdateRevealing(lArmorRecord);
   }
-  for (std::size_t i = 0; i < TngSizeShape::GetAddonCount(true); i++) {
-    auto lAddon = TngSizeShape::GetAddonAt(true, i);
-    TngSizeShape::SetAddonStatus(i, lIni.GetBoolValue(cActiveAddons, RecordToStr(lAddon).c_str(), false));
+  for (std::size_t i = 0; i < TngCoreBase::GetAddonCount(true); i++) {
+    auto lAddon = TngCoreBase::GetAddonAt(true, i);
+    TngCoreBase::SetAddonStatus(i, lIni.GetBoolValue(cActiveAddons, RecordToStr(lAddon).c_str(), false));
   }
   if (lIni.KeyExists(cControls, cINTCtrl)) fINTCtrl->value = lIni.GetBoolValue(cControls, cINTCtrl) ? 2.0f : 0.0f;
   if (lIni.KeyExists(cControls, cNPCCtrl)) fNPCCtrl->value = static_cast<float>(lIni.GetLongValue(cControls, cNPCCtrl));
@@ -215,7 +215,7 @@ void TngInis::SaveRaceMult(const std::size_t aRaceIdx, const float aRaceMult) no
   CSimpleIniA lIni;
   lIni.SetUnicode();
   lIni.LoadFile(cSettings);
-  auto lRace = TngSizeShape::GetRaceByIdx(aRaceIdx);
+  auto lRace = TngCoreBase::GetRaceByIdx(aRaceIdx);
   auto lRaceIDStr = RecordToStr(lRace);
   if (lRaceIDStr.empty()) {
     Tng::gLogger::critical("Failed to save the size multiplier for race [{:x}: {}]!", lRace->GetFormID(), lRace->GetFormEditorID());
@@ -233,7 +233,7 @@ void TngInis::SaveRaceAddn(const std::size_t aRaceIdx, int aChoice) noexcept {
   CSimpleIniA lIni;
   lIni.SetUnicode();
   lIni.LoadFile(cSettings);
-  auto lRace = TngSizeShape::GetRaceByIdx(aRaceIdx);
+  auto lRace = TngCoreBase::GetRaceByIdx(aRaceIdx);
   auto lRaceIDStr = RecordToStr(lRace);
   if (lRaceIDStr.empty()) {
     Tng::gLogger::critical("Failed to save the selected addon for race [{:x}: {}]!", lRace->GetFormID(), lRace->GetFormEditorID());
@@ -242,7 +242,7 @@ void TngInis::SaveRaceAddn(const std::size_t aRaceIdx, int aChoice) noexcept {
   if (aChoice == -1) {
     lIni.Delete(cRacialGenital, lRaceIDStr.c_str());
   } else {
-    auto lAddon = TngSizeShape::GetAddonAt(false, aChoice);
+    auto lAddon = TngCoreBase::GetAddonAt(false, aChoice);
     auto lGenIDStr = RecordToStr(lAddon);
     lIni.SetValue(cRacialGenital, lRaceIDStr.c_str(), lGenIDStr.c_str());
   }
@@ -264,7 +264,7 @@ void TngInis::SaveNPCAddn(RE::TESNPC* aNPC, int aChoice) noexcept {
       lIni.SetBoolValue(cExcludeSection, lNPCIDStr.c_str(), true);
       break;
     default:
-      auto lAddon = TngSizeShape::GetAddonAt(aNPC->IsFemale(), aChoice);
+      auto lAddon = TngCoreBase::GetAddonAt(aNPC->IsFemale(), aChoice);
       auto lGenIDStr = RecordToStr(lAddon);
       lIni.Delete(cExcludeSection, lNPCIDStr.c_str());
       lIni.SetValue(cNPCAddnSection, lNPCIDStr.c_str(), lGenIDStr.c_str());
@@ -297,7 +297,7 @@ void TngInis::SaveRevealingArmor(RE::TESObjectARMO* aArmor) noexcept {
 }
 
 void TngInis::SaveActiveAddon(int aFemaleAddon, bool aStatus) noexcept {
-  auto lAddonStr = RecordToStr(TngSizeShape::GetAddonAt(true, aFemaleAddon));
+  auto lAddonStr = RecordToStr(TngCoreBase::GetAddonAt(true, aFemaleAddon));
   if (lAddonStr.empty()) return;
   CSimpleIniA lIni;
   lIni.SetUnicode();
@@ -320,7 +320,7 @@ void TngInis::SaveGlobals() noexcept {
   CSimpleIniA lIni;
   lIni.SetUnicode();
   lIni.LoadFile(cSettings);
-  for (std::size_t i = 0; i < Tng::cSizeCategories; i++) lIni.SetDoubleValue(cGlobalSize, cSizeNames[i], TngSizeShape::GetGlobalSize(i));
+  for (std::size_t i = 0; i < Tng::cSizeCategories; i++) lIni.SetDoubleValue(cGlobalSize, cSizeNames[i], TngCoreBase::GetGlobalSize(i));
   lIni.SetBoolValue(cControls, cINTCtrl, fINTCtrl->value > 1.0f);
   lIni.SetLongValue(cControls, cNPCCtrl, static_cast<int>(fNPCCtrl->value));
   lIni.SetLongValue(cControls, cUPGCtrl, static_cast<int>(fUPGCtrl->value));

@@ -1,8 +1,8 @@
 #include <TngCore.h>
+#include <TngCoreBase.h>
 #include <TngEvents.h>
 #include <TngInis.h>
 #include <TngPapyrus.h>
-#include <TngSizeShape.h>
 bool CheckIncompatiblity() {
   if (GetModuleHandle(L"Data\\SKSE\\Plugins\\acon.dll")) {
     RE::DebugMessageBox("Warning: TNG is not compatible with acon.dll. Please don't use TNG with mods from that website!");
@@ -37,8 +37,8 @@ void InitializeLogging(const SKSE::PluginDeclaration* aPlugin) {
 void EventListener(SKSE::MessagingInterface::Message* aMessage) noexcept {
   if (aMessage->type == SKSE::MessagingInterface::kDataLoaded) {
     if (!CheckIncompatiblity()) return;
-    if (TngSizeShape::Init()) {
-      TngSizeShape::LoadAddons();
+    if (TngCoreBase::Init()) {
+      TngCoreBase::LoadAddons();
     } else {
       IssueWarning();
       return;

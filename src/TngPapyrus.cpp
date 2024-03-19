@@ -1,7 +1,7 @@
 #include <TngCore.h>
 #include <TngInis.h>
 #include <TngPapyrus.h>
-#include <TngSizeShape.h>
+#include <TngCoreBase.h>
 
 void TngPapyrus::SaveGlobals(RE::StaticFunctionTag*) { TngInis::SaveGlobals(); }
 
@@ -14,16 +14,16 @@ void TngPapyrus::SetBoolValue(RE::StaticFunctionTag*, int aID, bool aValue) {
   if (TngInis::cNoneBoolID < aID && aID < TngInis::cBoolIDsCount) TngInis::SaveSettingBool(static_cast<TngInis::IniBoolIDs>(aID), aValue);
 }
 
-std::vector<std::string> TngPapyrus::GetRaceGrpNames(RE::StaticFunctionTag*) { return TngSizeShape::GetRaceGrpNames(); }
+std::vector<std::string> TngPapyrus::GetRaceGrpNames(RE::StaticFunctionTag*) { return TngCoreBase::GetRaceGrpNames(); }
 
 int TngPapyrus::GetRaceGrpAddn(RE::StaticFunctionTag*, int aRaceIdx) {
   if (aRaceIdx < 0) return Tng::pgErr;
-  return TngSizeShape::GetRaceGrpAddn(static_cast<std::size_t>(aRaceIdx));
+  return TngCoreBase::GetRaceGrpAddn(static_cast<std::size_t>(aRaceIdx));
 }
 
 float TngPapyrus::GetRaceGrpMult(RE::StaticFunctionTag*, int aRaceIdx) {
   if (aRaceIdx < 0) return -1.0f;
-  return TngSizeShape::GetRaceGrpMult(static_cast<std::size_t>(aRaceIdx));
+  return TngCoreBase::GetRaceGrpMult(static_cast<std::size_t>(aRaceIdx));
 }
 
 void TngPapyrus::SetRaceGrpAddn(RE::StaticFunctionTag*, int aRaceIdx, int aGenOption) {
@@ -32,22 +32,22 @@ void TngPapyrus::SetRaceGrpAddn(RE::StaticFunctionTag*, int aRaceIdx, int aGenOp
 }
 
 void TngPapyrus::SetRaceGrpMult(RE::StaticFunctionTag*, int aRaceIdx, float aGenMult) {
-  if (TngSizeShape::SetRaceGrpMult(static_cast<std::size_t>(aRaceIdx), aGenMult)) TngInis::SaveRaceMult(static_cast<std::size_t>(aRaceIdx), aGenMult);
+  if (TngCoreBase::SetRaceGrpMult(static_cast<std::size_t>(aRaceIdx), aGenMult)) TngInis::SaveRaceMult(static_cast<std::size_t>(aRaceIdx), aGenMult);
 }
 
 bool TngPapyrus::GetAddonStatus(RE::StaticFunctionTag*, int aFemaleAddn) {
-  if (aFemaleAddn < 0 || aFemaleAddn >= TngSizeShape::GetAddonCount(true)) return false;
-  return TngSizeShape::GetAddonStatus(static_cast<int>(aFemaleAddn));
+  if (aFemaleAddn < 0 || aFemaleAddn >= TngCoreBase::GetAddonCount(true)) return false;
+  return TngCoreBase::GetAddonStatus(static_cast<int>(aFemaleAddn));
 }
 
 void TngPapyrus::SetAddonStatus(RE::StaticFunctionTag*, int aFemaleAddn, bool aStatus) {
-  if (aFemaleAddn < 0 || aFemaleAddn >= TngSizeShape::GetAddonCount(true)) return;
+  if (aFemaleAddn < 0 || aFemaleAddn >= TngCoreBase::GetAddonCount(true)) return;
   TngInis::SaveActiveAddon(aFemaleAddn, aStatus);
-  TngSizeShape::SetAddonStatus(aFemaleAddn, aStatus);
+  TngCoreBase::SetAddonStatus(aFemaleAddn, aStatus);
 }
 
 std::vector<std::string> TngPapyrus::GetAllPossibleAddons(RE::StaticFunctionTag*, bool aIsFemale) {
-  auto lNames = TngSizeShape::GetAddonNames(aIsFemale);
+  auto lNames = TngCoreBase::GetAddonNames(aIsFemale);
   return std::vector<std::string>{lNames.begin(), lNames.end()};
 }
 
