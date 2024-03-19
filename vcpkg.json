@@ -1,21 +1,13 @@
 {
-  "$schema": "https://raw.githubusercontent.com/microsoft/vcpkg-tool/main/docs/vcpkg.schema.json",
   "name": "thenewgentleman",
-  "dependencies": [ "commonlibsse-ng", "simpleini" ],
+  "description": "The New Gentleman",
+  "homepage": "https://github.com/ModiLogist/TheNewGentleman/tree/master/src",
   "license": "MIT",
-  "vcpkg-configuration": {
-    "default-registry": {
-      "kind": "git",
-      "repository": "https://github.com/microsoft/vcpkg",
-      "baseline": "42ee04ed4525b833c03b14657e020ee6426fe864"
-    },
-    "registries": [
-      {
-        "kind": "git",
-        "repository": "https://gitlab.com/colorglass/vcpkg-colorglass",
-        "baseline": "6309841a1ce770409708a67a9ba5c26c537d2937",
-        "packages": [ "commonlibsse-ng" ]
-      }
-    ]
-  }
+  "dependencies": [
+    "rsm-binary-io",
+    "spdlog",
+    "simpleini",
+    "xbyak"
+  ],
+  "builtin-baseline": "cf4ebef2294e164875ce17d7937f44d3e3ea156e"
 }

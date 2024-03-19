@@ -3,6 +3,8 @@
 #include <TngEvents.h>
 #include <TngInis.h>
 #include <TngPapyrus.h>
+#include <TngHooks.h>
+
 bool CheckIncompatiblity() {
   if (GetModuleHandle(L"Data\\SKSE\\Plugins\\acon.dll")) {
     RE::DebugMessageBox("Warning: TNG is not compatible with acon.dll. Please don't use TNG with mods from that website!");
@@ -16,13 +18,12 @@ void IssueWarning() {
   RE::DebugMessageBox("$TNG_E_0");
 }
 
-void InitializeLogging(const SKSE::PluginDeclaration* aPlugin) {
+void InitializeLogging() {
   auto lPath{Tng::gLogger::log_directory()};
   if (!lPath) {
     SKSE::stl::report_and_fail("Unable to lookup SKSE logs directory.");
   }
-  *lPath /= aPlugin->GetName();
-  *lPath += L".log";
+  *lPath /= "TheNewGentleman.log"sv;
 
   std::shared_ptr<spdlog::logger> lLog;
   lLog = std::make_shared<spdlog::logger>("Global", std::make_shared<spdlog::sinks::basic_file_sink_mt>(lPath->string(), true));
@@ -60,19 +61,60 @@ void EventListener(SKSE::MessagingInterface::Message* aMessage) noexcept {
       IssueWarning();
       return;
     }
+    TngHooks::Install();
   }
   if (aMessage->type == SKSE::MessagingInterface::kNewGame || aMessage->type == SKSE::MessagingInterface::kPostLoadGame) {
     TngInis::LoadHoteKeys();
   }
 }
 
-SKSEPluginLoad(const SKSE::LoadInterface* aSkse) {
-  const auto lPlugin{SKSE::PluginDeclaration::GetSingleton()};
-  const auto lVersion{lPlugin->GetVersion()};
-  InitializeLogging(lPlugin);
-  Tng::gLogger::info("Initializing TheNewGentleman {}!", lVersion);
-  SKSE::Init(aSkse);
-  const bool lRegistered = SKSE::GetMessagingInterface()->RegisterListener(EventListener);
-  if (lRegistered) SKSE::GetPapyrusInterface()->Register(TngPapyrus::BindPapyrus);
-  return lRegistered;
+#ifdef SKYRIM_AE
+extern "C" __declspec(dllexport) constinit auto SKSEPlugin_Version = []() {
+  SKSE::PluginVersionData v;
+  v.PluginVersion(Version::MAJOR);
+  v.PluginName("TheNewGentleman");
+  v.AuthorName("ModiLogist");
+  v.UsesAddressLibrary();
+  v.UsesUpdatedStructs();
+  v.CompatibleVersions({SKSE::RUNTIME_LATEST});
+
+  return v;
+}();
+#else
+extern "C" __declspec(dllexport) bool SKSEAPI SKSEPlugin_Query(const SKSE::QueryInterface* a_skse, SKSE::PluginInfo* a_info) {
+  a_info->infoVersion = SKSE::PluginInfo::kVersion;
+  a_info->name = "TheNewGentleman";
+  a_info->version = Version::MAJOR;
+
+  if (a_skse->IsEditor()) {
+    Tng::gLogger::critical("Loaded in editor, marking as incompatible"sv);
+    return false;
+  }
+
+  const auto ver = a_skse->RuntimeVersion();
+  if (ver
+  #ifndef SKYRIMVR
+      < SKSE::RUNTIME_1_5_39
+  #else
+      > SKSE::RUNTIME_VR_1_4_15_1
+  #endif
+  ) {
+    Tng::gLogger::critical(FMT_STRING("Unsupported runtime version {}"), ver.string());
+    return false;
+  }
+
+  return true;
 }
+#endif
+
+extern "C" __declspec(dllexport) bool SKSEAPI SKSEPlugin_Load(const SKSE::LoadInterface* a_skse) {
+  InitializeLogging();
+  SKSE::Init(a_skse);
+  Tng::gLogger::info("Initializing TheNewGentleman {}!", Version::NAME.data());
+  Tng::gLogger::info("Game version : {}", a_skse->RuntimeVersion().string());
+  SKSE::GetMessagingInterface()->RegisterListener(EventListener);
+  SKSE::GetPapyrusInterface()->Register(TngPapyrus::BindPapyrus);
+  return true;
+}
+
+extern "C" __declspec(dllexport) const char* APIENTRY GetPluginVersion() { return Version::NAME.data(); }

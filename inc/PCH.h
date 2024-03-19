@@ -1,20 +1,27 @@
 #pragma once
 
-// clang-format off
+#define WIN32_LEAN_AND_MEAN
+
 #include <RE/Skyrim.h>
 #include <REL/Relocation.h>
 #include <SKSE/SKSE.h>
-
-#include <ShlObj_core.h>
-#include <Psapi.h>
-#include <Windows.h>
-
-// clang-format on
 #include <spdlog/sinks/basic_file_sink.h>
-#include <spdlog/sinks/msvc_sink.h>
+#include <xbyak/xbyak.h>
 
 using namespace std::literals;
-using namespace REL::literals;
+
+#include <Version.h>
+
+#ifdef SKYRIM_AE
+  #define OFFSET(se, ae) ae
+  #define OFFSET_3(se, ae, vr) ae
+#elif SKYRIMVR
+  #define OFFSET(se, ae) se
+  #define OFFSET_3(se, ae, vr) vr
+#else
+  #define OFFSET(se, ae) se
+  #define OFFSET_3(se, ae, vr) se
+#endif
 
 template <typename T>
 class Singleton {
@@ -33,3 +40,23 @@ class Singleton {
       return std::addressof(aSingleton);
     }
 };
+
+inline auto MakeHook(REL::ID a_id, std::ptrdiff_t a_offset = 0) { return REL::Relocation<std::uintptr_t>(a_id, a_offset); }
+
+inline auto MakeHook(REL::Offset a_address, std::ptrdiff_t a_offset = 0) { return REL::Relocation<std::uintptr_t>(a_address.address() + a_offset); }
+
+#ifdef SKYRIM_AE
+  #ifdef SKYRIM_353
+    #define IF_SKYRIMSE(aResAE, aResSE, aResVR, aOffset353) (aOffset353)
+  #else
+    #define IF_SKYRIMSE(aResAE, aResSE, aResVR, aOffset353) (aResAE)
+  #endif
+#else
+  #ifndef SKYRIMVR
+    #define IF_SKYRIMSE(aResAE, aResSE, aOffsetVR, aOffset353) (aResSE)
+  #else
+    #define IF_SKYRIMSE(aResAE, aResSE, aOffsetVR, aOffset353) (aResVR)
+  #endif
+#endif
+
+#define MAKE_OFFSET(aIdAE, aIdSE, aOffsetVR, aOffset353) IF_SKYRIMSE(REL::ID(aIdAE), REL::ID(aIdSE), REL::Offset(aOffsetVR), REL::Offset(aOffset353))
