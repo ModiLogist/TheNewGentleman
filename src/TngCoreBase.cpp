@@ -588,5 +588,12 @@ std::map<RE::TESRace *, RE::TESObjectARMA *> TngCoreBase::GetAddonAAs(Tng::RaceT
   std::map<RE::TESRace *, RE::TESObjectARMA *> lRes{};
   auto &lList = aIsFemale ? fFemAddonAAs[aRaceType][aAddonIdx] : fMalAddonAAs[aRaceType][aAddonIdx];
   for (auto lAA : lList) lRes.insert({lAA->race, lAA});
+  auto lAddType = Tng::cRaceTypeCount;
+  if (aRaceType == Tng::raceManMer) lAddType = Tng::raceBeast;
+  if (aRaceType == Tng::raceBeast) lAddType = Tng::raceManMer;
+  if (lAddType < Tng::cRaceTypeCount) {
+    auto &lAddList = aIsFemale ? fFemAddonAAs[lAddType][aAddonIdx] : fMalAddonAAs[lAddType][aAddonIdx];
+    for (auto lAA : lAddList) lRes.insert({lAA->race, lAA});
+  }
   return lRes;
 }

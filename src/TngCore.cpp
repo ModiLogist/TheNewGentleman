@@ -363,16 +363,14 @@ void TngCore::CheckArmorPieces() noexcept {
     if (!(lArmor->race->HasKeyword(fPRaceKey) || lArmor->race->HasKeyword(fRRaceKey) || lArmor->race == fDefRace)) continue;
     if (lArmor->HasKeyword(fIAKey) || lArmor->HasKeyword(fUAKey)) continue;
     auto lFN = lArmor->GetFile(0) ? lArmor->GetFile(0)->GetFilename() : "NoFile";
-    if (lCheckSkinMods && (TngInis::fSkinMods.find(std::string{lFN}) != TngInis::fSkinMods.end())) {
-      if (!FixSkin(lArmor, lID)) Tng::gLogger::error("The skin [{:x}] from file [{}] has issues. It was not touched by TNG.", lArmor->GetLocalFormID(), lFN);
-      continue;
-    }
-    if (lCheckSkinRecords) {
-      const auto lSkinEntry = TngInis::fSingleSkinIDs.find(std::make_pair(std::string{lFN}, lArmor->GetLocalFormID()));
-      if (lSkinEntry != TngInis::fSingleSkinIDs.end()) {
-        if (!FixSkin(lArmor, lID)) Tng::gLogger::error("The skin [{:x}] from file [{}] has issues. It was not touched by TNG.", lArmor->GetLocalFormID(), lFN);
-        continue;
+    if ((lCheckSkinMods && TngInis::fSkinMods.find(std::string{lFN}) != TngInis::fSkinMods.end()) ||
+        (lCheckSkinRecords && TngInis::fSingleSkinIDs.find(std::make_pair(std::string{lFN}, lArmor->GetLocalFormID())) != TngInis::fSingleSkinIDs.end())) {
+      if (FixSkin(lArmor, lID)) {
+        Tng::gLogger::info("The skin [{:x}] from file [{}] was patched.", lArmor->GetLocalFormID(), lFN);
+      } else {
+        Tng::gLogger::error("The skin [{:x}] from file [{}] has issues. It was not touched by TNG.", lArmor->GetLocalFormID(), lFN);
       }
+      continue;
     }
     lIA--;
     if ((lCheckCoverRecords && TngInis::fSingleCoveringIDs.find(std::make_pair(std::string{lFN}, lArmor->GetLocalFormID())) != TngInis::fSingleCoveringIDs.end()) ||
