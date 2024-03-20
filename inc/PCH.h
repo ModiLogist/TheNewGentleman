@@ -1,7 +1,5 @@
 #pragma once
 
-#define WIN32_LEAN_AND_MEAN
-
 #include <RE/Skyrim.h>
 #include <REL/Relocation.h>
 #include <SKSE/SKSE.h>
@@ -47,15 +45,15 @@ inline auto MakeHook(REL::Offset a_address, std::ptrdiff_t a_offset = 0) { retur
 
 #ifdef SKYRIM_AE
   #ifdef SKYRIM_353
-    #define IF_SKYRIMSE(aResAE, aResSE, aResVR, aOffset353) (aOffset353)
+    #define IF_SKYRIMSE(aResAE, aResSE, aOffsetVR, aOffset353) (aOffset353)
   #else
-    #define IF_SKYRIMSE(aResAE, aResSE, aResVR, aOffset353) (aResAE)
+    #define IF_SKYRIMSE(aResAE, aResSE, aOffsetVR, aOffset353) (aResAE)
   #endif
 #else
   #ifndef SKYRIMVR
     #define IF_SKYRIMSE(aResAE, aResSE, aOffsetVR, aOffset353) (aResSE)
   #else
-    #define IF_SKYRIMSE(aResAE, aResSE, aOffsetVR, aOffset353) (aResVR)
+    #define IF_SKYRIMSE(aResAE, aResSE, aOffsetVR, aOffset353) (aOffsetVR)
   #endif
 #endif
 

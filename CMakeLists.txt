@@ -1,4 +1,5 @@
-cmake_minimum_required(VERSION 3.20)
+cmake_minimum_required(VERSION 3.27)
+message("Using toolchain file ${CMAKE_TOOLCHAIN_FILE}.")
 
 set(NAME "TheNewGentleman" CACHE STRING "")
 set(VERSION 2.3.0 CACHE STRING "")
@@ -40,10 +41,12 @@ if(BUILD_SKYRIMAE)
 	set(CommonLibName "CommonLibSSE")
 	set_from_environment(SkyrimAEPath)
 	set(SkyrimPath ${SkyrimAEPath})
-	set(SkyrimVersion "Skyrim AE")
 	set(VERSION ${VERSION}.${AE_VERSION})
 	if(BUILD_SKYRIM353)
 	  add_compile_definitions(SKYRIM_353)
+	  set(SkyrimVersion "Skyrim 353")
+	else()	  
+	  set(SkyrimVersion "Skyrim AE")
 	endif()		
 elseif(BUILD_SKYRIMVR)
 	add_compile_definitions(SKYRIMVR)
@@ -60,23 +63,11 @@ else()
 	set(SkyrimVersion "Skyrim SE")
 endif()
 find_commonlib_path()
+
 message(
 	STATUS
 	"Building ${NAME} ${VERSION} for ${SkyrimVersion} at ${SkyrimPath} with ${CommonLibName} at ${CommonLibPath}."
 )
-
-if (DEFINED VCPKG_ROOT)
-	set(CMAKE_TOOLCHAIN_FILE "${VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake" CACHE STRING "")
-	set(VCPKG_TARGET_TRIPLET "x64-windows-static" CACHE STRING "")
-else ()
-	message(
-		WARNING
-		"Variable VCPKG_ROOT is not set. Continuing without vcpkg."
-	)
-endif ()
-
-set(Boost_USE_STATIC_RUNTIME OFF CACHE BOOL "")
-set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>" CACHE STRING "")
 
 # ---- Project ----
 
@@ -106,25 +97,6 @@ if(PROJECT_SOURCE_DIR STREQUAL PROJECT_BINARY_DIR)
 			"In-source builds not allowed. Please make a new directory (called a build directory) and run CMake from there."
 	)
 endif()
-
-# ---- Globals ----
-
-add_compile_definitions(
-	SKSE_SUPPORT_XBYAK
-)
-
-if (MSVC)
-	if (NOT ${CMAKE_GENERATOR} STREQUAL "Ninja")
-		add_compile_options(
-			/MP	# Build with Multiple Processes
-		)
-	endif ()
-endif ()
-
-set(CMAKE_INTERPROCEDURAL_OPTIMIZATION ON)
-set(CMAKE_INTERPROCEDURAL_OPTIMIZATION_DEBUG OFF)
-
-set(Boost_USE_STATIC_LIBS ON)
 
 # ---- Dependencies ----
 if (DEFINED CommonLibPath AND NOT ${CommonLibPath} STREQUAL "" AND IS_DIRECTORY ${CommonLibPath})
@@ -168,23 +140,11 @@ add_library(
 	.clang-format
 	.editorconfig)
 
-target_compile_features(
-	${PROJECT_NAME}
-	PRIVATE
-		cxx_std_23
-)
-
-target_compile_definitions(
-	${PROJECT_NAME}
-	PRIVATE
-		_UNICODE
-)
-
 target_include_directories(
   ${PROJECT_NAME}
   PRIVATE
     ${CMAKE_CURRENT_BINARY_DIR}/inc
-		${CMAKE_CURRENT_SOURCE_DIR}/inc
+	${CMAKE_CURRENT_SOURCE_DIR}/inc
     ${SIMPLEINI_INCLUDE_DIRS}
 )
 
@@ -202,31 +162,6 @@ target_precompile_headers(
     inc/Tng.h
     ${SIMPLEINI_INCLUDE_DIRS}/SimpleIni.h
 )
-
-if (MSVC)
-	target_compile_options(
-		${PROJECT_NAME}
-		PRIVATE
-			/sdl             # Enable Additional Security Checks
-			/utf-8           # Set Source and Executable character sets to UTF-8
-			/Zi              # Debug Information Format
-
-			/permissive-     # Standards conformance
-			/Zc:preprocessor # Enable preprocessor conformance mode
-
-			/wd4200          # nonstandard extension used : zero-sized array in struct/union
-
-			"$<$<CONFIG:DEBUG>:>"
-			"$<$<CONFIG:RELEASE>:/Zc:inline;/JMC-;/Ob3>"
-	)
-
-	target_link_options(
-		${PROJECT_NAME}
-		PRIVATE
-			"$<$<CONFIG:DEBUG>:/INCREMENTAL;/OPT:NOREF;/OPT:NOICF>"
-			"$<$<CONFIG:RELEASE>:/INCREMENTAL:NO;/OPT:REF;/OPT:ICF;/DEBUG:FULL>"
-	)
-endif ()
 
 # ---- Post build ----
 add_custom_command(
