@@ -1,5 +1,4 @@
 #include "TESObjectARMA.h"
-#include "Offset.Ext.h"
 
 namespace DAV
 {

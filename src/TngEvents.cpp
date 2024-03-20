@@ -92,7 +92,7 @@ void TngEvents::CheckActorArmor(RE::Actor* aActor, RE::TESObjectARMO* aArmor) no
   if (!lNPC || !lNPC->race) return;
   if (!(lNPC->race->HasKeyword(fPRaceKey) || lNPC->race->HasKeyword(fRRKey))) return;
   if (!aActor->IsPlayerRef() || !TngInis::GetExcludePlayer()) TngCore::SetCharSize(aActor, lNPC, -1);
-  if (aArmor->HasPartOf(Tng::cSlotBody)) TngCore::TryMakeArmorCovering(aArmor, aArmor->HasKeyword(fCCKey));
+  if (aArmor && aArmor->HasPartOf(Tng::cSlotBody)) TngCore::TryMakeArmorCovering(aArmor, aArmor->HasKeyword(fCCKey));
   const auto lGArmo = aActor->GetWornArmor(Tng::cSlotGenital);
   const auto lBArmo = aActor->GetWornArmor(Tng::cSlotBody);
   if ((lNPC->IsFemale() && !TngInis::GetAutoReveal(true)) || (!lNPC->IsFemale() && !TngInis::GetAutoReveal(false))) return;

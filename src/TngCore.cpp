@@ -381,7 +381,7 @@ void TngCore::CheckArmorPieces() noexcept {
       lCC++;
       continue;
     }
-    if ((lCheckRevealMods && (TngInis::fRevealingMods.find(std::string{lFN}) != TngInis::fRevealingMods.end())) ||
+    if ((lCheckRevealMods && TngInis::fRevealingMods.find(std::string{lFN}) != TngInis::fRevealingMods.end()) ||
         (lCheckRevealRecords && TngInis::fSingleRevealingIDs.find(std::make_pair(std::string{lFN}, lArmor->GetLocalFormID())) != TngInis::fSingleRevealingIDs.end()) ||
         lArmor->HasKeywordString(cSOSR) || lArmor->HasKeyword(fRRKey)) {
       if (lArmor->HasPartOf(Tng::cSlotBody)) {
@@ -469,7 +469,7 @@ Tng::TNGRes TngCore::HandleArmor(RE::TESObjectARMO* aArmor, const bool aIfLog) n
     if (fRAAs.find(lAA) != fRAAs.end()) lR = true;
     if (fCAAs.find(lAA) != fCAAs.end() && lAA->HasPartOf(Tng::cSlotGenital)) lC = true;
     if (lAA->HasPartOf(Tng::cSlotBody)) lBods.insert(lAA);
-    if (lAA->HasPartOf(Tng::cSlotGenital) && (fCAAs.find(lAA) == fCAAs.end())) lGens.insert(lAA);
+    if (lAA->HasPartOf(Tng::cSlotGenital) && fCAAs.find(lAA) == fCAAs.end()) lGens.insert(lAA);
   }
   if ((lR || lS) && lC) {
     if (aIfLog) Tng::gLogger::warn("The armor [0x{:x}: {}] uses both covering and revealing armature at the same time!", aArmor->GetFormID(), lID);
