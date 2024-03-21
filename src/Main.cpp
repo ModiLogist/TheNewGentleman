@@ -5,7 +5,7 @@
 #include <TngPapyrus.h>
 #include <TngHooks.h>
 
-bool CheckIncompatiblity() {
+static bool CheckIncompatiblity() {
   if (GetModuleHandle(L"Data\\SKSE\\Plugins\\acon.dll")) {
     RE::DebugMessageBox("Warning: TNG is not compatible with acon.dll. Please don't use TNG with mods from that website!");
     return false;
@@ -13,12 +13,12 @@ bool CheckIncompatiblity() {
   return true;
 }
 
-void IssueWarning() {
+static void IssueWarning() {
   Tng::gLogger::error("TheNewGentleman did not initialize successfully!");
   RE::DebugMessageBox("$TNG_E_0");
 }
 
-void InitializeLogging() {
+static void InitializeLogging() {
   auto lPath{Tng::gLogger::log_directory()};
   if (!lPath) {
     SKSE::stl::report_and_fail("Unable to lookup SKSE logs directory.");
@@ -35,7 +35,7 @@ void InitializeLogging() {
   spdlog::set_pattern("[%H:%M:%S.%e] [%l] %v");
 }
 
-void EventListener(SKSE::MessagingInterface::Message* aMessage) noexcept {
+static void EventListener(SKSE::MessagingInterface::Message* aMessage) noexcept {
   if (aMessage->type == SKSE::MessagingInterface::kDataLoaded) {
     if (!CheckIncompatiblity()) return;
     if (TngCoreBase::Init()) {
