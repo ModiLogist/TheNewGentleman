@@ -1,6 +1,11 @@
 #pragma once
 class TngPapyrus : public Singleton<TngPapyrus> {
+  public:
+    static bool BindPapyrus(RE::BSScript::IVirtualMachine* aVM) noexcept;
+
   private:
+    static int UpdateLogLvl(RE::StaticFunctionTag*, int aLogLvl);
+    static std::string ShowLogLocation(RE::StaticFunctionTag*);
     static void SaveGlobals(RE::StaticFunctionTag*);
 
     static bool GetBoolValue(RE::StaticFunctionTag*, int aID);
@@ -20,7 +25,4 @@ class TngPapyrus : public Singleton<TngPapyrus> {
     static int SetActorSize(RE::StaticFunctionTag*, RE::Actor* aActor, int aGenSize);
 
     static bool SwapRevealing(RE::StaticFunctionTag*, RE::TESObjectARMO* aArmor);
-
-  public:
-    static bool BindPapyrus(RE::BSScript::IVirtualMachine* aVM) noexcept;
 };

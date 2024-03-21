@@ -1,9 +1,9 @@
 #include <TngCore.h>
 #include <TngCoreBase.h>
 #include <TngEvents.h>
+#include <TngHooks.h>
 #include <TngInis.h>
 #include <TngPapyrus.h>
-#include <TngHooks.h>
 
 static bool CheckIncompatiblity() {
   if (GetModuleHandle(L"Data\\SKSE\\Plugins\\acon.dll")) {
@@ -23,13 +23,15 @@ static void InitializeLogging() {
   if (!lPath) {
     SKSE::stl::report_and_fail("Unable to lookup SKSE logs directory.");
   }
-  *lPath /= "TheNewGentleman.log"sv;
+  *lPath /= Version::PROJECT;
+  *lPath += ".log"sv;
 
   std::shared_ptr<spdlog::logger> lLog;
   lLog = std::make_shared<spdlog::logger>("Global", std::make_shared<spdlog::sinks::basic_file_sink_mt>(lPath->string(), true));
-
-  lLog->set_level(spdlog::level::level_enum::info);
-  lLog->flush_on(spdlog::level::level_enum::trace);
+  lLog->set_level(TngInis::GetLogLvl() > static_cast<int>(spdlog::level::debug) && TngInis::GetLogLvl() < static_cast<int>(spdlog::level::n_levels)
+                      ? static_cast<spdlog::level::level_enum>(TngInis::GetLogLvl())
+                      : spdlog::level::info);
+  lLog->flush_on(spdlog::level::trace);
 
   spdlog::set_default_logger(std::move(lLog));
   spdlog::set_pattern("[%H:%M:%S.%e] [%l] %v");

@@ -9,6 +9,7 @@ class TngInis : public Singleton<TngInis> {
     inline static constexpr const char* cVersion{"Version"};
 
     inline static constexpr const char* cGeneral{"General"};
+    inline static constexpr const char* cLogLvl{"LoggingLevel"};    
     inline static constexpr const char* cFAutoReveal{"FemaleAutoReveal"};
     inline static constexpr const char* cMAutoReveal{"MaleAutoReveal"};
     inline static constexpr const char* cExlPC{"ExcludePlayerSize"};
@@ -88,6 +89,8 @@ class TngInis : public Singleton<TngInis> {
     static void LoadMainIni() noexcept;
     static void LoadTngInis() noexcept;
     static void LoadHoteKeys() noexcept;
+    static int GetLogLvl() noexcept;
+    static void SetLogLvl(int aLvl) noexcept;
     static bool GetAutoReveal(const bool aIsFemale) noexcept;
     static bool GetExcludePlayer() noexcept;
     static bool GetSettingBool(IniBoolIDs aID) noexcept;

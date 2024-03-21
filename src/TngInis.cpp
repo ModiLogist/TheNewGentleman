@@ -181,6 +181,22 @@ void TngInis::LoadHoteKeys() noexcept {
   if (lIni.KeyExists(cControls, cREVCtrl)) fREVCtrl->value = static_cast<float>(lIni.GetLongValue(cControls, cREVCtrl));
 }
 
+int TngInis::GetLogLvl() noexcept {
+  CSimpleIniA lIni;
+  lIni.SetUnicode();
+  lIni.LoadFile(cSettings);
+  return lIni.GetLongValue(cGeneral, cLogLvl, static_cast<int>(spdlog::level::info));
+}
+
+void TngInis::SetLogLvl(int aLvl) noexcept {
+  if (aLvl < static_cast<int>(spdlog::level::info) || aLvl >= static_cast<int>(spdlog::level::n_levels)) return;
+  CSimpleIniA lIni;
+  lIni.SetUnicode();
+  lIni.LoadFile(cSettings);
+  lIni.SetLongValue(cGeneral, cLogLvl, aLvl);
+  lIni.SaveFile(cSettings);
+}
+
 bool TngInis::GetSettingBool(IniBoolIDs aID) noexcept {
   switch (aID) {
     case TngInis::femaleAutoReveal:

@@ -22,6 +22,7 @@ Int cuExPCSize
 
 ;Kinda constant
 Float[] cFSizeDefaults
+String[] cSLogOptions
 
 ;Local variable
 String[] fSRaces
@@ -50,6 +51,8 @@ Int fiRevealKey
 Int fiUpKey
 Int fiDownKey
 Int fiWomenChance
+Int fiLogLvlHdl
+Int fiLogDir
 
 Int Function GetVersion()
 	Return 4
@@ -87,6 +90,13 @@ Event OnConfigInit()
   cFSizeDefaults[2] = 1.0
   cFSizeDefaults[3] = 1.2
   cFSizeDefaults[4] = 1.4
+  
+  cSLogOptions = new String[5]
+  cSLogOptions[0] = "$TNG_LLA"
+  cSLogOptions[1] = "$TNG_LLW"
+  cSLogOptions[2] = "$TNG_LLE"
+  cSLogOptions[3] = "$TNG_LLC"
+  cSLogOptions[4] = "$TNG_LLO"
   
   cuFemAR = 1
   cuMalAR = 2
@@ -186,6 +196,10 @@ Event OnOptionHighlight(Int aiOption)
       SetInfoText("$TNG_HKS")
       Return
     EndIf
+    If aiOption == fiLogLvlHdl
+      SetInfoText("$TNG_HLL")
+      Return
+    EndIf
     Int liCurr = fSSizeGlobals.Length
     While liCurr
       liCurr -= 1
@@ -235,8 +249,8 @@ Event OnPageReset(String asPage)
 	If asPage == Pages[0]
     fiNotifs = AddToggleOption("$TNG_GNT",Notifs)
 		fiAutoRevealF = AddToggleOption("$TNG_GRF",TNG_PapyrusUtil.GetBoolValue(cuFemAR))
-    fiAutoRevealM = AddToggleOption("$TNG_GRM",TNG_PapyrusUtil.GetBoolValue(cuMalAR))
     fiExPCSize = AddToggleOption("$TNG_GEP", TNG_PapyrusUtil.GetBoolValue(cuExPCSize))
+    fiAutoRevealM = AddToggleOption("$TNG_GRM",TNG_PapyrusUtil.GetBoolValue(cuMalAR))
     AddHeaderOption("$TNG_KyH")
     AddHeaderOption("")
     fkDAK = None
@@ -255,11 +269,20 @@ Event OnPageReset(String asPage)
     fiUpKey = AddKeyMapOption("$TNG_K_U",GenUpKey.GetValueInt())
     fiDownKey = AddKeyMapOption("$TNG_K_D",GenDownKey.GetValueInt())
     AddHeaderOption("$TNG_SOH")
-    AddHeaderOption("")
+    AddHeaderOption("$TNG_L_H")
     Int liGlbSize = 0
     While liGlbSize < fSSizeGlobals.Length
       fIGlblSizeHdls[liGlbSize] = AddSliderOption(fSSizeGlobals[liGlbSize],GlobalSizes[liGlbSize].GetValue(),"{2}")
-      AddEmptyOption()
+      If liGlbSize == 0
+        Int liLvl = TNG_PapyrusUtil.UpdateLogLvl(-1)
+        fiLogLvlHdl = AddMenuOption("$TNG_L_T",cSLogOptions[liLvl])
+      EndIf
+      If liGlbSize == 1
+        fiLogDir = AddToggleOption("$TNG_L_D",False)
+      EndIf
+      If liGlbSize > 1
+        AddEmptyOption()
+      EndIf
       liGlbSize += 1
     EndWhile 
     Return
@@ -414,9 +437,19 @@ Event OnOptionDefault(Int aiOption)
     SetSliderOptionValue(fiWomenChance,WomenChance.GetValue(),"{0}%")
     Return
   EndIf
+  If aiOption == fiLogLvlHdl
+    Int liLvl = TNG_PapyrusUtil.UpdateLogLvl(0)
+    SetMenuOptionValue(fiLogLvlHdl,cSLogOptions[liLvl])
+  EndIf
 EndEvent
 
 Event OnOptionMenuOpen(Int aiOption)
+  If aiOption == fiLogLvlHdl
+    SetMenuDialogOptions(cSLogOptions)
+    Int liLvl = TNG_PapyrusUtil.UpdateLogLvl(-1)
+    SetMenuDialogStartIndex(liLvl)
+    Return
+  EndIf
   Int liRace = fSRaces.Length
   While liRace
     liRace -= 1
@@ -429,6 +462,11 @@ Event OnOptionMenuOpen(Int aiOption)
 EndEvent
 
 Event OnOptionMenuAccept(Int aiOption,Int aiChoice)	
+  If aiOption == fiLogLvlHdl   
+    Int liLvl = TNG_PapyrusUtil.UpdateLogLvl(aiChoice) 
+    SetMenuOptionValue(fiLogLvlHdl,cSLogOptions[liLvl])
+    Return
+  EndIf
 	Int liRace = fSRaces.Length
   While liRace
     liRace -= 1
@@ -549,6 +587,10 @@ Event OnOptionSelect(Int aiOption)
           OnOptionDefault(fiDownKey)
         EndIf
       EndIf
+      Return
+    EndIf
+    If aiOption == fiLogDir
+      ShowMessage(TNG_PapyrusUtil.ShowLogLocation(),true,"Ok")
       Return
     EndIf
     Return
