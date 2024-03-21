@@ -354,11 +354,13 @@ void TngCore::CheckArmorPieces() noexcept {
   for (const auto& lRevealMod : TngInis::fRevealingMods)
     if (fDH->LookupModByName(lRevealMod)) Tng::gLogger::info("TheNewGentleman keeps an eye for [{}] as a revealing armor mod.", lRevealMod);
   for (const auto& lArmor : lAllArmor) {
+    if (!lArmor) continue;
     if (lArmor->armorAddons.size() == 0) lArmor->AddKeyword(fIAKey);
     const auto lID = (std::string(lArmor->GetName()).empty()) ? lArmor->GetFormEditorID() : lArmor->GetName();
     if (!lArmor->race) {
       Tng::gLogger::warn("The armor [0x{:x}: {}] does not have a race! It won't be touched by Tng!", lArmor->GetFormID(), lID);
       lArmor->AddKeyword(fIAKey);
+      continue;
     }
     if (!(lArmor->race->HasKeyword(fPRaceKey) || lArmor->race->HasKeyword(fRRaceKey) || lArmor->race == fDefRace)) continue;
     if (lArmor->HasKeyword(fIAKey) || lArmor->HasKeyword(fUAKey)) continue;

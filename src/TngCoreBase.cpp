@@ -530,7 +530,7 @@ std::set<RE::TESObjectARMA *> TngCoreBase::GentifyMalSkin(RE::TESObjectARMO *aSk
     if (lAA->HasPartOf(Tng::cSlotBody) && lAA->race && ((lAA->race == fDefRace) || lAA->race->HasKeyword(fPRaceKey))) lRes.insert(lAA);
   }
   auto lType = GetSkinType(aSkin);
-  auto lAddons = aAddon >= 0 ? GetAddonAAs(lType, aAddon, false) : GetCombinedAddons(lType, aSkin);
+  auto lAddons = aAddon >= 0 ? GetAddonAAs(lType, aAddon, false) : GetCombinedAddons(aSkin);
   if (lHasAddons) {
     for (std::uint32_t i = 0; i < aSkin->armorAddons.size(); i++)
       if (fAllMalAAs.find(aSkin->armorAddons[i]) != fAllMalAAs.end()) aSkin->armorAddons[i] = lAddons.at(aSkin->armorAddons[i]->race);
@@ -564,17 +564,19 @@ std::set<RE::TESObjectARMA *> TngCoreBase::GentifyFemSkin(RE::TESObjectARMO *aSk
   return lRes;
 }
 
-std::map<RE::TESRace *, RE::TESObjectARMA *> TngCoreBase::GetCombinedAddons(Tng::RaceType aRaceType, RE::TESObjectARMO *aSkin) noexcept {
+std::map<RE::TESRace *, RE::TESObjectARMA *> TngCoreBase::GetCombinedAddons(RE::TESObjectARMO *aSkin) noexcept {
   std::map<RE::TESRace *, RE::TESObjectARMA *> lRes{};
   std::set<RE::TESRace *> lReqRaces{};
   for (const auto &lAA : aSkin->armorAddons) {
     if (!lAA->HasPartOf(Tng::cSlotBody) || !lAA->race) continue;
-    if (lAA->race->HasKeyword(fPRaceKey)) lReqRaces.insert(fRacesInfo[GetRaceGrp(lAA->race)].armorRaces.begin(), fRacesInfo[GetRaceGrp(lAA->race)].armorRaces.end());
+    if (lAA->race->HasKeyword(fPRaceKey) && (!lAA->race->armorParentRace || lReqRaces.find(lAA->race->armorParentRace) == lReqRaces.end()))
+      lReqRaces.insert(fRacesInfo[GetRaceGrp(lAA->race)].armorRaces.begin(), fRacesInfo[GetRaceGrp(lAA->race)].armorRaces.end());
     for (const auto &lAAAddRace : lAA->additionalRaces)
-      if (lAAAddRace->HasKeyword(fPRaceKey)) lReqRaces.insert(fRacesInfo[GetRaceGrp(lAAAddRace)].armorRaces.begin(), fRacesInfo[GetRaceGrp(lAAAddRace)].armorRaces.end());
+      if (lAAAddRace->HasKeyword(fPRaceKey) && (!lAAAddRace->armorParentRace || lReqRaces.find(lAAAddRace->armorParentRace) == lReqRaces.end()))
+        lReqRaces.insert(fRacesInfo[GetRaceGrp(lAAAddRace)].armorRaces.begin(), fRacesInfo[GetRaceGrp(lAAAddRace)].armorRaces.end());
   }
   for (const auto &lRace : lReqRaces) {
-    for (const auto &lAA : fMalAddonAAs[aRaceType][GetRaceGrpAddn(lRace)]) {
+    for (const auto &lAA : fMalAddonAAs[GetRaceType(lRace)][GetRaceGrpAddn(lRace)]) {
       if ((lAA->race == lRace) || (std::find(lAA->additionalRaces.begin(), lAA->additionalRaces.end(), lRace) != lAA->additionalRaces.end())) {
         lRes.insert_or_assign(lAA->race, lAA);
         break;

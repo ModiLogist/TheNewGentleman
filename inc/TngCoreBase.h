@@ -162,6 +162,6 @@ class TngCoreBase : public Singleton<TngCoreBase> {
     static std::set<RE::TESObjectARMA*> GentifyFemSkin(RE::TESObjectARMO* aSkin, int aAddon) noexcept;
 
   private:
-    static std::map<RE::TESRace*, RE::TESObjectARMA*> GetCombinedAddons(Tng::RaceType aRaceType, RE::TESObjectARMO* aSkin) noexcept;
+    static std::map<RE::TESRace*, RE::TESObjectARMA*> GetCombinedAddons(RE::TESObjectARMO* aSkin) noexcept;
     static std::map<RE::TESRace*, RE::TESObjectARMA*> GetAddonAAs(Tng::RaceType aRaceType, int aAddonIdx, bool aIsFemale);
 };
