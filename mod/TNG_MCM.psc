@@ -16,10 +16,9 @@ Int Property PlayerSize auto
 Actor Property PlayerRef auto
 
 ;Constants
-Int cuFemAR = 1
-Int cuMalAR = 2
-Int cuClipCheck = 3
-Int cuExPCSize = 4
+Int cuFemAR
+Int cuMalAR
+Int cuExPCSize
 
 ;Kinda constant
 Float[] cFSizeDefaults
@@ -40,7 +39,6 @@ Int[] fIRaceSizeHdls
 Int[] fIGlblSizeHdls
 Int[] fIFemAddons
 
-Int fiDoubleCheck
 Int fiAutoRevealF
 Int fiAutoRevealM
 Int fiNotifs
@@ -54,7 +52,7 @@ Int fiDownKey
 Int fiWomenChance
 
 Int Function GetVersion()
-	Return 3
+	Return 4
 EndFunction
 
 Event OnConfigInit()
@@ -89,6 +87,10 @@ Event OnConfigInit()
   cFSizeDefaults[2] = 1.0
   cFSizeDefaults[3] = 1.2
   cFSizeDefaults[4] = 1.4
+  
+  cuFemAR = 1
+  cuMalAR = 2
+  cuExPCSize = 3
 EndEvent
 
 Event OnVersionUpdate(Int aiVersion)
@@ -154,10 +156,6 @@ Event OnOptionHighlight(Int aiOption)
   If CurrentPage == Pages[0]
     If aiOption == fiDAK
       SetInfoText("$TNG_HGD")
-      Return
-    EndIf 
-    If aiOption == fiDoubleCheck
-      SetInfoText("$TNG_HGC")
       Return
     EndIf
     If aiOption == fiAutoRevealF
@@ -235,12 +233,10 @@ EndEvent
 
 Event OnPageReset(String asPage)
 	If asPage == Pages[0]
-    fiDoubleCheck = AddToggleOption("$TNG_GRC", TNG_PapyrusUtil.GetBoolValue(cuClipCheck))    
     fiNotifs = AddToggleOption("$TNG_GNT",Notifs)
 		fiAutoRevealF = AddToggleOption("$TNG_GRF",TNG_PapyrusUtil.GetBoolValue(cuFemAR))
     fiAutoRevealM = AddToggleOption("$TNG_GRM",TNG_PapyrusUtil.GetBoolValue(cuMalAR))
     fiExPCSize = AddToggleOption("$TNG_GEP", TNG_PapyrusUtil.GetBoolValue(cuExPCSize))
-    AddEmptyOption()
     AddHeaderOption("$TNG_KyH")
     AddHeaderOption("")
     fkDAK = None
@@ -270,12 +266,12 @@ Event OnPageReset(String asPage)
   EndIf
   
   If asPage == Pages[1]
-    AddHeaderOption("$TNG_OGT")
     AddHeaderOption("$TNG_OGS")
+    AddHeaderOption("$TNG_OGT")
     Int liRace = 0
-    While liRace < fSRaces.Length
-      fIRaceTypeHdls[liRace] = AddMenuOption(fSRaces[liRace],fSMalOptions[TNG_PapyrusUtil.GetRaceGrpAddn(liRace)])
-      fIRaceSizeHdls[liRace] = AddSliderOption("",TNG_PapyrusUtil.GetRaceGrpMult(liRace),"{2}")
+    While liRace < fSRaces.Length      
+      fIRaceSizeHdls[liRace] = AddSliderOption(fSRaces[liRace],TNG_PapyrusUtil.GetRaceGrpMult(liRace),"{2}")
+      fIRaceTypeHdls[liRace] = AddMenuOption("",fSMalOptions[TNG_PapyrusUtil.GetRaceGrpAddn(liRace)])
       liRace += 1
     EndWhile
     Return
@@ -357,11 +353,6 @@ Event OnOptionDefault(Int aiOption)
   If aiOption == fiAutoRevealM
     TNG_PapyrusUtil.SetBoolValue(cuMalAR,False)    
 		SetToggleOptionValue(fiAutoRevealM,TNG_PapyrusUtil.GetBoolValue(cuMalAR))
-    Return
-  EndIf
-  If aiOption == fiDoubleCheck
-    TNG_PapyrusUtil.SetBoolValue(cuClipCheck,True)
-    SetToggleOptionValue(fiDoubleCheck,TNG_PapyrusUtil.GetBoolValue(cuClipCheck))
     Return
   EndIf
   If aiOption == fiExPCSize
@@ -531,11 +522,6 @@ Event OnOptionSelect(Int aiOption)
     If aiOption == fiAutoRevealM
       TNG_PapyrusUtil.SetBoolValue(cuMalAR,!TNG_PapyrusUtil.GetBoolValue(cuMalAR))    
       SetToggleOptionValue(fiAutoRevealM,TNG_PapyrusUtil.GetBoolValue(cuMalAR))
-      Return
-    EndIf
-    If aiOption == fiDoubleCheck
-      TNG_PapyrusUtil.SetBoolValue(cuClipCheck,!TNG_PapyrusUtil.GetBoolValue(cuClipCheck))    
-      SetToggleOptionValue(fiDoubleCheck,TNG_PapyrusUtil.GetBoolValue(cuClipCheck))
       Return
     EndIf
     If aiOption == fiExPCSize
