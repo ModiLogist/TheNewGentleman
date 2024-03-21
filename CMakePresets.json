@@ -7,21 +7,18 @@
   },
   "configurePresets": [
     {
-      "name": "cmake-base",
+      "name": "cmake-dev",
       "hidden": true,
       "cacheVariables": {
-        "CMAKE_CXX_STANDARD": "23",
-        "CMAKE_CXX_STANDARD_REQUIRED": "ON",
-        "CMAKE_CXX_EXTENSIONS": "OFF",
-        "WIN32_LEAN_AND_MEAN": "ON",
-        "Boost_USE_STATIC_RUNTIME": "OFF",
-        "Boost_USE_STATIC_LIBS": "ON",
-        "SKSE_SUPPORT_XBYAK": "ON",
         "CMAKE_CONFIGURATION_TYPES": "Release",
-        "CMAKE_BUILD_TYPE": "RelWithDebInfo",
-        "CMAKE_INTERPROCEDURAL_OPTIMIZATION": "ON",
-        "CMAKE_INTERPROCEDURAL_OPTIMIZATION_DEBUG": "OFF",
-        "_UNICODE": "ON"
+        "CMAKE_CXX_FLAGS": "/EHsc /MP /W4 /external:anglebrackets /external:W0 /Zc:inline /JMC- $penv{CXXFLAGS}"
+      },
+      "errors": {
+        "deprecated": true
+      },
+      "warnings": {
+        "deprecated": true,
+        "dev": true
       }
     },
     {
@@ -29,7 +26,6 @@
       "hidden": true,
       "toolchainFile": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
       "cacheVariables": {
-        "VCPKG_TARGET_TRIPLET": "x64-windows-static",
         "VCPKG_OVERLAY_PORTS": "${sourceDir}/cmake/ports/"
       }
     },
@@ -45,23 +41,7 @@
       "name": "vs2022",
       "hidden": true,
       "generator": "Visual Studio 17 2022",
-      "toolset": "v143",
-      "cmakeExecutable": "C:/Program Files/CMake/bin/",
-      "environment": {
-        "COMMONLIBSSE_COMPILER": "/cgthreads8 /diagnostics:caret /EHsc /fp:contract /fp:except- /guard:cf- /MP /permissive- /sdl /W4 /Zc:__cplusplus /Zc:enumTypes /Zc:lambda /Zc:preprocessor /Zc:referenceBinding /Zc:rvalueCast /Zc:templateScope /Zc:ternary",
-        "COMMONLIBSSE_LINKER": "/CGTHREADS:8 /MACHINE:x64 /DEBUG:FASTLINK"
-      },
-      "cacheVariables": {
-        "CMAKE_CXX_FLAGS_RELWITHDEBINFO": "/fp:fast /GR- /Gw /O2 /Ob3 /Qpar",
-        "CMAKE_SHARED_LINKER_FLAGS_RELWITHDEBINFO": "/LTCG:INCREMENTAL /OPT:REF,ICF=4"
-      },
-      "vendor": {
-        "microsoft.com/VisualStudioSettings/CMake/1.0": {
-          "intelliSenseMode": "windows-msvc-x64",
-          "enableMicrosoftCodeAnalysis": true,
-          "enableClangTidyCodeAnalysis": true
-        }
-      }
+      "toolset": "v143"
     },
     {
       "name": "se",
@@ -96,7 +76,7 @@
     {
       "name": "vs2022-windows-vcpkg-se",
       "inherits": [
-        "cmake-base",
+        "cmake-dev",
         "vcpkg",
         "windows",
         "vs2022",
@@ -106,7 +86,7 @@
     {
       "name": "vs2022-windows-vcpkg-353",
       "inherits": [
-        "cmake-base",
+        "cmake-dev",
         "vcpkg",
         "windows",
         "vs2022",
@@ -116,7 +96,7 @@
     {
       "name": "vs2022-windows-vcpkg-ae",
       "inherits": [
-        "cmake-base",
+        "cmake-dev",
         "vcpkg",
         "windows",
         "vs2022",
@@ -126,7 +106,7 @@
     {
       "name": "vs2022-windows-vcpkg-vr",
       "inherits": [
-        "cmake-base",
+        "cmake-dev",
         "vcpkg",
         "windows",
         "vs2022",
