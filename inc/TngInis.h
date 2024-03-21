@@ -44,6 +44,9 @@ class TngInis : public Singleton<TngInis> {
 
     inline static constexpr const char* cTngIniEnding{"TNG.ini"};
 
+    inline static constexpr const char* cRaceSection{"Race"};
+    inline static constexpr const char* cExcRaces{"ExcludeMods"};
+
     inline static constexpr const char* cSkeleton{"Skeleton"};
     inline static constexpr const char* cValidModel{"ValidModel"};
 
@@ -70,6 +73,7 @@ class TngInis : public Singleton<TngInis> {
 
   public:
     enum IniBoolIDs { cNoneBoolID, femaleAutoReveal, maleAutoReveal, excludePlayerSize, cBoolIDsCount };
+    inline static std::set<std::string> fRaceExMods;
     inline static std::set<std::string> fSkinMods;
     inline static std::set<std::pair<std::string, RE::FormID>> fSingleSkinIDs;
     inline static std::set<std::string> fRevealingMods;

@@ -1,5 +1,5 @@
-#include <TngInis.h>
 #include <TngCoreBase.h>
+#include <TngInis.h>
 
 bool TngInis::Init() noexcept {
   fDH = RE::TESDataHandler::GetSingleton();
@@ -93,6 +93,16 @@ void TngInis::LoadTngInis() noexcept {
       lIni.SetUnicode();
       lIni.SetMultiKey();
       lIni.LoadFile(entry.path().string().c_str());
+      if (lIni.SectionExists(cRaceSection)) {
+        CSimpleIniA::TNamesDepend lExMods;
+        lIni.GetAllValues(cRaceSection, cExcRaces, lExMods);
+        CSimpleIniA::TNamesDepend::const_iterator lMod;
+        for (lMod = lExMods.begin(); lMod != lExMods.end(); lMod++) {
+          const std::string lModName(lMod->pItem);
+          fRaceExMods.insert(lModName);
+        }
+        Tng::gLogger::info("\t- Found [{}] excluded mods for their races in file [{}].", lExMods.size(), lFileName);
+      }
       if (lIni.SectionExists(cExcludeSection)) {
         CSimpleIniA::TNamesDepend lExRecords;
         CSimpleIniA::TNamesDepend::const_iterator lEntry;

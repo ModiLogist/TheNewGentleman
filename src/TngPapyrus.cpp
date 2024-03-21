@@ -1,7 +1,7 @@
 #include <TngCore.h>
+#include <TngCoreBase.h>
 #include <TngInis.h>
 #include <TngPapyrus.h>
-#include <TngCoreBase.h>
 
 void TngPapyrus::SaveGlobals(RE::StaticFunctionTag*) { TngInis::SaveGlobals(); }
 

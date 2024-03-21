@@ -121,6 +121,10 @@ bool TngCore::IgnoreRace(RE::TESRace* aRace) noexcept {
 
 bool TngCore::CheckRace(RE::TESRace* aRace) {
   if (!aRace->HasKeyword(fNPCKey) || aRace->HasKeyword(fCrtKey) || !aRace->HasPartOf(Tng::cSlotBody) || aRace->IsChildRace()) return false;
+  if (aRace->GetFile(0) && TngInis::fRaceExMods.size() > 0 && TngInis::fRaceExMods.find(std::string{aRace->GetFile(0)->GetFilename()}) != TngInis::fRaceExMods.end()) {
+    Tng::gLogger::info("The race [{}: 0x{:x}: {}] was ignored because an ini excludes it!", aRace->GetFile(0)->GetFilename(), aRace->GetFormID(), aRace->GetFormEditorID());
+    return false;
+  }
   if (!TngInis::IsValidSkeleton(aRace->skeletonModels[0].model.data()) || !TngInis::IsValidSkeleton(aRace->skeletonModels[1].model.data())) {
     IgnoreRace(aRace);
     Tng::gLogger::info("The race [0x{:x}: {}] was ignored because it uses a custom skeleton!", aRace->GetFormID(), aRace->GetFormEditorID());
@@ -377,6 +381,7 @@ void TngCore::CheckArmorPieces() noexcept {
     lIA--;
     if ((lCheckCoverRecords && TngInis::fSingleCoveringIDs.find(std::make_pair(std::string{lFN}, lArmor->GetLocalFormID())) != TngInis::fSingleCoveringIDs.end()) ||
         lArmor->HasKeyword(fCCKey)) {
+      TryMakeArmorCovering(lArmor, true);
       Tng::gLogger::info("The armor [0x{:x}: {}] was marked covering.", lArmor->GetFormID(), lID);
       lCC++;
       continue;

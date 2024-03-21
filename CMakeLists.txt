@@ -167,8 +167,7 @@ add_library(
 	${sources}
 	${CMAKE_CURRENT_BINARY_DIR}/inc/Version.h
 	${CMAKE_CURRENT_BINARY_DIR}/version.rc
-	.clang-format
-	.editorconfig)
+	.clang-format)
 
 target_compile_features(
 	${PROJECT_NAME}
