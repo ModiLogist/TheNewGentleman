@@ -15,7 +15,7 @@ static bool CheckIncompatiblity() {
 
 static void IssueWarning() {
   Tng::gLogger::error("TheNewGentleman did not initialize successfully!");
-  RE::DebugMessageBox("$TNG_E_0");
+  RE::DebugMessageBox("TNG Error 1: The New Gentleman DLL cannot be loaded successfully! Make sure you have all the requirements installed!");
 }
 
 static void InitializeLogging() {
