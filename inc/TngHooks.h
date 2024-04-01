@@ -5,5 +5,5 @@ class TngHooks : public Singleton<TngHooks> {
     static void Install();
 
   private:
-    static void InitWornArmor(RE::TESObjectARMO* a_armor, RE::Actor* a_actor, RE::BSTSmartPointer<RE::BipedAnim>* a_biped);
+    static void InitWornArmor(RE::TESObjectARMO* aArmor, RE::Actor* aActor, RE::BSTSmartPointer<RE::BipedAnim>* aBiped);
 };

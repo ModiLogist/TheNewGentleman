@@ -1,8 +1,7 @@
-#include "dav/TESObjectARMA.h"
 #include "TngHooks.h"
+
 #include "TngCoreBase.h"
-
-
+#include "dav/TESObjectARMA.h"
 
 void TngHooks::Install() {
   auto lHook = MakeHook(DAV::TESNPC::InitWornFormOffset, 0x2F0);
@@ -25,13 +24,13 @@ void TngHooks::Install() {
   REL::safe_write(lHook.address(), patch.getCode(), patch.getSize());
 }
 
-void TngHooks::InitWornArmor(RE::TESObjectARMO* a_armor, RE::Actor* a_actor, RE::BSTSmartPointer<RE::BipedAnim>* a_biped) {
-  auto race = a_actor->GetRace();
-  auto sex = a_actor->GetActorBase()->GetSex();
-  for (auto& armorAddon : a_armor->armorAddons) {
+void TngHooks::InitWornArmor(RE::TESObjectARMO* aArmor, RE::Actor* aActor, RE::BSTSmartPointer<RE::BipedAnim>* aBiped) {
+  auto race = aActor->GetRace();
+  auto sex = aActor->GetActorBase()->GetSex();
+  for (auto& armorAddon : aArmor->armorAddons) {
     if (DAV::TESObjectARMA::HasRace(armorAddon, race)) {
-      auto visitor = std::bind(DAV::TESObjectARMA::InitWornArmorAddon, std::placeholders::_1, a_armor, a_biped, sex);
-      TngCoreBase::VisitArmorAddons(a_actor, armorAddon, visitor);
+      auto visitor = std::bind(DAV::TESObjectARMA::InitWornArmorAddon, std::placeholders::_1, aArmor, aBiped, sex);
+      TngCoreBase::VisitArmorAddons(aActor, armorAddon, visitor);
     }
   }
 }
