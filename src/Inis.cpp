@@ -1,7 +1,7 @@
-#include <TngCoreBase.h>
-#include <TngInis.h>
+#include <Base.h>
+#include <Inis.h>
 
-bool TngInis::Init() noexcept {
+bool Inis::Init() noexcept {
   fDH = RE::TESDataHandler::GetSingleton();
   fNPCCtrl = fDH->LookupForm<RE::TESGlobal>(cNPCCtrlID, Tng::cName);
   fUPGCtrl = fDH->LookupForm<RE::TESGlobal>(cUPGCtrlID, Tng::cName);
@@ -16,7 +16,7 @@ bool TngInis::Init() noexcept {
   return true;
 }
 
-void TngInis::LoadMainIni() noexcept {
+void Inis::LoadMainIni() noexcept {
   if (!std::filesystem::exists(cSettings)) {
     std::ofstream lTngSettings(cSettings);
     lTngSettings << ";TNG Settings File" << std::endl;
@@ -31,7 +31,7 @@ void TngInis::LoadMainIni() noexcept {
   fAutoReveal[1] = lIni.GetBoolValue(cGeneral, cFAutoReveal, true);
   fExlPC = lIni.GetBoolValue(cGeneral, cExlPC, false);
   for (std::size_t i = 0; i < Tng::cSizeCategories; i++) {
-    TngCoreBase::SetGlobalSize(i, static_cast<float>(lIni.GetDoubleValue(cGlobalSize, cSizeNames[i], cDefSizes[i])));
+    Base::SetGlobalSize(i, static_cast<float>(lIni.GetDoubleValue(cGlobalSize, cSizeNames[i], cDefSizes[i])));
   }
   CSimpleIniA::TNamesDepend::const_iterator lEntry;
   CSimpleIniA::TNamesDepend lSectionRecords;
@@ -39,30 +39,30 @@ void TngInis::LoadMainIni() noexcept {
   for (lEntry = lSectionRecords.begin(); lEntry != lSectionRecords.end(); lEntry++) {
     std::string lAddon = lIni.GetValue(cRacialGenital, lEntry->pItem);
     const std::string lRaceRecord(lEntry->pItem);
-    if (!TngCoreBase::LoadRaceAddn(lRaceRecord, lAddon)) lIni.Delete(cRacialGenital, lEntry->pItem);
+    if (!Base::LoadRaceAddn(lRaceRecord, lAddon)) lIni.Delete(cRacialGenital, lEntry->pItem);
   }
   lIni.GetAllKeys(cRacialSize, lSectionRecords);
   for (lEntry = lSectionRecords.begin(); lEntry != lSectionRecords.end(); lEntry++) {
     auto lMult = lIni.GetDoubleValue(cRacialSize, lEntry->pItem);
     const std::string lRaceRecord(lEntry->pItem);
-    if (!TngCoreBase::LoadRaceMult(lRaceRecord, static_cast<float>(lMult))) lIni.Delete(cRacialSize, lEntry->pItem);
+    if (!Base::LoadRaceMult(lRaceRecord, static_cast<float>(lMult))) lIni.Delete(cRacialSize, lEntry->pItem);
   }
   lIni.GetAllKeys(cNPCSizeSection, lSectionRecords);
   for (lEntry = lSectionRecords.begin(); lEntry != lSectionRecords.end(); lEntry++) {
     auto lSize = lIni.GetLongValue(cNPCSizeSection, lEntry->pItem);
     const std::string lNPCRecord(lEntry->pItem);
-    if (!TngCoreBase::LoadNPCSize(lNPCRecord, lSize)) lIni.Delete(cNPCSizeSection, lEntry->pItem);
+    if (!Base::LoadNPCSize(lNPCRecord, lSize)) lIni.Delete(cNPCSizeSection, lEntry->pItem);
   }
   lIni.GetAllKeys(cNPCAddnSection, lSectionRecords);
   for (lEntry = lSectionRecords.begin(); lEntry != lSectionRecords.end(); lEntry++) {
     const std::string lNPCRecord(lEntry->pItem);
     std::string lAddon = lIni.GetValue(cNPCAddnSection, lEntry->pItem);
-    if (!TngCoreBase::LoadNPCAddn(lNPCRecord, lAddon)) lIni.Delete(cNPCAddnSection, lEntry->pItem);
+    if (!Base::LoadNPCAddn(lNPCRecord, lAddon)) lIni.Delete(cNPCAddnSection, lEntry->pItem);
   }
   lIni.GetAllKeys(cExcludeSection, lSectionRecords);
   for (lEntry = lSectionRecords.begin(); lEntry != lSectionRecords.end(); lEntry++) {
     const std::string lNPCRecord(lEntry->pItem);
-    TngCoreBase::ExcludeNPC(lNPCRecord);
+    Base::ExcludeNPC(lNPCRecord);
   }
   lIni.GetAllKeys(cRevealingRecord, lSectionRecords);
   for (lEntry = lSectionRecords.begin(); lEntry != lSectionRecords.end(); lEntry++) {
@@ -70,9 +70,9 @@ void TngInis::LoadMainIni() noexcept {
     const std::string lArmorRecord(lEntry->pItem);
     if (lIsRevealing) UpdateRevealing(lArmorRecord);
   }
-  for (std::size_t i = 0; i < TngCoreBase::GetAddonCount(true); i++) {
-    auto lAddon = TngCoreBase::GetAddonAt(true, i);
-    TngCoreBase::SetAddonStatus(i, lIni.GetBoolValue(cActiveAddons, RecordToStr(lAddon).c_str(), false));
+  for (std::size_t i = 0; i < Base::GetAddonCount(true); i++) {
+    auto lAddon = Base::GetAddonAt(true, i);
+    Base::SetAddonStatus(i, lIni.GetBoolValue(cActiveAddons, RecordToStr(lAddon).c_str(), false));
   }
   if (lIni.KeyExists(cControls, cINTCtrl)) fINTCtrl->value = lIni.GetBoolValue(cControls, cINTCtrl) ? 2.0f : 0.0f;
   if (lIni.KeyExists(cControls, cNPCCtrl)) fNPCCtrl->value = static_cast<float>(lIni.GetLongValue(cControls, cNPCCtrl));
@@ -83,7 +83,7 @@ void TngInis::LoadMainIni() noexcept {
   lIni.SaveFile(cSettings);
 }
 
-void TngInis::LoadTngInis() noexcept {
+void Inis::LoadTngInis() noexcept {
   if (!std::filesystem::exists(cTngInisPath)) return;
   Tng::gLogger::info("Loading ini files:");
   for (const auto& entry : std::filesystem::directory_iterator(cTngInisPath)) {
@@ -170,7 +170,7 @@ void TngInis::LoadTngInis() noexcept {
   }
 }
 
-void TngInis::LoadHoteKeys() noexcept {
+void Inis::LoadHoteKeys() noexcept {
   CSimpleIniA lIni;
   lIni.SetUnicode();
   lIni.LoadFile(cSettings);
@@ -181,14 +181,14 @@ void TngInis::LoadHoteKeys() noexcept {
   if (lIni.KeyExists(cControls, cREVCtrl)) fREVCtrl->value = static_cast<float>(lIni.GetLongValue(cControls, cREVCtrl));
 }
 
-int TngInis::GetLogLvl() noexcept {
+int Inis::GetLogLvl() noexcept {
   CSimpleIniA lIni;
   lIni.SetUnicode();
   lIni.LoadFile(cSettings);
   return lIni.GetLongValue(cGeneral, cLogLvl, static_cast<int>(spdlog::level::info));
 }
 
-void TngInis::SetLogLvl(int aLvl) noexcept {
+void Inis::SetLogLvl(int aLvl) noexcept {
   if (aLvl < static_cast<int>(spdlog::level::info) || aLvl >= static_cast<int>(spdlog::level::n_levels)) return;
   CSimpleIniA lIni;
   lIni.SetUnicode();
@@ -197,20 +197,20 @@ void TngInis::SetLogLvl(int aLvl) noexcept {
   lIni.SaveFile(cSettings);
 }
 
-bool TngInis::GetSettingBool(IniBoolIDs aID) noexcept {
+bool Inis::GetSettingBool(IniBoolIDs aID) noexcept {
   switch (aID) {
-    case TngInis::femaleAutoReveal:
+    case Inis::femaleAutoReveal:
       return fAutoReveal[1];
-    case TngInis::maleAutoReveal:
+    case Inis::maleAutoReveal:
       return fAutoReveal[0];
-    case TngInis::excludePlayerSize:
+    case Inis::excludePlayerSize:
       return fExlPC;
     default:
       return false;
   }
 }
 
-void TngInis::SaveSettingBool(IniBoolIDs aID, bool aValue) noexcept {
+void Inis::SaveSettingBool(IniBoolIDs aID, bool aValue) noexcept {
   CSimpleIniA lIni;
   lIni.SetUnicode();
   lIni.LoadFile(cSettings);
@@ -233,15 +233,15 @@ void TngInis::SaveSettingBool(IniBoolIDs aID, bool aValue) noexcept {
   lIni.SaveFile(cSettings);
 }
 
-bool TngInis::GetAutoReveal(const bool aIsFemale) noexcept { return (aIsFemale ? fAutoReveal[1] : fAutoReveal[0]); }
+bool Inis::GetAutoReveal(const bool aIsFemale) noexcept { return (aIsFemale ? fAutoReveal[1] : fAutoReveal[0]); }
 
-bool TngInis::GetExcludePlayer() noexcept { return fExlPC; }
+bool Inis::GetExcludePlayer() noexcept { return fExlPC; }
 
-void TngInis::SaveRaceMult(const std::size_t aRaceIdx, const float aRaceMult) noexcept {
+void Inis::SaveRaceMult(const std::size_t aRaceIdx, const float aRaceMult) noexcept {
   CSimpleIniA lIni;
   lIni.SetUnicode();
   lIni.LoadFile(cSettings);
-  auto lRace = TngCoreBase::GetRaceByIdx(aRaceIdx);
+  auto lRace = Base::GetRaceByIdx(aRaceIdx);
   auto lRaceIDStr = RecordToStr(lRace);
   if (lRaceIDStr.empty()) {
     Tng::gLogger::critical("Failed to save the size multiplier for race [{:x}: {}]!", lRace->GetFormID(), lRace->GetFormEditorID());
@@ -255,11 +255,11 @@ void TngInis::SaveRaceMult(const std::size_t aRaceIdx, const float aRaceMult) no
   lIni.SaveFile(cSettings);
 }
 
-void TngInis::SaveRaceAddn(const std::size_t aRaceIdx, int aChoice) noexcept {
+void Inis::SaveRaceAddn(const std::size_t aRaceIdx, int aChoice) noexcept {
   CSimpleIniA lIni;
   lIni.SetUnicode();
   lIni.LoadFile(cSettings);
-  auto lRace = TngCoreBase::GetRaceByIdx(aRaceIdx);
+  auto lRace = Base::GetRaceByIdx(aRaceIdx);
   auto lRaceIDStr = RecordToStr(lRace);
   if (lRaceIDStr.empty()) {
     Tng::gLogger::critical("Failed to save the selected addon for race [{:x}: {}]!", lRace->GetFormID(), lRace->GetFormEditorID());
@@ -268,14 +268,14 @@ void TngInis::SaveRaceAddn(const std::size_t aRaceIdx, int aChoice) noexcept {
   if (aChoice == -1) {
     lIni.Delete(cRacialGenital, lRaceIDStr.c_str());
   } else {
-    auto lAddon = TngCoreBase::GetAddonAt(false, aChoice);
+    auto lAddon = Base::GetAddonAt(false, aChoice);
     auto lGenIDStr = RecordToStr(lAddon);
     lIni.SetValue(cRacialGenital, lRaceIDStr.c_str(), lGenIDStr.c_str());
   }
   lIni.SaveFile(cSettings);
 }
 
-void TngInis::SaveNPCAddn(RE::TESNPC* aNPC, int aChoice) noexcept {
+void Inis::SaveNPCAddn(RE::TESNPC* aNPC, int aChoice) noexcept {
   auto lNPCIDStr = RecordToStr(aNPC);
   if (lNPCIDStr.empty()) return;
   CSimpleIniA lIni;
@@ -290,7 +290,7 @@ void TngInis::SaveNPCAddn(RE::TESNPC* aNPC, int aChoice) noexcept {
       lIni.SetBoolValue(cExcludeSection, lNPCIDStr.c_str(), true);
       break;
     default:
-      auto lAddon = TngCoreBase::GetAddonAt(aNPC->IsFemale(), aChoice);
+      auto lAddon = Base::GetAddonAt(aNPC->IsFemale(), aChoice);
       auto lGenIDStr = RecordToStr(lAddon);
       lIni.Delete(cExcludeSection, lNPCIDStr.c_str());
       lIni.SetValue(cNPCAddnSection, lNPCIDStr.c_str(), lGenIDStr.c_str());
@@ -299,7 +299,7 @@ void TngInis::SaveNPCAddn(RE::TESNPC* aNPC, int aChoice) noexcept {
   lIni.SaveFile(cSettings);
 }
 
-void TngInis::SaveNPCSize(RE::TESNPC* aNPC, int aGenSize) noexcept {
+void Inis::SaveNPCSize(RE::TESNPC* aNPC, int aGenSize) noexcept {
   auto lNPCIDStr = RecordToStr(aNPC);
   if (lNPCIDStr.empty()) return;
   CSimpleIniA lIni;
@@ -312,7 +312,7 @@ void TngInis::SaveNPCSize(RE::TESNPC* aNPC, int aGenSize) noexcept {
   lIni.SaveFile(cSettings);
 }
 
-void TngInis::SaveRevealingArmor(RE::TESObjectARMO* aArmor) noexcept {
+void Inis::SaveRevealingArmor(RE::TESObjectARMO* aArmor) noexcept {
   auto lArmoIDStr = RecordToStr(aArmor);
   if (lArmoIDStr.empty()) return;
   CSimpleIniA lIni;
@@ -322,8 +322,8 @@ void TngInis::SaveRevealingArmor(RE::TESObjectARMO* aArmor) noexcept {
   lIni.SaveFile(cSettings);
 }
 
-void TngInis::SaveActiveAddon(int aFemaleAddon, bool aStatus) noexcept {
-  auto lAddonStr = RecordToStr(TngCoreBase::GetAddonAt(true, aFemaleAddon));
+void Inis::SaveActiveAddon(int aFemaleAddon, bool aStatus) noexcept {
+  auto lAddonStr = RecordToStr(Base::GetAddonAt(true, aFemaleAddon));
   if (lAddonStr.empty()) return;
   CSimpleIniA lIni;
   lIni.SetUnicode();
@@ -332,7 +332,7 @@ void TngInis::SaveActiveAddon(int aFemaleAddon, bool aStatus) noexcept {
   lIni.SaveFile(cSettings);
 }
 
-void TngInis::RemoveRevealingArmor(RE::TESObjectARMO* aArmor) noexcept {
+void Inis::RemoveRevealingArmor(RE::TESObjectARMO* aArmor) noexcept {
   auto lArmoIDStr = RecordToStr(aArmor);
   if (lArmoIDStr.empty()) return;
   CSimpleIniA lIni;
@@ -342,11 +342,11 @@ void TngInis::RemoveRevealingArmor(RE::TESObjectARMO* aArmor) noexcept {
   lIni.SaveFile(cSettings);
 }
 
-void TngInis::SaveGlobals() noexcept {
+void Inis::SaveGlobals() noexcept {
   CSimpleIniA lIni;
   lIni.SetUnicode();
   lIni.LoadFile(cSettings);
-  for (std::size_t i = 0; i < Tng::cSizeCategories; i++) lIni.SetDoubleValue(cGlobalSize, cSizeNames[i], TngCoreBase::GetGlobalSize(i));
+  for (std::size_t i = 0; i < Tng::cSizeCategories; i++) lIni.SetDoubleValue(cGlobalSize, cSizeNames[i], Base::GetGlobalSize(i));
   lIni.SetBoolValue(cControls, cINTCtrl, fINTCtrl->value > 1.0f);
   lIni.SetLongValue(cControls, cNPCCtrl, static_cast<int>(fNPCCtrl->value));
   lIni.SetLongValue(cControls, cUPGCtrl, static_cast<int>(fUPGCtrl->value));
@@ -356,13 +356,13 @@ void TngInis::SaveGlobals() noexcept {
   lIni.SaveFile(cSettings);
 }
 
-void TngInis::UpdateValidSkeletons(std::set<std::string> aValidSkeletons) noexcept {
+void Inis::UpdateValidSkeletons(std::set<std::string> aValidSkeletons) noexcept {
   for (const auto& lModel : aValidSkeletons) fValidSkeletons.insert(lModel);
 }
 
-bool TngInis::IsValidSkeleton(std::string aModel) noexcept { return fValidSkeletons.find(aModel) != fValidSkeletons.end(); }
+bool Inis::IsValidSkeleton(std::string aModel) noexcept { return fValidSkeletons.find(aModel) != fValidSkeletons.end(); }
 
-void TngInis::UpdateIniVersion() noexcept {
+void Inis::UpdateIniVersion() noexcept {
   CSimpleIniA lIni;
   CSimpleIniA::TNamesDepend lSections;
   lIni.SetUnicode();
@@ -390,7 +390,7 @@ void TngInis::UpdateIniVersion() noexcept {
   lIni.SaveFile(cSettings);
 }
 
-void TngInis::LoadModRecodPairs(CSimpleIniA::TNamesDepend aModRecords, std::set<std::pair<std::string, RE::FormID>>& aField) noexcept {
+void Inis::LoadModRecodPairs(CSimpleIniA::TNamesDepend aModRecords, std::set<std::pair<std::string, RE::FormID>>& aField) noexcept {
   CSimpleIniA::TNamesDepend::const_iterator lEntry;
   for (lEntry = aModRecords.begin(); lEntry != aModRecords.end(); lEntry++) {
     const std::string lModRecord(lEntry->pItem);
@@ -398,7 +398,7 @@ void TngInis::LoadModRecodPairs(CSimpleIniA::TNamesDepend aModRecords, std::set<
   }
 }
 
-bool TngInis::UpdateRevealing(const std::string aArmorRecod) noexcept {
+bool Inis::UpdateRevealing(const std::string aArmorRecod) noexcept {
   auto lArmor = fDH->LookupForm<RE::TESObjectARMO>(StrToRecord(aArmorRecod).second, StrToRecord(aArmorRecod).first);
   if (!lArmor) {
     Tng::gLogger::info("Previously marked revealing armor from mod {} does not exist anymore!", StrToRecord(aArmorRecod).first);

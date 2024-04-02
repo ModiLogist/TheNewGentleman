@@ -1,6 +1,6 @@
 #pragma once
 
-class TngCore : public Singleton<TngCore> {
+class Core : public Singleton<Core> {
   private:
     // Const
     inline static constexpr RE::FormID cDefSkinAAID{0xD67};
@@ -20,7 +20,6 @@ class TngCore : public Singleton<TngCore> {
         {0x03CA97, "Dragonborn.esm"},  // Miraak
     };
     inline static constexpr std::string_view cGenSkin{"TNGSkin_"};
-    inline static constexpr std::string_view cSOSR{"SOS_Revealing"};
 
   public:
     static bool Initialize() noexcept;

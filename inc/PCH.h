@@ -41,22 +41,12 @@ class Singleton {
     }
 };
 
-inline auto MakeHook(REL::ID a_id, std::ptrdiff_t a_offset = 0) { return REL::Relocation<std::uintptr_t>(a_id, a_offset); }
+namespace stl {
+  using namespace SKSE::stl;
 
-inline auto MakeHook(REL::Offset a_address, std::ptrdiff_t a_offset = 0) { return REL::Relocation<std::uintptr_t>(a_address.address() + a_offset); }
-
-#ifdef SKYRIM_AE
-  #ifdef SKYRIM_353
-    #define IF_SKYRIMSE(aResAE, aResSE, aOffsetVR, aOffset353) (aOffset353)
-  #else
-    #define IF_SKYRIMSE(aResAE, aResSE, aOffsetVR, aOffset353) (aResAE)
-  #endif
-#else
-  #ifndef SKYRIMVR
-    #define IF_SKYRIMSE(aResAE, aResSE, aOffsetVR, aOffset353) (aResSE)
-  #else
-    #define IF_SKYRIMSE(aResAE, aResSE, aOffsetVR, aOffset353) (aOffsetVR)
-  #endif
-#endif
-
-#define MAKE_OFFSET(aIdAE, aIdSE, aOffsetVR, aOffset353) IF_SKYRIMSE(REL::ID(aIdAE), REL::ID(aIdSE), REL::Offset(aOffsetVR), REL::Offset(aOffset353))
+  template <class F, class T>
+  void write_vfunc() {
+    REL::Relocation<std::uintptr_t> lVTABLE{F::VTABLE[T::fIdx]};
+    T::fFunc = lVTABLE.write_vfunc(T::fSize, T::Thunk);
+  }
+}

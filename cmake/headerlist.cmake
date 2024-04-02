@@ -1,10 +1,8 @@
 set(headers ${headers}
-  src/dav/TESObjectARMA.h
-  inc/TngHooks.h
-  inc/TngPapyrus.h
-  inc/TngEvents.h
-  inc/TngCore.h
-  inc/TngCoreBase.h
-  inc/TngInis.h
+  inc/Papyrus.h
+  inc/Events.h
+  inc/Core.h
+  inc/Base.h
+  inc/Inis.h
   inc/PCH.h
 )

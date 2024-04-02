@@ -1,6 +1,6 @@
-#include <TngCoreBase.h>
+#include <Base.h>
 
-bool TngCoreBase::Init() noexcept {
+bool Base::Init() noexcept {
   fDH = RE::TESDataHandler::GetSingleton();
   fDefRace = fDH->LookupForm<RE::TESRace>(Tng::cDefRaceID, Tng::cSkyrim);
   fBstKey = fDH->LookupForm<RE::BGSKeyword>(Tng::cBstKeywID, Tng::cSkyrim);
@@ -48,7 +48,7 @@ bool TngCoreBase::Init() noexcept {
   return true;
 }
 
-void TngCoreBase::LoadAddons() noexcept {
+void Base::LoadAddons() noexcept {
   fMalAddons.clear();
   fFemAddons.clear();
   fActiveFemAddons.clear();
@@ -69,16 +69,16 @@ void TngCoreBase::LoadAddons() noexcept {
   CategorizeAddons();
 }
 
-std::size_t TngCoreBase::GetAddonCount(bool aIsFemale) noexcept { return aIsFemale ? fFemAddons.size() : fMalAddons.size(); }
+std::size_t Base::GetAddonCount(bool aIsFemale) noexcept { return aIsFemale ? fFemAddons.size() : fMalAddons.size(); }
 
-std::size_t TngCoreBase::GetActiveFAddnCount() noexcept {
+std::size_t Base::GetActiveFAddnCount() noexcept {
   std::size_t lRes = 0;
   for (const auto lActive : fActiveFemAddons)
     if (lActive) lRes++;
   return lRes;
 }
 
-int TngCoreBase::GetActualAddon(int aActiveAddon) noexcept {
+int Base::GetActualAddon(int aActiveAddon) noexcept {
   int lRes = -1;
   int lActives = -1;
   while (lActives != aActiveAddon) {
@@ -88,20 +88,20 @@ int TngCoreBase::GetActualAddon(int aActiveAddon) noexcept {
   return lRes;
 }
 
-RE::TESObjectARMO *TngCoreBase::GetAddonAt(bool aIsFemale, std::size_t aChoice) noexcept { return aIsFemale ? fFemAddons[aChoice] : fMalAddons[aChoice]; }
+RE::TESObjectARMO *Base::GetAddonAt(bool aIsFemale, std::size_t aChoice) noexcept { return aIsFemale ? fFemAddons[aChoice] : fMalAddons[aChoice]; }
 
-bool TngCoreBase::GetAddonStatus(std::size_t aFemaleAddon) noexcept { return fActiveFemAddons[aFemaleAddon]; }
+bool Base::GetAddonStatus(std::size_t aFemaleAddon) noexcept { return fActiveFemAddons[aFemaleAddon]; }
 
-void TngCoreBase::SetAddonStatus(std::size_t aFemaleAddon, bool aIsActive) noexcept { fActiveFemAddons[aFemaleAddon] = aIsActive; }
+void Base::SetAddonStatus(std::size_t aFemaleAddon, bool aIsActive) noexcept { fActiveFemAddons[aFemaleAddon] = aIsActive; }
 
-std::vector<std::string> TngCoreBase::GetAddonNames(bool aIsFemale) noexcept {
+std::vector<std::string> Base::GetAddonNames(bool aIsFemale) noexcept {
   std::vector<std::string> lRes{};
   auto &lList = aIsFemale ? fFemAddons : fMalAddons;
   for (int i = 0; i < lList.size(); i++) lRes.push_back(lList[i]->GetName());
   return lRes;
 }
 
-std::size_t TngCoreBase::GetRaceGrp(RE::TESRace *aRace) noexcept {
+std::size_t Base::GetRaceGrp(RE::TESRace *aRace) noexcept {
   for (std::size_t i = 0; i < fRacesInfo.size(); i++) {
     auto lIt = std::find(fRacesInfo[i].races.begin(), fRacesInfo[i].races.end(), aRace);
     if (lIt != fRacesInfo[i].races.end()) return i;
@@ -131,7 +131,7 @@ std::size_t TngCoreBase::GetRaceGrp(RE::TESRace *aRace) noexcept {
   }
 }
 
-bool TngCoreBase::LoadRaceMult(const std::string aRaceRecord, const float aSize) noexcept {
+bool Base::LoadRaceMult(const std::string aRaceRecord, const float aSize) noexcept {
   auto lRace = LoadForm<RE::TESRace>(aRaceRecord);
   if (!lRace) {
     Tng::gLogger::error("A previously saved race cannot be found anymore! It's information is removed from ini file.");
@@ -141,7 +141,7 @@ bool TngCoreBase::LoadRaceMult(const std::string aRaceRecord, const float aSize)
   return true;
 }
 
-bool TngCoreBase::LoadRaceAddn(const std::string aRaceRecord, const std::string aAddonRecord) noexcept {
+bool Base::LoadRaceAddn(const std::string aRaceRecord, const std::string aAddonRecord) noexcept {
   auto lRace = LoadForm<RE::TESRace>(aRaceRecord);
   if (!lRace) {
     Tng::gLogger::error("A previously saved race cannot be found anymore! It's information is removed from ini file.");
@@ -166,17 +166,17 @@ bool TngCoreBase::LoadRaceAddn(const std::string aRaceRecord, const std::string 
   return true;
 }
 
-float TngCoreBase::GetRaceGrpMult(RE::TESRace *aRace) noexcept {
+float Base::GetRaceGrpMult(RE::TESRace *aRace) noexcept {
   if (!aRace) return -1.0f;
   return fRacesInfo[GetRaceGrp(aRace)].raceMult;
 }
 
-float TngCoreBase::GetRaceGrpMult(const std::size_t aRaceIdx) noexcept {
+float Base::GetRaceGrpMult(const std::size_t aRaceIdx) noexcept {
   if (fRacesInfo.size() <= aRaceIdx) return -1.0f;
   return fRacesInfo[aRaceIdx].raceMult;
 }
 
-bool TngCoreBase::SetRaceGrpMult(RE::TESRace *aRace, const float aMult) noexcept {
+bool Base::SetRaceGrpMult(RE::TESRace *aRace, const float aMult) noexcept {
   if (!aRace || aMult < 0.1f || aMult >= 10.0f) {
     Tng::gLogger::critical("Failure in setting a race mult!");
     return false;
@@ -185,7 +185,7 @@ bool TngCoreBase::SetRaceGrpMult(RE::TESRace *aRace, const float aMult) noexcept
   return true;
 }
 
-bool TngCoreBase::SetRaceGrpMult(const std::size_t aRaceIdx, const float aMult) noexcept {
+bool Base::SetRaceGrpMult(const std::size_t aRaceIdx, const float aMult) noexcept {
   if (fRacesInfo.size() <= aRaceIdx || aMult < 0.1f || aMult >= 10.0f) {
     Tng::gLogger::critical("Failure in setting a race mult!");
     return false;
@@ -194,17 +194,17 @@ bool TngCoreBase::SetRaceGrpMult(const std::size_t aRaceIdx, const float aMult) 
   return true;
 }
 
-int TngCoreBase::GetRaceGrpDefAddn(RE::TESRace *aRace) noexcept {
+int Base::GetRaceGrpDefAddn(RE::TESRace *aRace) noexcept {
   if (!aRace) return Tng::pgErr;
   return fRacesInfo[GetRaceGrp(aRace)].raceDefAddon;
 }
 
-int TngCoreBase::GetRaceGrpDefAddn(const std::size_t aRaceIdx) noexcept {
+int Base::GetRaceGrpDefAddn(const std::size_t aRaceIdx) noexcept {
   if (fRacesInfo.size() <= aRaceIdx) return Tng::pgErr;
   return fRacesInfo[aRaceIdx].raceDefAddon;
 }
 
-bool TngCoreBase::SetRaceGrpDefAddn(RE::TESRace *aRace, int aChoice) noexcept {
+bool Base::SetRaceGrpDefAddn(RE::TESRace *aRace, int aChoice) noexcept {
   if (!aRace || aChoice >= GetAddonCount(false) || aChoice < 0) {
     Tng::gLogger::critical("Failure in setting a race addon!");
     return false;
@@ -213,7 +213,7 @@ bool TngCoreBase::SetRaceGrpDefAddn(RE::TESRace *aRace, int aChoice) noexcept {
   return true;
 }
 
-bool TngCoreBase::SetRaceGrpDefAddn(const std::size_t aRaceIdx, int aChoice) noexcept {
+bool Base::SetRaceGrpDefAddn(const std::size_t aRaceIdx, int aChoice) noexcept {
   if (fRacesInfo.size() <= aRaceIdx || aChoice >= GetAddonCount(false) || aChoice < 0) {
     Tng::gLogger::critical("Failure in setting a race addon!");
     return false;
@@ -222,37 +222,37 @@ bool TngCoreBase::SetRaceGrpDefAddn(const std::size_t aRaceIdx, int aChoice) noe
   return true;
 }
 
-int TngCoreBase::GetRaceGrpAddn(RE::TESRace *aRace) noexcept {
+int Base::GetRaceGrpAddn(RE::TESRace *aRace) noexcept {
   if (!aRace) return Tng::pgErr;
   return fRacesInfo[GetRaceGrp(aRace)].raceAddn;
 }
 
-int TngCoreBase::GetRaceGrpAddn(const std::size_t aRaceIdx) noexcept {
+int Base::GetRaceGrpAddn(const std::size_t aRaceIdx) noexcept {
   if (fRacesInfo.size() <= aRaceIdx) return Tng::pgErr;
   return fRacesInfo[aRaceIdx].raceAddn;
 }
 
-void TngCoreBase::UpdateRaceGrpAddn(const std::size_t aRaceIdx, const int aAddon) noexcept {
+void Base::UpdateRaceGrpAddn(const std::size_t aRaceIdx, const int aAddon) noexcept {
   fRacesInfo[aRaceIdx].raceAddn = aAddon;
   GentifyMalSkin(fRacesInfo[aRaceIdx].originalSkin);
   for (auto lRace : fRacesInfo[aRaceIdx].races) lRace->skin = fRacesInfo[aRaceIdx].originalSkin;
 }
 
-std::size_t TngCoreBase::GroupCount() noexcept { return fRacesInfo.size(); }
+std::size_t Base::GroupCount() noexcept { return fRacesInfo.size(); }
 
-RE::TESRace *TngCoreBase::GetRaceByIdx(const std::size_t aRaceIdx) noexcept { return fRacesInfo[aRaceIdx].races[0]; }
+RE::TESRace *Base::GetRaceByIdx(const std::size_t aRaceIdx) noexcept { return fRacesInfo[aRaceIdx].races[0]; }
 
-std::string TngCoreBase::GetRaceName(const std::size_t aRaceIdx) noexcept { return fRacesInfo[aRaceIdx].raceName; }
+std::string Base::GetRaceName(const std::size_t aRaceIdx) noexcept { return fRacesInfo[aRaceIdx].raceName; }
 
-std::vector<std::string> TngCoreBase::GetRaceGrpNames() noexcept {
+std::vector<std::string> Base::GetRaceGrpNames() noexcept {
   std::vector<std::string> lRes{};
   for (const auto &lEntry : fRacesInfo) lRes.push_back(lEntry.raceName);
   return lRes;
 }
 
-RE::TESObjectARMO *TngCoreBase::GetRaceGrpSkin(int aRaceIdx) noexcept { return fRacesInfo[aRaceIdx].originalSkin; }
+RE::TESObjectARMO *Base::GetRaceGrpSkin(int aRaceIdx) noexcept { return fRacesInfo[aRaceIdx].originalSkin; }
 
-bool TngCoreBase::LoadNPCSize(const std::string aNPCRecord, const int aSize) noexcept {
+bool Base::LoadNPCSize(const std::string aNPCRecord, const int aSize) noexcept {
   auto lNPC = LoadForm<RE::TESNPC>(aNPCRecord);
   if (!lNPC) return false;
   lNPC->RemoveKeywords(fSizeKws);
@@ -260,7 +260,7 @@ bool TngCoreBase::LoadNPCSize(const std::string aNPCRecord, const int aSize) noe
   return true;
 }
 
-bool TngCoreBase::LoadNPCAddn(const std::string aNPCRecord, const std::string aAddonRecord) noexcept {
+bool Base::LoadNPCAddn(const std::string aNPCRecord, const std::string aAddonRecord) noexcept {
   auto lNPC = LoadForm<RE::TESNPC>(aNPCRecord);
   if (!lNPC) return false;
   auto lAddon = LoadForm<RE::TESObjectARMO>(aAddonRecord);
@@ -283,7 +283,7 @@ bool TngCoreBase::LoadNPCAddn(const std::string aNPCRecord, const std::string aA
   return SetNPCAddn(lNPC, lIdx, true);
 }
 
-void TngCoreBase::ExcludeNPC(const std::string aNPCRecord) noexcept {
+void Base::ExcludeNPC(const std::string aNPCRecord) noexcept {
   auto lNPC = LoadForm<RE::TESNPC>(aNPCRecord);
   if (!lNPC) return;
   if (!lNPC->race) return;
@@ -291,7 +291,7 @@ void TngCoreBase::ExcludeNPC(const std::string aNPCRecord) noexcept {
   lNPC->AddKeyword(fExKey);
 }
 
-std::pair<bool, int> TngCoreBase::GetNPCAddn(RE::TESNPC *aNPC) noexcept {
+std::pair<bool, int> Base::GetNPCAddn(RE::TESNPC *aNPC) noexcept {
   if (!aNPC) {
     Tng::gLogger::critical("Failure in getting a NPC shape!");
     return std::make_pair(false, Tng::pgErr);
@@ -311,7 +311,7 @@ std::pair<bool, int> TngCoreBase::GetNPCAddn(RE::TESNPC *aNPC) noexcept {
   return std::make_pair(false, -1);
 }
 
-bool TngCoreBase::SetNPCAddn(RE::TESNPC *aNPC, int aAddon, bool aIsUser) noexcept {
+bool Base::SetNPCAddn(RE::TESNPC *aNPC, int aAddon, bool aIsUser) noexcept {
   if (!aNPC) {
     Tng::gLogger::critical("Failure in setting a NPC shape!");
     return false;
@@ -362,7 +362,7 @@ bool TngCoreBase::SetNPCAddn(RE::TESNPC *aNPC, int aAddon, bool aIsUser) noexcep
   return true;
 }
 
-Tng::TNGRes TngCoreBase::CanModifyActor(RE::Actor *aActor) noexcept {
+Tng::TNGRes Base::CanModifyActor(RE::Actor *aActor) noexcept {
   const auto lNPC = aActor ? aActor->GetActorBase() : nullptr;
   if (!aActor || !lNPC) return Tng::npcErr;
   if (!lNPC->race) return Tng::raceErr;
@@ -371,17 +371,17 @@ Tng::TNGRes TngCoreBase::CanModifyActor(RE::Actor *aActor) noexcept {
   return Tng::raceErr;
 }
 
-float TngCoreBase::GetGlobalSize(std::size_t aIdx) noexcept {
+float Base::GetGlobalSize(std::size_t aIdx) noexcept {
   if (aIdx < 0 || aIdx >= Tng::cSizeCategories) return 1.0f;
   return fSizeGlbs[aIdx]->value;
 }
 
-void TngCoreBase::SetGlobalSize(std::size_t aIdx, float aSize) noexcept {
+void Base::SetGlobalSize(std::size_t aIdx, float aSize) noexcept {
   if (aIdx < 0 || aIdx >= Tng::cSizeCategories) return;
   fSizeGlbs[aIdx]->value = aSize;
 }
 
-Tng::TNGRes TngCoreBase::SetCharSize(RE::Actor *aActor, RE::TESNPC *aNPC, int aGenSize) noexcept {
+Tng::TNGRes Base::SetCharSize(RE::Actor *aActor, RE::TESNPC *aNPC, int aGenSize) noexcept {
   auto lCurSize = GetScale(aNPC);
   if (lCurSize == aGenSize || aGenSize == -1) {
     ScaleGenital(aActor, fSizeGlbs[lCurSize]);
@@ -394,16 +394,16 @@ Tng::TNGRes TngCoreBase::SetCharSize(RE::Actor *aActor, RE::TESNPC *aNPC, int aG
   return Tng::resOkGen;
 }
 
-std::set<RE::TESObjectARMA *> TngCoreBase::GentifyGrpSkin(int aRaceGrp) noexcept { return GentifyMalSkin(fRacesInfo[aRaceGrp].originalSkin); }
+std::set<RE::TESObjectARMA *> Base::GentifyGrpSkin(int aRaceGrp) noexcept { return GentifyMalSkin(fRacesInfo[aRaceGrp].originalSkin); }
 
-int TngCoreBase::GetScale(RE::TESNPC *aNPC) noexcept {
+int Base::GetScale(RE::TESNPC *aNPC) noexcept {
   for (int i = 0; i < Tng::cSizeCategories; i++) {
     if (aNPC->HasKeyword(fSizeKws[i])) return i;
   }
   return (aNPC->formID % 5);
 }
 
-void TngCoreBase::ScaleGenital(RE::Actor *aActor, RE::TESGlobal *aGlobal) noexcept {
+void Base::ScaleGenital(RE::Actor *aActor, RE::TESGlobal *aGlobal) noexcept {
   const auto lNPC = aActor ? aActor->GetActorBase() : nullptr;
   if (!aActor || !lNPC) return;
   if (!lNPC->race) return;
@@ -415,7 +415,7 @@ void TngCoreBase::ScaleGenital(RE::Actor *aActor, RE::TESGlobal *aGlobal) noexce
   aScrtNode->local.scale = 1.0f / sqrt(lScale);
 }
 
-void TngCoreBase::UpdateAddons(RE::TESRace *aRace) noexcept {
+void Base::UpdateAddons(RE::TESRace *aRace) noexcept {
   auto lBaseRace = FindEqVanilla(aRace);
   std::set<RE::TESObjectARMO *> lAllAddons{fMalAddons.begin(), fMalAddons.end()};
   lAllAddons.insert(fFemAddons.begin(), fFemAddons.end());
@@ -439,9 +439,9 @@ void TngCoreBase::UpdateAddons(RE::TESRace *aRace) noexcept {
   }
 };
 
-Tng::RaceType TngCoreBase::GetSkinType(RE::TESObjectARMO *aSkin) noexcept { return GetRaceType(aSkin->race); }
+Tng::RaceType Base::GetSkinType(RE::TESObjectARMO *aSkin) noexcept { return GetRaceType(aSkin->race); }
 
-Tng::RaceType TngCoreBase::GetRaceType(RE::TESRace *aRace) noexcept {
+Tng::RaceType Base::GetRaceType(RE::TESRace *aRace) noexcept {
   if (!aRace) return Tng::raceManMer;
   if (aRace == fDefRace) return Tng::raceManMer;
   if (aRace->HasKeyword(fBstKey)) return Tng::raceBeast;
@@ -452,7 +452,7 @@ Tng::RaceType TngCoreBase::GetRaceType(RE::TESRace *aRace) noexcept {
   return Tng::raceManMer;
 }
 
-void TngCoreBase::VisitArmorAddons(RE::Actor *aActor, RE::TESObjectARMA *aArmorAddon, std::function<void(RE::TESObjectARMA *)> aVisit) noexcept {
+void Base::VisitArmorAddons(RE::Actor *aActor, RE::TESObjectARMA *aArmorAddon, std::function<void(RE::TESObjectARMA *)> aVisit) noexcept {
   RE::TESObjectARMO *lArmor = nullptr;
   if (aActor) lArmor = aActor->GetWornArmor(Tng::cSlotBody);
   if (lArmor && (lArmor->HasKeyword(fACKey) || lArmor->HasKeyword(fCCKey))) {
@@ -460,10 +460,9 @@ void TngCoreBase::VisitArmorAddons(RE::Actor *aActor, RE::TESObjectARMA *aArmorA
       aVisit(fGenCover);
     }
   }
-  aVisit(aArmorAddon);
 }
 
-void TngCoreBase::CategorizeAddons() noexcept {
+void Base::CategorizeAddons() noexcept {
   auto lEmptySet = std::set<RE::TESObjectARMA *>{};
   for (auto &lCAs : fMalAddonAAs) lCAs = std::vector<std::set<RE::TESObjectARMA *>>(fMalAddons.size(), lEmptySet);
   for (auto &lCAs : fFemAddonAAs) lCAs = std::vector<std::set<RE::TESObjectARMA *>>(fFemAddons.size(), lEmptySet);
@@ -471,7 +470,7 @@ void TngCoreBase::CategorizeAddons() noexcept {
   for (int i = 0; i < fFemAddons.size(); i++) CategorizeAddon(fFemAddons[i], i, true);
 }
 
-void TngCoreBase::CategorizeAddon(RE::TESObjectARMO *aAddon, const int aIdx, bool aIsFemale) noexcept {
+void Base::CategorizeAddon(RE::TESObjectARMO *aAddon, const int aIdx, bool aIsFemale) noexcept {
   auto &lAddonAAs = aIsFemale ? fFemAddonAAs : fMalAddonAAs;
   for (const auto &lAA : aAddon->armorAddons) {
     if (!lAA->HasPartOf(Tng::cSlotGenital)) continue;
@@ -511,7 +510,7 @@ void TngCoreBase::CategorizeAddon(RE::TESObjectARMO *aAddon, const int aIdx, boo
   }
 }
 
-RE::TESRace *TngCoreBase::FindEqVanilla(RE::TESRace *aRace) noexcept {
+RE::TESRace *Base::FindEqVanilla(RE::TESRace *aRace) noexcept {
   if (std::find(std::begin(fBaseRaces), std::end(fBaseRaces), aRace) != std::end(fBaseRaces)) return aRace;
   if (std::find(std::begin(fEqRaces), std::end(fEqRaces), aRace) != std::end(fEqRaces)) return aRace;
   const auto lRaceDesc = std::string(aRace->GetFormEditorID()) + std::string(aRace->GetName());
@@ -521,7 +520,7 @@ RE::TESRace *TngCoreBase::FindEqVanilla(RE::TESRace *aRace) noexcept {
   return aRace->HasKeyword(fBstKey) ? fBaseRaces[9] : fBaseRaces[0];
 }
 
-std::set<RE::TESObjectARMA *> TngCoreBase::GentifyMalSkin(RE::TESObjectARMO *aSkin, int aAddon) noexcept {
+std::set<RE::TESObjectARMA *> Base::GentifyMalSkin(RE::TESObjectARMO *aSkin, int aAddon) noexcept {
   auto lRes = std::set<RE::TESObjectARMA *>{};
   if (!aSkin->HasPartOf(Tng::cSlotGenital)) aSkin->AddSlotToMask(Tng::cSlotGenital);
   bool lHasAddons{false};
@@ -540,7 +539,7 @@ std::set<RE::TESObjectARMA *> TngCoreBase::GentifyMalSkin(RE::TESObjectARMO *aSk
   return lRes;
 }
 
-std::set<RE::TESObjectARMA *> TngCoreBase::GentifyFemSkin(RE::TESObjectARMO *aSkin, int aAddon) noexcept {
+std::set<RE::TESObjectARMA *> Base::GentifyFemSkin(RE::TESObjectARMO *aSkin, int aAddon) noexcept {
   auto lRes = std::set<RE::TESObjectARMA *>{};
   if (aAddon < 0) return lRes;
   if (!aSkin->HasPartOf(Tng::cSlotGenital)) aSkin->AddSlotToMask(Tng::cSlotGenital);
@@ -564,7 +563,7 @@ std::set<RE::TESObjectARMA *> TngCoreBase::GentifyFemSkin(RE::TESObjectARMO *aSk
   return lRes;
 }
 
-std::map<RE::TESRace *, RE::TESObjectARMA *> TngCoreBase::GetCombinedAddons(RE::TESObjectARMO *aSkin) noexcept {
+std::map<RE::TESRace *, RE::TESObjectARMA *> Base::GetCombinedAddons(RE::TESObjectARMO *aSkin) noexcept {
   std::map<RE::TESRace *, RE::TESObjectARMA *> lRes{};
   std::set<RE::TESRace *> lReqRaces{};
   for (const auto &lAA : aSkin->armorAddons) {
@@ -586,7 +585,7 @@ std::map<RE::TESRace *, RE::TESObjectARMA *> TngCoreBase::GetCombinedAddons(RE::
   return lRes;
 }
 
-std::map<RE::TESRace *, RE::TESObjectARMA *> TngCoreBase::GetAddonAAs(Tng::RaceType aRaceType, int aAddonIdx, bool aIsFemale) {
+std::map<RE::TESRace *, RE::TESObjectARMA *> Base::GetAddonAAs(Tng::RaceType aRaceType, int aAddonIdx, bool aIsFemale) {
   std::map<RE::TESRace *, RE::TESObjectARMA *> lRes{};
   auto &lList = aIsFemale ? fFemAddonAAs[aRaceType][aAddonIdx] : fMalAddonAAs[aRaceType][aAddonIdx];
   for (auto lAA : lList) lRes.insert({lAA->race, lAA});

@@ -1,9 +1,8 @@
-#include <TngCore.h>
-#include <TngCoreBase.h>
-#include <TngEvents.h>
-#include <TngHooks.h>
-#include <TngInis.h>
-#include <TngPapyrus.h>
+#include <Core.h>
+#include <Base.h>
+#include <Events.h>
+#include <Inis.h>
+#include <Papyrus.h>
 
 static bool CheckIncompatiblity() {
   if (GetModuleHandle(L"Data\\SKSE\\Plugins\\acon.dll")) {
@@ -28,11 +27,10 @@ static void InitializeLogging() {
 
   std::shared_ptr<spdlog::logger> lLog;
   lLog = std::make_shared<spdlog::logger>("Global", std::make_shared<spdlog::sinks::basic_file_sink_mt>(lPath->string(), true));
-  lLog->set_level(TngInis::GetLogLvl() > static_cast<int>(spdlog::level::debug) && TngInis::GetLogLvl() < static_cast<int>(spdlog::level::n_levels)
-                      ? static_cast<spdlog::level::level_enum>(TngInis::GetLogLvl())
+  lLog->set_level(Inis::GetLogLvl() > static_cast<int>(spdlog::level::debug) && Inis::GetLogLvl() < static_cast<int>(spdlog::level::n_levels)
+                      ? static_cast<spdlog::level::level_enum>(Inis::GetLogLvl())
                       : spdlog::level::info);
   lLog->flush_on(spdlog::level::trace);
-
   spdlog::set_default_logger(std::move(lLog));
   spdlog::set_pattern("[%H:%M:%S.%e] [%l] %v");
 }
@@ -40,33 +38,32 @@ static void InitializeLogging() {
 static void EventListener(SKSE::MessagingInterface::Message* aMessage) noexcept {
   if (aMessage->type == SKSE::MessagingInterface::kDataLoaded) {
     if (!CheckIncompatiblity()) return;
-    if (TngCoreBase::Init()) {
-      TngCoreBase::LoadAddons();
+    if (Base::Init()) {
+      Base::LoadAddons();
     } else {
       IssueWarning();
       return;
     }
-    if (TngInis::Init()) {
-      TngInis::LoadMainIni();
-      TngInis::LoadTngInis();
+    if (Inis::Init()) {
+      Inis::LoadMainIni();
+      Inis::LoadTngInis();
     } else {
       IssueWarning();
       return;
     }
-    if (TngCore::Initialize()) {
-      TngCore::GenitalizeRaces();
-      TngCore::GenitalizeNPCSkins();
-      TngCore::CheckArmorPieces();
+    if (Core::Initialize()) {
+      Core::GenitalizeRaces();
+      Core::GenitalizeNPCSkins();
+      Core::CheckArmorPieces();
       Tng::gLogger::info("TheNewGentleman finished initialization.");
-      TngEvents::RegisterEvents();
+      Events::RegisterEvents();
     } else {
       IssueWarning();
       return;
     }
-    TngHooks::Install();
   }
   if (aMessage->type == SKSE::MessagingInterface::kNewGame || aMessage->type == SKSE::MessagingInterface::kPostLoadGame) {
-    TngInis::LoadHoteKeys();
+    Inis::LoadHoteKeys();
   }
 }
 
@@ -78,8 +75,11 @@ extern "C" __declspec(dllexport) constinit auto SKSEPlugin_Version = []() {
   v.AuthorName("ModiLogist");
   v.UsesAddressLibrary();
   v.UsesUpdatedStructs();
+  #ifdef SKYRIM_353
+  v.CompatibleVersions({SKSE::RUNTIME_1_6_353});
+  #else
   v.CompatibleVersions({SKSE::RUNTIME_LATEST});
-
+  #endif
   return v;
 }();
 #else
@@ -115,7 +115,7 @@ extern "C" __declspec(dllexport) bool SKSEAPI SKSEPlugin_Load(const SKSE::LoadIn
   Tng::gLogger::info("Initializing TheNewGentleman {}!", Version::NAME.data());
   Tng::gLogger::info("Game version : {}", a_skse->RuntimeVersion().string());
   SKSE::GetMessagingInterface()->RegisterListener(EventListener);
-  SKSE::GetPapyrusInterface()->Register(TngPapyrus::BindPapyrus);
+  SKSE::GetPapyrusInterface()->Register(Papyrus::BindPapyrus);
   return true;
 }
 

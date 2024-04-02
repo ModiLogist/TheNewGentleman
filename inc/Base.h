@@ -1,6 +1,6 @@
 #pragma once
 
-class TngCoreBase : public Singleton<TngCoreBase> {
+class Base : public Singleton<Base> {
   private:
     inline static const char* cBaseBone{"NPC GenitalsBase [GenBase]"};
     inline static const char* cScrtBone{"NPC GenitalsScrotum [GenScrot]"};

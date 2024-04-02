@@ -1,10 +1,8 @@
 set(sources ${sources}	
-  src/Main.cpp  
-  src/TngHooks.cpp
-  src/TngPapyrus.cpp
-  src/TngEvents.cpp
-  src/TngCore.cpp
-  src/TngCoreBase.cpp
-  src/TngInis.cpp
-  src/dav/TESObjectARMA.cpp
+  src/Main.cpp
+  src/Papyrus.cpp
+  src/Events.cpp
+  src/Core.cpp
+  src/Base.cpp
+  src/Inis.cpp
 )

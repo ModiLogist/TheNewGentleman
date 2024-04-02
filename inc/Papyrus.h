@@ -1,5 +1,5 @@
 #pragma once
-class TngPapyrus : public Singleton<TngPapyrus> {
+class Papyrus : public Singleton<Papyrus> {
   public:
     static bool BindPapyrus(RE::BSScript::IVirtualMachine* aVM) noexcept;
 

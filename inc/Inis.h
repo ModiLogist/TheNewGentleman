@@ -1,6 +1,6 @@
 #pragma once
 
-class TngInis : public Singleton<TngInis> {
+class Inis : public Singleton<Inis> {
   private:
     // TNG setting
     inline static constexpr int cCurrVersion = 3;

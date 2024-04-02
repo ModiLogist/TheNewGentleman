@@ -1,6 +1,6 @@
 #pragma once
 
-class TngEvents : public RE::BSTEventSink<RE::TESObjectLoadedEvent>,
+class Events : public RE::BSTEventSink<RE::TESObjectLoadedEvent>,
                   public RE::BSTEventSink<RE::TESEquipEvent>,
                   public RE::BSTEventSink<RE::TESSwitchRaceCompleteEvent> {
   public:
@@ -32,17 +32,17 @@ class TngEvents : public RE::BSTEventSink<RE::TESObjectLoadedEvent>,
 
     inline static std::map<RE::FormID, RE::TESObjectARMO*> fOldSkins;
 
-    TngEvents() = default;
-    TngEvents(const TngEvents&) = delete;
-    TngEvents(TngEvents&&) = delete;
+    Events() = default;
+    Events(const Events&) = delete;
+    Events(Events&&) = delete;
 
-    ~TngEvents() override = default;
+    ~Events() override = default;
 
-    TngEvents& operator=(const TngEvents&) = delete;
-    TngEvents& operator=(TngEvents&&) = delete;
+    Events& operator=(const Events&) = delete;
+    Events& operator=(Events&&) = delete;
 
-    static TngEvents* GetSingleton() {
-      static TngEvents aSingleton;
+    static Events* GetSingleton() {
+      static Events aSingleton;
       return &aSingleton;
     }
 };
