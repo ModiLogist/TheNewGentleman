@@ -532,7 +532,7 @@ bool Core::SwapRevealing(RE::TESObjectARMO* aArmor) noexcept {
 
 bool Core::TryMakeArmorCovering(RE::TESObjectARMO* aArmor, bool aIsCC) noexcept {
   if (aArmor->HasKeywordInArray(fArmoKeys, false) && !aArmor->HasKeyword(fCCKey) && !aArmor->HasKeyword(fACKey)) return false;
-  if (aArmor->HasPartOf(Tng::cSlotGenital)) {
+  if (aArmor->HasPartOf(Tng::cSlotGenital) && !aArmor->HasKeyword(fACKey)) {
     aArmor->RemoveKeywords(fArmoKeys);
     aArmor->AddKeyword(fIAKey);
     return false;
