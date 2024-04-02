@@ -1,14 +1,10 @@
 cmake_minimum_required(VERSION 3.20)
 
 set(NAME "TheNewGentleman" CACHE STRING "")
-set(VERSION 2.3.0 CACHE STRING "")
-set(VR_VERSION 2)
-set(AE_VERSION 1)
+set(VERSION 2.4.0 CACHE STRING "")
+set(VR_VERSION 1)
 
 # ---- Options ----
-
-option(BUILD_SKYRIMAE "Build for Skyrim AE" OFF)
-option(BUILD_SKYRIM353 "Build for Skyrim AE 1.6.353" OFF)
 option(BUILD_SKYRIMVR "Build for Skyrim VR" OFF)
 
 # ---- Cache build vars ----
@@ -34,38 +30,21 @@ macro(find_commonlib_path)
 endmacro()
 
 set_from_environment(VCPKG_ROOT)
-if(BUILD_SKYRIMAE)	
-	add_compile_definitions(SKYRIM_AE)
-	add_compile_definitions(SKYRIM_SUPPORT_AE)
-	set(CommonLibName "CommonLibSSE")
-	set_from_environment(SkyrimAEPath)
-	set(SkyrimPath ${SkyrimAEPath})
-	set(VERSION ${VERSION}.${AE_VERSION})
-	if(BUILD_SKYRIM353)
-	  add_compile_definitions(SKYRIM_353)
-	  set(SkyrimVersion "Skyrim 353")
-	else()
-	  set(SkyrimVersion "Skyrim AE")
-	endif()		
-elseif(BUILD_SKYRIMVR)
+if(BUILD_SKYRIMVR)
 	add_compile_definitions(SKYRIMVR)
 	add_compile_definitions(_CRT_SECURE_NO_WARNINGS)
 	set(CommonLibName "CommonLibVR")
 	set_from_environment(SkyrimVRPath)
-	set(SkyrimPath ${SkyrimVRPath})
 	set(SkyrimVersion "Skyrim VR")
 	set(VERSION ${VERSION}.${VR_VERSION})
 else()
+  add_compile_definitions(SKYRIMFLATRIM)
+	add_compile_definitions(_CRT_SECURE_NO_WARNINGS)
 	set(CommonLibName "CommonLibSSE")
 	set_from_environment(Skyrim64Path)
-	set(SkyrimPath ${Skyrim64Path})
-	set(SkyrimVersion "Skyrim SE")
+	set(SkyrimVersion "Skyrim FLATRIM")
 endif()
 find_commonlib_path()
-message(
-	STATUS
-	"Building ${NAME} ${VERSION} for ${SkyrimVersion} at ${SkyrimPath} with ${CommonLibName} at ${CommonLibPath}."
-)
 
 if (DEFINED VCPKG_ROOT)
 	set(CMAKE_TOOLCHAIN_FILE "${VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake" CACHE STRING "")
@@ -110,11 +89,6 @@ if(PROJECT_SOURCE_DIR STREQUAL PROJECT_BINARY_DIR)
 endif()
 
 # ---- Globals ----
-
-add_compile_definitions(
-	SKSE_SUPPORT_XBYAK
-)
-
 if (MSVC)
 	if (NOT ${CMAKE_GENERATOR} STREQUAL "Ninja")
 		add_compile_options(

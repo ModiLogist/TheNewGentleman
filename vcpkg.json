@@ -1,13 +1,22 @@
 {
+  "$schema": "https://raw.githubusercontent.com/microsoft/vcpkg-tool/main/docs/vcpkg.schema.json",
   "name": "thenewgentleman",
+  "dependencies": [
+    "simpleini",
+    "rsm-binary-io",
+    "directxtk",
+    "rapidcsv",
+    "spdlog",
+    "catch2"
+  ],
   "description": "The New Gentleman",
   "homepage": "https://github.com/ModiLogist/TheNewGentleman/tree/master/src",
   "license": "MIT",
-  "dependencies": [
-    "rsm-binary-io",
-    "spdlog",
-    "simpleini",
-    "xbyak"
-  ],
-  "builtin-baseline": "cf4ebef2294e164875ce17d7937f44d3e3ea156e"
+  "vcpkg-configuration": {
+    "default-registry": {
+      "kind": "git",
+      "repository": "https://github.com/microsoft/vcpkg",
+      "baseline": "42ee04ed4525b833c03b14657e020ee6426fe864"
+    }
+  }
 }

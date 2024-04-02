@@ -24,10 +24,7 @@
     {
       "name": "vcpkg",
       "hidden": true,
-      "toolchainFile": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
-      "cacheVariables": {
-        "VCPKG_OVERLAY_PORTS": "${sourceDir}/cmake/ports/"
-      }
+      "toolchainFile": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake"
     },
     {
       "name": "windows",
@@ -44,26 +41,9 @@
       "toolset": "v143"
     },
     {
-      "name": "se",
+      "name": "flatrim",
       "hidden": true,
       "binaryDir": "${sourceDir}/build"
-    },
-    {
-      "name": "353",
-      "hidden": true,
-      "binaryDir": "${sourceDir}/build353",
-      "cacheVariables": {
-        "BUILD_SKYRIMAE": true,
-        "BUILD_SKYRIM353": true
-      }
-    },
-    {
-      "name": "ae",
-      "hidden": true,
-      "binaryDir": "${sourceDir}/buildae",
-      "cacheVariables": {
-        "BUILD_SKYRIMAE": true
-      }
     },
     {
       "name": "vr",
@@ -74,33 +54,13 @@
       }
     },
     {
-      "name": "vs2022-windows-vcpkg-se",
+      "name": "vs2022-windows-vcpkg-flatrim",
       "inherits": [
         "cmake-dev",
         "vcpkg",
         "windows",
         "vs2022",
-        "se"
-      ]
-    },
-    {
-      "name": "vs2022-windows-vcpkg-353",
-      "inherits": [
-        "cmake-dev",
-        "vcpkg",
-        "windows",
-        "vs2022",
-        "353"
-      ]
-    },
-    {
-      "name": "vs2022-windows-vcpkg-ae",
-      "inherits": [
-        "cmake-dev",
-        "vcpkg",
-        "windows",
-        "vs2022",
-        "ae"
+        "flatrim"
       ]
     },
     {
@@ -116,18 +76,8 @@
   ],
   "buildPresets": [
     {
-      "name": "vs2022-windows-vcpkg-ae",
-      "configurePreset": "vs2022-windows-vcpkg-ae",
-      "configuration": "Release"
-    },
-    {
-      "name": "vs2022-windows-vcpkg-353",
-      "configurePreset": "vs2022-windows-vcpkg-353",
-      "configuration": "Release"
-    },
-    {
-      "name": "vs2022-windows-vcpkg-se",
-      "configurePreset": "vs2022-windows-vcpkg-se",
+      "name": "vs2022-windows-vcpkg-flatrim",
+      "configurePreset": "vs2022-windows-vcpkg-flatrim",
       "configuration": "Release"
     },
     {

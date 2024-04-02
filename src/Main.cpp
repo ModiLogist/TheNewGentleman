@@ -1,5 +1,5 @@
-#include <Core.h>
 #include <Base.h>
+#include <Core.h>
 #include <Events.h>
 #include <Inis.h>
 #include <Papyrus.h>
@@ -67,56 +67,35 @@ static void EventListener(SKSE::MessagingInterface::Message* aMessage) noexcept 
   }
 }
 
-#ifdef SKYRIM_AE
+#ifdef SKYRIMFLATRIM
 extern "C" __declspec(dllexport) constinit auto SKSEPlugin_Version = []() {
   SKSE::PluginVersionData v;
   v.PluginVersion(Version::MAJOR);
-  v.PluginName("TheNewGentleman");
+  v.PluginName(Version::PROJECT);
   v.AuthorName("ModiLogist");
-  v.UsesAddressLibrary();
-  v.UsesUpdatedStructs();
-  #ifdef SKYRIM_353
-  v.CompatibleVersions({SKSE::RUNTIME_1_6_353});
-  #else
-  v.CompatibleVersions({SKSE::RUNTIME_LATEST});
-  #endif
+  v.UsesAddressLibrary(true);
+  v.UsesNoStructs(true);
+  v.CompatibleVersions({SKSE::RUNTIME_SSE_LATEST_AE});
   return v;
 }();
-#else
-extern "C" __declspec(dllexport) bool SKSEAPI SKSEPlugin_Query(const SKSE::QueryInterface* a_skse, SKSE::PluginInfo* a_info) {
-  a_info->infoVersion = SKSE::PluginInfo::kVersion;
-  a_info->name = "TheNewGentleman";
-  a_info->version = Version::MAJOR;
-
-  if (a_skse->IsEditor()) {
-    Tng::gLogger::critical("Loaded in editor, marking as incompatible"sv);
-    return false;
-  }
-
-  const auto ver = a_skse->RuntimeVersion();
-  if (ver
-  #ifndef SKYRIMVR
-      < SKSE::RUNTIME_1_5_39
-  #else
-      > SKSE::RUNTIME_VR_1_4_15_1
-  #endif
-  ) {
-    Tng::gLogger::critical(FMT_STRING("Unsupported runtime version {}"), ver.string());
-    return false;
-  }
-
-  return true;
-}
 #endif
 
-extern "C" __declspec(dllexport) bool SKSEAPI SKSEPlugin_Load(const SKSE::LoadInterface* a_skse) {
+extern "C" __declspec(dllexport) bool SKSEAPI SKSEPlugin_Query(const SKSE::QueryInterface*, SKSE::PluginInfo* aInfo) {
+  aInfo->infoVersion = SKSE::PluginInfo::kVersion;
+  aInfo->name = Version::PROJECT.data();
+  aInfo->version = Version::MAJOR;
+  return true;
+}
+
+extern "C" [[maybe_unused]] __declspec(dllexport) bool SKSEPlugin_Load(const SKSE::LoadInterface* aSkse) {
   InitializeLogging();
-  SKSE::Init(a_skse);
+  SKSE::Init(aSkse);
   Tng::gLogger::info("Initializing TheNewGentleman {}!", Version::NAME.data());
-  Tng::gLogger::info("Game version : {}", a_skse->RuntimeVersion().string());
+  Tng::gLogger::info("Game version : {}", aSkse->RuntimeVersion().string());
   SKSE::GetMessagingInterface()->RegisterListener(EventListener);
   SKSE::GetPapyrusInterface()->Register(Papyrus::BindPapyrus);
   return true;
 }
-
+#ifdef SKYRIMVR
 extern "C" __declspec(dllexport) const char* APIENTRY GetPluginVersion() { return Version::NAME.data(); }
+#endif

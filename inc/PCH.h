@@ -6,22 +6,11 @@
 #include <REL/Relocation.h>
 #include <SKSE/SKSE.h>
 #include <spdlog/sinks/basic_file_sink.h>
-#include <xbyak/xbyak.h>
 
 using namespace std::literals;
+using namespace REL::literals;
 
 #include <Version.h>
-
-#ifdef SKYRIM_AE
-  #define OFFSET(se, ae) ae
-  #define OFFSET_3(se, ae, vr) ae
-#elif SKYRIMVR
-  #define OFFSET(se, ae) se
-  #define OFFSET_3(se, ae, vr) vr
-#else
-  #define OFFSET(se, ae) se
-  #define OFFSET_3(se, ae, vr) se
-#endif
 
 template <typename T>
 class Singleton {
@@ -40,13 +29,3 @@ class Singleton {
       return std::addressof(aSingleton);
     }
 };
-
-namespace stl {
-  using namespace SKSE::stl;
-
-  template <class F, class T>
-  void write_vfunc() {
-    REL::Relocation<std::uintptr_t> lVTABLE{F::VTABLE[T::fIdx]};
-    T::fFunc = lVTABLE.write_vfunc(T::fSize, T::Thunk);
-  }
-}
