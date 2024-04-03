@@ -452,16 +452,6 @@ Tng::RaceType Base::GetRaceType(RE::TESRace *aRace) noexcept {
   return Tng::raceManMer;
 }
 
-void Base::VisitArmorAddons(RE::Actor *aActor, RE::TESObjectARMA *aArmorAddon, std::function<void(RE::TESObjectARMA *)> aVisit) noexcept {
-  RE::TESObjectARMO *lArmor = nullptr;
-  if (aActor) lArmor = aActor->GetWornArmor(Tng::cSlotBody);
-  if (lArmor && (lArmor->HasKeyword(fACKey) || lArmor->HasKeyword(fCCKey))) {
-    if (aArmorAddon->HasPartOf(Tng::cSlotGenital)) {
-      aVisit(fGenCover);
-    }
-  }
-}
-
 void Base::CategorizeAddons() noexcept {
   auto lEmptySet = std::set<RE::TESObjectARMA *>{};
   for (auto &lCAs : fMalAddonAAs) lCAs = std::vector<std::set<RE::TESObjectARMA *>>(fMalAddons.size(), lEmptySet);

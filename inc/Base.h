@@ -145,7 +145,6 @@ class Base : public Singleton<Base> {
     static void UpdateAddons(RE::TESRace* aRace) noexcept;
     static Tng::RaceType GetSkinType(RE::TESObjectARMO* aSkin) noexcept;
     static Tng::RaceType GetRaceType(RE::TESRace* aRace) noexcept;
-    static void VisitArmorAddons(RE::Actor* aActor, RE::TESObjectARMA* aArmorAddon, std::function<void(RE::TESObjectARMA*)> aVisit) noexcept;
 
   private:
     inline static RE::TESObjectARMA* fGenCover;
