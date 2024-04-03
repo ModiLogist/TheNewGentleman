@@ -32,9 +32,7 @@ RE::BSEventNotifyControl Events::ProcessEvent(const RE::TESEquipEvent* aEvent, R
   if (!aEvent) return RE::BSEventNotifyControl::kContinue;
   const auto lActor = aEvent->actor->As<RE::Actor>();
   auto lArmor = RE::TESForm::LookupByID<RE::TESObjectARMO>(aEvent->baseObject);
-  if (!lArmor || !lActor) return RE::BSEventNotifyControl::kContinue;
-  if (!((1 << Core::CanModifyActor(lActor)) & ((1 << Tng::resOkRaceP) | (1 << Tng::resOkRaceR)))) return RE::BSEventNotifyControl::kContinue;
-  if (!lArmor->HasPartOf(Tng::cSlotBody)) return RE::BSEventNotifyControl::kContinue;
+  if (!lArmor || !lArmor->HasPartOf(Tng::cSlotBody) || Core::CanModifyActor(lActor) < 0) return RE::BSEventNotifyControl::kContinue;
   aEvent->equipped ? CheckActorArmor(lActor, lArmor) : CheckForAddons(lActor);
   return RE::BSEventNotifyControl::kContinue;
 }
@@ -42,8 +40,7 @@ RE::BSEventNotifyControl Events::ProcessEvent(const RE::TESEquipEvent* aEvent, R
 RE::BSEventNotifyControl Events::ProcessEvent(const RE::TESObjectLoadedEvent* aEvent, RE::BSTEventSource<RE::TESObjectLoadedEvent>*) {
   if (!aEvent) return RE::BSEventNotifyControl::kContinue;
   const auto lActor = RE::TESForm::LookupByID<RE::Actor>(aEvent->formID);
-  if (!lActor) return RE::BSEventNotifyControl::kContinue;
-  if (!((1 << Core::CanModifyActor(lActor)) & ((1 << Tng::resOkRaceP) | (1 << Tng::resOkRaceR)))) return RE::BSEventNotifyControl::kContinue;
+  if (Core::CanModifyActor(lActor) < 0) return RE::BSEventNotifyControl::kContinue;
   CheckActorArmor(lActor);
   CheckForAddons(lActor);
   return RE::BSEventNotifyControl::kContinue;
@@ -64,14 +61,12 @@ RE::BSEventNotifyControl Events::ProcessEvent(const RE::TESSwitchRaceCompleteEve
   return RE::BSEventNotifyControl::kContinue;
 }
 
-void Events::CheckForAddons(RE::Actor* aActor) noexcept {
+void Events::CheckForAddons(RE::Actor* aActor) noexcept {  
   const auto lNPC = aActor ? aActor->GetActorBase() : nullptr;
-  if (!aActor || !lNPC) return;
+  if (!lNPC) return;
+  if (!aActor->IsPlayerRef() || !Inis::GetExcludePlayer()) Core::SetCharSize(aActor, lNPC, -1);
   auto lNPCAddn = Base::GetNPCAddn(lNPC);
-  if (lNPCAddn.second < 0) {
-    if (!lNPC->IsFemale() && lNPC->HasKeyword(fExKey)) Core::RevertNPCSkin(lNPC);
-    if (lNPC->IsPlayer() || !lNPC->IsFemale() || lNPC->HasKeyword(fExKey) || fGWChance->value < 1) return;
-  }
+  if (lNPCAddn.second < 0 && (lNPC->IsPlayer() || !lNPC->IsFemale() || lNPC->HasKeyword(fExKey) || fGWChance->value < 1)) return;
   if (lNPCAddn.second == Tng::pgErr) {
     Tng::gLogger::critical("Faced an issue retrieving information for {}!", lNPC->GetName());
     return;
@@ -86,23 +81,14 @@ int Events::GetNPCAutoAddn(RE::TESNPC* aNPC) noexcept {
   return (((aNPC->GetFormID() % 100) < (std::floor(fGWChance->value) + 1))) ? aNPC->GetFormID() % lFDistAddnCount : -1;
 }
 
-void Events::CheckActorArmor(RE::Actor* aActor, RE::TESObjectARMO* aArmor) noexcept {
-  if (!aActor || aActor->HasKeyword(fExKey)) return;
-  const auto lNPC = aActor ? aActor->GetActorBase() : nullptr;
-  if (!lNPC || !lNPC->race) return;
-  if (!(lNPC->race->HasKeyword(fPRaceKey) || lNPC->race->HasKeyword(fRRKey))) return;
-  if (!aActor->IsPlayerRef() || !Inis::GetExcludePlayer()) Core::SetCharSize(aActor, lNPC, -1);
+void Events::CheckActorArmor(RE::Actor* aActor, RE::TESObjectARMO* aArmor) noexcept {  
   if (aArmor && aArmor->HasPartOf(Tng::cSlotBody)) Core::TryMakeArmorCovering(aArmor, aArmor->HasKeyword(fCCKey));
-  const auto lGArmo = aActor->GetWornArmor(Tng::cSlotGenital);
   const auto lBArmo = aActor->GetWornArmor(Tng::cSlotBody);
-  if ((lNPC->IsFemale() && !Inis::GetAutoReveal(true)) || (!lNPC->IsFemale() && !Inis::GetAutoReveal(false))) return;
-  if (!lBArmo || !(lBArmo->HasKeyword(fRRKey) || lBArmo->HasKeyword(fARKey) || lBArmo->HasKeywordString(Tng::cSOSR))) {
-    if (!lBArmo || !lGArmo || lBArmo == lGArmo || !lBArmo->GetFile(0) || !lGArmo->GetFile(0) || !lBArmo->HasKeyword(fACKey) || lGArmo->HasKeyword(fUAKey)) return;
-    if (lBArmo->GetFile(0)->GetFilename() != lGArmo->GetFile(0)->GetFilename() || lBArmo->GetFile(0)->GetFilename().contains(".esm")) return;
-  }
-  if (lBArmo->armorAddons.size() == 0) return;
-  bool lChanged = Core::TryMakeArmorRevealing(aArmor, aArmor->HasKeyword(fRRKey) || aArmor->HasKeywordString(Tng::cSOSR));
-  const auto lID = (std::string(lBArmo->GetName()).empty()) ? lBArmo->GetFormEditorID() : lBArmo->GetName();
-  Tng::gLogger::info("The armor [0x{:x}: {}] was updated to be revealing.", lBArmo->GetLocalFormID(), lID);
-  if (lChanged && aActor) RE::ActorEquipManager::GetSingleton()->EquipObject(aActor, lBArmo, nullptr, 1, nullptr, false, false, false, true);
+  if (!lBArmo || !lBArmo->HasPartOf(Tng::cSlotGenital) || !lBArmo->HasKeyword(fACKey) || lBArmo->armorAddons.size() == 0) return;
+  if (lBArmo->HasKeyword(fRRKey) || lBArmo->HasKeywordString(Tng::cSOSR)) {
+    bool lChanged = Core::TryMakeArmorRevealing(aArmor, aArmor->HasKeyword(fRRKey) || aArmor->HasKeywordString(Tng::cSOSR));
+    const auto lID = (std::string(lBArmo->GetName()).empty()) ? lBArmo->GetFormEditorID() : lBArmo->GetName();
+    Tng::gLogger::info("The armor [0x{:x}: {}] was updated to be revealing.", lBArmo->GetLocalFormID(), lID);
+    if (lChanged && aActor) RE::ActorEquipManager::GetSingleton()->EquipObject(aActor, lBArmo, nullptr, 1, nullptr, false, false, false, true);
+  }  
 }

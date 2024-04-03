@@ -60,7 +60,6 @@ class Inis : public Singleton<Inis> {
     inline static constexpr const char* cRevealingRecord{"RevealingRecord"};
     inline static constexpr const char* cCoveringRecord{"CoveringRecord"};
 
-    inline static bool fAutoReveal[2];
     inline static bool fExlPC;
 
     inline static RE::TESDataHandler* fDH;
@@ -73,7 +72,7 @@ class Inis : public Singleton<Inis> {
     inline static std::set<std::string> fValidSkeletons;
 
   public:
-    enum IniBoolIDs { cNoneBoolID, femaleAutoReveal, maleAutoReveal, excludePlayerSize, cBoolIDsCount };
+    enum IniBoolIDs { cNoneBoolID, excludePlayerSize, cBoolIDsCount };
     inline static std::set<std::string> fRaceExMods;
     inline static std::set<std::string> fSkinMods;
     inline static std::set<std::pair<std::string, RE::FormID>> fSingleSkinIDs;
@@ -91,7 +90,6 @@ class Inis : public Singleton<Inis> {
     static void LoadHoteKeys() noexcept;
     static int GetLogLvl() noexcept;
     static void SetLogLvl(int aLvl) noexcept;
-    static bool GetAutoReveal(const bool aIsFemale) noexcept;
     static bool GetExcludePlayer() noexcept;
     static bool GetSettingBool(IniBoolIDs aID) noexcept;
     static void SaveSettingBool(IniBoolIDs aID, bool aValue) noexcept;

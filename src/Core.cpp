@@ -244,9 +244,7 @@ void Core::GenitalizeNPCSkins() noexcept {
 Tng::TNGRes Core::CanModifyActor(RE::Actor* aActor) noexcept {
   auto lRes = Base::CanModifyActor(aActor);
   if (lRes < 0) return lRes;
-  auto lNPC = aActor ? aActor->GetActorBase() : nullptr;
-  if (!lNPC || !aActor) return Tng::npcErr;
-  return (fHardExcludedNPCs.find(lNPC) != fHardExcludedNPCs.end()) ? Tng::npcErr : lRes;
+  return (fHardExcludedNPCs.find(aActor->GetActorBase()) != fHardExcludedNPCs.end()) ? Tng::npcErr : lRes;
 }
 
 Tng::TNGRes Core::SetNPCSkin(RE::TESNPC* aNPC, int aAddon, bool aIsUser) noexcept {

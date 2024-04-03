@@ -27,8 +27,6 @@ void Inis::LoadMainIni() noexcept {
   CSimpleIniA lIni;
   lIni.SetUnicode();
   lIni.LoadFile(cSettings);
-  fAutoReveal[0] = lIni.GetBoolValue(cGeneral, cMAutoReveal, false);
-  fAutoReveal[1] = lIni.GetBoolValue(cGeneral, cFAutoReveal, true);
   fExlPC = lIni.GetBoolValue(cGeneral, cExlPC, false);
   for (std::size_t i = 0; i < Tng::cSizeCategories; i++) {
     Base::SetGlobalSize(i, static_cast<float>(lIni.GetDoubleValue(cGlobalSize, cSizeNames[i], cDefSizes[i])));
@@ -199,10 +197,6 @@ void Inis::SetLogLvl(int aLvl) noexcept {
 
 bool Inis::GetSettingBool(IniBoolIDs aID) noexcept {
   switch (aID) {
-    case Inis::femaleAutoReveal:
-      return fAutoReveal[1];
-    case Inis::maleAutoReveal:
-      return fAutoReveal[0];
     case Inis::excludePlayerSize:
       return fExlPC;
     default:
@@ -215,14 +209,6 @@ void Inis::SaveSettingBool(IniBoolIDs aID, bool aValue) noexcept {
   lIni.SetUnicode();
   lIni.LoadFile(cSettings);
   switch (aID) {
-    case femaleAutoReveal:
-      lIni.SetBoolValue(cGeneral, cFAutoReveal, aValue);
-      fAutoReveal[1] = aValue;
-      break;
-    case maleAutoReveal:
-      lIni.SetBoolValue(cGeneral, cMAutoReveal, aValue);
-      fAutoReveal[0] = aValue;
-      break;
     case excludePlayerSize:
       lIni.SetBoolValue(cGeneral, cExlPC, aValue);
       fExlPC = aValue;
@@ -232,8 +218,6 @@ void Inis::SaveSettingBool(IniBoolIDs aID, bool aValue) noexcept {
   }
   lIni.SaveFile(cSettings);
 }
-
-bool Inis::GetAutoReveal(const bool aIsFemale) noexcept { return (aIsFemale ? fAutoReveal[1] : fAutoReveal[0]); }
 
 bool Inis::GetExcludePlayer() noexcept { return fExlPC; }
 
