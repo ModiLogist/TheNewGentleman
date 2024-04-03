@@ -3,10 +3,9 @@ ScriptName TNG_PapyrusUtil hidden
 Int Function UpdateLogLvl(Int aLvl) Global Native
 String Function ShowLogLocation() Global Native
 
-
 Function SaveGlobals() Global Native
 
-;For bool functions IDs: 1: Female Revealing, 2: Male Revealing, 3: Double Check Clipping, 4: Exclude Player
+;For bool functions IDs: 1: Exclude Player
 Bool Function GetBoolValue(Int aID) Global Native
 Function SetBoolValue(Int aID, Bool aValue) Global Native
 

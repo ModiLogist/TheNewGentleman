@@ -40,8 +40,6 @@ Int[] fIRaceSizeHdls
 Int[] fIGlblSizeHdls
 Int[] fIFemAddons
 
-Int fiAutoRevealF
-Int fiAutoRevealM
 Int fiNotifs
 Int fiExPCSize
 
@@ -55,7 +53,7 @@ Int fiLogLvlHdl
 Int fiLogDir
 
 Int Function GetVersion()
-	Return 4
+	Return 5
 EndFunction
 
 Event OnConfigInit()
@@ -98,9 +96,7 @@ Event OnConfigInit()
   cSLogOptions[3] = "$TNG_LLC"
   cSLogOptions[4] = "$TNG_LLO"
   
-  cuFemAR = 1
-  cuMalAR = 2
-  cuExPCSize = 3
+  cuExPCSize = 1
 EndEvent
 
 Event OnVersionUpdate(Int aiVersion)
@@ -166,14 +162,6 @@ Event OnOptionHighlight(Int aiOption)
   If CurrentPage == Pages[0]
     If aiOption == fiDAK
       SetInfoText("$TNG_HGD")
-      Return
-    EndIf
-    If aiOption == fiAutoRevealF
-      SetInfoText("$TNG_HGF")
-      Return
-    EndIf
-    If aiOption == fiAutoRevealM
-      SetInfoText("$TNG_HGM")
       Return
     EndIf
     If aiOption == fiNotifs
@@ -248,9 +236,7 @@ EndEvent
 Event OnPageReset(String asPage)
 	If asPage == Pages[0]
     fiNotifs = AddToggleOption("$TNG_GNT",Notifs)
-		fiAutoRevealF = AddToggleOption("$TNG_GRF",TNG_PapyrusUtil.GetBoolValue(cuFemAR))
     fiExPCSize = AddToggleOption("$TNG_GEP", TNG_PapyrusUtil.GetBoolValue(cuExPCSize))
-    fiAutoRevealM = AddToggleOption("$TNG_GRM",TNG_PapyrusUtil.GetBoolValue(cuMalAR))
     AddHeaderOption("$TNG_KyH")
     AddHeaderOption("")
     fkDAK = None
@@ -368,16 +354,6 @@ Event OnOptionDefault(Int aiOption)
     EndIf
     liOpLoop += 1
   EndWhile
-  If aiOption == fiAutoRevealF
-    TNG_PapyrusUtil.SetBoolValue(cuFemAR,True)  
-		SetToggleOptionValue(fiAutoRevealF,TNG_PapyrusUtil.GetBoolValue(cuFemAR))
-    Return
-  EndIf
-  If aiOption == fiAutoRevealM
-    TNG_PapyrusUtil.SetBoolValue(cuMalAR,False)    
-		SetToggleOptionValue(fiAutoRevealM,TNG_PapyrusUtil.GetBoolValue(cuMalAR))
-    Return
-  EndIf
   If aiOption == fiExPCSize
     TNG_PapyrusUtil.SetBoolValue(cuExPCSize,False)
     SetToggleOptionValue(cuExPCSize,TNG_PapyrusUtil.GetBoolValue(cuExPCSize))
@@ -552,16 +528,6 @@ EndEvent
 
 Event OnOptionSelect(Int aiOption)
 	If CurrentPage == Pages[0]
-    If aiOption == fiAutoRevealF
-      TNG_PapyrusUtil.SetBoolValue(cuFemAR,!TNG_PapyrusUtil.GetBoolValue(cuFemAR))    
-      SetToggleOptionValue(fiAutoRevealF,TNG_PapyrusUtil.GetBoolValue(cuFemAR))
-      Return
-    EndIf
-    If aiOption == fiAutoRevealM
-      TNG_PapyrusUtil.SetBoolValue(cuMalAR,!TNG_PapyrusUtil.GetBoolValue(cuMalAR))    
-      SetToggleOptionValue(fiAutoRevealM,TNG_PapyrusUtil.GetBoolValue(cuMalAR))
-      Return
-    EndIf
     If aiOption == fiExPCSize
       TNG_PapyrusUtil.SetBoolValue(cuExPCSize,!TNG_PapyrusUtil.GetBoolValue(cuExPCSize))    
       SetToggleOptionValue(fiExPCSize,TNG_PapyrusUtil.GetBoolValue(cuExPCSize))
