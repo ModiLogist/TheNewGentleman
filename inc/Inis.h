@@ -46,7 +46,7 @@ class Inis : public Singleton<Inis> {
     inline static constexpr const char* cTngIniEnding{"TNG.ini"};
 
     inline static constexpr const char* cRaceSection{"Race"};
-    inline static constexpr const char* cExcRaces{"ExcludeMods"};
+    inline static constexpr const char* cExcRaces{"ExcludeMod"};
 
     inline static constexpr const char* cSkeleton{"Skeleton"};
     inline static constexpr const char* cValidModel{"ValidModel"};
