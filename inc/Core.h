@@ -49,6 +49,7 @@ class Core : public Singleton<Core> {
     static void LoadHardExcluded() noexcept;
 
   public:
+    static void CheckOutfits() noexcept;
     static void CheckArmorPieces() noexcept;
     static Tng::TNGRes HandleArmor(RE::TESObjectARMO* aArmor, const bool aIfLog = true) noexcept;
     static bool SwapRevealing(RE::TESObjectARMO* aArmor) noexcept;
@@ -59,6 +60,7 @@ class Core : public Singleton<Core> {
     inline static std::set<RE::TESObjectARMA*> fSAAs;
     inline static std::set<RE::TESObjectARMA*> fRAAs;
     inline static std::set<RE::TESObjectARMA*> fCAAs;
+    inline static std::set<RE::TESObjectARMO*> fR4Os;
     
 
   private:

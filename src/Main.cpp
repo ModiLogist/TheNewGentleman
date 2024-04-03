@@ -54,6 +54,7 @@ static void EventListener(SKSE::MessagingInterface::Message* aMessage) noexcept 
     if (Core::Initialize()) {
       Core::GenitalizeRaces();
       Core::GenitalizeNPCSkins();
+      Core::CheckOutfits();
       Core::CheckArmorPieces();
       Tng::gLogger::info("TheNewGentleman finished initialization.");
       Events::RegisterEvents();

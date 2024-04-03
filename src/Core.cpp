@@ -333,6 +333,22 @@ void Core::RevertNPCSkin(RE::TESNPC* aNPC) {
   }
 }
 
+void Core::CheckOutfits() noexcept { 
+  Tng::gLogger::info("Checking OTFT records...");
+  auto& lAllOutfits = fDH->GetFormArray<RE::BGSOutfit>();
+  for (auto& lOutfit : lAllOutfits) {
+    RE::TESObjectARMO* lBArmo = nullptr;
+    RE::TESObjectARMO* lGArmo = nullptr;
+    for (auto& lItem : lOutfit->outfitItems) {
+      auto lArmo = lItem ? lItem->As<RE::TESObjectARMO>() : nullptr;
+      if (!lArmo) continue;
+      if (lArmo->HasPartOf(Tng::cSlotBody)) lBArmo = lArmo;
+      if (lArmo->HasPartOf(Tng::cSlotGenital) && !lArmo->HasKeyword(fUAKey)) lGArmo = lArmo;
+    }
+    if (lBArmo && lGArmo) fR4Os.insert(lBArmo);
+  }
+}
+
 void Core::CheckArmorPieces() noexcept {
   Tng::gLogger::info("Checking ARMO records...");
   auto& lAllArmor = fDH->GetFormArray<RE::TESObjectARMO>();
@@ -410,6 +426,16 @@ void Core::CheckArmorPieces() noexcept {
       }
       continue;
     }
+    if (fR4Os.find(lArmor) != fR4Os.end()) {
+      if (TryMakeArmorRevealing(lArmor, false)) {
+        Tng::gLogger::info("The armor [[0x{:x}: {}] was marked revealing since it used together with another piece on slot 52 in an outfit.", lArmor->GetFormID(), lID);
+        lAR++;
+      } else {
+        Tng::gLogger::warn("The armor [0x{:x}: {}] is used together with another piece on slot 52 in an outfit but cannot be made revealing!", lArmor->GetFormID(), lID);
+        lPA++;
+      }
+      continue;
+    }
     if (lArmor->HasPartOf(Tng::cSlotGenital) && !lArmor->HasKeyword(fUAKey) && !lArmor->HasKeyword(fIAKey)) {
       lArmor->AddKeyword(fIAKey);
       Tng::gLogger::warn("The armor [0x{:x}: {}] would cover genitals and would have a conflict with non-revealing chest armor pieces!", lArmor->GetFormID(), lID);
@@ -420,7 +446,6 @@ void Core::CheckArmorPieces() noexcept {
   }
   for (auto& lAA : fRAAs) {
     if (fCAAs.find(lAA) != fCAAs.end()) {
-      Tng::gLogger::error("The armor addon [:x] is shared between revealing and covering armor! Any armor using that addon would be covering.");
       fRAAs.erase(lAA);
     }
   }
@@ -447,7 +472,6 @@ void Core::CheckArmorPieces() noexcept {
       fCAAs.erase(lAA);
       continue;
     }
-    lAA->AddSlotToMask(Tng::cSlotGenital);
     if (lAA->data.priorities[0] == 0 || lAA->data.priorities[1] == 0)
       Tng::gLogger::warn("The armor addon [0x{:x}] might have wrong priorities. This can cause genital clipping through.", lAA->GetFormID());
   }
@@ -470,9 +494,9 @@ Tng::TNGRes Core::HandleArmor(RE::TESObjectARMO* aArmor, const bool aIfLog) noex
   for (const auto& lAA : aArmor->armorAddons) {
     if (fSAAs.find(lAA) != fSAAs.end()) lS = true;
     if (fRAAs.find(lAA) != fRAAs.end()) lR = true;
-    if (fCAAs.find(lAA) != fCAAs.end() && lAA->HasPartOf(Tng::cSlotGenital)) lC = true;
+    if (fCAAs.find(lAA) != fCAAs.end()) lC = true;
     if (lAA->HasPartOf(Tng::cSlotBody)) lBods.insert(lAA);
-    if (lAA->HasPartOf(Tng::cSlotGenital) && fCAAs.find(lAA) == fCAAs.end()) lGens.insert(lAA);
+    if (lAA->HasPartOf(Tng::cSlotGenital)) lGens.insert(lAA);
   }
   if ((lR || lS) && lC) {
     if (aIfLog) Tng::gLogger::warn("The armor [0x{:x}: {}] uses both covering and revealing armature at the same time!", aArmor->GetFormID(), lID);
@@ -538,7 +562,6 @@ bool Core::TryMakeArmorCovering(RE::TESObjectARMO* aArmor, bool aIsCC) noexcept 
   auto lArmoPrimSlot = aArmor->HasPartOf(Tng::cSlotBody) ? Tng::cSlotBody : aArmor->GetSlotMask();
   for (auto& lAA : aArmor->armorAddons)
     if (lAA->HasPartOf(lArmoPrimSlot) && !lAA->HasPartOf(Tng::cSlotGenital)) {
-      lAA->AddSlotToMask(Tng::cSlotGenital);
       fCAAs.insert(lAA);
       fRAAs.erase(lAA);
     }
