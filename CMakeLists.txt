@@ -41,7 +41,7 @@ else()
 	add_compile_definitions(_CRT_SECURE_NO_WARNINGS)
 	set(CommonLibName "CommonLibSSE")
 	set_from_environment(Skyrim64Path)
-	set(SkyrimVersion "Skyrim FLATRIM")
+	set(SkyrimVersion "Skyrim universal")
 endif()
 find_commonlib_path()
 
