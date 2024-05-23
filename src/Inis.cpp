@@ -28,6 +28,8 @@ void Inis::LoadMainIni() noexcept {
   lIni.SetUnicode();
   lIni.LoadFile(cSettings);
   fExlPC = lIni.GetBoolValue(cGeneral, cExlPC, false);
+  fRADef = lIni.GetBoolValue(cGeneral, cRADef, false);
+  fRAUsr = lIni.GetBoolValue(cGeneral, cRAUsr, false);
   for (std::size_t i = 0; i < Tng::cSizeCategories; i++) {
     Base::SetGlobalSize(i, static_cast<float>(lIni.GetDoubleValue(cGlobalSize, cSizeNames[i], cDefSizes[i])));
   }
@@ -66,7 +68,8 @@ void Inis::LoadMainIni() noexcept {
   for (lEntry = lSectionRecords.begin(); lEntry != lSectionRecords.end(); lEntry++) {
     auto lIsRevealing = lIni.GetBoolValue(cRevealingRecord, lEntry->pItem);
     const std::string lArmorRecord(lEntry->pItem);
-    if (lIsRevealing) UpdateRevealing(lArmorRecord);
+    UpdateRevealing(lArmorRecord, lIsRevealing);
+  }
   }
   for (std::size_t i = 0; i < Base::GetAddonCount(true); i++) {
     auto lAddon = Base::GetAddonAt(true, i);
