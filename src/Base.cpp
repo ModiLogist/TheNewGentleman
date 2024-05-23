@@ -15,8 +15,7 @@ bool Base::Init() noexcept {
   fGWKey = fDH->LookupForm<RE::BGSKeyword>(Tng::cGentleWomanKeyID, Tng::cName);
   fExKey = fDH->LookupForm<RE::BGSKeyword>(Tng::cExcludeKeyID, Tng::cName);
   fGentified = fDH->LookupForm<RE::BGSListForm>(Tng::cGentifiedID, Tng::cName);
-  fGenCover = fDH->LookupForm<RE::TESObjectARMA>(cGenCoverID, Tng::cName);
-  if (!(fFemAddKey && fMalAddKey && fPRaceKey && fRRaceKey && fIAKey && fACKey && fCCKey && fSkinWithPenisKey && fGWKey && fExKey && fGentified && fGenCover)) {
+  if (!(fFemAddKey && fMalAddKey && fPRaceKey && fRRaceKey && fIAKey && fACKey && fCCKey && fSkinWithPenisKey && fGWKey && fExKey && fGentified)) {
     Tng::gLogger::critical("Could not find the base information required for shape variations!");
     return false;
   }

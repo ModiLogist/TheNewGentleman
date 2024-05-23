@@ -27,6 +27,10 @@ bool Papyrus::BindPapyrus(RE::BSScript::IVirtualMachine* aVM) noexcept {
   aVM->RegisterFunction("GetSlot52Mods", "TNG_PapyrusUtil", GetSlot52Mods);
   aVM->RegisterFunction("Slot52ModBehavior", "TNG_PapyrusUtil", Slot52ModBehavior);
   aVM->RegisterFunction("SwapRevealing", "TNG_PapyrusUtil", SwapRevealing);
+
+  aVM->RegisterFunction("SetPlayerInfo", "TNG_PapyrusUtil", SetPlayerInfo);
+  aVM->RegisterFunction("GetPlayerAddn", "TNG_PapyrusUtil", GetPlayerAddn);
+
   aVM->RegisterFunction("UpdateSettings", "TNG_PapyrusUtil", UpdateSettings);
   return true;
 }
@@ -113,6 +117,11 @@ bool Papyrus::SwapRevealing(RE::StaticFunctionTag*, RE::TESObjectARMO* aArmor) {
   if (!aArmor) return false;
   return Core::SwapRevealing(aArmor);
 }
+
+void Papyrus::SetPlayerInfo(RE::StaticFunctionTag*, RE::Actor* aPlayer, int aPlayerAddn) { Events::SetPlayerInfo(aPlayer, aPlayerAddn); }
+
+int Papyrus::GetPlayerAddn(RE::StaticFunctionTag*) { return Events::GetPlayerAddn(); }
+
 void Papyrus::UpdateSettings(RE::StaticFunctionTag*) {
   Inis::SaveGlobals();
   Core::RevisitRevealingArmor();

@@ -5,14 +5,18 @@ class Inis : public Singleton<Inis> {
     // TNG setting
     inline static constexpr int cCurrVersion = 3;
     inline static constexpr const char* cSettings{R"(.\Data\SKSE\Plugins\TheNewGentleman.ini)"};
+    inline static constexpr const char* cRevealingIni{R"(.\Data\SKSE\Plugins\RevealingARMO_TNG.ini)"};
     inline static constexpr const char* cIniVersion{"IniVersion"};
     inline static constexpr const char* cVersion{"Version"};
 
     inline static constexpr const char* cGeneral{"General"};
-    inline static constexpr const char* cLogLvl{"LoggingLevel"};    
+    inline static constexpr const char* cLogLvl{"LoggingLevel"};
     inline static constexpr const char* cFAutoReveal{"FemaleAutoReveal"};
     inline static constexpr const char* cMAutoReveal{"MaleAutoReveal"};
     inline static constexpr const char* cExlPC{"ExcludePlayerSize"};
+    inline static constexpr const char* cRADef{"Slot52ModsAreRevealing"};
+    inline static constexpr const char* cRAUsr{"Slot52ModsCustomCombination"};
+    inline static constexpr const char* cRandM{"RandomizeMaleAddons"};
 
     inline static constexpr const char* cGlobalSize{"GlobalSizes"};
     inline static constexpr const char* cSizeNames[Tng::cSizeCategories]{"Size_XS", "Size__S", "Size__M", "Size__L", "Size_XL"};
@@ -61,7 +65,8 @@ class Inis : public Singleton<Inis> {
     inline static constexpr const char* cCoveringRecord{"CoveringRecord"};
 
     inline static bool fExlPC;
-
+    inline static bool fRADef;
+    inline static bool fRAUsr;
     inline static RE::TESDataHandler* fDH;
     inline static RE::TESGlobal* fNPCCtrl;
     inline static RE::TESGlobal* fUPGCtrl;
@@ -93,7 +98,6 @@ class Inis : public Singleton<Inis> {
     static void LoadHoteKeys() noexcept;
     static int GetLogLvl() noexcept;
     static void SetLogLvl(int aLvl) noexcept;
-    static bool GetExcludePlayer() noexcept;
     static bool GetSettingBool(IniBoolIDs aID) noexcept;
     static void SaveSettingBool(IniBoolIDs aID, bool aValue) noexcept;
     static void SaveRaceMult(const std::size_t aRaceIdx, const float aRaceMult) noexcept;

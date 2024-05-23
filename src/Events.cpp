@@ -25,8 +25,23 @@ void Events::RegisterEvents() noexcept {
   lSourceHolder->AddEventSink<RE::TESEquipEvent>(GetSingleton());
   lSourceHolder->AddEventSink<RE::TESObjectLoadedEvent>(GetSingleton());
   lSourceHolder->AddEventSink<RE::TESSwitchRaceCompleteEvent>(GetSingleton());
+  fIsPlayerFemale = false;
+  fPlayerRace = nullptr;
+  fPlayerAddn = -3;
+  fPlayerInfoSet = false;
   Tng::gLogger::info("Registered for necessary events.");
 }
+
+void Events::SetPlayerInfo(RE::Actor* aPlayer, int aPlayerAddn) noexcept {
+  auto lNPC = aPlayer->GetActorBase();
+  if (!lNPC) return;
+  fIsPlayerFemale = lNPC->IsFemale();
+  fPlayerRace = lNPC->race;
+  fPlayerAddn = aPlayerAddn;
+  fPlayerInfoSet = true;
+}
+
+int Events::GetPlayerAddn() noexcept { return fPlayerAddn; }
 
 RE::BSEventNotifyControl Events::ProcessEvent(const RE::TESEquipEvent* aEvent, RE::BSTEventSource<RE::TESEquipEvent>*) {
   if (!aEvent) return RE::BSEventNotifyControl::kContinue;
@@ -40,6 +55,15 @@ RE::BSEventNotifyControl Events::ProcessEvent(const RE::TESEquipEvent* aEvent, R
 RE::BSEventNotifyControl Events::ProcessEvent(const RE::TESObjectLoadedEvent* aEvent, RE::BSTEventSource<RE::TESObjectLoadedEvent>*) {
   if (!aEvent) return RE::BSEventNotifyControl::kContinue;
   const auto lActor = RE::TESForm::LookupByID<RE::Actor>(aEvent->formID);
+  if (!lActor) return RE::BSEventNotifyControl::kContinue;
+  const auto lNPC = lActor ? lActor->GetActorBase() : nullptr;
+  if (lActor->IsPlayerRef() && fPlayerInfoSet && lNPC && lNPC->race->HasKeyword(fPRaceKey)) {
+    if (fIsPlayerFemale != lNPC->IsFemale() || fPlayerRace != lActor->GetRace() || fPlayerAddn >= Base::GetAddonCount(lNPC->IsFemale())) {
+      lNPC->skin = lNPC->race->skin;
+      fPlayerAddn = -1;
+      return RE::BSEventNotifyControl::kContinue;
+    }
+  }
   if (Core::CanModifyActor(lActor) < 0) return RE::BSEventNotifyControl::kContinue;
   CheckActorArmor(lActor);
   CheckForAddons(lActor);
@@ -61,7 +85,7 @@ RE::BSEventNotifyControl Events::ProcessEvent(const RE::TESSwitchRaceCompleteEve
   return RE::BSEventNotifyControl::kContinue;
 }
 
-void Events::CheckForAddons(RE::Actor* aActor) noexcept {  
+void Events::CheckForAddons(RE::Actor* aActor) noexcept {
   const auto lNPC = aActor ? aActor->GetActorBase() : nullptr;
   if (!lNPC) return;
   if (!aActor->IsPlayerRef() || !Inis::GetSettingBool(Inis::excludePlayerSize)) Core::SetCharSize(aActor, lNPC, -1);

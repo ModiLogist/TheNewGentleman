@@ -5,6 +5,8 @@ class Events : public RE::BSTEventSink<RE::TESObjectLoadedEvent>,
                   public RE::BSTEventSink<RE::TESSwitchRaceCompleteEvent> {
   public:
     static void RegisterEvents() noexcept;
+    static void SetPlayerInfo(RE::Actor* aPlayer, int aPlayerAddn) noexcept;
+    static int GetPlayerAddn() noexcept;
 
   protected:
     RE::BSEventNotifyControl ProcessEvent(const RE::TESEquipEvent* aEvent, RE::BSTEventSource<RE::TESEquipEvent>*) override;
@@ -30,7 +32,12 @@ class Events : public RE::BSTEventSink<RE::TESObjectLoadedEvent>,
     inline static RE::TESGlobal* fGWChance;
     inline static RE::BGSListForm* fGentified;
 
-    inline static std::map<RE::FormID, RE::TESObjectARMO*> fOldSkins;
+    inline static std::map<RE::FormID, RE::TESObjectARMO*> fOldSkins;    
+
+    inline static bool fIsPlayerFemale;
+    inline static RE::TESRace* fPlayerRace;
+    inline static int fPlayerAddn;
+    inline static bool fPlayerInfoSet;
 
     Events() = default;
     Events(const Events&) = delete;

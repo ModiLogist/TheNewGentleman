@@ -26,5 +26,9 @@ class Papyrus : public Singleton<Papyrus> {
     static std::vector<std::string> GetSlot52Mods(RE::StaticFunctionTag*);
     static bool Slot52ModBehavior(RE::StaticFunctionTag*, std::string aModName, int aBehavior);
     static bool SwapRevealing(RE::StaticFunctionTag*, RE::TESObjectARMO* aArmor);
+
+    static void SetPlayerInfo(RE::StaticFunctionTag*, RE::Actor* aPlayer, int aPlayerAddn);
+    static int GetPlayerAddn(RE::StaticFunctionTag*);
+    
     static void UpdateSettings(RE::StaticFunctionTag*);
 };
