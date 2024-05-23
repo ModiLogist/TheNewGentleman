@@ -39,20 +39,20 @@ class Base : public Singleton<Base> {
         {{0x0E88A, "Dawnguard.esm"}, 0},    // DLC1 Nord
     };
     inline static constexpr int cVanillaRaceDefaults[Tng::cVanillaRaceTypes]{
-        2,  // TNG_GenitalNord
-        1,  // TNG_GenitalRedguard
-        0,  // TNG_GenitalBreton
-        2,  // TNG_GenitalImperial
-        0,  // TNG_GenitalAltmer
-        0,  // TNG_GenitalBosmer
-        1,  // TNG_GenitalDunmer
+        1,  // TNG_GenitalNord
+        2,  // TNG_GenitalRedguard
+        3,  // TNG_GenitalBreton
+        4,  // TNG_GenitalImperial
+        3,  // TNG_GenitalAltmer
+        1,  // TNG_GenitalBosmer
+        4,  // TNG_GenitalDunmer
         2,  // TNG_GenitalOrsimer
-        0,  // TNG_GenitalSaxhleel
-        2,  // TNG_GenitalKhajiit
-        1,  // TNG_GenitalDremora
-        2,  // TNG_GenitalElder
-        0,  // TNG_GenitalAfflicted
-        0,  // TNG_GenitalSnowElf
+        1,  // TNG_GenitalSaxhleel
+        5,  // TNG_GenitalKhajiit
+        4,  // TNG_GenitalDremora
+        5,  // TNG_GenitalElder
+        3,  // TNG_GenitalAfflicted
+        5,  // TNG_GenitalSnowElf
     };
     inline static constexpr std::pair<std::array<const char*, 2>, bool> cRaceNames[Tng::cVanillaRaceTypes]{
         {{"Nord", "nord"}, false},       {{"Redguard", "redguard"}, false}, {{"Breton", "Reachmen"}, false},     {{"Imperial", "imperial"}, false}, {{"Altmer", "HighElf"}, false},
