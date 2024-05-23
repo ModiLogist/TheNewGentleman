@@ -64,7 +64,7 @@ RE::BSEventNotifyControl Events::ProcessEvent(const RE::TESSwitchRaceCompleteEve
 void Events::CheckForAddons(RE::Actor* aActor) noexcept {  
   const auto lNPC = aActor ? aActor->GetActorBase() : nullptr;
   if (!lNPC) return;
-  if (!aActor->IsPlayerRef() || !Inis::GetExcludePlayer()) Core::SetCharSize(aActor, lNPC, -1);
+  if (!aActor->IsPlayerRef() || !Inis::GetSettingBool(Inis::excludePlayerSize)) Core::SetCharSize(aActor, lNPC, -1);
   auto lNPCAddn = Base::GetNPCAddn(lNPC);
   if (lNPCAddn.second < 0 && (lNPC->IsPlayer() || !lNPC->IsFemale() || lNPC->HasKeyword(fExKey) || fGWChance->value < 1)) return;
   if (lNPCAddn.second == Tng::pgErr) {
@@ -81,14 +81,18 @@ int Events::GetNPCAutoAddn(RE::TESNPC* aNPC) noexcept {
   return (((aNPC->GetFormID() % 100) < (std::floor(fGWChance->value) + 1))) ? aNPC->GetFormID() % lFDistAddnCount : -1;
 }
 
-void Events::CheckActorArmor(RE::Actor* aActor, RE::TESObjectARMO* aArmor) noexcept {  
-  if (aArmor && aArmor->HasPartOf(Tng::cSlotBody)) Core::TryMakeArmorCovering(aArmor, aArmor->HasKeyword(fCCKey));
-  const auto lBArmo = aActor->GetWornArmor(Tng::cSlotBody);
-  if (!lBArmo || !lBArmo->HasPartOf(Tng::cSlotGenital) || !lBArmo->HasKeyword(fACKey) || lBArmo->armorAddons.size() == 0) return;
-  if (lBArmo->HasKeyword(fRRKey) || lBArmo->HasKeywordString(Tng::cSOSR)) {
-    bool lChanged = Core::TryMakeArmorRevealing(aArmor, aArmor->HasKeyword(fRRKey) || aArmor->HasKeywordString(Tng::cSOSR));
+void Events::CheckActorArmor(RE::Actor* aActor, RE::TESObjectARMO* aArmor) noexcept {
+  const auto lBArmo = aArmor ? aArmor : aActor->GetWornArmor(Tng::cSlotBody);
+  if (!lBArmo || lBArmo->armorAddons.size() == 0) return;
+  bool lChanged = {false};
+  if (lBArmo->HasKeyword(fRRKey) || lBArmo->HasKeywordString(Tng::cSOSR) || lBArmo->HasKeyword(fARKey)) {
+    if (!lBArmo->HasPartOf(Tng::cSlotGenital)) return;
+    lChanged = Core::TryMakeArmorRevealing(lBArmo, lBArmo->HasKeyword(fRRKey) || lBArmo->HasKeywordString(Tng::cSOSR));
     const auto lID = (std::string(lBArmo->GetName()).empty()) ? lBArmo->GetFormEditorID() : lBArmo->GetName();
     Tng::gLogger::info("The armor [0x{:x}: {}] was updated to be revealing.", lBArmo->GetLocalFormID(), lID);
-    if (lChanged && aActor) RE::ActorEquipManager::GetSingleton()->EquipObject(aActor, lBArmo, nullptr, 1, nullptr, false, false, false, true);
   }  
+  if (!lBArmo->HasPartOf(Tng::cSlotGenital) && (lBArmo->HasKeyword(fACKey) || lBArmo->HasKeyword(fCCKey))) {
+    lChanged = Core::TryMakeArmorCovering(lBArmo, lBArmo->HasKeyword(fCCKey));    
+  }
+  if (lChanged && aActor) RE::ActorEquipManager::GetSingleton()->EquipObject(aActor, lBArmo, nullptr, 1, nullptr, false, false, false, true);
 }

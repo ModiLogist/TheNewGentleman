@@ -82,88 +82,103 @@ void Inis::LoadMainIni() noexcept {
 }
 
 void Inis::LoadTngInis() noexcept {
-  if (!std::filesystem::exists(cTngInisPath)) return;
-  Tng::gLogger::info("Loading ini files:");
-  for (const auto& entry : std::filesystem::directory_iterator(cTngInisPath)) {
-    std::string lFileName = entry.path().filename().string();
-    if (lFileName.ends_with(cTngIniEnding)) {
-      CSimpleIniA lIni;
-      lIni.SetUnicode();
-      lIni.SetMultiKey();
-      lIni.LoadFile(entry.path().string().c_str());
-      if (lIni.SectionExists(cRaceSection)) {
-        CSimpleIniA::TNamesDepend lExMods;
-        lIni.GetAllValues(cRaceSection, cExcRaces, lExMods);
-        CSimpleIniA::TNamesDepend::const_iterator lMod;
-        for (lMod = lExMods.begin(); lMod != lExMods.end(); lMod++) {
-          const std::string lModName(lMod->pItem);
-          fRaceExMods.insert(lModName);
-        }
-        Tng::gLogger::info("\t- Found [{}] excluded mods for their races in file [{}].", lExMods.size(), lFileName);
+  Tng::gLogger::info("Loading ini files...");
+  if (std::filesystem::exists(cTngInisPath)) {
+    for (const auto& lEntry : std::filesystem::directory_iterator(cTngInisPath)) {
+      const std::string lFileName = lEntry.path().filename().string();
+      if (lFileName.ends_with(cTngIniEnding)) {
+        LoadSingleIni(lEntry.path().string().c_str(), lFileName);
+      } else {
+        Tng::gLogger::warn("The file {} in TNG ini folder is not named correctly or is not a TNG ini file.", lFileName);
       }
-      if (lIni.SectionExists(cExcludeSection)) {
-        CSimpleIniA::TNamesDepend lExRecords;
-        CSimpleIniA::TNamesDepend::const_iterator lEntry;
-        lIni.GetAllKeys(cExcludeSection, lExRecords);
-        for (lEntry = lExRecords.begin(); lEntry != lExRecords.end(); lEntry++) {
-          auto lRecord = StrToRecord(lEntry->pItem);
-          fHardExcluded.insert_or_assign(lRecord.first, lRecord.second);
-        }
-        Tng::gLogger::info("\t- Found [{}] excluded NPCs in ini file [{}].", lExRecords.size(), lFileName);
+    }
+  }
+  if (!std::filesystem::exists(cRevealingIni)) {
+    std::ofstream lTngRevealingExtra(cRevealingIni);
+    lTngRevealingExtra << ";Revealing mods with pieces on slot 52 for TNG" << std::endl;
+    lTngRevealingExtra << ";If you are here, please consider sharing your ini file with me: @modilogist on discord or nexus." << std::endl
+                       << ";We would share it on TNG page for others, with you being credited for it." << std::endl
+                       << ";You can also upload your ini files as a separate mod on nexus if you prefer that." << std::endl
+                       << ";Thanks in advance!" << std::endl;
+    lTngRevealingExtra.close();
+  }
+  LoadSingleIni(cRevealingIni, "UserDefinedRevealing");
+}
+
+void Inis::LoadSingleIni(const char* aPath, const std::string& aFileName) {
+  CSimpleIniA lIni;
+  lIni.SetUnicode();
+  lIni.SetMultiKey();
+  lIni.LoadFile(aPath);
+  if (lIni.SectionExists(cRaceSection)) {
+    CSimpleIniA::TNamesDepend lExMods;
+    lIni.GetAllValues(cRaceSection, cExcRaces, lExMods);
+    CSimpleIniA::TNamesDepend::const_iterator lMod;
+    for (lMod = lExMods.begin(); lMod != lExMods.end(); lMod++) {
+      const std::string lModName(lMod->pItem);
+      fRaceExMods.insert(lModName);
+    }
+    Tng::gLogger::info("\t- Found [{}] excluded mods for their races in [{}].", lExMods.size(), aFileName);
+  }
+  if (lIni.SectionExists(cExcludeSection)) {
+    CSimpleIniA::TNamesDepend lExRecords;
+    CSimpleIniA::TNamesDepend::const_iterator lEntry;
+    lIni.GetAllKeys(cExcludeSection, lExRecords);
+    for (lEntry = lExRecords.begin(); lEntry != lExRecords.end(); lEntry++) {
+      auto lRecord = StrToRecord(lEntry->pItem);
+      fHardExcluded.insert_or_assign(lRecord.first, lRecord.second);
+    }
+    Tng::gLogger::info("\t- Found [{}] excluded NPCs in [{}].", lExRecords.size(), aFileName);
+  }
+  if (lIni.KeyExists(cSkeleton, cValidModel)) {
+    CSimpleIniA::TNamesDepend lSkeletons;
+    lIni.GetAllValues(cSkeleton, cValidModel, lSkeletons);
+    CSimpleIniA::TNamesDepend::const_iterator lSkeleton;
+    for (lSkeleton = lSkeletons.begin(); lSkeleton != lSkeletons.end(); lSkeleton++) {
+      const std::string lModel(lSkeleton->pItem);
+      fValidSkeletons.insert(lModel);
+    }
+    Tng::gLogger::info("\t- Found [{}] skeleton models in [{}].", lSkeletons.size(), aFileName);
+  }
+  if (lIni.SectionExists(cSkinSection)) {
+    if (lIni.KeyExists(cSkinSection, cSkinMod)) {
+      CSimpleIniA::TNamesDepend lMods;
+      lIni.GetAllValues(cSkinSection, cSkinMod, lMods);
+      CSimpleIniA::TNamesDepend::const_iterator lMod;
+      for (lMod = lMods.begin(); lMod != lMods.end(); lMod++) {
+        const std::string lModName(lMod->pItem);
+        fSkinMods.insert(lModName);
       }
-      if (lIni.KeyExists(cSkeleton, cValidModel)) {
-        CSimpleIniA::TNamesDepend lSkeletons;
-        lIni.GetAllValues(cSkeleton, cValidModel, lSkeletons);
-        CSimpleIniA::TNamesDepend::const_iterator lSkeleton;
-        for (lSkeleton = lSkeletons.begin(); lSkeleton != lSkeletons.end(); lSkeleton++) {
-          const std::string lModel(lSkeleton->pItem);
-          fValidSkeletons.insert(lModel);
-        }
-        Tng::gLogger::info("\t- Found [{}] skeleton models in ini file [{}].", lSkeletons.size(), lFileName);
+      Tng::gLogger::info("\t- Found [{}] skin mods in [{}].", lMods.size(), aFileName);
+    }
+    if (lIni.KeyExists(cSkinSection, cSkinRecord)) {
+      CSimpleIniA::TNamesDepend lModRecords;
+      lIni.GetAllValues(cSkinSection, cSkinRecord, lModRecords);
+      LoadModRecodPairs(lModRecords, fSingleSkinIDs);
+      Tng::gLogger::info("\t- Found [{}] skin records in [{}].", lModRecords.size(), aFileName);
+    }
+  }
+  if (lIni.SectionExists(cArmorSection)) {
+    if (lIni.KeyExists(cArmorSection, cRevealingMod)) {
+      CSimpleIniA::TNamesDepend lMods;
+      lIni.GetAllValues(cArmorSection, cRevealingMod, lMods);
+      for (const auto& lMod : lMods) {
+        const std::string lModName(lMod.pItem);
+        (aFileName == "UserDefinedRevealing" && fRevealingMods.find(lModName) == fRevealingMods.end()) ? fExtraRevealing.insert(lModName) : fRevealingMods.insert(lModName);
       }
-      if (lIni.SectionExists(cSkinSection)) {
-        if (lIni.KeyExists(cSkinSection, cSkinMod)) {
-          CSimpleIniA::TNamesDepend lMods;
-          lIni.GetAllValues(cSkinSection, cSkinMod, lMods);
-          CSimpleIniA::TNamesDepend::const_iterator lMod;
-          for (lMod = lMods.begin(); lMod != lMods.end(); lMod++) {
-            const std::string lModName(lMod->pItem);
-            fSkinMods.insert(lModName);
-          }
-          Tng::gLogger::info("\t- Found [{}] skin mods in ini file [{}].", lMods.size(), lFileName);
-        }
-        if (lIni.KeyExists(cSkinSection, cSkinRecord)) {
-          CSimpleIniA::TNamesDepend lModRecords;
-          lIni.GetAllValues(cSkinSection, cSkinRecord, lModRecords);
-          LoadModRecodPairs(lModRecords, fSingleSkinIDs);
-          Tng::gLogger::info("\t- Found [{}] skin records in ini file [{}].", lModRecords.size(), lFileName);
-        }
-      }
-      if (lIni.SectionExists(cArmorSection)) {
-        if (lIni.KeyExists(cArmorSection, cRevealingMod)) {
-          CSimpleIniA::TNamesDepend lMods;
-          lIni.GetAllValues(cArmorSection, cRevealingMod, lMods);
-          for (const auto& lMod : lMods) {
-            const std::string lModName(lMod.pItem);
-            fRevealingMods.insert(lModName);
-          }
-          Tng::gLogger::info("\t- Found [{}] revealing mods in ini file [{}].", lMods.size(), lFileName);
-        }
-        if (lIni.KeyExists(cArmorSection, cRevealingRecord)) {
-          CSimpleIniA::TNamesDepend lModRecords;
-          lIni.GetAllValues(cArmorSection, cRevealingRecord, lModRecords);
-          LoadModRecodPairs(lModRecords, fSingleRevealingIDs);
-          Tng::gLogger::info("\t- Found [{}] revealing records in ini file [{}].", lModRecords.size(), lFileName);
-        }
-        if (lIni.KeyExists(cArmorSection, cCoveringRecord)) {
-          CSimpleIniA::TNamesDepend lModRecords;
-          lIni.GetAllValues(cArmorSection, cCoveringRecord, lModRecords);
-          LoadModRecodPairs(lModRecords, fSingleCoveringIDs);
-          Tng::gLogger::info("\t- Found [{}] covering records in ini file [{}].", lModRecords.size(), lFileName);
-        }
-      }
-    } else {
-      Tng::gLogger::warn("The file {} in TNG ini folder is not named correctly or is not a TNG ini file.", lFileName);
+      Tng::gLogger::info("\t- Found [{}] revealing mods in [{}].", lMods.size(), aFileName);
+    }
+    if (lIni.KeyExists(cArmorSection, cRevealingRecord)) {
+      CSimpleIniA::TNamesDepend lModRecords;
+      lIni.GetAllValues(cArmorSection, cRevealingRecord, lModRecords);
+      LoadModRecodPairs(lModRecords, fSingleRevealingIDs);
+      Tng::gLogger::info("\t- Found [{}] revealing records in ini file [{}].", lModRecords.size(), aFileName);
+    }
+    if (lIni.KeyExists(cArmorSection, cCoveringRecord)) {
+      CSimpleIniA::TNamesDepend lModRecords;
+      lIni.GetAllValues(cArmorSection, cCoveringRecord, lModRecords);
+      LoadModRecodPairs(lModRecords, fSingleCoveringIDs);
+      Tng::gLogger::info("\t- Found [{}] covering records in ini file [{}].", lModRecords.size(), aFileName);
     }
   }
 }
@@ -197,8 +212,12 @@ void Inis::SetLogLvl(int aLvl) noexcept {
 
 bool Inis::GetSettingBool(IniBoolIDs aID) noexcept {
   switch (aID) {
-    case Inis::excludePlayerSize:
+    case excludePlayerSize:
       return fExlPC;
+    case revealSlot52Mods:
+      return fRADef;
+    case revealSlot52User:
+      return fRAUsr;
     default:
       return false;
   }
@@ -213,13 +232,19 @@ void Inis::SaveSettingBool(IniBoolIDs aID, bool aValue) noexcept {
       lIni.SetBoolValue(cGeneral, cExlPC, aValue);
       fExlPC = aValue;
       break;
+    case revealSlot52Mods:
+      lIni.SetBoolValue(cGeneral, cRADef, aValue);
+      fRADef = aValue;
+      break;
+    case revealSlot52User:
+      lIni.SetBoolValue(cGeneral, cRAUsr, aValue);
+      fRAUsr = aValue;
+      break;
     default:
       break;
   }
   lIni.SaveFile(cSettings);
 }
-
-bool Inis::GetExcludePlayer() noexcept { return fExlPC; }
 
 void Inis::SaveRaceMult(const std::size_t aRaceIdx, const float aRaceMult) noexcept {
   CSimpleIniA lIni;
@@ -296,33 +321,33 @@ void Inis::SaveNPCSize(RE::TESNPC* aNPC, int aGenSize) noexcept {
   lIni.SaveFile(cSettings);
 }
 
-void Inis::SaveRevealingArmor(RE::TESObjectARMO* aArmor) noexcept {
-  auto lArmoIDStr = RecordToStr(aArmor);
-  if (lArmoIDStr.empty()) return;
   CSimpleIniA lIni;
   lIni.SetUnicode();
   lIni.LoadFile(cSettings);
-  lIni.SetBoolValue(cRevealingRecord, lArmoIDStr.c_str(), true);
   lIni.SaveFile(cSettings);
 }
 
 void Inis::SaveActiveAddon(int aFemaleAddon, bool aStatus) noexcept {
   auto lAddonStr = RecordToStr(Base::GetAddonAt(true, aFemaleAddon));
   if (lAddonStr.empty()) return;
-  CSimpleIniA lIni;
-  lIni.SetUnicode();
-  lIni.LoadFile(cSettings);
-  lIni.SetBoolValue(cActiveAddons, lAddonStr.c_str(), aStatus);
-  lIni.SaveFile(cSettings);
-}
-
-void Inis::RemoveRevealingArmor(RE::TESObjectARMO* aArmor) noexcept {
+void Inis::SaveRevealingArmor(RE::TESObjectARMO* aArmor) noexcept {
   auto lArmoIDStr = RecordToStr(aArmor);
   if (lArmoIDStr.empty()) return;
   CSimpleIniA lIni;
   lIni.SetUnicode();
   lIni.LoadFile(cSettings);
-  lIni.Delete(cRevealingRecord, lArmoIDStr.c_str());
+  lIni.SetBoolValue(cActiveAddons, lAddonStr.c_str(), aStatus);
+  lIni.SetBoolValue(cRevealingRecord, lArmoIDStr.c_str(), true);
+  lIni.SaveFile(cSettings);
+}
+
+void Inis::SaveCoveringArmor(RE::TESObjectARMO* aArmor) noexcept {
+  auto lArmoIDStr = RecordToStr(aArmor);
+  if (lArmoIDStr.empty()) return;
+  CSimpleIniA lIni;
+  lIni.SetUnicode();
+  lIni.LoadFile(cSettings);
+  lIni.SetBoolValue(cRevealingRecord, lArmoIDStr.c_str(), false);
   lIni.SaveFile(cSettings);
 }
 
@@ -346,6 +371,35 @@ void Inis::UpdateValidSkeletons(std::set<std::string> aValidSkeletons) noexcept 
 
 bool Inis::IsValidSkeleton(std::string aModel) noexcept { return fValidSkeletons.find(aModel) != fValidSkeletons.end(); }
 
+bool Inis::Slot52ModBehavior(const std::string& aModName, const int aBehavior) noexcept {
+  CSimpleIniA lIni;
+  lIni.SetUnicode();
+  lIni.SetMultiKey();
+  lIni.LoadFile(cRevealingIni);
+  switch (aBehavior) {
+    case 1:
+      lIni.DeleteValue(cArmorSection, cRevealingMod, aModName.c_str());
+      lIni.SetValue(cArmorSection, cRevealingMod, aModName.c_str());
+      lIni.SaveFile(cRevealingIni);
+      fExtraRevealing.insert(aModName);
+      return true;
+    case 0:
+      lIni.DeleteValue(cArmorSection, cRevealingMod, aModName.c_str());
+      lIni.SaveFile(cRevealingIni);
+      fExtraRevealing.erase(aModName);
+      return false;
+    default:
+      CSimpleIniA::TNamesDepend lMods;
+      lIni.GetAllValues(cArmorSection, cRevealingMod, lMods);
+      CSimpleIniA::TNamesDepend::const_iterator lMod;
+      for (lMod = lMods.begin(); lMod != lMods.end(); lMod++) {
+        const std::string lModName(lMod->pItem);
+        if (lModName == aModName) return true;
+      }
+      return false;
+  }
+}
+
 void Inis::UpdateIniVersion() noexcept {
   CSimpleIniA lIni;
   CSimpleIniA::TNamesDepend lSections;
@@ -358,12 +412,6 @@ void Inis::UpdateIniVersion() noexcept {
       for (CSimpleIniA::TNamesDepend::const_iterator lSection = lSections.begin(); lSection != lSections.end(); lSection++) lIni.Delete(lSection->pItem, NULL);
       break;
     case 2:
-      if (lIni.KeyExists("AutoReveal", "Male")) {
-        lIni.SetBoolValue(cGeneral, cMAutoReveal, lIni.GetBoolValue("AutoReveal", "Male", false));
-      }
-      if (lIni.KeyExists("AutoReveal", "Female")) {
-        lIni.SetBoolValue(cGeneral, cFAutoReveal, lIni.GetBoolValue("AutoReveal", "Female", true));
-      }
       lIni.Delete("AutoReveal", NULL);
       if (lIni.SectionExists(cNPCAddnSection)) lIni.Delete(cNPCAddnSection, NULL);
       break;
@@ -382,12 +430,12 @@ void Inis::LoadModRecodPairs(CSimpleIniA::TNamesDepend aModRecords, std::set<std
   }
 }
 
-bool Inis::UpdateRevealing(const std::string aArmorRecod) noexcept {
+void Inis::UpdateRevealing(const std::string aArmorRecod, const bool aIsRevealing) noexcept {
   auto lArmor = fDH->LookupForm<RE::TESObjectARMO>(StrToRecord(aArmorRecod).second, StrToRecord(aArmorRecod).first);
   if (!lArmor) {
-    Tng::gLogger::info("Previously marked revealing armor from mod {} does not exist anymore!", StrToRecord(aArmorRecod).first);
-    return false;
+    Tng::gLogger::info("Previously marked {} armor from mod {} does not exist anymore!", aIsRevealing ? "revealing" : "covering", StrToRecord(aArmorRecod).first);
+    return;
   }
-  fRunTimeRevealingIDs.insert(std::make_pair<std::string, RE::FormID>(StrToRecord(aArmorRecod).first, StrToRecord(aArmorRecod).second));
-  return true;
+  auto& lList = aIsRevealing ? fRunTimeRevealingIDs : fRuntimeCoveringIDs;
+  lList.insert(std::make_pair<std::string, RE::FormID>(StrToRecord(aArmorRecod).first, StrToRecord(aArmorRecod).second));
 }

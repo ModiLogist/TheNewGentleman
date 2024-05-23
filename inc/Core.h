@@ -51,16 +51,21 @@ class Core : public Singleton<Core> {
   public:
     static void CheckOutfits() noexcept;
     static void CheckArmorPieces() noexcept;
-    static Tng::TNGRes HandleArmor(RE::TESObjectARMO* aArmor, const bool aIfLog = true) noexcept;
+    static void RevisitRevealingArmor() noexcept;
+    static Tng::TNGRes HandleArmor(RE::TESObjectARMO* aArmor) noexcept;
     static bool SwapRevealing(RE::TESObjectARMO* aArmor) noexcept;
     static bool TryMakeArmorCovering(RE::TESObjectARMO* aArmor, bool aIsCC) noexcept;
     static bool TryMakeArmorRevealing(RE::TESObjectARMO* aArmor, bool aIsRR) noexcept;
+    static std::set<std::string> GetSlot52Mods() noexcept;
 
   private:
+    inline static constexpr std::string_view cNoFile { "NoFile" };
     inline static std::set<RE::TESObjectARMA*> fSAAs;
     inline static std::set<RE::TESObjectARMA*> fRAAs;
     inline static std::set<RE::TESObjectARMA*> fCAAs;
     inline static std::set<RE::TESObjectARMO*> fR4Os;
+    inline static std::set<std::string> fSlot52Mods;
+    static int VisitRevealingArmor(std::set<RE::TESObjectARMO*> aPotentialArmor) noexcept;
     
 
   private:

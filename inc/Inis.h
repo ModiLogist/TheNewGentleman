@@ -80,13 +80,16 @@ class Inis : public Singleton<Inis> {
     inline static std::set<std::pair<std::string, RE::FormID>> fSingleRevealingIDs;
     inline static std::set<std::pair<std::string, RE::FormID>> fSingleCoveringIDs;
     inline static std::set<std::pair<std::string, RE::FormID>> fRunTimeRevealingIDs;
+    inline static std::set<std::pair<std::string, RE::FormID>> fRuntimeCoveringIDs;
     inline static std::set<std::pair<std::pair<std::string, RE::FormID>, int>> fNPCSizes;
     inline static std::set<std::pair<std::pair<std::string, RE::FormID>, int>> fNPCAddns;
     inline static std::map<std::string, RE::FormID> fHardExcluded;
+    inline static std::set<std::string> fExtraRevealing;
 
     static bool Init() noexcept;
     static void LoadMainIni() noexcept;
     static void LoadTngInis() noexcept;
+    static void LoadSingleIni(const char* aPath, const std::string& aFileName);
     static void LoadHoteKeys() noexcept;
     static int GetLogLvl() noexcept;
     static void SetLogLvl(int aLvl) noexcept;
@@ -99,13 +102,14 @@ class Inis : public Singleton<Inis> {
     static void SaveNPCSize(RE::TESNPC* aNPC, int aGenSize) noexcept;
     static void SaveRevealingArmor(RE::TESObjectARMO* aArmor) noexcept;
     static void SaveActiveAddon(int aFemaleAddon, bool aStatus) noexcept;
-    static void RemoveRevealingArmor(RE::TESObjectARMO* aArmor) noexcept;
+    static void SaveCoveringArmor(RE::TESObjectARMO* aArmor) noexcept;
     static void SaveGlobals() noexcept;
     static void UpdateValidSkeletons(std::set<std::string> aValidSkeletons) noexcept;
     static bool IsValidSkeleton(std::string aModel) noexcept;
+    static bool Slot52ModBehavior(const std::string& aModName, const int aBehavior) noexcept;
 
   private:
     static void UpdateIniVersion() noexcept;
     static void LoadModRecodPairs(CSimpleIniA::TNamesDepend aModRecords, std::set<std::pair<std::string, RE::FormID>>& aField) noexcept;
-    static bool UpdateRevealing(const std::string aArmorRecod) noexcept;
+    static void UpdateRevealing(const std::string aArmorRecod, const bool aIsRevealing) noexcept;
 };

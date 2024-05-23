@@ -6,7 +6,6 @@ class Papyrus : public Singleton<Papyrus> {
   private:
     static int UpdateLogLvl(RE::StaticFunctionTag*, int aLogLvl);
     static std::string ShowLogLocation(RE::StaticFunctionTag*);
-    static void SaveGlobals(RE::StaticFunctionTag*);
 
     static bool GetBoolValue(RE::StaticFunctionTag*, int aID);
     static void SetBoolValue(RE::StaticFunctionTag*, int aID, bool aValue);
@@ -24,5 +23,8 @@ class Papyrus : public Singleton<Papyrus> {
     static int SetActorAddn(RE::StaticFunctionTag*, RE::Actor* aActor, int aGenOption);
     static int SetActorSize(RE::StaticFunctionTag*, RE::Actor* aActor, int aGenSize);
 
+    static std::vector<std::string> GetSlot52Mods(RE::StaticFunctionTag*);
+    static bool Slot52ModBehavior(RE::StaticFunctionTag*, std::string aModName, int aBehavior);
     static bool SwapRevealing(RE::StaticFunctionTag*, RE::TESObjectARMO* aArmor);
+    static void UpdateSettings(RE::StaticFunctionTag*);
 };

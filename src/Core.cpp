@@ -248,7 +248,7 @@ Tng::TNGRes Core::CanModifyActor(RE::Actor* aActor) noexcept {
 }
 
 Tng::TNGRes Core::SetNPCSkin(RE::TESNPC* aNPC, int aAddon, bool aIsUser) noexcept {
-  auto lMaxRes = (aNPC->IsPlayer() && Inis::GetExcludePlayer()) ? Tng::resOkNoGen : Tng::resOkGen;
+  auto lMaxRes = (aNPC->IsPlayer() && Inis::GetSettingBool(Inis::excludePlayerSize)) ? Tng::resOkNoGen : Tng::resOkGen;
   if (!aNPC->race || !aNPC->race->HasKeyword(fPRaceKey)) return Tng::raceErr;
   if (fHardExcludedNPCs.find(aNPC) != fHardExcludedNPCs.end()) return Tng::npcErr;
   if (aAddon == -1) return !aNPC->IsFemale() || (aNPC->skin && aNPC->skin->HasKeyword(fSwPKey)) ? lMaxRes : Tng::resOkNoGen;
@@ -278,7 +278,7 @@ Tng::TNGRes Core::SetNPCSkin(RE::TESNPC* aNPC, int aAddon, bool aIsUser) noexcep
 Tng::TNGRes Core::SetCharSize(RE::Actor* aActor, RE::TESNPC* aNPC, int aGenSize) noexcept {
   if (!aNPC->race) return Tng::raceErr;
   if (!(aNPC->race->HasKeyword(fPRaceKey) || aNPC->race->HasKeyword(fRRaceKey))) return Tng::raceErr;
-  int lGenSize = (aNPC->IsPlayer() && Inis::GetExcludePlayer()) ? -2 : aGenSize;
+  int lGenSize = (aNPC->IsPlayer() && Inis::GetSettingBool(Inis::excludePlayerSize)) ? -2 : aGenSize;
   auto lRes = Base::SetCharSize(aActor, aNPC, lGenSize);
   if (!aNPC->IsPlayer() && lRes == Tng::resOkGen && lGenSize >= 0) Inis::SaveNPCSize(aNPC, lGenSize);
   return lRes;
@@ -333,7 +333,7 @@ void Core::RevertNPCSkin(RE::TESNPC* aNPC) {
   }
 }
 
-void Core::CheckOutfits() noexcept { 
+void Core::CheckOutfits() noexcept {
   Tng::gLogger::info("Checking OTFT records...");
   auto& lAllOutfits = fDH->GetFormArray<RE::BGSOutfit>();
   for (auto& lOutfit : lAllOutfits) {
@@ -353,14 +353,18 @@ void Core::CheckArmorPieces() noexcept {
   Tng::gLogger::info("Checking ARMO records...");
   auto& lAllArmor = fDH->GetFormArray<RE::TESObjectARMO>();
   std::set<RE::TESObjectARMO*> lPotentialArmor;
-  std::set<RE::TESObjectARMO*> lUnhandledArmor;
-  std::set<RE::TESRace*> lArmoRaces;
   bool lCheckSkinMods = Inis::fSkinMods.size() > 0;
   bool lCheckSkinRecords = Inis::fSingleSkinIDs.size() > 0;
   bool lCheckRevealMods = Inis::fRevealingMods.size() > 0;
   bool lCheckRevealRecords = Inis::fSingleRevealingIDs.size() > 0;
   bool lCheckCoverRecords = Inis::fSingleCoveringIDs.size() > 0;
-  bool lCheckRuntimeRecords = Inis::fRunTimeRevealingIDs.size() > 0;
+  bool lCheckRuntimeRRecords = Inis::fRunTimeRevealingIDs.size() > 0;
+  bool lCheckRuntimeCRecords = Inis::fRuntimeCoveringIDs.size() > 0;
+  bool lCheckExtraRevealing = Inis::fExtraRevealing.size() > 0;
+  if (lCheckExtraRevealing) fSlot52Mods.insert(Inis::fExtraRevealing.begin(), Inis::fExtraRevealing.end());
+  std::set<std::string> lSlot52ReadyMods{Inis::fSkinMods.begin(), Inis::fSkinMods.end()};
+  std::set<std::string> lModsWithPotential;
+  auto lERMCount = Inis::fExtraRevealing.size();
   int lIA = lAllArmor.size();
   int lRR = 0;
   int lAR = 0;
@@ -376,13 +380,13 @@ void Core::CheckArmorPieces() noexcept {
     if (lArmor->armorAddons.size() == 0) lArmor->AddKeyword(fIAKey);
     const auto lID = (std::string(lArmor->GetName()).empty()) ? lArmor->GetFormEditorID() : lArmor->GetName();
     if (!lArmor->race) {
-      Tng::gLogger::warn("The armor [0x{:x}: {}] does not have a race! It won't be touched by Tng!", lArmor->GetFormID(), lID);
+      if (!lArmor->HasKeyword(fIAKey)) Tng::gLogger::warn("The armor [0x{:x}: {}] does not have a race! It won't be touched by Tng!", lArmor->GetFormID(), lID);
       lArmor->AddKeyword(fIAKey);
       continue;
     }
     if (!(lArmor->race->HasKeyword(fPRaceKey) || lArmor->race->HasKeyword(fRRaceKey) || lArmor->race == fDefRace)) continue;
     if (lArmor->HasKeyword(fIAKey) || lArmor->HasKeyword(fUAKey)) continue;
-    auto lFN = lArmor->GetFile(0) ? lArmor->GetFile(0)->GetFilename() : "NoFile";
+    auto lFN = lArmor->GetFile(0) ? lArmor->GetFile(0)->GetFilename() : cNoFile;
     if ((lCheckSkinMods && Inis::fSkinMods.find(std::string{lFN}) != Inis::fSkinMods.end()) ||
         (lCheckSkinRecords && Inis::fSingleSkinIDs.find(std::make_pair(std::string{lFN}, lArmor->GetLocalFormID())) != Inis::fSingleSkinIDs.end())) {
       if (FixSkin(lArmor, lID)) {
@@ -403,6 +407,7 @@ void Core::CheckArmorPieces() noexcept {
     if ((lCheckRevealMods && Inis::fRevealingMods.find(std::string{lFN}) != Inis::fRevealingMods.end()) ||
         (lCheckRevealRecords && Inis::fSingleRevealingIDs.find(std::make_pair(std::string{lFN}, lArmor->GetLocalFormID())) != Inis::fSingleRevealingIDs.end()) ||
         lArmor->HasKeywordString(Tng::cSOSR) || lArmor->HasKeyword(fRRKey)) {
+      lSlot52ReadyMods.insert(std::string{lFN});
       if (lArmor->HasPartOf(Tng::cSlotBody)) {
         if (TryMakeArmorRevealing(lArmor, true)) {
           Tng::gLogger::info("Armor [0x{:x}: {}] was marked revealing.", lArmor->GetFormID(), lID);
@@ -416,7 +421,7 @@ void Core::CheckArmorPieces() noexcept {
       }
       continue;
     }
-    if (lCheckRuntimeRecords && Inis::fRunTimeRevealingIDs.find(std::make_pair(std::string{lFN}, lArmor->GetLocalFormID())) != Inis::fRunTimeRevealingIDs.end()) {
+    if (lCheckRuntimeRRecords && Inis::fRunTimeRevealingIDs.find(std::make_pair(std::string{lFN}, lArmor->GetLocalFormID())) != Inis::fRunTimeRevealingIDs.end()) {
       if (TryMakeArmorRevealing(lArmor, false)) {
         Tng::gLogger::info("The armor [[0x{:x}: {}] was marked revealing since it was previously marked revealing during gameplay.", lArmor->GetFormID(), lID);
         lAR++;
@@ -426,8 +431,18 @@ void Core::CheckArmorPieces() noexcept {
       }
       continue;
     }
+    if (lCheckRuntimeCRecords && Inis::fRuntimeCoveringIDs.find(std::make_pair(std::string{lFN}, lArmor->GetLocalFormID())) != Inis::fRuntimeCoveringIDs.end()) {
+      if (TryMakeArmorCovering(lArmor, false)) {
+        Tng::gLogger::info("The armor [[0x{:x}: {}] was marked covering since it was previously marked covering during gameplay.", lArmor->GetFormID(), lID);
+        lAR++;
+      } else {
+        Tng::gLogger::warn("The armor [0x{:x}: {}] was marked covering in a previous gameplay but TNG failed to apply that again!", lArmor->GetFormID(), lID);
+        lPA++;
+      }
+      continue;
+    }
     if (fR4Os.find(lArmor) != fR4Os.end()) {
-      if (TryMakeArmorRevealing(lArmor, false)) {
+      if (TryMakeArmorRevealing(lArmor, true)) {
         Tng::gLogger::info("The armor [[0x{:x}: {}] was marked revealing since it used together with another piece on slot 52 in an outfit.", lArmor->GetFormID(), lID);
         lAR++;
       } else {
@@ -436,14 +451,39 @@ void Core::CheckArmorPieces() noexcept {
       }
       continue;
     }
-    if (lArmor->HasPartOf(Tng::cSlotGenital) && !lArmor->HasKeyword(fUAKey) && !lArmor->HasKeyword(fIAKey)) {
-      lArmor->AddKeyword(fIAKey);
-      Tng::gLogger::warn("The armor [0x{:x}: {}] would cover genitals and would have a conflict with non-revealing chest armor pieces!", lArmor->GetFormID(), lID);
-      lIA++;
+    if ((lCheckExtraRevealing && Inis::fExtraRevealing.find(std::string{lFN}) != Inis::fExtraRevealing.end())) {
+      if (lArmor->HasPartOf(Tng::cSlotBody)) {
+        if (TryMakeArmorRevealing(lArmor, false)) {
+          Tng::gLogger::info("Armor [0x{:x}: {}] was marked revealing.", lArmor->GetFormID(), lID);
+          lRR++;
+        } else {
+          Tng::gLogger::error("The armor [0x{:x}: {}] was assigned revealing but it has arma on slot 52!", lArmor->GetFormID(), lID);
+          lPA++;
+        }
+      } else {
+        lIA++;
+      }
       continue;
     }
+    if (lArmor->HasPartOf(Tng::cSlotGenital)) {
+      lArmor->AddKeyword(fCCKey);
+      lCC++;
+      if (lArmor->HasPartOf(Tng::cSlotBody)) continue;
+      if (lFN != cNoFile && lSlot52ReadyMods.find(std::string{lFN}) == lSlot52ReadyMods.end()) {
+        fSlot52Mods.insert(std::string{lFN});
+        if (Inis::GetSettingBool(Inis::revealSlot52Mods)) {
+          Inis::Slot52ModBehavior(std::string{lFN}, true);
+          continue;
+        }
+      }
+      Tng::gLogger::warn("The armor [0x{:x}: {}] would cover genitals and would have a conflict with non-revealing chest armor pieces!", lArmor->GetFormID(), lID);
+      continue;
+    }
+    if (lArmor->HasPartOf(Tng::cSlotBody)) lModsWithPotential.insert(std::string{lFN});
     lPotentialArmor.insert(lArmor);
   }
+  for (auto lMod = fSlot52Mods.begin(); lMod != fSlot52Mods.end();) lModsWithPotential.find(*lMod) == lModsWithPotential.end() ? lMod = fSlot52Mods.erase(lMod) : ++lMod;
+  if (Inis::fExtraRevealing.size() > lERMCount) lAR += VisitRevealingArmor(lPotentialArmor);
   for (auto& lAA : fRAAs) {
     if (fCAAs.find(lAA) != fCAAs.end()) {
       fRAAs.erase(lAA);
@@ -477,14 +517,50 @@ void Core::CheckArmorPieces() noexcept {
   }
   Tng::gLogger::info("Processed [{}] armor pieces:", lAllArmor.size());
   if (lPA > 0) Tng::gLogger::warn("\t[{}]: seems to be problematic!", lPA);
-  if (lCC > 0) Tng::gLogger::info("\t[{}]: are marked covering,", lCC);
+  if (lCC > 0) Tng::gLogger::info("\t[{}]: are covering due to ini-files or having slot 52,", lCC);
   if (lRR > 0) Tng::gLogger::info("\t[{}]: are marked revealing", lRR);
   if (lAC > 0) Tng::gLogger::info("\t[{}]: were recognized to be covering", lAC);
   if (lAR > 0) Tng::gLogger::info("\t[{}]: were recognized to be revealing", lAR);
   if (lIA > 0) Tng::gLogger::info("\tThe rest [{}] are not relevant and are ignored!", lIA);
 }
 
-Tng::TNGRes Core::HandleArmor(RE::TESObjectARMO* aArmor, const bool aIfLog) noexcept {
+void Core::RevisitRevealingArmor() noexcept {
+  auto& lAllArmor = fDH->GetFormArray<RE::TESObjectARMO>();
+  std::set<RE::TESObjectARMO*> lPotentialArmor;
+  bool lCheckRuntimeRRecords = Inis::fRunTimeRevealingIDs.size() > 0;
+  bool lCheckRuntimeCRecords = Inis::fRuntimeCoveringIDs.size() > 0;
+  for (const auto& lArmor : lAllArmor) {
+    auto lFN = lArmor->GetFile(0) ? lArmor->GetFile(0)->GetFilename() : cNoFile;
+    if (lArmor && (lArmor->HasKeyword(fACKey) || lArmor->HasKeyword(fARKey))) {
+      if (lCheckRuntimeRRecords && Inis::fRunTimeRevealingIDs.find(std::make_pair(std::string{lFN}, lArmor->GetLocalFormID())) != Inis::fRunTimeRevealingIDs.end()) continue;
+      if (lCheckRuntimeCRecords && Inis::fRuntimeCoveringIDs.find(std::make_pair(std::string{lFN}, lArmor->GetLocalFormID())) != Inis::fRuntimeCoveringIDs.end()) continue;
+      lPotentialArmor.insert(lArmor);
+      lArmor->RemoveKeywords(fArmoKeys);
+    }
+  }
+  VisitRevealingArmor(lPotentialArmor);
+  for (const auto& lArmor : lPotentialArmor) TryMakeArmorCovering(lArmor, false);
+}
+
+int Core::VisitRevealingArmor(std::set<RE::TESObjectARMO*> aPotentialArmor) noexcept {
+  int lRes = 0;
+  for (const auto& lArmor : aPotentialArmor) {
+    auto lFN = lArmor->GetFile(0) ? lArmor->GetFile(0)->GetFilename() : cNoFile;
+    if (!lArmor->HasPartOf(Tng::cSlotBody)) continue;
+    if (Inis::fExtraRevealing.find(std::string{lFN}) == Inis::fExtraRevealing.end()) continue;
+    const auto lID = (std::string(lArmor->GetName()).empty()) ? lArmor->GetFormEditorID() : lArmor->GetName();
+    if (TryMakeArmorRevealing(lArmor, false)) {
+      Tng::gLogger::info("Armor [0x{:x}: {}] was marked revealing since it belongs to a mod with revealing armor.", lArmor->GetFormID(), lID);
+      lRes++;
+      aPotentialArmor.erase(lArmor);
+    } else {
+      Tng::gLogger::error("The armor [0x{:x}: {}] was assigned revealing but it has arma on slot 52!", lArmor->GetFormID(), lID);
+    }
+  }
+  return lRes;
+}
+
+Tng::TNGRes Core::HandleArmor(RE::TESObjectARMO* aArmor) noexcept {
   const auto lID = (std::string(aArmor->GetName()).empty()) ? aArmor->GetFormEditorID() : aArmor->GetName();
   std::set<RE::TESObjectARMA*> lBods{};
   std::set<RE::TESObjectARMA*> lGens{};
@@ -499,7 +575,7 @@ Tng::TNGRes Core::HandleArmor(RE::TESObjectARMO* aArmor, const bool aIfLog) noex
     if (lAA->HasPartOf(Tng::cSlotGenital)) lGens.insert(lAA);
   }
   if ((lR || lS) && lC) {
-    if (aIfLog) Tng::gLogger::warn("The armor [0x{:x}: {}] uses both covering and revealing armature at the same time!", aArmor->GetFormID(), lID);
+    Tng::gLogger::warn("The armor [0x{:x}: {}] uses both covering and revealing armature at the same time!", aArmor->GetFormID(), lID);
     aArmor->RemoveKeywords(fArmoKeys);
     aArmor->AddKeyword(fPAKey);
     return Tng::armoErr;
@@ -516,10 +592,10 @@ Tng::TNGRes Core::HandleArmor(RE::TESObjectARMO* aArmor, const bool aIfLog) noex
   if (lC) {
     if (lGens.size() == 0) {
       TryMakeArmorCovering(aArmor, false);
-      Tng::gLogger::info("The armor [0x{:x}: {}] uses covering armature from another armor and is marked covering.", aArmor->GetFormID(), lID);
+      if (!aArmor->HasPartOf(Tng::cSlotBody))
+        Tng::gLogger::info("The armor [0x{:x}: {}] uses covering armature from another armor and is marked covering.", aArmor->GetFormID(), lID);
       return Tng::resOkAC;
     } else {
-      Tng::gLogger::warn("The armor [0x{:x}: {}] uses covering armature from another armor but it also has items on genitlia slot!", aArmor->GetFormID(), lID);
       aArmor->AddKeyword(fIAKey);
       return Tng::resOkIA;
     }
@@ -527,13 +603,12 @@ Tng::TNGRes Core::HandleArmor(RE::TESObjectARMO* aArmor, const bool aIfLog) noex
   if (!aArmor->HasPartOf(Tng::cSlotBody)) return Tng::resOkIA;
   aArmor->RemoveKeywords(fArmoKeys);
   if (lGens.size() > 0) {
-    Tng::gLogger::warn("The armor [0x{:x}: {}] has armature on the body slot and also the genitlia slot!", aArmor->GetFormID(), lID);
+    Tng::gLogger::warn("The armor [0x{:x}: {}] has armature on the body slot and also the genitlia slot without ARMO on slot 52. TNG would ignore it!", aArmor->GetFormID(), lID);
     aArmor->AddKeyword(fIAKey);
     return Tng::resOkIA;
   } else {
     aArmor->AddKeyword(fACKey);
     aArmor->AddSlotToMask(Tng::cSlotGenital);
-    fCAAs.insert(lBods.begin(), lBods.end());
     return Tng::resOkAC;
   }
 }
@@ -547,24 +622,21 @@ bool Core::SwapRevealing(RE::TESObjectARMO* aArmor) noexcept {
   } else {
     aArmor->RemoveKeyword(fARKey);
     TryMakeArmorCovering(aArmor, false);
-    Inis::RemoveRevealingArmor(aArmor);
+    Inis::SaveCoveringArmor(aArmor);
   }
   return true;
 }
 
 bool Core::TryMakeArmorCovering(RE::TESObjectARMO* aArmor, bool aIsCC) noexcept {
   if (aArmor->HasKeywordInArray(fArmoKeys, false) && !aArmor->HasKeyword(fCCKey) && !aArmor->HasKeyword(fACKey)) return false;
-  if (aArmor->HasPartOf(Tng::cSlotGenital) && !aArmor->HasKeyword(fACKey)) {
-    aArmor->RemoveKeywords(fArmoKeys);
-    aArmor->AddKeyword(fIAKey);
-    return false;
+  if (aIsCC && !aArmor->HasPartOf(Tng::cSlotGenital)) {
+    auto lArmoPrimSlot = aArmor->HasPartOf(Tng::cSlotBody) ? Tng::cSlotBody : aArmor->GetSlotMask();
+    for (auto& lAA : aArmor->armorAddons)
+      if (lAA->HasPartOf(lArmoPrimSlot) && !lAA->HasPartOf(Tng::cSlotGenital)) {
+        fCAAs.insert(lAA);
+        fRAAs.erase(lAA);
+      }
   }
-  auto lArmoPrimSlot = aArmor->HasPartOf(Tng::cSlotBody) ? Tng::cSlotBody : aArmor->GetSlotMask();
-  for (auto& lAA : aArmor->armorAddons)
-    if (lAA->HasPartOf(lArmoPrimSlot) && !lAA->HasPartOf(Tng::cSlotGenital)) {
-      fCAAs.insert(lAA);
-      fRAAs.erase(lAA);
-    }
   if (!aArmor->HasKeywordInArray(fArmoKeys, false)) aArmor->AddKeyword(aIsCC ? fCCKey : fACKey);
   if (!aArmor->HasPartOf(Tng::cSlotGenital)) aArmor->AddSlotToMask(Tng::cSlotGenital);
   return true;
@@ -581,8 +653,9 @@ bool Core::TryMakeArmorRevealing(RE::TESObjectARMO* aArmor, bool aIsRR) noexcept
     fRAAs.insert(lAA);
     fCAAs.erase(lAA);
   }
-  if (aArmor->HasKeyword(fACKey)) aArmor->RemoveKeyword(fACKey);
   if (aArmor->HasPartOf(Tng::cSlotGenital)) aArmor->RemoveSlotFromMask(Tng::cSlotGenital);
   if (!aArmor->HasKeywordInArray(fArmoKeys, false)) aArmor->AddKeyword(aIsRR ? fRRKey : fARKey);
   return true;
 }
+
+std::set<std::string> Core::GetSlot52Mods() noexcept { return fSlot52Mods; }
