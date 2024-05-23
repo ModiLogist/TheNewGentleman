@@ -40,6 +40,8 @@ namespace Tng {
   inline static constexpr RE::FormID cWomenChanceID{0xCA0};
   inline static constexpr RE::FormID cGentifiedID{0xE00};
 
+  inline static constexpr int cMalDefAddnPriority{0};
+
   enum TNGRes {
     pgErr = -9,
     skinErr = -5,

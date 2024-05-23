@@ -39,7 +39,8 @@ class Inis : public Singleton<Inis> {
     inline static constexpr const char* cNPCSizeSection{"NPCGenitalSize"};
     inline static constexpr const char* cNPCAddnSection{"NPCGenitalAddon"};
     inline static constexpr const char* cExcludeSection{"ExcludedNPCs"};
-    inline static constexpr const char* cActiveAddons{"ActiveFemaleAddons"};
+    inline static constexpr const char* cActiveMalAddons{"ActiveMaleAddons"};
+    inline static constexpr const char* cActiveFemAddons{"ActiveFemaleAddons"};
 
     inline static constexpr const char* cGentleWomen{"GentleWomen"};
     inline static constexpr const char* cGentleWomenChance{"Chance"};
@@ -64,6 +65,7 @@ class Inis : public Singleton<Inis> {
     inline static constexpr const char* cRevealingRecord{"RevealingRecord"};
     inline static constexpr const char* cCoveringRecord{"CoveringRecord"};
 
+    inline static bool fRandM;
     inline static bool fExlPC;
     inline static bool fRADef;
     inline static bool fRAUsr;
@@ -77,7 +79,7 @@ class Inis : public Singleton<Inis> {
     inline static std::set<std::string> fValidSkeletons;
 
   public:
-    enum IniBoolIDs { cNoneBoolID, excludePlayerSize, cBoolIDsCount };
+    enum IniBoolIDs { cNoneBoolID, excludePlayerSize, revealSlot52Mods, revealSlot52User, randomizeMaleAddn, cBoolIDsCount };
     inline static std::set<std::string> fRaceExMods;
     inline static std::set<std::string> fSkinMods;
     inline static std::set<std::pair<std::string, RE::FormID>> fSingleSkinIDs;
@@ -104,8 +106,8 @@ class Inis : public Singleton<Inis> {
     static void SaveRaceAddn(const std::size_t aRaceIdx, int aChoice) noexcept;
     static void SaveNPCAddn(RE::TESNPC* aNPC, int aChoice) noexcept;
     static void SaveNPCSize(RE::TESNPC* aNPC, int aGenSize) noexcept;
+    static void SaveActiveAddon(const bool aIsFemale, const int aAddon, const bool aStatus) noexcept;
     static void SaveRevealingArmor(RE::TESObjectARMO* aArmor) noexcept;
-    static void SaveActiveAddon(int aFemaleAddon, bool aStatus) noexcept;
     static void SaveCoveringArmor(RE::TESObjectARMO* aArmor) noexcept;
     static void SaveGlobals() noexcept;
     static void UpdateValidSkeletons(std::set<std::string> aValidSkeletons) noexcept;

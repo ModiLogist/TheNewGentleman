@@ -27,6 +27,7 @@ void Inis::LoadMainIni() noexcept {
   CSimpleIniA lIni;
   lIni.SetUnicode();
   lIni.LoadFile(cSettings);
+  fRandM = lIni.GetBoolValue(cGeneral, cRandM, false);
   fExlPC = lIni.GetBoolValue(cGeneral, cExlPC, false);
   fRADef = lIni.GetBoolValue(cGeneral, cRADef, false);
   fRAUsr = lIni.GetBoolValue(cGeneral, cRAUsr, false);
@@ -70,10 +71,13 @@ void Inis::LoadMainIni() noexcept {
     const std::string lArmorRecord(lEntry->pItem);
     UpdateRevealing(lArmorRecord, lIsRevealing);
   }
+  for (std::size_t i = 0; i < Base::GetAddonCount(false); i++) {
+    auto lAddon = Base::GetAddonAt(false, i);
+    Base::SetAddonStatus(false, i, lIni.GetBoolValue(cActiveMalAddons, RecordToStr(lAddon).c_str(), true));
   }
   for (std::size_t i = 0; i < Base::GetAddonCount(true); i++) {
     auto lAddon = Base::GetAddonAt(true, i);
-    Base::SetAddonStatus(i, lIni.GetBoolValue(cActiveAddons, RecordToStr(lAddon).c_str(), false));
+    Base::SetAddonStatus(true, i, lIni.GetBoolValue(cActiveFemAddons, RecordToStr(lAddon).c_str(), false));
   }
   if (lIni.KeyExists(cControls, cINTCtrl)) fINTCtrl->value = lIni.GetBoolValue(cControls, cINTCtrl) ? 2.0f : 0.0f;
   if (lIni.KeyExists(cControls, cNPCCtrl)) fNPCCtrl->value = static_cast<float>(lIni.GetLongValue(cControls, cNPCCtrl));
@@ -221,6 +225,8 @@ bool Inis::GetSettingBool(IniBoolIDs aID) noexcept {
       return fRADef;
     case revealSlot52User:
       return fRAUsr;
+    case randomizeMaleAddn:
+      return fRandM;
     default:
       return false;
   }
@@ -242,6 +248,10 @@ void Inis::SaveSettingBool(IniBoolIDs aID, bool aValue) noexcept {
     case revealSlot52User:
       lIni.SetBoolValue(cGeneral, cRAUsr, aValue);
       fRAUsr = aValue;
+      break;
+    case randomizeMaleAddn:
+      lIni.SetBoolValue(cGeneral, cRandM, aValue);
+      fRandM = aValue;
       break;
     default:
       break;
@@ -324,22 +334,22 @@ void Inis::SaveNPCSize(RE::TESNPC* aNPC, int aGenSize) noexcept {
   lIni.SaveFile(cSettings);
 }
 
+void Inis::SaveActiveAddon(const bool aIsFemale, const int aAddon, const bool aStatus) noexcept {
+  auto lAddonStr = RecordToStr(Base::GetAddonAt(aIsFemale, aAddon));
+  if (lAddonStr.empty()) return;
   CSimpleIniA lIni;
   lIni.SetUnicode();
   lIni.LoadFile(cSettings);
+  lIni.SetBoolValue(aIsFemale ? cActiveFemAddons : cActiveMalAddons, lAddonStr.c_str(), aStatus);
   lIni.SaveFile(cSettings);
 }
 
-void Inis::SaveActiveAddon(int aFemaleAddon, bool aStatus) noexcept {
-  auto lAddonStr = RecordToStr(Base::GetAddonAt(true, aFemaleAddon));
-  if (lAddonStr.empty()) return;
 void Inis::SaveRevealingArmor(RE::TESObjectARMO* aArmor) noexcept {
   auto lArmoIDStr = RecordToStr(aArmor);
   if (lArmoIDStr.empty()) return;
   CSimpleIniA lIni;
   lIni.SetUnicode();
   lIni.LoadFile(cSettings);
-  lIni.SetBoolValue(cActiveAddons, lAddonStr.c_str(), aStatus);
   lIni.SetBoolValue(cRevealingRecord, lArmoIDStr.c_str(), true);
   lIni.SaveFile(cSettings);
 }

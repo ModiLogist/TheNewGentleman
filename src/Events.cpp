@@ -90,7 +90,8 @@ void Events::CheckForAddons(RE::Actor* aActor) noexcept {
   if (!lNPC) return;
   if (!aActor->IsPlayerRef() || !Inis::GetSettingBool(Inis::excludePlayerSize)) Core::SetCharSize(aActor, lNPC, -1);
   auto lNPCAddn = Base::GetNPCAddn(lNPC);
-  if (lNPCAddn.second < 0 && (lNPC->IsPlayer() || !lNPC->IsFemale() || lNPC->HasKeyword(fExKey) || fGWChance->value < 1)) return;
+  if (Base::GetRaceGrpAddn(lNPC->race) == 0) return;
+  if (lNPCAddn.second < 0 && (lNPC->IsPlayer() || lNPC->HasKeyword(fExKey) || (!lNPC->IsFemale() && !Inis::GetSettingBool(Inis::randomizeMaleAddn)) || (lNPC->IsFemale() && fGWChance->value < 1))) return;
   if (lNPCAddn.second == Tng::pgErr) {
     Tng::gLogger::critical("Faced an issue retrieving information for {}!", lNPC->GetName());
     return;
@@ -100,9 +101,14 @@ void Events::CheckForAddons(RE::Actor* aActor) noexcept {
 }
 
 int Events::GetNPCAutoAddn(RE::TESNPC* aNPC) noexcept {
-  const auto lFDistAddnCount = Base::GetActiveFAddnCount();
-  if (lFDistAddnCount == 0) return -1;
-  return (((aNPC->GetFormID() % 100) < (std::floor(fGWChance->value) + 1))) ? aNPC->GetFormID() % lFDistAddnCount : -1;
+  if (aNPC->IsFemale()) {  
+    const auto lFDistAddnCount = Base::GetActiveFAddnCount();
+    if (lFDistAddnCount == 0) return -1;
+    return (((aNPC->GetFormID() % 100) < (std::floor(fGWChance->value) + 1))) ? aNPC->GetFormID() % lFDistAddnCount : -1;
+  } else {
+    const auto lMDistAddnCount = Base::GetActiveMAddnCount();
+    return (((aNPC->GetFormID() % 100) > Tng::cMalDefAddnPriority)) ? (aNPC->GetFormID() % lMDistAddnCount) + 1 : -1;
+  }
 }
 
 void Events::CheckActorArmor(RE::Actor* aActor, RE::TESObjectARMO* aArmor) noexcept {

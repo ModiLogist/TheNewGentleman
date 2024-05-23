@@ -265,7 +265,7 @@ Tng::TNGRes Core::SetNPCSkin(RE::TESNPC* aNPC, int aAddon, bool aIsUser) noexcep
     return Tng::pgErr;
   }
   if (lOgSkin->armorAddons.size() == 0 || !lOgSkin->race) return Tng::skinErr;
-  auto lActualAddon = aNPC->IsFemale() && !aIsUser ? Base::GetActualAddon(aAddon) : aAddon;
+  auto lActualAddon = !aIsUser ? Base::GetActualAddon(aNPC->IsFemale() , aAddon) : aAddon;
   auto lSkin = ProduceAddonSkin(lOgSkin, lActualAddon, aNPC->IsFemale());
   Base::SetNPCAddn(aNPC, aAddon, aIsUser);
   if (lSkin != lCurrSkin) {

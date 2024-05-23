@@ -51,6 +51,7 @@ void Base::LoadAddons() noexcept {
   fMalAddons.clear();
   fFemAddons.clear();
   fActiveFemAddons.clear();
+  fActiveMalAddons.clear();
   auto &lAllArmor = fDH->GetFormArray<RE::TESObjectARMO>();
   for (const auto &lArmor : lAllArmor) {
     if (lArmor->HasKeyword(fFemAddKey)) {
@@ -60,6 +61,7 @@ void Base::LoadAddons() noexcept {
     }
     if (lArmor->HasKeyword(fMalAddKey)) {
       fMalAddons.push_back(lArmor);
+      fActiveMalAddons.push_back(true);
       lArmor->AddKeyword(fIAKey);
     }
   }
@@ -77,21 +79,31 @@ std::size_t Base::GetActiveFAddnCount() noexcept {
   return lRes;
 }
 
-int Base::GetActualAddon(int aActiveAddon) noexcept {
+std::size_t Base::GetActiveMAddnCount() noexcept {
+  std::size_t lRes = 0;
+  for (size_t i = 1; i < fActiveMalAddons.size(); i++)
+    if (fActiveMalAddons[i]) lRes++;
+  return lRes;
+}
+
+int Base::GetActualAddon(const bool aIsFemale, const int aActiveAddon) noexcept {
   int lRes = -1;
   int lActives = -1;
+  auto &lList = aIsFemale ? fActiveFemAddons : fActiveMalAddons;
   while (lActives != aActiveAddon) {
     lRes++;
-    if (fActiveFemAddons[lRes]) lActives++;
+    if (lList[lRes]) lActives++;
   }
   return lRes;
 }
 
 RE::TESObjectARMO *Base::GetAddonAt(bool aIsFemale, std::size_t aChoice) noexcept { return aIsFemale ? fFemAddons[aChoice] : fMalAddons[aChoice]; }
 
-bool Base::GetAddonStatus(std::size_t aFemaleAddon) noexcept { return fActiveFemAddons[aFemaleAddon]; }
+bool Base::GetAddonStatus(const bool aIsFemale, const std::size_t aAddon) noexcept { return aIsFemale ? fActiveFemAddons[aAddon] : fActiveMalAddons[aAddon]; }
 
-void Base::SetAddonStatus(std::size_t aFemaleAddon, bool aIsActive) noexcept { fActiveFemAddons[aFemaleAddon] = aIsActive; }
+void Base::SetAddonStatus(const bool aIsFemale, const std::size_t aAddon, const bool aIsActive) noexcept {
+  aIsFemale ? fActiveFemAddons[aAddon] = aIsActive : fActiveMalAddons[aAddon] = aIsActive;
+}
 
 std::vector<std::string> Base::GetAddonNames(bool aIsFemale) noexcept {
   std::vector<std::string> lRes{};

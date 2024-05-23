@@ -76,15 +76,15 @@ void Papyrus::SetRaceGrpMult(RE::StaticFunctionTag*, int aRaceIdx, float aGenMul
   if (Base::SetRaceGrpMult(static_cast<std::size_t>(aRaceIdx), aGenMult)) Inis::SaveRaceMult(static_cast<std::size_t>(aRaceIdx), aGenMult);
 }
 
-bool Papyrus::GetAddonStatus(RE::StaticFunctionTag*, int aFemaleAddn) {
-  if (aFemaleAddn < 0 || aFemaleAddn >= Base::GetAddonCount(true)) return false;
-  return Base::GetAddonStatus(static_cast<int>(aFemaleAddn));
+bool Papyrus::GetAddonStatus(RE::StaticFunctionTag*, bool aIsFemale, int aAddn) {
+  if (aAddn < 0 || aAddn >= Base::GetAddonCount(aIsFemale)) return false;
+  return Base::GetAddonStatus(aIsFemale, static_cast<std::size_t>(aAddn));
 }
 
-void Papyrus::SetAddonStatus(RE::StaticFunctionTag*, int aFemaleAddn, bool aStatus) {
-  if (aFemaleAddn < 0 || aFemaleAddn >= Base::GetAddonCount(true)) return;
-  Inis::SaveActiveAddon(aFemaleAddn, aStatus);
-  Base::SetAddonStatus(aFemaleAddn, aStatus);
+void Papyrus::SetAddonStatus(RE::StaticFunctionTag*, bool aIsFemale, int aAddn, bool aStatus) {
+  if (aAddn < 0 || aAddn >= Base::GetAddonCount(aIsFemale)) return;
+  Inis::SaveActiveAddon(aIsFemale, aAddn, aStatus);
+  Base::SetAddonStatus(aIsFemale, aAddn, aStatus);
 }
 
 std::vector<std::string> Papyrus::GetAllPossibleAddons(RE::StaticFunctionTag*, bool aIsFemale) {

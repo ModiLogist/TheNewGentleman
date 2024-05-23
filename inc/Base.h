@@ -79,10 +79,11 @@ class Base : public Singleton<Base> {
     static void LoadAddons() noexcept;
     static std::size_t GetAddonCount(bool aIsFemale) noexcept;
     static std::size_t GetActiveFAddnCount() noexcept;
-    static int GetActualAddon(int aActiveAddon) noexcept;
+    static std::size_t GetActiveMAddnCount() noexcept;
+    static int GetActualAddon(const bool aIsFemale, const int aActiveAddon) noexcept;
     static RE::TESObjectARMO* GetAddonAt(bool aIsFemale, std::size_t aChoice) noexcept;
-    static bool GetAddonStatus(std::size_t aFemaleAddon) noexcept;
-    static void SetAddonStatus(std::size_t aFemaleAddon, bool aIsActive) noexcept;
+    static bool GetAddonStatus(const bool aIsFemale, const std::size_t aAddon) noexcept;
+    static void SetAddonStatus(const bool aIsFemale, const std::size_t aAddon, const bool aIsActive) noexcept;
     static std::vector<std::string> GetAddonNames(bool aIsFemale) noexcept;
     static std::size_t GetRaceGrp(RE::TESRace* aRace) noexcept;
     static bool LoadRaceMult(const std::string aRaceRecord, const float aSize) noexcept;
@@ -136,6 +137,7 @@ class Base : public Singleton<Base> {
     inline static std::vector<RE::TESObjectARMO*> fMalAddons;
     inline static std::vector<RE::TESObjectARMO*> fFemAddons;
     inline static std::vector<bool> fActiveFemAddons;
+    inline static std::vector<bool> fActiveMalAddons;
     inline static std::vector<RaceInfo> fRacesInfo;
 
     static int GetScale(RE::TESNPC* aNPC) noexcept;
@@ -147,7 +149,6 @@ class Base : public Singleton<Base> {
     static Tng::RaceType GetRaceType(RE::TESRace* aRace) noexcept;
 
   private:
-    inline static RE::TESObjectARMA* fGenCover;
     inline static std::set<RE::TESObjectARMA*> fAllMalAAs;
     inline static std::set<RE::TESObjectARMA*> fAllFemAAs;
     inline static std::vector<std::set<RE::TESObjectARMA*>> fMalAddonAAs[6];

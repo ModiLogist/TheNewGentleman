@@ -16,8 +16,8 @@ class Papyrus : public Singleton<Papyrus> {
     static void SetRaceGrpAddn(RE::StaticFunctionTag*, int aRaceIdx, int aGenOption);
     static void SetRaceGrpMult(RE::StaticFunctionTag*, int aRaceIdx, float aGenMult);
 
-    static bool GetAddonStatus(RE::StaticFunctionTag*, int aFemaleAddn);
-    static void SetAddonStatus(RE::StaticFunctionTag*, int aFemaleAddn, bool aStatus);
+    static bool GetAddonStatus(RE::StaticFunctionTag*, bool aIsFemale, int aAddn);
+    static void SetAddonStatus(RE::StaticFunctionTag*, bool aIsFemale, int aAddn, bool aStatus);
     static std::vector<std::string> GetAllPossibleAddons(RE::StaticFunctionTag*, bool aIsFemale);
     static int CanModifyActor(RE::StaticFunctionTag*, RE::Actor* aActor);
     static int SetActorAddn(RE::StaticFunctionTag*, RE::Actor* aActor, int aGenOption);
