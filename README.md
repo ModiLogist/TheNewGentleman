@@ -1,8 +1,9 @@
 # TheNewGentleman
 Source code for [The New Gentleman](https://www.nexusmods.com/skyrimspecialedition/mods/104215) mod on nexus.
 
-I am not a lawyer and modifying a license is not a simple task. So I simply say it here, and I hope we never get to a
-point that I would need to consider talking to lawyers for the reasons below: 
+I am not a lawyer and modifying a license is not a simple task. So I simply say it here, khowing that legally 
+it is void, but hoping that we never get to a point that I would need to consider talking to lawyers 
+for the reasons below: 
   1) I do not allow any piece of this code to be used or published on websites that support pedophilia. 
      NEXUS, VECTOR and LL are fine, for the rest just ask.
   2) I do not alllow or support any content which may include rape and/or sexual interactions between a
