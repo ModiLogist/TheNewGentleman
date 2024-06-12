@@ -28,9 +28,6 @@ bool Papyrus::BindPapyrus(RE::BSScript::IVirtualMachine* aVM) noexcept {
   aVM->RegisterFunction("Slot52ModBehavior", "TNG_PapyrusUtil", Slot52ModBehavior);
   aVM->RegisterFunction("SwapRevealing", "TNG_PapyrusUtil", SwapRevealing);
 
-  aVM->RegisterFunction("SetPlayerInfo", "TNG_PapyrusUtil", SetPlayerInfo);
-  aVM->RegisterFunction("GetPlayerAddn", "TNG_PapyrusUtil", GetPlayerAddn);
-
   aVM->RegisterFunction("UpdateSettings", "TNG_PapyrusUtil", UpdateSettings);
   return true;
 }
@@ -97,6 +94,7 @@ int Papyrus::CanModifyActor(RE::StaticFunctionTag*, RE::Actor* aActor) { return 
 int Papyrus::SetActorAddn(RE::StaticFunctionTag*, RE::Actor* aActor, int aGenOption) {
   const auto lNPC = aActor ? aActor->GetActorBase() : nullptr;
   if (!aActor || !lNPC) return Tng::npcErr;
+  if (aActor->IsPlayerRef()) Events::SetPlayerInfo(aActor, aGenOption);
   return Core::SetNPCSkin(lNPC, aGenOption);
 }
 
@@ -117,10 +115,6 @@ bool Papyrus::SwapRevealing(RE::StaticFunctionTag*, RE::TESObjectARMO* aArmor) {
   if (!aArmor) return false;
   return Core::SwapRevealing(aArmor);
 }
-
-void Papyrus::SetPlayerInfo(RE::StaticFunctionTag*, RE::Actor* aPlayer, int aPlayerAddn) { Events::SetPlayerInfo(aPlayer, aPlayerAddn); }
-
-int Papyrus::GetPlayerAddn(RE::StaticFunctionTag*) { return Events::GetPlayerAddn(); }
 
 void Papyrus::UpdateSettings(RE::StaticFunctionTag*) {
   Inis::SaveGlobals();

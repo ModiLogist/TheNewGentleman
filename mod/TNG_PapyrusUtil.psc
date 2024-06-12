@@ -29,10 +29,6 @@ String[] Function GetSlot52Mods() Global Native
 Bool Function Slot52ModBehavior(String aModName, Int aBehavior) Global Native ;aBehavior value: -1 -> Get behavior, 0 -> Set to Normal, 1 -> Set to Revealing
 Bool Function SwapRevealing(Armor aArmor) Global Native
 
-Function SetPlayerInfo(Actor aPlayer, Int aPlayerAddn) Global Native
-Int Function GetPlayerAddn() Global Native
-
-
 Function UpdateSettings() Global Native
 
 

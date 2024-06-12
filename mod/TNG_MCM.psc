@@ -11,7 +11,7 @@ GlobalVariable Property WomenChance auto
 Keyword Property TngCovering auto
 FormList Property Gentified auto
 Bool Property Notifs auto
-Int Property PlayerSkin auto
+GlobalVariable Property PlayerSkin auto
 Int Property PlayerSize auto
 Actor Property PlayerRef auto
 
@@ -141,9 +141,6 @@ Event OnGameReload()
   
   Gentified.Revert()
   
-  TNG_PapyrusUtil.SetPlayerInfo(PlayerRef,PlayerSkin)
-  PlayerSkin = TNG_PapyrusUtil.GetPlayerAddn()
-  
   If Game.GetModByName("Dynamic Activation Key.esp")
     fkDAK = Game.GetFormFromFile(0x801, "Dynamic Activation Key.esp") As GlobalVariable
   EndIf
@@ -159,15 +156,17 @@ Event OnGameReload()
   If GenDownKey.GetValueInt() > 0
     RegisterForKey(GenDownKey.GetValueInt())
   EndIf
-  If PlayerSkin > -1
-    Int lRes = TNG_PapyrusUtil.SetActorAddn(PlayerRef, PlayerSkin)
+  If PlayerSkin.GetValueInt() > -1
+    Int lRes = TNG_PapyrusUtil.SetActorAddn(PlayerRef, PlayerSkin.GetValueInt())
     PlayerRef.QueueNiNodeUpdate()
     If lRes < 0 
       Debug.Notification("$TNG_WPT")
-      PlayerSkin = -1
-      TNG_PapyrusUtil.SetActorAddn(PlayerRef, PlayerSkin)
+      PlayerSkin.SetValueInt(-1)
+      TNG_PapyrusUtil.SetActorAddn(PlayerRef, PlayerSkin.GetValueInt())
       HandleWarnings(lRes)
     EndIf
+  Else
+    TNG_PapyrusUtil.SetActorAddn(PlayerRef, -2)
   EndIf  
   If PlayerSize > -1
     Int lRes = TNG_PapyrusUtil.SetActorSize(PlayerRef, PlayerSize)
@@ -822,8 +821,7 @@ Actor Property TargetOrPlayer
     Actor lkActor = Game.GetCurrentCrosshairRef() as Actor
 
     If !lkActor
-      lkActor = PlayerRef      
-      PlayerSkin = TNG_PapyrusUtil.GetPlayerAddn()
+      lkActor = PlayerRef
     EndIf
     Return lkActor
   EndFunction
@@ -872,10 +870,7 @@ Function ShowTNGMenu(Actor akActor)
           HandleWarnings(liShapeRes)
           Return
         EndIf        
-        lbShowSize = (liShapeRes > 0)        
-        If akActor == PlayerRef
-          PlayerSkin = liShape - 3
-        EndIf
+        lbShowSize = (liShapeRes > 0)
         If !akActor.WornHasKeyword(TngCovering)
           akActor.QueueNiNodeUpdate()
         EndIf
@@ -928,13 +923,17 @@ Function RiseAndDrop(Bool aIfRise)
   EndIf
   If lkActor != fkLastActor
     fkLastActor = lkActor
-    fiPos = 0
+    fiPos = -10
   EndIf
-  If (fiPos*aDir) < 9
-    fiPos += aDir
+  fiPos += aDir
+  If (fiPos*aDir) < 10    
     Debug.SendAnimationEvent(lkActor, "SOSBend" + fiPos)
-  EndIf
-EndFunction    
+  ElseIf fiPos == -10
+    Debug.SendAnimationEvent(lkActor, "SOSFlaccid")
+  Else
+    fiPos -= aDir
+  EndIf  
+EndFunction  
 
 Function HandleWarnings(Int aRes)
   If aRes > 0
