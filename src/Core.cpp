@@ -31,7 +31,7 @@ bool Core::Initialize() noexcept {
     Tng::gLogger::critical("The original TNG information could not be found!");
     return false;
   }
-  for (std::size_t i = Tng::raceManMer; i < Tng::raceSnowElf; i++) {
+  for (std::size_t i = Tng::raceManMer; i < Tng::cRaceTypeCount; i++) {
     fExSkins[i] = fDH->LookupForm<RE::TESObjectARMO>(cExSkinIDs[i], Tng::cName);
     if (!fExSkins) {
       Tng::gLogger::critical("Skins for excluded NPCs cannot be loaded.");
@@ -265,7 +265,7 @@ Tng::TNGRes Core::SetNPCSkin(RE::TESNPC* aNPC, int aAddon, bool aIsUser) noexcep
     return Tng::pgErr;
   }
   if (lOgSkin->armorAddons.size() == 0 || !lOgSkin->race) return Tng::skinErr;
-  auto lActualAddon = !aIsUser ? Base::GetActualAddon(aNPC->IsFemale() , aAddon) : aAddon;
+  auto lActualAddon = aIsUser ? aAddon : Base::GetActualAddon(aNPC->IsFemale(), aAddon);
   auto lSkin = ProduceAddonSkin(lOgSkin, lActualAddon, aNPC->IsFemale());
   Base::SetNPCAddn(aNPC, aAddon, aIsUser);
   if (lSkin != lCurrSkin) {
