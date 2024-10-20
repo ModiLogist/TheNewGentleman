@@ -399,7 +399,7 @@ Tng::TNGRes Base::SetCharSize(RE::Actor *aActor, RE::TESNPC *aNPC, int aGenSize)
     return Tng::resOkGen;
   }
   aNPC->RemoveKeywords(fSizeKws);
-  if (aActor->IsPlayerRef() && aGenSize == -2) return Tng::resOkNoGen;
+  if (aNPC->IsPlayer() && aGenSize == -2) return Tng::resOkNoGen;
   aNPC->AddKeyword(fSizeKws[aGenSize]);
   ScaleGenital(aActor, fSizeGlbs[aGenSize]);
   return Tng::resOkGen;

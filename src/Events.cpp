@@ -37,8 +37,8 @@ void Events::SetPlayerInfo(RE::Actor* aPlayer, const int aAddon) noexcept {
   if (!lNPC) return;
   fIsPlayerFemale = lNPC->IsFemale();
   fPlayerRace = lNPC->race;
-  fPlayerInfoSet = true;
   fPCAddon->value = static_cast<float>(aAddon);
+  fPlayerInfoSet = true;
 }
 
 RE::BSEventNotifyControl Events::ProcessEvent(const RE::TESEquipEvent* aEvent, RE::BSTEventSource<RE::TESEquipEvent>*) {
@@ -57,7 +57,7 @@ RE::BSEventNotifyControl Events::ProcessEvent(const RE::TESObjectLoadedEvent* aE
   if (Core::CanModifyActor(lActor) < 0) return RE::BSEventNotifyControl::kContinue;
   const auto lNPC = lActor ? lActor->GetActorBase() : nullptr;
   if (fPlayerInfoSet && lActor->IsPlayerRef() && lNPC && lNPC->race->HasKeyword(fPRaceKey) && lNPC->skin && lNPC->skin != lNPC->race->skin) {
-    if (fIsPlayerFemale != lNPC->IsFemale() || fPlayerRace != lActor->GetRace() || fPCAddon->value >= Base::GetAddonCount(lNPC->IsFemale())) {
+    if (fIsPlayerFemale != lNPC->IsFemale() || fPlayerRace != lNPC->race || fPCAddon->value >= Base::GetAddonCount(lNPC->IsFemale())) {
       Core::SetNPCSkin(lNPC, -2, true);
       SetPlayerInfo(lActor, -2);
     }
@@ -85,7 +85,7 @@ RE::BSEventNotifyControl Events::ProcessEvent(const RE::TESSwitchRaceCompleteEve
 void Events::CheckForAddons(RE::Actor* aActor) noexcept {
   const auto lNPC = aActor ? aActor->GetActorBase() : nullptr;
   if (!lNPC) return;
-  if (!aActor->IsPlayerRef() || !Inis::GetSettingBool(Inis::excludePlayerSize)) Core::SetCharSize(aActor, lNPC, -1);
+  if (!lNPC->IsPlayer() || !Inis::GetSettingBool(Inis::excludePlayerSize)) Core::SetCharSize(aActor, lNPC, -1);
   auto lNPCAddn = Base::GetNPCAddn(lNPC);
   if (Base::GetRaceGrpAddn(lNPC->race) == 0) return;
   if (lNPCAddn.second < 0 &&
