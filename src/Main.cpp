@@ -75,7 +75,6 @@ extern "C" __declspec(dllexport) constinit auto SKSEPlugin_Version = []() {
   v.PluginName(Version::PROJECT);
   v.AuthorName("ModiLogist");
   v.UsesAddressLibrary();
-  v.UsesNoStructs();
   v.CompatibleVersions({SKSE::RUNTIME_SSE_LATEST_AE});
   return v;
 }();
