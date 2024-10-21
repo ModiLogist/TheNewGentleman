@@ -62,6 +62,10 @@ namespace Tng {
   };
 }
 
+static void ShowSkyrimMessage(const char* aMessage) noexcept {
+  RE::DebugMessageBox(aMessage);
+}
+
 static std::pair<std::string, RE::FormID> StrToRecord(const std::string aRecord) noexcept {
   const size_t lSepLoc = aRecord.find(Tng::cDelimChar);
   const RE::FormID lFormID = std::strtol(aRecord.substr(0, lSepLoc).data(), nullptr, 0);

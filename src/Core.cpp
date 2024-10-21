@@ -120,37 +120,45 @@ bool Core::IgnoreRace(RE::TESRace* aRace) noexcept {
 }
 
 bool Core::CheckRace(RE::TESRace* aRace) {
-  if (!aRace->HasKeyword(fNPCKey) || aRace->HasKeyword(fCrtKey) || !aRace->HasPartOf(Tng::cSlotBody) || aRace->IsChildRace()) return false;
-  if (aRace->GetFile(0) && Inis::fRaceExMods.size() > 0 && Inis::fRaceExMods.find(std::string{aRace->GetFile(0)->GetFilename()}) != Inis::fRaceExMods.end()) {
-    Tng::gLogger::info("The race [{}: 0x{:x}: {}] was ignored because an ini excludes it!", aRace->GetFile(0)->GetFilename(), aRace->GetFormID(), aRace->GetFormEditorID());
-    return false;
-  }
-  if (!Inis::IsValidSkeleton(aRace->skeletonModels[0].model.data()) || !Inis::IsValidSkeleton(aRace->skeletonModels[1].model.data())) {
-    IgnoreRace(aRace);
-    Tng::gLogger::info("The race [0x{:x}: {}] was ignored because it uses a custom skeleton!", aRace->GetFormID(), aRace->GetFormEditorID());
-    return false;
-  }
-  if (!aRace->skin) {
-    Tng::gLogger::warn("The race [0x{:x}: {}] cannot have any genitals since they do not have a skin.", aRace->GetFormID(), aRace->GetFormEditorID());
-    IgnoreRace(aRace);
-    return false;
-  }
-  RE::TESRace* lArmRace = aRace->armorParentRace ? aRace->armorParentRace : aRace;
-  RE::TESObjectARMA* lRaceSkinAA{nullptr};
-  for (const auto& lAA : aRace->skin->armorAddons) {
-    std::set<RE::TESRace*> lAARaces{lAA->race};
-    lAARaces.insert(lAA->additionalRaces.begin(), lAA->additionalRaces.end());
-    if (lAA->HasPartOf(Tng::cSlotBody) && ((lAARaces.find(lArmRace) != lAARaces.end()) || (lAA->race == fDefRace))) {
-      lRaceSkinAA = lAA;
-      break;
+  try {
+    if (!aRace->HasKeyword(fNPCKey) || aRace->HasKeyword(fCrtKey) || !aRace->HasPartOf(Tng::cSlotBody) || aRace->IsChildRace()) return false;
+    if (aRace->GetFile(0) && Inis::fRaceExMods.size() > 0 && Inis::fRaceExMods.find(std::string{aRace->GetFile(0)->GetFilename()}) != Inis::fRaceExMods.end()) {
+      Tng::gLogger::info("The race [{}: 0x{:x}: {}] was ignored because an ini excludes it!", aRace->GetFile(0)->GetFilename(), aRace->GetFormID(), aRace->GetFormEditorID());
+      return false;
     }
-  }
-  if (!lRaceSkinAA) {
-    Tng::gLogger::warn("The race [0x{:x}: {}] cannot have any genitals since their skin cannot be recognized.", aRace->GetFormID(), aRace->GetFormEditorID());
+    if (!Inis::IsValidSkeleton(aRace->skeletonModels[0].model.data()) || !Inis::IsValidSkeleton(aRace->skeletonModels[1].model.data())) {
+      IgnoreRace(aRace);
+      Tng::gLogger::info("The race [0x{:x}: {}] was ignored because it uses a custom skeleton!", aRace->GetFormID(), aRace->GetFormEditorID());
+      return false;
+    }
+    if (!aRace->skin) {
+      Tng::gLogger::warn("The race [0x{:x}: {}] cannot have any genitals since they do not have a skin.", aRace->GetFormID(), aRace->GetFormEditorID());
+      IgnoreRace(aRace);
+      return false;
+    }
+    RE::TESRace* lArmRace = aRace->armorParentRace ? aRace->armorParentRace : aRace;
+    RE::TESObjectARMA* lRaceSkinAA{nullptr};
+    for (const auto& lAA : aRace->skin->armorAddons) {
+      std::set<RE::TESRace*> lAARaces{lAA->race};
+      lAARaces.insert(lAA->additionalRaces.begin(), lAA->additionalRaces.end());
+      if (lAA->HasPartOf(Tng::cSlotBody) && ((lAARaces.find(lArmRace) != lAARaces.end()) || (lAA->race == fDefRace))) {
+        lRaceSkinAA = lAA;
+        break;
+      }
+    }
+    if (!lRaceSkinAA) {
+      Tng::gLogger::warn("The race [0x{:x}: {}] cannot have any genitals since their skin cannot be recognized.", aRace->GetFormID(), aRace->GetFormEditorID());
+      IgnoreRace(aRace);
+      return false;
+    }
+    return true;
+  } catch (const std::exception& er) {
+    Tng::gLogger::warn("The race [0x{:x}: {}] caused an error [{}] in the process. TNG tries to ignore it but it might not work properly!", aRace->GetFormID(), aRace->GetFormEditorID(), er.what());
+    const char* lMessage =
+        fmt::format("The race [0x{:x}: {}] caused an error [{}] in the process. TNG tries to ignore it but it might not work properly!", aRace->GetFormID(), aRace->GetFormEditorID(), er.what()).c_str();
+    ShowSkyrimMessage(lMessage);
     IgnoreRace(aRace);
-    return false;
   }
-  return true;
 }
 
 Tng::TNGRes Core::AddRace(RE::TESRace* aRace) noexcept {

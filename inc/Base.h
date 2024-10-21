@@ -75,6 +75,7 @@ class Base : public Singleton<Base> {
     };
 
   public:
+
     static bool Init() noexcept;
     static void LoadAddons() noexcept;
     static std::size_t GetAddonCount(bool aIsFemale) noexcept;
