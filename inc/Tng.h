@@ -1,45 +1,32 @@
 #pragma once
 
 namespace Tng {
-  namespace gLogger = SKSE::log;
   inline static constexpr std::string_view cName{"TheNewGentleman.esp"};
   inline static constexpr std::string_view cSkyrim{"Skyrim.esm"};
   inline static constexpr const char cDelimChar{'~'};
   inline static constexpr const char cColonChar{':'};
   inline static constexpr std::string_view cSOSR{"SOS_Revealing"};
   inline static constexpr std::size_t cSizeCategories{5};
-  inline static constexpr RE::FormID cDefRaceID = 0x19;
-  inline static constexpr RE::FormID cBstRaceID = 0x13745;
+  inline static constexpr SEFormLoc cDefRaceID{0x19, cSkyrim};
+  inline static constexpr SEFormLoc cBstRaceID{0x13745, cSkyrim};
   inline static constexpr int cVanillaRaceTypes{14};
-  inline static constexpr int cEqRaceTypes{13};
-  enum RaceType { raceManMer, raceBeast, raceElder, raceDremora, raceAfflicted, raceSnowElf, cRaceTypeCount };
 
   inline static constexpr RE::BGSBipedObjectForm::BipedObjectSlot cSlotBody{RE::BGSBipedObjectForm::BipedObjectSlot::kBody};
   inline static constexpr RE::BGSBipedObjectForm::BipedObjectSlot cSlotGenital{RE::BGSBipedObjectForm::BipedObjectSlot::kModPelvisSecondary};
-  inline static constexpr RE::FormID cNPCKeywID{0x13794};
-  inline static constexpr RE::FormID cCrtKeywID{0x13795};
-  inline static constexpr RE::FormID cBstKeywID{0xD61D1};
+  inline static constexpr SEFormLoc cNPCKeywID{0x13794, cSkyrim};
+  inline static constexpr SEFormLoc cCrtKeywID{0x13795, cSkyrim};
+  inline static constexpr SEFormLoc cBstKeywID{0xD61D1, cSkyrim};
 
-  inline static constexpr RE::FormID cProcessedRaceKeyID{0xFF0};
-  inline static constexpr RE::FormID cReadyRaceKeyID{0xFF1};
-  inline static constexpr RE::FormID cIgnoredRaceKeyID{0xFF2};
-  inline static constexpr RE::FormID cIgnoredArmoKeyID{0xFF3};
-  inline static constexpr RE::FormID cProblemArmoKeyID{0xFF4};
-  inline static constexpr RE::FormID cExcludeKeyID{0xFF5};
-  inline static constexpr RE::FormID cCustomSkinID{0xFF6};
-  inline static constexpr RE::FormID cSkinWithPenisKeyID{0xFF7};
-  inline static constexpr RE::FormID cGentleWomanKeyID{0xFF8};
-  inline static constexpr RE::FormID cMalAddKeyID{0xFF9};
-  inline static constexpr RE::FormID cFemAddKeyID{0xFFA};
-  inline static constexpr RE::FormID cAutoRvealKeyID{0xFFB};
-  inline static constexpr RE::FormID cAutoCoverKeyID{0xFFC};
-  inline static constexpr RE::FormID cCoveringKeyID{0xFFD};
-  inline static constexpr RE::FormID cUnderwearKeyID{0xFFE};
-  inline static constexpr RE::FormID cRevealingKeyID{0xFFF};
+  inline static constexpr SEFormLoc cProblemArmoKeyID{0xFF4, cName};
+  inline static constexpr SEFormLoc cCustomSkinID{0xFF6, cName};
+  inline static constexpr SEFormLoc cSkinWithPenisKeyID{0xFF7, cName};
+  inline static constexpr SEFormLoc cGentleWomanKeyID{0xFF8, cName};
+  inline static constexpr SEFormLoc cMalAddKeyID{0xFF9, cName};
+  inline static constexpr std::pair<RE::FormID, std::string_view> cFemAddKeyID{0xFFA, cName};
 
-  inline static constexpr RE::FormID cWomenChanceID{0xCA0};
-  inline static constexpr RE::FormID cPCAddon{0xCFF};
-  inline static constexpr RE::FormID cGentifiedID{0xE00};
+  inline static constexpr SEFormLoc cWomenChanceID{0xCA0, cName};
+  inline static constexpr SEFormLoc cPCAddon{0xCFF, cName};
+  inline static constexpr SEFormLoc cGentifiedID{0xE00, cName};
 
   inline static constexpr int cMalDefAddnPriority{0};
 
@@ -60,28 +47,120 @@ namespace Tng {
     resOkRR = 7,
     resOkIA = 8,
   };
+  namespace {
+    inline static constexpr SEFormLoc cProcessedRaceKeyID{0xFF0, cName};
+    inline static constexpr SEFormLoc cReadyRaceKeyID{0xFF1, cName};
+    inline static constexpr SEFormLoc cIgnoredRaceKeyID{0xFF2, cName};
+    inline static constexpr SEFormLoc cIgnoredArmoKeyID{0xFF3, cName};
+    inline static constexpr SEFormLoc cAutoCoverKeyID{0xFFC, cName};
+    inline static constexpr SEFormLoc cCoveringKeyID{0xFFD, cName};
+    inline static constexpr SEFormLoc cAutoRvealKeyID{0xFFB, cName};
+    inline static constexpr SEFormLoc cRevealingKeyID{0xFFF, cName};
+    inline static constexpr SEFormLoc cUnderwearKeyID{0xFFE, cName};
+    inline static constexpr SEFormLoc cExcludeNPCKeyID{0xFF5, cName};
+    inline static constexpr RE::FormID cSizeKeyIDs[cSizeCategories]{0xFE1, 0xFE2, 0xFE3, 0xFE4, 0xFE5};
+
+    inline static constexpr RE::FormID cSizeGlbIDs[cSizeCategories]{0xC01, 0xC02, 0xC03, 0xC04, 0xC05};
+
+    inline static RE::TESDataHandler* fSEDH;
+    inline static RE::BGSKeyword* fPRaceKey;
+    inline static RE::BGSKeyword* fRRaceKey;
+    inline static RE::BGSKeyword* fIRaceKey;
+    inline static RE::BGSKeyword* fNPCExKey;
+    inline static RE::BGSKeyword* fNPCGwKey;
+    inline static RE::BGSKeyword* fIAKey;
+    inline static RE::BGSKeyword* fACKey;
+    inline static RE::BGSKeyword* fCCKey;
+    inline static RE::BGSKeyword* fARKey;
+    inline static RE::BGSKeyword* fRRKey;
+    inline static RE::BGSKeyword* fUWKey;
+    inline static RE::BGSKeyword* fGPKey;
+    inline static RE::BGSKeyword* fSizeKws[cSizeCategories];
+
+    inline static RE::TESGlobal* fSizeGlbs[cSizeCategories];
+    
+    inline static RE::BGSListForm* fGentified;
+  }
+
+  static RE::TESDataHandler* SEDH() noexcept {
+    if (!fSEDH) fSEDH = RE::TESDataHandler::GetSingleton();
+    return Tng::SEDH();
+  }
+
+  static RE::BGSKeyword* RapKey() noexcept {
+    if (!fPRaceKey) fPRaceKey = SEDH()->LookupForm<RE::BGSKeyword>(cProcessedRaceKeyID.first, cProcessedRaceKeyID.second);
+    return fPRaceKey;
+  }
+
+  static RE::BGSKeyword* RarKey() noexcept {
+    if (!fRRaceKey) fRRaceKey = SEDH()->LookupForm<RE::BGSKeyword>(cReadyRaceKeyID.first, cReadyRaceKeyID.second);
+    return fRRaceKey;
+  }
+
+  static RE::BGSKeyword* RaiKey() noexcept {
+    if (!fIRaceKey) fIRaceKey = SEDH()->LookupForm<RE::BGSKeyword>(cIgnoredRaceKeyID.first, cIgnoredRaceKeyID.second);
+    return fIRaceKey;
+  }
+
+  static RE::BGSKeyword* NexKey() noexcept {
+    if (!fNPCExKey) fNPCExKey = SEDH()->LookupForm<RE::BGSKeyword>(cExcludeNPCKeyID.first, cExcludeNPCKeyID.second);
+    return fNPCExKey;
+  }
+
+  static RE::BGSKeyword* NgwKey() noexcept {
+    if (!fNPCGwKey) fNPCGwKey = SEDH()->LookupForm<RE::BGSKeyword>(cGentleWomanKeyID.first, cGentleWomanKeyID.second);
+    return fNPCGwKey;
+  }
+
+  static RE::BGSKeyword* AiaKey() noexcept {
+    if (!fIAKey) fIAKey = SEDH()->LookupForm<RE::BGSKeyword>(cIgnoredArmoKeyID.first, cIgnoredArmoKeyID.second);
+    return fIAKey;
+  }
+
+  static RE::BGSKeyword* AacKey() noexcept {
+    if (!fACKey) fACKey = SEDH()->LookupForm<RE::BGSKeyword>(cAutoCoverKeyID.first, cAutoCoverKeyID.second);
+    return fACKey;
+  }
+
+  static RE::BGSKeyword* AccKey() noexcept {
+    if (!fCCKey) fCCKey = SEDH()->LookupForm<RE::BGSKeyword>(cCoveringKeyID.first, cCoveringKeyID.second);
+    return fCCKey;
+  }
+
+  static RE::BGSKeyword* AccKey() noexcept {
+    if (!fARKey) fARKey = SEDH()->LookupForm<RE::BGSKeyword>(cAutoRvealKeyID.first, cAutoRvealKeyID.second);
+    return fARKey;
+  }
+
+  static RE::BGSKeyword* AccKey() noexcept {
+    if (!fRRKey) fRRKey = SEDH()->LookupForm<RE::BGSKeyword>(cRevealingKeyID.first, cRevealingKeyID.second);
+    return fRRKey;
+  }
+
+  static RE::BGSKeyword* AuwKey() noexcept {
+    if (!fUWKey) fUWKey = SEDH()->LookupForm<RE::BGSKeyword>(cUnderwearKeyID.first, cUnderwearKeyID.second);
+    return fUWKey;
+  }
+
+  static RE::BGSKeyword* GwpKey() noexcept {
+    if (!fGPKey) fGPKey = SEDH()->LookupForm<RE::BGSKeyword>(cSkinWithPenisKeyID.first, cSkinWithPenisKeyID.second);
+    return fGPKey;
+  }
+
+  static RE::BGSKeyword* SizeKey(const std::size_t aIdx) noexcept {
+    if (!fSizeKws[aIdx]) fSizeKws[aIdx] = SEDH()->LookupForm<RE::BGSKeyword>(cSizeKeyIDs[aIdx], cName);
+    return fSizeKws[aIdx];
+  }
+
+  static RE::TESGlobal* SizeGlb(const std::size_t aIdx) noexcept {
+    if (!fSizeGlbs[aIdx]) fSizeGlbs[aIdx] = SEDH()->LookupForm<RE::TESGlobal>(cSizeGlbIDs[aIdx], cName);
+    return fSizeGlbs[aIdx];
+  }
+
+  static RE::BGSListForm* GentFml() noexcept {
+    if (!fGentified) fGentified = SEDH()->LookupForm<RE::BGSListForm>(cGentifiedID.first, cGentifiedID.second);
+    return fGentified;
+  }
 }
 
-static void ShowSkyrimMessage(const char* aMessage) noexcept {
-  RE::DebugMessageBox(aMessage);
-}
 
-static std::pair<std::string, RE::FormID> StrToRecord(const std::string aRecord) noexcept {
-  const size_t lSepLoc = aRecord.find(Tng::cDelimChar);
-  const RE::FormID lFormID = std::strtol(aRecord.substr(0, lSepLoc).data(), nullptr, 0);
-  const std::string lModName = aRecord.substr(lSepLoc + 1);
-  return std::make_pair(lModName, lFormID);
-}
-
-static std::string RecordToStr(RE::TESForm* aForm) noexcept {
-  if (!aForm->GetFile(0)) return "";
-  std::ostringstream oss;
-  oss << std::hex << aForm->GetLocalFormID();
-  return "0x" + oss.str() + Tng::cDelimChar + std::string(aForm->GetFile(0)->GetFilename());
-}
-
-template <typename FormType>
-static constexpr FormType* LoadForm(std::string aFormRecord) {
-  auto lRecod = StrToRecord(aFormRecord);
-  return RE::TESDataHandler::GetSingleton()->LookupForm<FormType>(lRecod.second,lRecod.first);
-};

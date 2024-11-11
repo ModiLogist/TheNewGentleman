@@ -11,11 +11,11 @@ bool Papyrus::BindPapyrus(RE::BSScript::IVirtualMachine* aVM) noexcept {
   aVM->RegisterFunction("GetBoolValue", "TNG_PapyrusUtil", GetBoolValue);
   aVM->RegisterFunction("SetBoolValue", "TNG_PapyrusUtil", SetBoolValue);
 
-  aVM->RegisterFunction("GetRaceGrpNames", "TNG_PapyrusUtil", GetRaceGrpNames);
-  aVM->RegisterFunction("GetRaceGrpAddn", "TNG_PapyrusUtil", GetRaceGrpAddn);
-  aVM->RegisterFunction("GetRaceGrpMult", "TNG_PapyrusUtil", GetRaceGrpMult);
-  aVM->RegisterFunction("SetRaceGrpAddn", "TNG_PapyrusUtil", SetRaceGrpAddn);
-  aVM->RegisterFunction("SetRaceGrpMult", "TNG_PapyrusUtil", SetRaceGrpMult);
+  aVM->RegisterFunction("GetRGNames", "TNG_PapyrusUtil", GetRGNames);
+  aVM->RegisterFunction("GetRGAddn", "TNG_PapyrusUtil", GetRGAddn);
+  aVM->RegisterFunction("GetRGMult", "TNG_PapyrusUtil", GetRGMult);
+  aVM->RegisterFunction("SetRGAddn", "TNG_PapyrusUtil", SetRGAddn);
+  aVM->RegisterFunction("SetRGMult", "TNG_PapyrusUtil", SetRGMult);
 
   aVM->RegisterFunction("GetAddonStatus", "TNG_PapyrusUtil", GetAddonStatus);
   aVM->RegisterFunction("SetAddonStatus", "TNG_PapyrusUtil", SetAddonStatus);
@@ -38,7 +38,7 @@ int Papyrus::UpdateLogLvl(RE::StaticFunctionTag*, int aLogLvl) {
 }
 
 std::string Papyrus::ShowLogLocation(RE::StaticFunctionTag*) {
-  auto lMaybeDir{Tng::gLogger::log_directory};
+  auto lMaybeDir{SKSE::log::log_directory};
   std::filesystem::path lDir = lMaybeDir().value_or("$TNG_LDN");
   return lDir.string();
 }
@@ -52,25 +52,25 @@ void Papyrus::SetBoolValue(RE::StaticFunctionTag*, int aID, bool aValue) {
   if (Inis::cNoneBoolID < aID && aID < Inis::cBoolIDsCount) Inis::SaveSettingBool(static_cast<Inis::IniBoolIDs>(aID), aValue);
 }
 
-std::vector<std::string> Papyrus::GetRaceGrpNames(RE::StaticFunctionTag*) { return Base::GetRaceGrpNames(); }
+std::vector<std::string> Papyrus::GetRGNames(RE::StaticFunctionTag*) { return Base::GetRGNames(); }
 
-int Papyrus::GetRaceGrpAddn(RE::StaticFunctionTag*, int aRaceIdx) {
-  if (aRaceIdx < 0) return Tng::pgErr;
-  return Base::GetRaceGrpAddn(static_cast<std::size_t>(aRaceIdx));
+int Papyrus::GetRGAddn(RE::StaticFunctionTag*, int aRgId) {
+  if (aRgId < 0) return Tng::pgErr;
+  return Base::GetRGAddn(static_cast<std::size_t>(aRgId));
 }
 
-float Papyrus::GetRaceGrpMult(RE::StaticFunctionTag*, int aRaceIdx) {
-  if (aRaceIdx < 0) return -1.0f;
-  return Base::GetRaceGrpMult(static_cast<std::size_t>(aRaceIdx));
+float Papyrus::GetRGMult(RE::StaticFunctionTag*, int aRgId) {
+  if (aRgId < 0) return -1.0f;
+  return Base::GetRGMult(static_cast<std::size_t>(aRgId));
 }
 
-void Papyrus::SetRaceGrpAddn(RE::StaticFunctionTag*, int aRaceIdx, int aGenOption) {
-  if (aRaceIdx < 0) return;
-  Core::UpdateRaceGrpAddn(static_cast<int>(aRaceIdx), aGenOption);
+void Papyrus::SetRGAddn(RE::StaticFunctionTag*, int aRgId, int aGenOption) {
+  if (aRgId < 0) return;
+  Core::UpdateRGAddn(static_cast<int>(aRgId), aGenOption);
 }
 
-void Papyrus::SetRaceGrpMult(RE::StaticFunctionTag*, int aRaceIdx, float aGenMult) {
-  if (Base::SetRaceGrpMult(static_cast<std::size_t>(aRaceIdx), aGenMult)) Inis::SaveRaceMult(static_cast<std::size_t>(aRaceIdx), aGenMult);
+void Papyrus::SetRGMult(RE::StaticFunctionTag*, int aRgId, float aGenMult) {
+  if (Base::SetRGMult(static_cast<std::size_t>(aRgId), aGenMult)) Inis::SaveRaceMult(static_cast<std::size_t>(aRgId), aGenMult);
 }
 
 bool Papyrus::GetAddonStatus(RE::StaticFunctionTag*, bool aIsFemale, int aAddn) {
@@ -85,23 +85,23 @@ void Papyrus::SetAddonStatus(RE::StaticFunctionTag*, bool aIsFemale, int aAddn, 
 }
 
 std::vector<std::string> Papyrus::GetAllPossibleAddons(RE::StaticFunctionTag*, bool aIsFemale) {
-  auto lNames = Base::GetAddonNames(aIsFemale);
+  auto lNames = Base::GetRGAddonNames(aIsFemale);
   return std::vector<std::string>{lNames.begin(), lNames.end()};
 }
 
 int Papyrus::CanModifyActor(RE::StaticFunctionTag*, RE::Actor* aActor) { return Core::CanModifyActor(aActor); }
 
 int Papyrus::SetActorAddn(RE::StaticFunctionTag*, RE::Actor* aActor, int aGenOption) {
-  const auto lNPC = aActor ? aActor->GetActorBase() : nullptr;
-  if (!aActor || !lNPC) return Tng::npcErr;
+  const auto npc = aActor ? aActor->GetActorBase() : nullptr;
+  if (!aActor || !npc) return Tng::npcErr;
   if (aActor->IsPlayerRef()) Events::SetPlayerInfo(aActor, aGenOption);
-  return Core::SetNPCSkin(lNPC, aGenOption);
+  return Core::SetNPCSkin(npc, aGenOption);
 }
 
 int Papyrus::SetActorSize(RE::StaticFunctionTag*, RE::Actor* aActor, int aGenSize) {
-  const auto lNPC = aActor ? aActor->GetActorBase() : nullptr;
-  if (!aActor || !lNPC) return Tng::npcErr;
-  return Core::SetCharSize(aActor, lNPC, aGenSize);
+  const auto npc = aActor ? aActor->GetActorBase() : nullptr;
+  if (!aActor || !npc) return Tng::npcErr;
+  return Core::SetCharSize(aActor, npc, aGenSize);
 }
 
 std::vector<std::string> Papyrus::GetSlot52Mods(RE::StaticFunctionTag*) {

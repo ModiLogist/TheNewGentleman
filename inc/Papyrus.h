@@ -10,11 +10,11 @@ class Papyrus : public Singleton<Papyrus> {
     static bool GetBoolValue(RE::StaticFunctionTag*, int aID);
     static void SetBoolValue(RE::StaticFunctionTag*, int aID, bool aValue);
 
-    static std::vector<std::string> GetRaceGrpNames(RE::StaticFunctionTag*);
-    static int GetRaceGrpAddn(RE::StaticFunctionTag*, int aRaceIdx);
-    static float GetRaceGrpMult(RE::StaticFunctionTag*, int aRaceIdx);
-    static void SetRaceGrpAddn(RE::StaticFunctionTag*, int aRaceIdx, int aGenOption);
-    static void SetRaceGrpMult(RE::StaticFunctionTag*, int aRaceIdx, float aGenMult);
+    static std::vector<std::string> GetRGNames(RE::StaticFunctionTag*);
+    static int GetRGAddn(RE::StaticFunctionTag*, int aRgId);
+    static float GetRGMult(RE::StaticFunctionTag*, int aRgId);
+    static void SetRGAddn(RE::StaticFunctionTag*, int aRgId, int aGenOption);
+    static void SetRGMult(RE::StaticFunctionTag*, int aRgId, float aGenMult);
 
     static bool GetAddonStatus(RE::StaticFunctionTag*, bool aIsFemale, int aAddn);
     static void SetAddonStatus(RE::StaticFunctionTag*, bool aIsFemale, int aAddn, bool aStatus);

@@ -28,11 +28,11 @@ class Inis : public Singleton<Inis> {
     inline static constexpr const char* cDOWCtrl{"GenitalDown"};
     inline static constexpr const char* cREVCtrl{"Revealing"};
     inline static constexpr const char* cINTCtrl{"DAK_Integration"};
-    inline static constexpr RE::FormID cINTCtrlID{0xC00};
-    inline static constexpr RE::FormID cNPCCtrlID{0xCB0};
-    inline static constexpr RE::FormID cUPGCtrlID{0xCB1};
-    inline static constexpr RE::FormID cDOWCtrlID{0xCB2};
-    inline static constexpr RE::FormID cREVCtrlID{0xCB3};
+    inline static constexpr SEFormLoc cINTCtrlID{0xC00};
+    inline static constexpr SEFormLoc cNPCCtrlID{0xCB0};
+    inline static constexpr SEFormLoc cUPGCtrlID{0xCB1};
+    inline static constexpr SEFormLoc cDOWCtrlID{0xCB2};
+    inline static constexpr SEFormLoc cREVCtrlID{0xCB3};
 
     inline static constexpr const char* cRacialGenital{"RaceGenital"};
     inline static constexpr const char* cRacialSize{"RaceSizeMultplier"};
@@ -69,7 +69,6 @@ class Inis : public Singleton<Inis> {
     inline static bool fExlPC;
     inline static bool fRADef;
     inline static bool fRAUsr;
-    inline static RE::TESDataHandler* fDH;
     inline static RE::TESGlobal* fNPCCtrl;
     inline static RE::TESGlobal* fUPGCtrl;
     inline static RE::TESGlobal* fDOWCtrl;
@@ -102,8 +101,8 @@ class Inis : public Singleton<Inis> {
     static void SetLogLvl(int aLvl) noexcept;
     static bool GetSettingBool(IniBoolIDs aID) noexcept;
     static void SaveSettingBool(IniBoolIDs aID, bool aValue) noexcept;
-    static void SaveRaceMult(const std::size_t aRaceIdx, const float aRaceMult) noexcept;
-    static void SaveRaceAddn(const std::size_t aRaceIdx, int aChoice) noexcept;
+    static void SaveRaceMult(const std::size_t aRgId, const float aRaceMult) noexcept;
+    static void SaveRaceAddn(const std::size_t aRgId, int aChoice) noexcept;
     static void SaveNPCAddn(RE::TESNPC* aNPC, int aChoice) noexcept;
     static void SaveNPCSize(RE::TESNPC* aNPC, int aGenSize) noexcept;
     static void SaveActiveAddon(const bool aIsFemale, const int aAddon, const bool aStatus) noexcept;

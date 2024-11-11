@@ -13,12 +13,12 @@ static bool CheckIncompatiblity() {
 }
 
 static void IssueWarning() {
-  Tng::gLogger::error("TheNewGentleman did not initialize successfully!");
+  SKSE::log::error("TheNewGentleman did not initialize successfully!");
   RE::DebugMessageBox("TNG Error 1: The New Gentleman DLL cannot be loaded successfully! Make sure you have all the requirements installed!");
 }
 
 static void InitializeLogging() {
-  auto lPath{Tng::gLogger::log_directory()};
+  auto lPath{SKSE::log::log_directory()};
   if (!lPath) {
     SKSE::stl::report_and_fail("Unable to lookup SKSE logs directory.");
   }
@@ -56,7 +56,7 @@ static void EventListener(SKSE::MessagingInterface::Message* aMessage) noexcept 
       Core::GenitalizeNPCSkins();
       Core::CheckOutfits();
       Core::CheckArmorPieces();
-      Tng::gLogger::info("TheNewGentleman finished initialization.");
+      SKSE::log::info("TheNewGentleman finished initialization.");
       Events::RegisterEvents();
     } else {
       IssueWarning();
@@ -90,8 +90,8 @@ extern "C" __declspec(dllexport) bool SKSEAPI SKSEPlugin_Query(const SKSE::Query
 extern "C" [[maybe_unused]] __declspec(dllexport) bool SKSEPlugin_Load(const SKSE::LoadInterface* aSkse) {
   InitializeLogging();
   SKSE::Init(aSkse);
-  Tng::gLogger::info("Initializing TheNewGentleman {}!", Version::NAME.data());
-  Tng::gLogger::info("Game version : {}", aSkse->RuntimeVersion().string());
+  SKSE::log::info("Initializing TheNewGentleman {}!", Version::NAME.data());
+  SKSE::log::info("Game version : {}", aSkse->RuntimeVersion().string());
   SKSE::GetMessagingInterface()->RegisterListener(EventListener);
   SKSE::GetPapyrusInterface()->Register(Papyrus::BindPapyrus);
   return true;

@@ -126,7 +126,7 @@ Event OnVersionUpdate(Int aiVersion)
 EndEvent
 
 Event OnConfigOpen()    
-  fSRaces = TNG_PapyrusUtil.GetRaceGrpNames()
+  fSRaces = TNG_PapyrusUtil.GetRGNames()
   fSMalOptions = TNG_PapyrusUtil.GetAllPossibleAddons(False)
   fSFemOptions = TNG_PapyrusUtil.GetAllPossibleAddons(True)
   fSAllS52Mods = TNG_PapyrusUtil.GetSlot52Mods();
@@ -157,24 +157,24 @@ Event OnGameReload()
     RegisterForKey(GenDownKey.GetValueInt())
   EndIf
   If PlayerSkin.GetValueInt() > -1
-    Int lRes = TNG_PapyrusUtil.SetActorAddn(PlayerRef, PlayerSkin.GetValueInt())
+    Int res = TNG_PapyrusUtil.SetActorAddn(PlayerRef, PlayerSkin.GetValueInt())
     PlayerRef.QueueNiNodeUpdate()
-    If lRes < 0 
+    If res < 0 
       Debug.Notification("$TNG_WPT")
       PlayerSkin.SetValueInt(-1)
       TNG_PapyrusUtil.SetActorAddn(PlayerRef, PlayerSkin.GetValueInt())
-      HandleWarnings(lRes)
+      HandleWarnings(res)
     EndIf
   Else
     TNG_PapyrusUtil.SetActorAddn(PlayerRef, -2)
   EndIf  
   If PlayerSize > -1
-    Int lRes = TNG_PapyrusUtil.SetActorSize(PlayerRef, PlayerSize)
-    If lRes < 0     
+    Int res = TNG_PapyrusUtil.SetActorSize(PlayerRef, PlayerSize)
+    If res < 0     
       Debug.Notification("$TNG_WPS")
       PlayerSize = -1
       TNG_PapyrusUtil.SetActorSize(PlayerRef, PlayerSize)
-      HandleWarnings(lRes)
+      HandleWarnings(res)
     EndIf
   EndIf  
 EndEvent
@@ -322,8 +322,8 @@ Event OnPageReset(String asPage)
     AddHeaderOption("$TNG_OGT")
     Int liRace = 0
     While liRace < fSRaces.Length      
-      fIRaceSizeHdls[liRace] = AddSliderOption(fSRaces[liRace], TNG_PapyrusUtil.GetRaceGrpMult(liRace), "{2}")
-      fIRaceTypeHdls[liRace] = AddMenuOption("", fSMalOptions[TNG_PapyrusUtil.GetRaceGrpAddn(liRace)])
+      fIRaceSizeHdls[liRace] = AddSliderOption(fSRaces[liRace], TNG_PapyrusUtil.GetRGMult(liRace), "{2}")
+      fIRaceTypeHdls[liRace] = AddMenuOption("", fSMalOptions[TNG_PapyrusUtil.GetRGAddn(liRace)])
       liRace += 1
     EndWhile
     Return
@@ -400,14 +400,14 @@ Event OnOptionDefault(Int aiOption)
   While liOpLoop
     liOpLoop -= 1
     If aiOption == fIRaceSizeHdls[liOpLoop]
-      TNG_PapyrusUtil.SetRaceGrpMult(liOpLoop, 1.0)
-      SetSliderOptionValue(fIRaceSizeHdls[liOpLoop], TNG_PapyrusUtil.GetRaceGrpMult(liOpLoop), "{2}")
+      TNG_PapyrusUtil.SetRGMult(liOpLoop, 1.0)
+      SetSliderOptionValue(fIRaceSizeHdls[liOpLoop], TNG_PapyrusUtil.GetRGMult(liOpLoop), "{2}")
       TNG_PapyrusUtil.SetActorSize(PlayerRef, -1)
       Return
     EndIf
     If aiOption == fIRaceTypeHdls[liOpLoop]
-      TNG_PapyrusUtil.SetRaceGrpAddn(liOpLoop, -1)
-      SetMenuOptionValue(fIRaceTypeHdls[liOpLoop], fSMalOptions[TNG_PapyrusUtil.GetRaceGrpAddn(liOpLoop)])
+      TNG_PapyrusUtil.SetRGAddn(liOpLoop, -1)
+      SetMenuOptionValue(fIRaceTypeHdls[liOpLoop], fSMalOptions[TNG_PapyrusUtil.GetRGAddn(liOpLoop)])
       Return
     EndIf
   EndWhile
@@ -540,7 +540,7 @@ Event OnOptionMenuOpen(Int aiOption)
     liRace -= 1
     If aiOption == fIRaceTypeHdls[liRace]
       SetMenuDialogOptions(fSMalOptions)
-      SetMenuDialogStartIndex(TNG_PapyrusUtil.GetRaceGrpAddn(liRace))
+      SetMenuDialogStartIndex(TNG_PapyrusUtil.GetRGAddn(liRace))
       Return
     EndIf
   EndWhile  
@@ -561,7 +561,7 @@ Event OnOptionMenuAccept(Int aiOption, Int aiChoice)
   While liRace
     liRace -= 1
     If aiOption == fIRaceTypeHdls[liRace]
-      TNG_PapyrusUtil.SetRaceGrpAddn(liRace, aiChoice)
+      TNG_PapyrusUtil.SetRGAddn(liRace, aiChoice)
       SetMenuOptionValue(fIRaceTypeHdls[liRace], fSMalOptions[aiChoice])
       Return
     EndIf
@@ -588,7 +588,7 @@ Event OnOptionSliderOpen(Int aiOption)
     While liRace
       liRace -= 1
       If aiOption == fIRaceSizeHdls[liRace]
-        SetSliderDialogStartValue(TNG_PapyrusUtil.GetRaceGrpMult(liRace))
+        SetSliderDialogStartValue(TNG_PapyrusUtil.GetRGMult(liRace))
         SetSliderDialogDefaultValue(1.0)
         SetSliderDialogRange(0.1, 2.0)
         SetSliderDialogInterval(0.01)
@@ -625,8 +625,8 @@ Event OnOptionSliderAccept(Int aiOption, Float afValue)
     While liRace
       liRace -= 1
       If aiOption == fIRaceSizeHdls[liRace]
-        TNG_PapyrusUtil.SetRaceGrpMult(liRace, afValue)
-        SetSliderOptionValue(fIRaceSizeHdls[liRace], TNG_PapyrusUtil.GetRaceGrpMult(liRace), "{2}")
+        TNG_PapyrusUtil.SetRGMult(liRace, afValue)
+        SetSliderOptionValue(fIRaceSizeHdls[liRace], TNG_PapyrusUtil.GetRGMult(liRace), "{2}")
         TNG_PapyrusUtil.SetActorSize(PlayerRef, -1)
         Return
       EndIf

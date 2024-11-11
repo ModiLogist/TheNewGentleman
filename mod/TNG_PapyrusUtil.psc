@@ -11,11 +11,11 @@ String Function ShowLogLocation() Global Native
 Bool Function GetBoolValue(Int aID) Global Native
 Function SetBoolValue(Int aID, Bool aValue) Global Native
 
-String[] Function GetRaceGrpNames() Global Native
-Float Function GetRaceGrpMult(Int aRaceIdx) Global Native
-Function SetRaceGrpAddn(Int aRaceIdx, Int aGenOption) Global Native
-Int Function GetRaceGrpAddn(Int aRaceIdx) Global Native
-Function SetRaceGrpMult(Int aRaceIdx, Float aGenMult) Global Native
+String[] Function GetRGNames() Global Native
+Float Function GetRGMult(Int aRgId) Global Native
+Function SetRGAddn(Int aRgId, Int aGenOption) Global Native
+Int Function GetRGAddn(Int aRgId) Global Native
+Function SetRGMult(Int aRgId, Float aGenMult) Global Native
 
 Bool Function GetAddonStatus(Bool aIsFemale, Int aAddn) Global Native
 Function SetAddonStatus(Bool aIsFemale, Int aAddn, Bool aStatus) Global Native

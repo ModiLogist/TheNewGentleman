@@ -3,8 +3,8 @@
 class Core : public Singleton<Core> {
   private:
     // Const
-    inline static constexpr RE::FormID cDefSkinAAID{0xD67};
-    inline static constexpr RE::FormID cExSkinIDs[Tng::cRaceTypeCount] = {
+    inline static constexpr SEFormLoc cDefSkinAAID{0xD67};
+    inline static constexpr SEFormLoc cExSkinIDs[Tng::cRaceTypeCount] = {
         0xAFF,  // raceManMer
         0xAFE,  // raceBeast
         0xAFF,  // raceElder
@@ -26,7 +26,7 @@ class Core : public Singleton<Core> {
 
   public:
     static void GenitalizeRaces() noexcept;
-    static bool UpdateRaceGrpAddn(const std::size_t aRaceIdx, int aAddon) noexcept;
+    static bool UpdateRGAddn(const std::size_t aRgId, int aAddon) noexcept;
 
   private:
     static bool IgnoreRace(RE::TESRace* aRace) noexcept;
@@ -70,7 +70,6 @@ class Core : public Singleton<Core> {
 
   private:
     // Shared Variables
-    inline static RE::TESDataHandler* fDH;
     inline static RE::BGSKeyword* fPRaceKey;
     inline static RE::BGSKeyword* fRRaceKey;
     inline static RE::BGSKeyword* fIRaceKey;
@@ -81,10 +80,9 @@ class Core : public Singleton<Core> {
     inline static RE::BGSKeyword* fPAKey;
     inline static RE::BGSKeyword* fIAKey;
     inline static RE::BGSKeyword* fUAKey;
-    inline static RE::BGSKeyword* fExKey;
+    inline static RE::BGSKeyword* Tng::NexKey();
     inline static std::vector<RE::BGSKeyword*> fArmoKeys{fARKey, fRRKey, fACKey, fCCKey, fPAKey, fIAKey, fUAKey};
     inline static RE::BGSKeyword* fNPCKey;
-    inline static RE::BGSKeyword* fBstKey;
     inline static RE::BGSKeyword* fCrtKey;
     inline static RE::BGSKeyword* fSwPKey;
     inline static RE::BGSKeyword* fGenSkinKey;
