@@ -1,31 +1,31 @@
 #pragma once
 class Papyrus : public Singleton<Papyrus> {
   public:
-    static bool BindPapyrus(RE::BSScript::IVirtualMachine* aVM) noexcept;
+    static bool BindPapyrus(RE::BSScript::IVirtualMachine* aVM) ;
 
   private:
     static int UpdateLogLvl(RE::StaticFunctionTag*, int aLogLvl);
     static std::string ShowLogLocation(RE::StaticFunctionTag*);
 
-    static bool GetBoolValue(RE::StaticFunctionTag*, int aID);
-    static void SetBoolValue(RE::StaticFunctionTag*, int aID, bool aValue);
+    static bool GetBoolValue(RE::StaticFunctionTag*, int settingID);
+    static void SetBoolValue(RE::StaticFunctionTag*, int settingID, bool value);
 
-    static std::vector<std::string> GetRGNames(RE::StaticFunctionTag*);
-    static int GetRGAddn(RE::StaticFunctionTag*, int aRgId);
-    static float GetRGMult(RE::StaticFunctionTag*, int aRgId);
-    static void SetRGAddn(RE::StaticFunctionTag*, int aRgId, int aGenOption);
-    static void SetRGMult(RE::StaticFunctionTag*, int aRgId, float aGenMult);
+    static std::vector<std::string> GetRgNames(RE::StaticFunctionTag*);
+    static int GetRgAddn(RE::StaticFunctionTag*, int rg);
+    static float GetRgMult(RE::StaticFunctionTag*, int rg);
+    static void SetRgAddn(RE::StaticFunctionTag*, int rg, int aGenOption);
+    static void SetRgMult(RE::StaticFunctionTag*, int rg, float aGenMult);
 
-    static bool GetAddonStatus(RE::StaticFunctionTag*, bool aIsFemale, int aAddn);
-    static void SetAddonStatus(RE::StaticFunctionTag*, bool aIsFemale, int aAddn, bool aStatus);
-    static std::vector<std::string> GetAllPossibleAddons(RE::StaticFunctionTag*, bool aIsFemale);
-    static int CanModifyActor(RE::StaticFunctionTag*, RE::Actor* aActor);
-    static int SetActorAddn(RE::StaticFunctionTag*, RE::Actor* aActor, int aGenOption);
-    static int SetActorSize(RE::StaticFunctionTag*, RE::Actor* aActor, int aGenSize);
+    static bool GetAddonStatus(RE::StaticFunctionTag*, bool isFemale, int aAddn);
+    static void SetAddonStatus(RE::StaticFunctionTag*, bool isFemale, int aAddn, bool status);
+    static std::vector<std::string> GetAllPossibleAddons(RE::StaticFunctionTag*, bool isFemale);
+    static int CanModifyActor(RE::StaticFunctionTag*, RE::Actor* actor);
+    static int SetActorAddn(RE::StaticFunctionTag*, RE::Actor* actor, int aGenOption);
+    static int SetActorSize(RE::StaticFunctionTag*, RE::Actor* actor, int genSize);
 
     static std::vector<std::string> GetSlot52Mods(RE::StaticFunctionTag*);
-    static bool Slot52ModBehavior(RE::StaticFunctionTag*, std::string aModName, int aBehavior);
-    static bool SwapRevealing(RE::StaticFunctionTag*, RE::TESObjectARMO* aArmor);
+    static bool Slot52ModBehavior(RE::StaticFunctionTag*, std::string modName, int behavior);
+    static bool SwapRevealing(RE::StaticFunctionTag*, RE::TESObjectARMO* armor);
     
     static void UpdateSettings(RE::StaticFunctionTag*);
 };

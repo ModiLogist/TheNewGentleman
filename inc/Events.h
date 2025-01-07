@@ -1,11 +1,9 @@
 #pragma once
 
-class Events : public RE::BSTEventSink<RE::TESObjectLoadedEvent>,
-                  public RE::BSTEventSink<RE::TESEquipEvent>,
-                  public RE::BSTEventSink<RE::TESSwitchRaceCompleteEvent> {
+class Events : public RE::BSTEventSink<RE::TESObjectLoadedEvent>, public RE::BSTEventSink<RE::TESEquipEvent>, public RE::BSTEventSink<RE::TESSwitchRaceCompleteEvent> {
   public:
-    static void RegisterEvents() noexcept;
-    static void SetPlayerInfo(RE::Actor* aPlayer, const int aAddon) noexcept;
+    static void RegisterEvents();
+    static void SetPlayerInfo(RE::Actor* aPlayer, const int addnIdx);
 
   protected:
     RE::BSEventNotifyControl ProcessEvent(const RE::TESEquipEvent* aEvent, RE::BSTEventSource<RE::TESEquipEvent>*) override;
@@ -13,28 +11,23 @@ class Events : public RE::BSTEventSink<RE::TESObjectLoadedEvent>,
     RE::BSEventNotifyControl ProcessEvent(const RE::TESSwitchRaceCompleteEvent* aEvent, RE::BSTEventSource<RE::TESSwitchRaceCompleteEvent>*) override;
 
   private:
-    static void CheckForAddons(RE::Actor* aActor) noexcept;
-    static int GetNPCAutoAddn(RE::TESNPC* aNPC) noexcept;
-    static void CheckActorArmor(RE::Actor* aActor, RE::TESObjectARMO* aArmor = nullptr) noexcept;
+    static void CheckForAddons(RE::Actor* actor);
+    static int GetNPCAutoAddn(RE::TESNPC* npc);
+    static void CheckCovering(RE::Actor* actor, RE::TESObjectARMO* armor = nullptr, bool isUnequipped = false);
+    static RE::TESObjectARMO* GetCoveringItem(RE::Actor* actor, RE::TESObjectARMO* armor);
+    static RE::TESBoundObject* ForceTngCover(RE::Actor* actor, bool ifUpdate);
+    inline static bool showErrMessage;
+    
 
-    RE::TESDataHandler* Tng::SEDH();
-    inline static RE::BGSKeyword* fPRaceKey;
-    inline static RE::BGSKeyword* fCCKey;
-    inline static RE::BGSKeyword* fACKey;
-    inline static RE::BGSKeyword* fARKey;
-    inline static RE::BGSKeyword* fRRKey;
-    inline static RE::BGSKeyword* fUAKey;
-    inline static RE::BGSKeyword* fPSKey;
-    inline static RE::BGSKeyword* Tng::NexKey();
-    inline static RE::BGSKeyword* fGenSkinKey;
-    inline static RE::TESGlobal* fGWChance;
-    inline static RE::TESGlobal* fPCAddon;    
+    inline static std::map<RE::FormID, RE::TESObjectARMO*> oldSkins;
+    inline static std::vector<RE::BGSKeyword*> coverKeys;
 
-    inline static std::map<RE::FormID, RE::TESObjectARMO*> fOldSkins;    
-
-    inline static bool fIsPlayerFemale;
-    inline static RE::TESRace* fPlayerRace;
-    inline static bool fPlayerInfoSet;
+    struct PlayerInfo {
+        inline static bool isFemale;
+        inline static RE::TESRace* race;
+        inline static bool isInfoSet;
+    };
+    inline static PlayerInfo playerInfo{};
 
     Events() = default;
     Events(const Events&) = delete;
@@ -46,7 +39,7 @@ class Events : public RE::BSTEventSink<RE::TESObjectLoadedEvent>,
     Events& operator=(Events&&) = delete;
 
     static Events* GetSingleton() {
-      static Events aSingleton;
-      return &aSingleton;
+      static Events singleton;
+      return &singleton;
     }
 };

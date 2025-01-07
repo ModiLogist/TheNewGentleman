@@ -1,272 +1,406 @@
 #include <Base.h>
 
-// Addons loading and handling
-void Base::LoadAddons() noexcept {
-  fMalAddons.clear();
-  fFemAddons.clear();
-  auto &armorlist = Tng::SEDH()->GetFormArray<RE::TESObjectARMO>();
-  for (const auto &armor : armorlist) {
-    if (FormHasKW(armor, Tng::cMalAddKeyID)) fMalAddons.push_back({armor, true});
-    if (FormHasKW(armor, Tng::cFemAddKeyID)) fFemAddons.push_back({armor, false});
-  }
+void Base::Init() {
+  rgInfoList.push_back(Base::RaceGroupInfo{});
+  auto &rg0 = rgInfoList[0];
+  rg0.idx = 0;
+  rg0.name = "TNGRg0";
+  rg0.isMain = true;
+  rg0.noMCM = true;
+  LoadAddons();
 }
 
-RE::TESObjectARMO *Base::GetAddon(bool aIsFemale, std::size_t aChoice, bool aOnlyActive) noexcept {
-  auto &list = aIsFemale ? fFemAddons : fMalAddons;
-  if (aOnlyActive) {
+// Addons loading and handling
+void Base::LoadAddons() {
+  malAddons.clear();
+  femAddons.clear();
+  auto &armorlist = Tng::SEDH()->GetFormArray<RE::TESObjectARMO>();
+  for (const auto &armor : armorlist) {
+    if (FormHasKW(armor, Tng::cMalAddKeyID)) malAddons.push_back({armor, true});
+    if (FormHasKW(armor, Tng::cFemAddKeyID)) femAddons.push_back({armor, false});
+  }
+  for (auto &armorPair : malAddons)
+    if (armorPair.first->HasKeyword(Tng::ArmoKey(Tng::akeyIgnored))) armorPair.first->AddKeyword(Tng::ArmoKey(Tng::akeyIgnored));
+  for (auto &armorPair : femAddons)
+    if (armorPair.first->HasKeyword(Tng::ArmoKey(Tng::akeyIgnored))) armorPair.first->AddKeyword(Tng::ArmoKey(Tng::akeyIgnored));
+}
+
+RE::TESObjectARMO *Base::AddonByIdx(bool isFemale, size_t choice, bool onlyActive) {
+  auto &list = isFemale ? femAddons : malAddons;
+  RE::TESObjectARMO *res = nullptr;
+  if (onlyActive) {
     int activeCount = 0;
     for (const auto &element : list) {
       if (element.second) {
-        if (activeCount == aChoice) {
-          return element.first;
+        if (activeCount == choice) {
+          res = element.first;
+          break;
         }
         activeCount++;
       }
     }
   } else {
-    return list[aChoice].first;
+    res = choice < list.size() ? list[choice].first : nullptr;
   }
+  return res;
 }
 
-std::size_t Base::GetAddonCount(bool aIsFemale, bool aOnlyActive) noexcept {
-  auto &list = aIsFemale ? fFemAddons : fMalAddons;
-  if (aOnlyActive) {
-    std::size_t res = 0;
-    for (const auto &activeCount : list)
-      if (activeCount.second) res++;
+size_t Base::GetAddonCount(bool isFemale, bool onlyActive) {
+  auto &list = isFemale ? femAddons : malAddons;
+  if (onlyActive) {
+    size_t res = 0;
+    for (const auto &addonPair : list)
+      if (addonPair.second) res++;
     return res;
   } else {
     return list.size();
   }
 }
 
-bool Base::GetAddonStatus(const bool aIsFemale, const std::size_t aAddon) noexcept { return aIsFemale ? fFemAddons[aAddon].second : fMalAddons[aAddon].second; }
+bool Base::GetAddonStatus(const bool isFemale, const size_t addnIdx) {
+  auto &list = isFemale ? femAddons : malAddons;
+  if (addnIdx >= list.size()) return false;
+  return list[addnIdx].second;
+}
 
-void Base::SetAddonStatus(const bool aIsFemale, const std::size_t aAddon, const bool aIsActive) noexcept {
-  auto &list = aIsFemale ? fFemAddons : fMalAddons;
-  list[aAddon].second = aIsActive;
+void Base::SetAddonStatus(const bool isFemale, const size_t addnIdx, const bool aIsActive) {
+  auto &list = isFemale ? femAddons : malAddons;
+  list[addnIdx].second = aIsActive;
 }
 
 // Sizes
 
-float Base::GetGlobalSize(std::size_t aIdx) noexcept {
-  if (aIdx < 0 || aIdx >= Tng::cSizeCategories) return 1.0f;
-  return Tng::SizeGlb(aIdx)->value;
+float Base::GetGlobalSize(size_t idx) {
+  if (idx < 0 || idx >= Tng::cSizeCategories) return 1.0f;
+  return Tng::SizeGlb(idx)->value;
 }
 
-void Base::SetGlobalSize(std::size_t aIdx, float aSize) noexcept {
-  if (aIdx < 0 || aIdx >= Tng::cSizeCategories) return;
-  Tng::SizeGlb(aIdx)->value = aSize;
+void Base::SetGlobalSize(size_t idx, float size) {
+  if (idx < 0 || idx >= Tng::cSizeCategories) return;
+  Tng::SizeGlb(idx)->value = size;
 }
 
 // Race handling and info
-void Base::AddRace(RE::TESRace *aRace) noexcept {
-  int rgCount = fRaceGroupInfoList.size();
-  auto &rg = GetRG(aRace);
-  if (fRaceGroupInfoList.size() > rgCount)
-    SKSE::log::info("The race [0x{:x}: {}] was recognized as a new group {}.", aRace->GetFormID(), aRace->GetFormEditorID(), rg.name);
+void Base::AddRace(RE::TESRace *race) {
+  int rgCount = static_cast<int>(rgInfoList.size());
+  auto rg = GetRg(race, true);
+  if (rgInfoList.size() > rgCount)
+    Tng::logger::info("The race [0x{:x}: {}] was recognized as a new group {}.", race->GetFormID(), race->GetFormEditorID(), rg->name);
   else
-    SKSE::log::info("The race [0x{:x}: {}] was recognized as a member of existing group {}.", aRace->GetFormID(), aRace->GetFormEditorID(), rg.name);
+    Tng::logger::info("The race [0x{:x}: {}] was recognized as a member of existing group {}.", race->GetFormID(), race->GetFormEditorID(), rg->name);
 }
 
-std::vector<std::string> Base::GetRGNames() noexcept {
+void Base::UpdateRgSkins() {
+  for (auto &rg : rgInfoList) {
+    if (rg.addonIdx >= 0) {
+      auto skin = GetSkinWithAddonForRg(&rg, rg.ogSkin, rg.addonIdx, false);
+      for (auto &race : rg.races) race->skin = skin;
+    }
+  }
+}
+
+RE::TESRace *Base::GetRgRace0(const size_t rgIdx, const bool onlyMCM) {
+  auto rg = GetRg(rgIdx, onlyMCM);
+  return rg ? rg->races[0] : nullptr;
+}
+
+std::vector<std::string> Base::GetRgNames(const bool onlyMCM) {
   std::vector<std::string> res{};
-  for (auto &rgId : fRgIdList) res.push_back(fRaceGroupInfoList[rgId].name);
+  for (auto &rg : rgInfoList)
+    if (!rg.noMCM || !onlyMCM) res.push_back(rg.name);
   return res;
 }
 
-std::string Base::GetRGRaceNames(std::size_t aRgId) noexcept {
+std::string Base::GetRgRaceNames(size_t rgChoice, bool onlyMCM) {
   std::string res{""};
-  auto &list = fRaceGroupInfoList[fRgIdList[aRgId]].races;
+  auto rg = GetRg(rgChoice, onlyMCM);
+  if (!rg) return res;
+  auto &list = rg->races;
   for (auto race : list) {
-    res = res + std::string(race->GetFile(0) ? race->GetFile(0)->GetFilename() : "Unknown") + " : " + race->GetFormEditorID();
+    res = res + std::string(race->GetFile(0) ? race->GetFile(0)->GetFilename() : "(no mod name)") + " : " + race->GetFormEditorID();
     if (race != list.back()) {
       res = res + Tng::cDelimChar;
     }
-    return res;
-  };
-}
-
-std::vector<std::string> Base::GetRGAddonNames(std::size_t aRgId, bool aIfFemale, bool aOnlyDedicated) noexcept {
-  std::vector<std::string> res{};
-  auto &rg = fRaceGroupInfoList[fRgIdList[aRgId]];
-  auto &list = aIfFemale ? rg.femAddons : rg.malAddons;
-  for (auto &addonpair : list) res.push_back(addonpair.first->GetName());
+  }
   return res;
 }
 
-int Base::GetAddn(RE::TESRace *aRace) noexcept {
-  if (!aRace) return Tng::pgErr;
-  auto &rg = GetRG(aRace);
-  if (!rg.addon) return -1;
-  auto it = std::find(rg.malAddonIdList.begin(), rg.malAddonIdList.end(), rg.addon);
-  if (it == rg.malAddonIdList.end()) return Tng::pgErr;
-  return std::distance(rg.malAddonIdList.begin(), it);
+int Base::GetRgAddn(const size_t rgChoice, bool onlyMCM) {
+  auto rg = GetRg(rgChoice, onlyMCM);
+  if (!rg) return Tng::pgErr;
+  return rg->addonIdx;
 }
 
-int Base::GetAddn(const std::size_t aRgId) noexcept {
-  if (aRgId >= fRgIdList.size()) return Tng::pgErr;
-  auto &rg = fRaceGroupInfoList[fRgIdList[aRgId]];
-  if (!rg.addon) return -1;
-  auto it = std::find(rg.malAddonIdList.begin(), rg.malAddonIdList.end(), rg.addon);
-  if (it == rg.malAddonIdList.end()) return Tng::pgErr;
-  return std::distance(rg.malAddonIdList.begin(), it);
-}
-
-bool Base::SetAddn(const std::size_t aRgId, const std::size_t aAddnId) noexcept {
-  if (aRgId >= fRgIdList.size()) return false;
-  auto &rg = fRaceGroupInfoList[fRgIdList[aRgId]];
-  if (aAddnId >= rg.malAddonIdList.size()) return false;
-  auto rgOldAddn = rg.addon;
-  rg.addon = rg.malAddonIdList[aAddnId];
-  UpdateRgSkin(rg, rgOldAddn);
-}
-
-float Base::GetMult(RE::TESRace *aRace) noexcept {
-  if (!aRace) return -1.0f;
-  return GetRG(aRace).mult;
-}
-
-float Base::GetMult(const std::size_t aRgId) noexcept {
-  if (fRaceGroupInfoList.size() <= aRgId) return -1.0f;
-  return fRaceGroupInfoList[fRgIdList[aRgId]].mult;
-}
-
-bool Base::SetMult(const std::size_t aRgId, const float aMult) noexcept {
-  if (fRaceGroupInfoList.size() <= aRgId || aMult < 0.1f || aMult >= 10.0f) {
-    SKSE::log::critical("Failure in setting a race mult!");
-    return false;
-  }
-  fRaceGroupInfoList[fRgIdList[aRgId]].mult = aMult;
+bool Base::SetRgAddn(const size_t rgChoice, const int addnChoice, bool onlyMCM) {
+  auto rg = GetRg(rgChoice, onlyMCM);
+  if (!rg || addnChoice < -2 || rg->malAddons.find(addnChoice) == rg->malAddons.end()) return false;
+  rg->addonIdx = (addnChoice == -1) ? rg->defAddonIdx : addnChoice;
+  auto skin = (rg->addonIdx == -2) ? rg->ogSkin : GetSkinWithAddonForRg(rg, rg->ogSkin, rg->addonIdx, false);
+  for (auto &race : rg->races) race->skin = skin;
   return true;
 }
 
-Base::RaceGroupInfo &Base::GetRG(RE::TESRace *aRace) noexcept {
-  for (auto &pair : fRaceGroupInfoList) {
-    auto it = std::find(pair.second.races.begin(), pair.second.races.end(), aRace);
-    if (it != pair.second.races.end()) return pair.second;
-    if (pair.second.armorRace == aRace && pair.second.skin == aRace->skin) {
-      pair.second.races.push_back(aRace);
-      return pair.second;
-    }
-    if (aRace->armorParentRace && pair.second.armorRace == aRace->armorParentRace && pair.second.skin == aRace->skin) {
-      pair.second.races.push_back(aRace);
-      return pair.second;
-    }
+float Base::GetRgMult(const size_t rgChoice, bool onlyMCM) {
+  auto rg = GetRg(rgChoice, onlyMCM);
+  if (!rg) return 1.0f;
+  return rg->mult;
+}
+
+bool Base::SetRgMult(const size_t rgIdx, const float aMult) {
+  if (rgInfoList.size() <= rgIdx || aMult < 0.1f || aMult >= 10.0f) {
+    Tng::logger::critical("Failure in setting a race mult!");
+    return false;
   }
-  if (aRace->armorParentRace && aRace->armorParentRace->skin == aRace->skin) {
-    GetRG(aRace->armorParentRace).races.push_back(aRace);
+  auto &rg = rgInfoList[rgIdx];
+  rg.mult = aMult;
+  return true;
+}
+
+int Base::GetRaceRgIdx(RE::TESRace *race) { return raceRgs.find(race) != raceRgs.end() ? static_cast<int>(raceRgs[race]) : -1; }
+
+std::vector<size_t> Base::GetRgAddonList(size_t rgChoice, bool isFemale, bool onlyDedicated, bool onlyMCM) {
+  std::vector<size_t> res{};
+  auto rg = GetRg(rgChoice, onlyMCM);
+  if (!rg) return res;
+  auto &list = isFemale ? rg->femAddons : rg->malAddons;
+  for (auto &addonpair : list)
+    if (!onlyDedicated || addonpair.second.first) res.push_back(addonpair.first);
+  return res;
+}
+
+int Base::GetRgAddn(RE::TESRace *race) {
+  if (!race) return Tng::pgErr;
+  auto rg = GetRg(race, false);
+  if (!rg) return Tng::pgErr;
+  return rg->addonIdx;
+}
+
+float Base::GetRgMult(RE::TESRace *race) {
+  if (!race) return 1.0f;
+  return GetRg(race, false)->mult;
+}
+
+RE::TESObjectARMO *Base::GetSkinWithAddonForRg(const size_t rgIdx, RE::TESObjectARMO *skin, const size_t addonIdx, const bool isFemale) {
+  return GetSkinWithAddonForRg(&rgInfoList[rgIdx], skin, addonIdx, isFemale);
+}
+
+Base::RaceGroupInfo *Base::GetRg(const size_t rgChoice, const bool onlyMCM) {
+  int idx = -1;
+  if (onlyMCM) {
+    size_t curr = 0;
+    for (int i = 0; i < rgInfoList.size(); i++) {
+      auto &rg = rgInfoList[i];
+      if (!rg.noMCM) {
+        if (curr == rgChoice) {
+          idx = i;
+          break;
+        }
+        curr++;
+      }
+    }
   } else {
-    auto race = aRace;
-    while (race->armorParentRace) {
-      race = race->armorParentRace;
+    idx = rgChoice < rgInfoList.size() ? static_cast<int>(rgChoice) : -1;
+  }
+  return idx >= 0 ? &rgInfoList[idx] : nullptr;
+}
+
+Base::RaceGroupInfo *Base::GetRg(RE::TESRace *race, const bool allowAdd) {
+  if (raceRgs.find(race) != raceRgs.end()) return &rgInfoList[raceRgs[race]];
+  if (!allowAdd) return nullptr;
+  for (size_t i = 0; i < rgInfoList.size(); i++) {
+    auto &rg = rgInfoList[i];
+    auto it = std::find(rg.races.begin(), rg.races.end(), race);
+    if (it != rg.races.end()) {
+      raceRgs.insert({race, i});
+      return &rg;
+    }
+    if (rg.armorRace == race && rg.ogSkin == race->skin) {
+      rg.races.push_back(race);
+      raceRgs.insert({race, i});
+      return &rg;
+    }
+    if (race->armorParentRace && rg.armorRace == race->armorParentRace && rg.ogSkin == race->skin) {
+      rg.races.push_back(race);
+      raceRgs.insert({race, i});
+      return &rg;
+    }
+  }
+  if (race->armorParentRace && race->armorParentRace->skin == race->skin) {
+    auto rg = GetRg(race->armorParentRace, true);
+    rg->races.push_back(race);
+    raceRgs.insert({race, rg->idx});
+    return rg;
+  } else {
+    auto pRace = race;
+    while (pRace->armorParentRace) {
+      pRace = pRace->armorParentRace;
     };
-    fRaceGroupInfoList.insert({{race, aRace->skin}, Base::RaceGroupInfo{}});
-    fRgIdList.push_back({race, aRace->skin});
-    auto filename = aRace->GetFile(0) ? aRace->GetFile(0)->GetFilename() : "Unknown";
-    auto lName = std::string(filename) + " : " + aRace->GetFormEditorID();
-    auto &rg = fRaceGroupInfoList[{race, aRace->skin}];
+    auto filename = race->GetFile(0) ? race->GetFile(0)->GetFilename() : "Unknown";
+    auto lName = std::string(filename) + " : " + race->GetFormEditorID();
+    rgInfoList.push_back({});
+    auto &rg = rgInfoList.back();
+    rg.idx = rgInfoList.size() - 1;
     rg.name = lName;
-    rg.armorRace = race;
-    rg.skin = aRace->skin;
-    rg.isMain = (aRace == race);
-    rg.races.push_back(aRace);
+    rg.armorRace = pRace;
+    rg.ogSkin = race->skin;
+    rg.isMain = (pRace == race);
+    rg.races.push_back(race);
+    rg.noMCM = false;
     rg.mult = 1.0f;
-    rg.defAddon = GetRGDefAddn(aRace == race ? race : aRace);
-    UpdateRGAddons(rg);
-    if (rg.addon) UpdateRgSkin(rg);
+    rg.defAddonIdx = GetRgDefAddn(rg);
+    raceRgs.insert({race, rg.idx});
+    UpdateRgAddons(rg);
+    return &rg;
   }
 }
 
-SEFormLoc Base::GetRGDefAddn(RE::TESRace *aIDRace) noexcept {
-  const auto lRaceDesc = std::string(aIDRace->GetFormEditorID()) + std::string(aIDRace->GetName());
-  for (std::uint32_t i = 0; i < Tng::cVanillaRaceTypes; i++) {
-    if (lRaceDesc.contains(cRaceNames[i].first[0]) || lRaceDesc.contains(cRaceNames[i].first[1]) && (FormHasKW(aIDRace, Tng::cBstRaceID) == cRaceNames[i].second)) return {cRaceDefaults[i], Tng::cName};
+int Base::GetRgDefAddn(Base::RaceGroupInfo &rg) {
+  if (rg.defAddonIdx != -1) return rg.defAddonIdx;
+  SEFormLoc defAddon;
+  bool defAddonSet = false;
+  const auto lRaceDesc = std::string(rg.armorRace->GetFormEditorID()) + std::string(rg.armorRace->GetName());
+  for (std::uint32_t i = 0; i < cVanillaRaceTypes; i++) {
+    if (lRaceDesc.contains(cRaceNames[i].first[0]) || lRaceDesc.contains(cRaceNames[i].first[1]) && (rg.armorRace->HasKeyword(Tng::RaceKey(Tng::rkeyBeast)) == cRaceNames[i].second)) {
+      defAddon = {cRaceDefaults[i], Tng::cName};
+      defAddonSet = true;
+      break;
+    }
   }
-  return FormHasKW(aIDRace, Tng::cBstRaceID) ? SEFormLoc({cRaceDefaults[9], Tng::cName}) : SEFormLoc({cRaceDefaults[0], Tng::cName});
+  if (!defAddonSet) defAddon = rg.armorRace->HasKeyword(Tng::RaceKey(Tng::rkeyBeast)) ? SEFormLoc({cRaceDefaults[9], Tng::cName}) : SEFormLoc({cRaceDefaults[0], Tng::cName});
+  for (auto i = 0; i < malAddons.size(); i++) {
+    if (FormToLoc(malAddons[i].first) == defAddon) return i;
+  }
+  Tng::logger::debug("Addon shouldn't get here!");
+  return -2;
 }
 
-void Base::UpdateRGAddons(Base::RaceGroupInfo &aRG) noexcept {
-  auto &def = aRG.defAddon;
-  aRG.malAddons.clear();
-  aRG.malAddonIdList.clear();
-  aRG.femAddons.clear();
-  aRG.femAddonIdList.clear();
-  for (auto &addonpair : fMalAddons) {
-    auto &addon = addonpair.first;
+void Base::UpdateRgAddons(Base::RaceGroupInfo &rg) {
+  rg.malAddons.clear();
+  rg.femAddons.clear();
+  for (int i = 0; i < malAddons.size(); i++) {
+    auto &addon = malAddons[i].first;
     bool lSupports = false;
     for (auto &aa : addon->armorAddons) {
-      if (aa->IsValidRace(aRG.armorRace)) {
-        aRG.malAddons.insert_or_assign(addon, std::pair<bool, RE::TESObjectARMA *>({aRG.isMain || AddonHasRace(aa, aRG.races[0]), aa}));
+      if (aa->IsValidRace(rg.armorRace)) {
+        rg.malAddons.insert_or_assign(i, std::pair<bool, RE::TESObjectARMA *>({rg.isMain || AddonHasRace(aa, rg.races[0]), aa}));
         lSupports = true;
-        if (aRG.malAddons[addon].first) break;
+        if (rg.malAddons[i].first) break;
       }
     }
     if (!lSupports) continue;
-    if (FormToLoc(addon) == def && !aRG.addon) aRG.addon = addon;
-    if (!aRG.isMain && aRG.malAddons[addon].first && (!aRG.addon || !aRG.malAddons[aRG.addon].first)) {
-      aRG.defAddon = FormToLoc(addon);
-      aRG.addon = addon;
+    if (i == rg.defAddonIdx && rg.addonIdx < 0) rg.addonIdx = i;
+    if (!rg.isMain && rg.malAddons[i].first && (rg.addonIdx < 0 || !rg.malAddons[rg.addonIdx].first)) {
+      rg.defAddonIdx = i;
+      rg.addonIdx = i;
     }
-    if (aRG.malAddons[addon].first)
-      SKSE::log::info("The addon [0x{:x}] from file [{}] fully supports men in the race group [{}]!", addon->GetLocalFormID(), addon->GetFile(0)->GetFilename(), aRG.name);
+    if (rg.malAddons[i].first)
+      Tng::logger::info("The addon [0x{:x}] from file [{}] fully supports men in the race group [{}]!", addon->GetFormID(), addon->GetFile(0)->GetFilename(), rg.name);
     else
-      SKSE::log::warn("The addon [0x{:x}] from file [{}] can be used for men in the race group [{}]!", addon->GetLocalFormID(), addon->GetFile(0)->GetFilename(), aRG.name);
+      Tng::logger::warn("The addon [0x{:x}] from file [{}] can be used for men in the race group [{}]!", addon->GetFormID(), addon->GetFile(0)->GetFilename(), rg.name);
   }
-  for (auto &addonpair : aRG.malAddons) aRG.malAddonIdList.push_back(addonpair.first);
-  for (auto &addonpair : fFemAddons) {
-    auto &addon = addonpair.first;
+  for (size_t i = 0; i < femAddons.size(); i++) {
+    auto &addon = femAddons[i].first;
     bool lSupports = false;
     for (auto &aa : addon->armorAddons) {
-      if (aa->IsValidRace(aRG.armorRace)) {
-        aRG.femAddons.insert_or_assign(addon, std::pair<bool, RE::TESObjectARMA *>({aRG.isMain || AddonHasRace(aa, aRG.races[0]), aa}));
+      if (aa->IsValidRace(rg.armorRace)) {
+        rg.femAddons.insert_or_assign(i, std::pair<bool, RE::TESObjectARMA *>({rg.isMain || AddonHasRace(aa, rg.races[0]), aa}));
         lSupports = true;
-        if (aRG.femAddons[addon].first) break;
+        if (rg.femAddons[i].first) break;
       }
     }
     if (!lSupports) continue;
-    if (aRG.femAddons[addon].first)
-      SKSE::log::info("The addon [0x{:x}] from file [{}] fully supports women in the race group [{}]!", addon->GetLocalFormID(), addon->GetFile(0)->GetFilename(), aRG.name);
+    if (rg.femAddons[i].first)
+      Tng::logger::info("The addon [0x{:x}] from file [{}] fully supports women in the race group [{}]!", addon->GetFormID(), addon->GetFile(0)->GetFilename(), rg.name);
     else
-      SKSE::log::warn("The addon [0x{:x}] from file [{}] can be used for women in the race group [{}]!", addon->GetLocalFormID(), addon->GetFile(0)->GetFilename(), aRG.name);
+      Tng::logger::warn("The addon [0x{:x}] from file [{}] can be used for women in the race group [{}]!", addon->GetFormID(), addon->GetFile(0)->GetFilename(), rg.name);
   }
-  for (auto &addonpair : aRG.femAddons) aRG.femAddonIdList.push_back(addonpair.first);
 }
 
-void Base::UpdateRgSkin(RaceGroupInfo &aRG, RE::TESObjectARMO *aOldAddon) noexcept {
-  auto &skin = aRG.skin;
-  if (aOldAddon) {
-    RE::BSTArray<RE::TESObjectARMA *> skinAddons{};
-    for (auto aa : skin->armorAddons) {
-      if (aa != aRG.malAddons[aOldAddon].second) skinAddons.emplace_back(aa);
-    }
-    skin->armorAddons = skinAddons;
+RE::TESObjectARMO *Base::GetSkinWithAddonForRg(RaceGroupInfo *rg, RE::TESObjectARMO *skin, const size_t addonIdx, const bool isFemale) {
+  auto &r = rg->isMain ? rgInfoList[0] : *rg;
+  auto &skinMap = isFemale ? r.femSkins : r.malSkins;
+  auto &ogSkin = skin->HasKeyword(Tng::ArmoKey(Tng::akeyGenSkin)) ? ogSkins[skin] : skin;
+  if (!ogSkin->HasKeyword(Tng::ArmoKey(Tng::akeyGenSkin)) && !ogSkin->HasKeyword(Tng::ArmoKey(Tng::akeyIgnored))) ogSkin->AddKeyword(Tng::ArmoKey(Tng::akeyIgnored));
+  if (skinMap.find(ogSkin) == skinMap.end()) skinMap.insert({ogSkin, std::map<size_t, RE::TESObjectARMO *>{}});
+  RE::TESObjectARMO *resSkin = nullptr;
+  if (skinMap[ogSkin].find(addonIdx) == skinMap[ogSkin].end()) {
+    resSkin = ogSkin->CreateDuplicateForm(true, (void *)resSkin)->As<RE::TESObjectARMO>();
+    resSkin->Copy(ogSkin);
+    resSkin->AddKeyword(Tng::ArmoKey(Tng::akeyGenSkin));  // ToDo: If skin doesn't have the Ignored key, it must be added here.
+    resSkin->AddSlotToMask(Tng::cSlotGenital);
+    ogSkins.insert({resSkin, ogSkin});
+  } else {
+    resSkin = skinMap[ogSkin][addonIdx];
   }
-  skin->armorAddons.emplace_back(aRG.malAddons[aRG.addon].second);
-  if (!skin->HasKeyword(Tng::AiaKey())) skin->AddKeyword(Tng::AiaKey());
-  for (auto &race : aRG.races) race->skin = skin;
+  auto &reqAA = isFemale ? rg->femAddons[addonIdx].second : rg->malAddons[addonIdx].second;
+  if (std::find(resSkin->armorAddons.begin(), resSkin->armorAddons.end(), reqAA) == resSkin->armorAddons.end()) resSkin->armorAddons.push_back(reqAA);
+  return resSkin;
 }
 
-RE::TESRace *Base::RgIdRace(const std::size_t aRgId) noexcept { return fRaceGroupInfoList[fRgIdList[aRgId]].races[0]; }
+//  NPC handling and info
 
-//  NPC loading, handling and info
-void Base::ExcludeNPC(const std::string aNPCRecord) noexcept {
-  auto npc = LoadForm<RE::TESNPC>(aNPCRecord);
-  if (!npc) return;
-  if (!npc->race) return;
-  if (!npc->race->skin) return;
-  npc->AddKeyword(Tng::NexKey());
+Tng::TNGRes Base::CanModifyActor(RE::Actor *actor) {
+  const auto npc = actor ? actor->GetActorBase() : nullptr;
+  if (!actor || !npc) return Tng::npcErr;
+  if (!npc->race) return Tng::raceErr;
+  if (npc->race->HasKeyword(Tng::RaceKey(Tng::rkeyProcessed))) return Tng::resOkRaceP;
+  if (npc->race->HasKeyword(Tng::RaceKey(Tng::rkeyReady))) return Tng::resOkRaceR;
+  return Tng::raceErr;
 }
 
-std::pair<bool, int> Base::GetNPCAddn(RE::TESNPC *aNPC) noexcept {
-  if (!aNPC) {
-    SKSE::log::critical("Failure in getting a NPC genital!");
+Tng::TNGRes Base::GetActorSizeCat(RE::Actor *actor, int &sizeCat) {
+  sizeCat = -1;
+  const auto npc = actor ? actor->GetActorBase() : nullptr;
+  if (!npc) return Tng::npcErr;
+  if (!npc->race) return Tng::raceErr;
+  if (!(npc->race->HasKeyword(Tng::RaceKey(Tng::rkeyProcessed)) || npc->race->HasKeyword(Tng::RaceKey(Tng::rkeyReady)))) return Tng::raceErr;
+  if (npc->IsPlayer() && Tng::boolSettings[Tng::bsExcludePlayerSize]) return Tng::playerErr;
+  for (size_t i = 0; i < Tng::cSizeCategories; i++) {
+    if (npc->HasKeyword(Tng::SizeKey(i))) sizeCat = static_cast<int>(i);
+  }
+  if (sizeCat == -1) sizeCat = npc->formID % Tng::cSizeCategories;
+  return Tng::resOkSizable;
+}
+
+Tng::TNGRes Base::SetActorSizeCat(RE::Actor *actor, const int sizeCat) {
+  auto currCat = -1;
+  auto res = GetActorSizeCat(actor, currCat);
+  if (res != Tng::resOkSizable) return res;
+  const auto npc = actor ? actor->GetActorBase() : nullptr;
+  if (!npc) return Tng::npcErr;
+  auto cat = (sizeCat == -1) ? currCat : sizeCat;
+  if (cat != currCat) {
+    npc->RemoveKeywords(Tng::SizeKeys());
+    npc->AddKeyword(Tng::SizeKey(cat));
+  }
+  auto catGlb = Tng::SizeGlb(cat);
+  auto mult = GetRgMult(actor->GetRace());
+  if (mult < 0.0f) return Tng::rgErr;
+  auto lScale = mult * catGlb->value;
+  if (lScale < 0.1) lScale = 1;
+  RE::NiAVObject *aBaseNode = actor->GetNodeByName(cBaseBone);
+  RE::NiAVObject *aScrtNode = actor->GetNodeByName(cScrtBone);
+  if (!aBaseNode || !aScrtNode) return Tng::skeletonErr;
+  aBaseNode->local.scale = lScale;
+  aScrtNode->local.scale = 1.0f / sqrt(lScale);
+  return Tng::resOkSizable;
+}
+
+void Base::ExcludeNPC(const std::string npcRecord) {
+  auto npc = LoadForm<RE::TESNPC>(npcRecord);
+  if (!npc || !npc->race || !npc->race->skin) return;
+  npc->AddKeyword(Tng::NPCKey(Tng::npckeyExclude));
+}
+
+std::pair<bool, int> Base::GetNPCAddn(RE::TESNPC *npc) {
+  if (!npc) {
+    Tng::logger::critical("Failure in getting a NPC genital!");
     return std::make_pair(false, Tng::pgErr);
   }
-  if (aNPC->keywords) {
-    for (std::uint32_t idx = 0; idx < aNPC->numKeywords; ++idx) {
-      if (!aNPC->keywords[idx] || aNPC->keywords[idx]->GetFormEditorID() == NULL) continue;
-      const std::string lKwStr(aNPC->keywords[idx]->GetFormEditorID());
+  if (npc->keywords) {
+    for (std::uint32_t idx = 0; idx < npc->numKeywords; ++idx) {
+      if (!npc->keywords[idx] || npc->keywords[idx]->GetFormEditorID() == NULL) continue;
+      const std::string lKwStr(npc->keywords[idx]->GetFormEditorID());
       if (lKwStr.starts_with(cNPCAutoAddn)) {
         return std::make_pair(false, std::strtol(lKwStr.substr(strlen(cNPCAutoAddn), 2).data(), nullptr, 0));
       }
@@ -278,247 +412,120 @@ std::pair<bool, int> Base::GetNPCAddn(RE::TESNPC *aNPC) noexcept {
   return std::make_pair(false, -1);
 }
 
-bool Base::SetNPCAddn(RE::TESNPC *aNPC, int aAddon, bool aIsUser) noexcept {
-  if (!aNPC) {
-    SKSE::log::critical("Failure in setting a NPC genital!");
-    return false;
+Tng::TNGRes Base::SetNPCAddn(RE::TESNPC *npc, int addnIdx, bool isUser) {
+  if (addnIdx < -2) return Tng::addonErr;
+  if (!npc) {
+    Tng::logger::critical("Failure in setting a NPC genital!");
+    return Tng::npcErr;
   }
-  auto &list = aNPC->IsFemale() ? fFemAddons : fMalAddons;
-  if (aNPC->HasKeyword(Tng::NgwKey())) aNPC->RemoveKeyword(Tng::NgwKey());
-  if (aNPC->HasKeyword(Tng::NexKey())) aNPC->RemoveKeyword(Tng::NexKey());
-  aNPC->ForEachKeyword([&](RE::BGSKeyword *lKw) {
+  auto res = (npc->IsPlayer() && Tng::boolSettings[Tng::bsExcludePlayerSize]) ? Tng::resOkFixed : Tng::resOkSizable;
+  if (addnIdx == -1 && (npc->IsFemale() || !npc->skin || npc->skin->HasKeyword(Tng::ArmoKey(Tng::akeyGenSkin))))
+    return !npc->IsFemale() || (npc->skin && npc->skin->HasKeyword(Tng::ArmoKey(Tng::akeySkinWP))) ? res : Tng::resOkFixed;
+  auto &skin = npc->skin ? npc->skin : npc->race->skin;
+  auto &ogSkin = skin->HasKeyword(Tng::ArmoKey(Tng::akeyGenSkin)) ? ogSkins[skin] : skin;
+  auto rg = GetRg(npc->race, false);
+  auto addonChoice = addnIdx == -1 ? rg->addonIdx : addnIdx;
+  OrganizeNPCAddonKeywords(npc, addonChoice, isUser);
+  auto resSkin = addonChoice == -2 ? ogSkin : GetSkinWithAddonForRg(rg, ogSkin, addonChoice, npc->IsFemale());
+  if (resSkin != skin) npc->skin = resSkin == npc->race->skin ? nullptr : resSkin;
+  return !npc->IsFemale() || npc->skin->HasKeyword(Tng::ArmoKey(Tng::akeySkinWP)) ? res : Tng::resOkFixed;
+}
+
+void Base::OrganizeNPCAddonKeywords(RE::TESNPC *npc, int addnIdx, bool isUser) {
+  npc->RemoveKeywords(Tng::NPCKeys());
+  npc->ForEachKeyword([&](RE::BGSKeyword *lKw) {
     if (lKw->formEditorID.contains("TNG_ActorAddn")) {
-      aNPC->RemoveKeyword(lKw);
+      npc->RemoveKeyword(lKw);
       return RE::BSContainer::ForEachResult::kStop;
     }
     return RE::BSContainer::ForEachResult::kContinue;
   });
-  if (aAddon == -2) {
-    if (aNPC->IsFemale()) aNPC->AddKeyword(Tng::NexKey());
-    for (RE::BSTArray<RE::TESForm *>::const_iterator it = fGentified->forms.begin(); it < fGentified->forms.end(); it++) {
-      if ((*it)->As<RE::TESNPC>() == aNPC) fGentified->forms.erase(it);
+  if (addnIdx == -2) {
+    if (npc->IsFemale()) npc->AddKeyword(Tng::NPCKey(Tng::npckeyExclude));
+    for (RE::BSTArray<RE::TESForm *>::const_iterator it = Tng::GentFml()->forms.begin(); it < Tng::GentFml()->forms.end(); it++) {
+      if ((*it)->As<RE::TESNPC>() == npc) Tng::GentFml()->forms.erase(it);
     }
+  } else {
+    auto lChoice = static_cast<size_t>(addnIdx);
+    std::string lReqKw = (isUser ? cNPCUserAddn : cNPCAutoAddn) + (lChoice < 10 ? "0" + std::to_string(lChoice) : std::to_string(lChoice));
+    auto lKw = Tng::ProduceOrGetKw(lReqKw);
+    npc->AddKeyword(lKw);
+    auto &list = npc->IsFemale() ? femAddons : malAddons;
+    if (list[addnIdx].first->HasKeyword(Tng::ArmoKey(Tng::akeySkinWP))) {
+      Tng::GentFml()->AddForm(npc);
+      npc->AddKeyword(Tng::NPCKey(Tng::npckeyGentlewoman));
+    }
+  }
+}
+
+// Loading
+bool Base::LoadRgMult(const std::string rgIdRaceRecord, const float size) {
+  auto race = LoadForm<RE::TESRace>(rgIdRaceRecord);
+  if (!race) {
+    Tng::logger::error("A previously saved race cannot be found anymore! It's information is removed from ini file.");
+    return false;
+  }
+  GetRg(race, false)->mult = size;
+  return true;
+}
+
+bool Base::LoadRgAddn(const std::string rgIdRaceRecord, const std::string addonRecord) {
+  auto race = LoadForm<RE::TESRace>(rgIdRaceRecord);
+  if (!race) {
+    Tng::logger::error("A previously saved race cannot be found anymore! It's information is removed from ini file.");
+    return false;
+  }
+  auto addon = LoadForm<RE::TESObjectARMO>(addonRecord);
+  if (!addon) {
+    Tng::logger::error("A previously saved addon cannot be found anymore! It's information is removed from ini file.");
+    return false;
+  }
+  auto rg = GetRg(race, false);
+  if (!rg) {
+    Tng::logger::error("A previously saved race is not categorized anymore! It's information is removed from ini file.");
+    return false;
+  }
+  if (addonRecord == "None") {
+    rg->addonIdx = -2;
     return true;
   }
-  if (list.size() <= aAddon || aAddon < 0) {
-    SKSE::log::critical("Cannot set the NPC {} to use addon {}! There are only {} addons.", aNPC->GetFormEditorID(), aAddon + 1, list.size());
-    return false;
-  }
-  auto lChoice = static_cast<std::size_t>(aAddon);
-  auto &lAllKws = Tng::SEDH()->GetFormArray<RE::BGSKeyword>();
-  std::string lReqKw = (aIsUser ? cNPCUserAddn : cNPCAutoAddn) + (lChoice < 10 ? "0" + std::to_string(lChoice) : std::to_string(lChoice));
-  auto lKwIt = std::find_if(lAllKws.begin(), lAllKws.end(), [&](const auto &kw) { return kw && kw->formEditorID == lReqKw.c_str(); });
-  RE::BGSKeyword *lKw{nullptr};
-  if (lKwIt != lAllKws.end()) {
-    lKw = *lKwIt;
-  } else {
-    const auto lFactory = RE::IFormFactory::GetConcreteFormFactoryByType<RE::BGSKeyword>();
-    if (lKw = lFactory ? lFactory->Create() : nullptr; lKw) {
-      lKw->formEditorID = lReqKw;
-      lAllKws.push_back(lKw);
-    } else {
-      SKSE::log::critical("Couldn't create keyword [{}]!", lReqKw);
+  for (int i = 0; i < malAddons.size(); i++)
+    if (malAddons[i].first == addon) {
+      rg->addonIdx = i;
       return true;
     }
-  }
-  aNPC->AddKeyword(lKw);
-  if (list[aAddon].first->HasKeyword(Tng::GwpKey())) {
-    Tng::GentFml()->AddForm(aNPC);
-    aNPC->AddKeyword(Tng::NgwKey());
-  }
-  return true;
+  return false;
 }
 
-Tng::TNGRes Base::CanModifyActor(RE::Actor *aActor) noexcept {
-  const auto npc = aActor ? aActor->GetActorBase() : nullptr;
-  if (!aActor || !npc) return Tng::npcErr;
-  if (!npc->race) return Tng::raceErr;
-  if (npc->race->HasKeyword(fPRaceKey)) return Tng::resOkRaceP;
-  if (npc->race->HasKeyword(fRRaceKey)) return Tng::resOkRaceR;
-  return Tng::raceErr;
-}
-
-Tng::TNGRes Base::SetCharSize(RE::Actor *aActor, RE::TESNPC *aNPC, int aGenSize) noexcept {
-  auto lCurSize = GetScale(aNPC);
-  if (lCurSize == aGenSize || aGenSize == -1) {
-    ScaleGenital(aActor, fSizeGlbs[lCurSize]);
-    return Tng::resOkGen;
-  }
-  aNPC->RemoveKeywords(fSizeKws);
-  if (aNPC->IsPlayer() && aGenSize == -2) return Tng::resOkNoGen;
-  aNPC->AddKeyword(fSizeKws[aGenSize]);
-  ScaleGenital(aActor, fSizeGlbs[aGenSize]);
-  return Tng::resOkGen;
-}
-
-std::set<RE::TESObjectARMA *> Base::GentifyGrpSkin(int aRG) noexcept { return GentifyMalSkin(fRaceGroupInfoList[aRG].originalSkin); }
-
-int Base::GetScale(RE::TESNPC *aNPC) noexcept {
-  for (int i = 0; i < Tng::cSizeCategories; i++) {
-    if (aNPC->HasKeyword(fSizeKws[i])) return i;
-  }
-  return (aNPC->formID % 5);
-}
-
-void Base::ScaleGenital(RE::Actor *aActor, RE::TESGlobal *aGlobal) noexcept {
-  const auto npc = aActor ? aActor->GetActorBase() : nullptr;
-  if (!aActor || !npc) return;
-  if (!npc->race) return;
-  auto lScale = GetRGMult(npc->race) * aGlobal->value;
-  RE::NiAVObject *aBaseNode = aActor->GetNodeByName(cBaseBone);
-  RE::NiAVObject *aScrtNode = aActor->GetNodeByName(cScrtBone);
-  if (!aBaseNode || !aScrtNode) return;
-  aBaseNode->local.scale = lScale;
-  aScrtNode->local.scale = 1.0f / sqrt(lScale);
-}
-
-Tng::RaceType Base::GetSkinType(RE::TESObjectARMO *aSkin) noexcept { return GetRaceType(aSkin->race); }
-
-Tng::RaceType Base::GetRaceType(RE::TESRace *aRace) noexcept {
-  if (!aRace) return Tng::raceManMer;
-  if (aRace == fDefRace) return Tng::raceManMer;
-  if (aRace->HasKeyword(fBstKey)) return Tng::raceBeast;
-  if (aRace == fBaseRaces[10]) return Tng::raceDremora;
-  if (aRace == fBaseRaces[11]) return Tng::raceElder;
-  if (aRace == fBaseRaces[12]) return Tng::raceAfflicted;
-  if (aRace == fBaseRaces[13]) return Tng::raceSnowElf;
-  return Tng::raceManMer;
-}
-
-std::set<RE::TESObjectARMA *> Base::GentifyMalSkin(RE::TESObjectARMO *aSkin, int aAddon) noexcept {
-  auto res = std::set<RE::TESObjectARMA *>{};
-  if (!aSkin->HasPartOf(Tng::cSlotGenital)) aSkin->AddSlotToMask(Tng::cSlotGenital);
-  bool lHasAddons{false};
-  for (auto &aa : aSkin->armorAddons) {
-    if (fAllMalAAs.find(aa) != fAllMalAAs.end()) lHasAddons = true;
-    if (aa->HasPartOf(Tng::cSlotBody) && aa->race && ((aa->race == fDefRace) || aa->race->HasKeyword(fPRaceKey))) res.insert(aa);
-  }
-  auto lType = GetSkinType(aSkin);
-  auto lAddons = aAddon >= 0 ? GetAddonAAs(lType, aAddon, false) : GetCombinedAddons(aSkin);
-  if (lHasAddons) {
-    for (std::uint32_t i = 0; i < aSkin->armorAddons.size(); i++)
-      if (fAllMalAAs.find(aSkin->armorAddons[i]) != fAllMalAAs.end()) aSkin->armorAddons[i] = lAddons.at(aSkin->armorAddons[i]->race);
-  } else {
-    for (auto &aa : lAddons) aSkin->armorAddons.emplace_back(aa.second);
-  }
-  return res;
-}
-
-std::set<RE::TESObjectARMA *> Base::GentifyFemSkin(RE::TESObjectARMO *aSkin, int aAddon) noexcept {
-  auto res = std::set<RE::TESObjectARMA *>{};
-  if (aAddon < 0) return res;
-  if (!aSkin->HasPartOf(Tng::cSlotGenital)) aSkin->AddSlotToMask(Tng::cSlotGenital);
-  if (aSkin)
-    for (auto &aa : aSkin->armorAddons)
-      if (aa->HasPartOf(Tng::cSlotBody) && aa->race && ((aa->race == fDefRace) || aa->race->HasKeyword(fPRaceKey))) res.insert(aa);
-  auto lType = GetSkinType(aSkin);
-  auto lAddonsToAdd = GetAddonAAs(lType, aAddon, true);
-  bool lHasMalAddons{false};
-  for (const auto &aa : aSkin->armorAddons) {
-    if (fAllMalAAs.find(aa) != fAllMalAAs.end()) {
-      lHasMalAddons = true;
-      break;
-    }
-  }
-  while (lHasMalAddons) {
-    aSkin->armorAddons.pop_back();
-    lHasMalAddons = (aSkin->armorAddons.size() > 0) && (fAllMalAAs.find(aSkin->armorAddons.back()) != fAllMalAAs.end());
-  }
-  for (const auto &aa : lAddonsToAdd) aSkin->armorAddons.emplace_back(aa.second);
-  return res;
-}
-
-std::map<RE::TESRace *, RE::TESObjectARMA *> Base::GetCombinedAddons(RE::TESObjectARMO *aSkin) noexcept {
-  std::map<RE::TESRace *, RE::TESObjectARMA *> res{};
-  std::set<RE::TESRace *> lReqRaces{};
-  for (const auto &aa : aSkin->armorAddons) {
-    if (!aa->HasPartOf(Tng::cSlotBody) || !aa->race) continue;
-    if (aa->race->HasKeyword(fPRaceKey) && (!aa->race->armorParentRace || lReqRaces.find(aa->race->armorParentRace) == lReqRaces.end()))
-      lReqRaces.insert(fRaceGroupInfoList[GetRG(aa->race)].armorRaces.begin(), fRaceGroupInfoList[GetRG(aa->race)].armorRaces.end());
-    for (const auto &lAAAddRace : aa->additionalRaces)
-      if (lAAAddRace->HasKeyword(fPRaceKey) && (!lAAAddRace->armorParentRace || lReqRaces.find(lAAAddRace->armorParentRace) == lReqRaces.end()))
-        lReqRaces.insert(fRaceGroupInfoList[GetRG(lAAAddRace)].armorRaces.begin(), fRaceGroupInfoList[GetRG(lAAAddRace)].armorRaces.end());
-  }
-  for (const auto &race : lReqRaces) {
-    for (const auto &aa : fMalAddonAAs[GetRaceType(race)][GetRGAddn(race)]) {
-      if ((aa->race == race) || (std::find(aa->additionalRaces.begin(), aa->additionalRaces.end(), race) != aa->additionalRaces.end())) {
-        res.insert_or_assign(aa->race, aa);
-        break;
-      }
-    }
-  }
-  return res;
-}
-
-std::map<RE::TESRace *, RE::TESObjectARMA *> Base::GetAddonAAs(Tng::RaceType aRaceType, int aAddonIdx, bool aIsFemale) {
-  std::map<RE::TESRace *, RE::TESObjectARMA *> res{};
-  auto &list = aIsFemale ? fFemAddonAAs[aRaceType][aAddonIdx] : fMalAddonAAs[aRaceType][aAddonIdx];
-  for (auto aa : list) res.insert({aa->race, aa});
-  auto lAddType = Tng::cRaceTypeCount;
-  if (aRaceType == Tng::raceManMer) lAddType = Tng::raceBeast;
-  if (aRaceType == Tng::raceBeast) lAddType = Tng::raceManMer;
-  if (lAddType < Tng::cRaceTypeCount) {
-    auto &lAddList = aIsFemale ? fFemAddonAAs[lAddType][aAddonIdx] : fMalAddonAAs[lAddType][aAddonIdx];
-    for (auto aa : lAddList) res.insert({aa->race, aa});
-  }
-  return res;
-}
-
-bool Base::LoadRGMult(const std::string aRGParent, const std::string aRGSkin, const float aSize) noexcept {
-  auto race = LoadForm<RE::TESRace>(aRGParent);
-  auto skin = LoadForm<RE::TESObjectARMO>(aRGSkin);
-  if (!race || !skin) {
-    SKSE::log::error("A previously saved race cannot be found anymore! It's information is removed from ini file.");
-    return false;
-  }
-  fRaceGroupInfoList[{race, skin}].raceMult = aSize;
-  return true;
-}
-
-bool Base::LoadRGAddn(const std::string aRGParent, const std::string aRGSkin, const std::string aAddonRecord) noexcept {
-  auto race = LoadForm<RE::TESRace>(aRGParent);
-  auto skin = LoadForm<RE::TESObjectARMO>(aRGSkin);
-  if (!race || !skin) {
-    SKSE::log::error("A previously saved race cannot be found anymore! It's information is removed from ini file.");
-    return false;
-  }
-  auto addon = LoadForm<RE::TESObjectARMA>(aAddonRecord);
-  if (!addon) {
-    SKSE::log::error("A previously saved addon cannot be found anymore! It's information is removed from ini file.");
-    return false;
-  }
-  fRaceGroupInfoList[{race, skin}].addon = addon;
-  return true;
-}
-
-bool Base::LoadNPCSize(const std::string aNPCRecord, const int aSize) noexcept {
-  auto npc = LoadForm<RE::TESNPC>(aNPCRecord);
+bool Base::LoadNPCSize(const std::string npcRecord, const int size) {
+  auto npc = LoadForm<RE::TESNPC>(npcRecord);
   if (!npc) return false;
-  for (std::size_t i = 0; i < Tng::cSizeCategories; i++)
+  for (size_t i = 0; i < Tng::cSizeCategories; i++)
     if (npc->HasKeyword(Tng::SizeKey(i))) npc->RemoveKeyword(Tng::SizeKey(i));
-  npc->AddKeyword(Tng::SizeKey(aSize));
+  npc->AddKeyword(Tng::SizeKey(size));
   return true;
 }
 
-bool Base::LoadNPCAddn(const std::string aNPCRecord, const std::string aAddonRecord) noexcept {
-  auto npc = LoadForm<RE::TESNPC>(aNPCRecord);
-  if (!npc) return false;
+bool Base::LoadNPCAddn(const std::string npcRecord, const std::string aAddonRecord) {
+  RE::TESNPC *npc = LoadForm<RE::TESNPC>(npcRecord);
+  if (!npc || !npc->race) return false;
   auto addon = LoadForm<RE::TESObjectARMO>(aAddonRecord);
   if (!addon) {
-    SKSE::log::error("The addon {} saved for NPC {} cannot be found anymore!", aAddonRecord, aNPCRecord);
+    Tng::logger::error("The addon {} saved for NPC {} cannot be found anymore!", aAddonRecord, npcRecord);
     return false;
   }
-  int lIdx = -1;
-  const auto &lAddons = npc->IsFemale() ? fFemAddons : fMalAddons;
-  for (int i = 0; i < lAddons.size(); i++)
-    if (lAddons[i] == addon) {
-      lIdx = i;
+  int index = -1;
+  const auto &addons = npc->IsFemale() ? femAddons : malAddons;
+  for (int i = 0; i < addons.size(); i++)
+    if (addons[i].first == addon) {
+      index = i;
       break;
     }
-  if (lIdx < 0) {
-    SKSE::log::error("A previously installed addon {} cannot be loaded anymore! Please report this issue. {} would use original skin.", aAddonRecord, npc->GetName());
+  if (index < 0) {
+    Tng::logger::error("A previously installed addon {} cannot be loaded anymore! Please report this issue. [0x{:x}] would use original skin.", aAddonRecord, npc->GetFormID());
     return false;
   }
-  if (lIdx == GetRGAddn(npc->race) && !npc->IsFemale()) return true;
-  return SetNPCAddn(npc, lIdx, true);
+  if (index == GetRgAddn(npc->race) && !npc->IsFemale()) return true;
+  auto rg = GetRg(npc->race, false);
+  return rg ? SetNPCAddn(npc, index, true) >= 0 : false;  
 }

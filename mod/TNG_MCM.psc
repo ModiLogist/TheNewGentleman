@@ -91,6 +91,9 @@ Event OnConfigInit()
   fSGlobalWarnings[3] = "$TNG_WN3"
   fSGlobalWarnings[4] = "$TNG_WN4"
   fSGlobalWarnings[5] = "$TNG_WN5"
+	fSGlobalWarnings[6] = "$TNG_WN6"
+  fSGlobalWarnings[7] = "$TNG_WN7"
+	fSGlobalWarnings[8] = "$TNG_WN8"
   fSGlobalWarnings[9] = "$TNG_WN9"  
   
   cFSizeDefaults = new Float[5]
@@ -113,10 +116,10 @@ Event OnConfigInit()
   cS52Options[2] = "$TNG_52U"
   
   
-  cuExPCSize = 1
-  cu52DefOot = 2
-  cu52Custom = 3
-  cuMalRandA = 4
+  cuExPCSize = 0
+  cu52DefOot = 1
+  cu52Custom = 2
+  cuMalRandA = 3
 EndEvent
 
 Event OnVersionUpdate(Int aiVersion)
@@ -166,7 +169,7 @@ Event OnGameReload()
       HandleWarnings(res)
     EndIf
   Else
-    TNG_PapyrusUtil.SetActorAddn(PlayerRef, -2)
+    TNG_PapyrusUtil.SetActorAddn(PlayerRef, -1)
   EndIf  
   If PlayerSize > -1
     Int res = TNG_PapyrusUtil.SetActorSize(PlayerRef, PlayerSize)
@@ -862,9 +865,6 @@ Function ShowTNGMenu(Actor akActor)
         Return
       EndIf
       If liShape > 1
-        If liShape == 2
-          liShape = 1
-        EndIf
         Int liShapeRes = TNG_PapyrusUtil.SetActorAddn(akActor, liShape - 3)
         If liShapeRes < 0
           HandleWarnings(liShapeRes)
@@ -885,6 +885,7 @@ Function ShowTNGMenu(Actor akActor)
     Int i = 0
     lkSizeMenu.AddEntryItem("$TNG_ASS")
     lkSizeMenu.AddEntryItem(akActor.GetLeveledActorBase().GetName())
+		lkSizeMenu.AddEntryItem("$TNG_SRS")
     While i < fSSizeGlobals.Length
       lkSizeMenu.AddEntryItem(fSSizeGlobals[i])
       i += 1
@@ -895,10 +896,14 @@ Function ShowTNGMenu(Actor akActor)
       Return
     EndIf
     If liSize > 1      
-      TNG_PapyrusUtil.SetActorSize(akActor, liSize - 2)
-    EndIf
-    If akActor == PlayerRef
-      PlayerSize = liSize - 2
+      Int res = TNG_PapyrusUtil.SetActorSize(akActor, liSize - 3)
+			If res < 0
+				HandleWarnings(res)
+			Else
+				If akActor == PlayerRef
+					PlayerSize = liSize - 3
+				EndIf
+			EndIf
     EndIf
   EndIf
 EndFunction

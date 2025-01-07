@@ -4,18 +4,18 @@
 #include <Inis.h>
 #include <Papyrus.h>
 
-bool Papyrus::BindPapyrus(RE::BSScript::IVirtualMachine* aVM) noexcept {
+bool Papyrus::BindPapyrus(RE::BSScript::IVirtualMachine* aVM) {
   aVM->RegisterFunction("UpdateLogLvl", "TNG_PapyrusUtil", UpdateLogLvl);
   aVM->RegisterFunction("ShowLogLocation", "TNG_PapyrusUtil", ShowLogLocation);
 
   aVM->RegisterFunction("GetBoolValue", "TNG_PapyrusUtil", GetBoolValue);
   aVM->RegisterFunction("SetBoolValue", "TNG_PapyrusUtil", SetBoolValue);
 
-  aVM->RegisterFunction("GetRGNames", "TNG_PapyrusUtil", GetRGNames);
-  aVM->RegisterFunction("GetRGAddn", "TNG_PapyrusUtil", GetRGAddn);
-  aVM->RegisterFunction("GetRGMult", "TNG_PapyrusUtil", GetRGMult);
-  aVM->RegisterFunction("SetRGAddn", "TNG_PapyrusUtil", SetRGAddn);
-  aVM->RegisterFunction("SetRGMult", "TNG_PapyrusUtil", SetRGMult);
+  aVM->RegisterFunction("GetRgNames", "TNG_PapyrusUtil", GetRgNames);
+  aVM->RegisterFunction("GetRgAddn", "TNG_PapyrusUtil", GetRgAddn);
+  aVM->RegisterFunction("GetRgMult", "TNG_PapyrusUtil", GetRgMult);
+  aVM->RegisterFunction("SetRgAddn", "TNG_PapyrusUtil", SetRgAddn);
+  aVM->RegisterFunction("SetRgMult", "TNG_PapyrusUtil", SetRgMult);
 
   aVM->RegisterFunction("GetAddonStatus", "TNG_PapyrusUtil", GetAddonStatus);
   aVM->RegisterFunction("SetAddonStatus", "TNG_PapyrusUtil", SetAddonStatus);
@@ -38,82 +38,80 @@ int Papyrus::UpdateLogLvl(RE::StaticFunctionTag*, int aLogLvl) {
 }
 
 std::string Papyrus::ShowLogLocation(RE::StaticFunctionTag*) {
-  auto lMaybeDir{SKSE::log::log_directory};
+  auto lMaybeDir{Tng::logger::log_directory};
   std::filesystem::path lDir = lMaybeDir().value_or("$TNG_LDN");
   return lDir.string();
 }
 
-bool Papyrus::GetBoolValue(RE::StaticFunctionTag*, int aID) {
-  if (Inis::cNoneBoolID < aID && aID < Inis::cBoolIDsCount) return Inis::GetSettingBool(static_cast<Inis::IniBoolIDs>(aID));
+bool Papyrus::GetBoolValue(RE::StaticFunctionTag*, int settingID) {
+  if (0 <= settingID && settingID < Tng::BoolSettingCount) return Inis::GetSettingBool(static_cast<Tng::BoolSetting>(settingID));
   return false;
 }
 
-void Papyrus::SetBoolValue(RE::StaticFunctionTag*, int aID, bool aValue) {
-  if (Inis::cNoneBoolID < aID && aID < Inis::cBoolIDsCount) Inis::SaveSettingBool(static_cast<Inis::IniBoolIDs>(aID), aValue);
+void Papyrus::SetBoolValue(RE::StaticFunctionTag*, int settingID, bool value) {
+  if (0 <= settingID && settingID < Tng::BoolSettingCount) Inis::SaveSettingBool(static_cast<Tng::BoolSetting>(settingID), value);
 }
 
-std::vector<std::string> Papyrus::GetRGNames(RE::StaticFunctionTag*) { return Base::GetRGNames(); }
+std::vector<std::string> Papyrus::GetRgNames(RE::StaticFunctionTag*) { return Base::GetRgNames(true); }
 
-int Papyrus::GetRGAddn(RE::StaticFunctionTag*, int aRgId) {
-  if (aRgId < 0) return Tng::pgErr;
-  return Base::GetRGAddn(static_cast<std::size_t>(aRgId));
+int Papyrus::GetRgAddn(RE::StaticFunctionTag*, int rg) {
+  if (rg < 0) return Tng::pgErr;
+  return Base::GetRgAddn(static_cast<size_t>(rg), true);
 }
 
-float Papyrus::GetRGMult(RE::StaticFunctionTag*, int aRgId) {
-  if (aRgId < 0) return -1.0f;
-  return Base::GetRGMult(static_cast<std::size_t>(aRgId));
+float Papyrus::GetRgMult(RE::StaticFunctionTag*, int rg) {
+  if (rg < 0) return -1.0f;
+  return Base::GetRgMult(static_cast<size_t>(rg),true);
 }
 
-void Papyrus::SetRGAddn(RE::StaticFunctionTag*, int aRgId, int aGenOption) {
-  if (aRgId < 0) return;
-  Core::UpdateRGAddn(static_cast<int>(aRgId), aGenOption);
+void Papyrus::SetRgAddn(RE::StaticFunctionTag*, int rg, int aGenOption) {
+  if (rg < 0) return;
+  Core::SetRgAddn(static_cast<int>(rg), aGenOption, true);
 }
 
-void Papyrus::SetRGMult(RE::StaticFunctionTag*, int aRgId, float aGenMult) {
-  if (Base::SetRGMult(static_cast<std::size_t>(aRgId), aGenMult)) Inis::SaveRaceMult(static_cast<std::size_t>(aRgId), aGenMult);
+void Papyrus::SetRgMult(RE::StaticFunctionTag*, int rg, float aGenMult) {
+  if (Base::SetRgMult(static_cast<size_t>(rg), aGenMult)) Inis::SaveRgMult(static_cast<size_t>(rg), aGenMult);
 }
 
-bool Papyrus::GetAddonStatus(RE::StaticFunctionTag*, bool aIsFemale, int aAddn) {
-  if (aAddn < 0 || aAddn >= Base::GetAddonCount(aIsFemale)) return false;
-  return Base::GetAddonStatus(aIsFemale, static_cast<std::size_t>(aAddn));
+bool Papyrus::GetAddonStatus(RE::StaticFunctionTag*, bool isFemale, int aAddn) {
+  if (aAddn < 0 || aAddn >= Base::GetAddonCount(isFemale,false)) return false;
+  return Base::GetAddonStatus(isFemale, static_cast<size_t>(aAddn));
 }
 
-void Papyrus::SetAddonStatus(RE::StaticFunctionTag*, bool aIsFemale, int aAddn, bool aStatus) {
-  if (aAddn < 0 || aAddn >= Base::GetAddonCount(aIsFemale)) return;
-  Inis::SaveActiveAddon(aIsFemale, aAddn, aStatus);
-  Base::SetAddonStatus(aIsFemale, aAddn, aStatus);
+void Papyrus::SetAddonStatus(RE::StaticFunctionTag*, bool isFemale, int aAddn, bool status) {
+  if (aAddn < 0 || aAddn >= Base::GetAddonCount(isFemale,false)) return;
+  Inis::SaveActiveAddon(isFemale, aAddn, status);
+  Base::SetAddonStatus(isFemale, aAddn, status);
 }
 
-std::vector<std::string> Papyrus::GetAllPossibleAddons(RE::StaticFunctionTag*, bool aIsFemale) {
-  auto lNames = Base::GetRGAddonNames(aIsFemale);
-  return std::vector<std::string>{lNames.begin(), lNames.end()};
+std::vector<std::string> Papyrus::GetAllPossibleAddons(RE::StaticFunctionTag*, bool isFemale) {
+  /*auto lNames = Base::Getadd(isFemale);
+  return std::vector<std::string>{lNames.begin(), lNames.end()};*/
+  return {};
 }
 
-int Papyrus::CanModifyActor(RE::StaticFunctionTag*, RE::Actor* aActor) { return Core::CanModifyActor(aActor); }
+int Papyrus::CanModifyActor(RE::StaticFunctionTag*, RE::Actor* actor) { return Core::CanModifyActor(actor); }
 
-int Papyrus::SetActorAddn(RE::StaticFunctionTag*, RE::Actor* aActor, int aGenOption) {
-  const auto npc = aActor ? aActor->GetActorBase() : nullptr;
-  if (!aActor || !npc) return Tng::npcErr;
-  if (aActor->IsPlayerRef()) Events::SetPlayerInfo(aActor, aGenOption);
-  return Core::SetNPCSkin(npc, aGenOption);
+int Papyrus::SetActorAddn(RE::StaticFunctionTag*, RE::Actor* actor, int aGenOption) {
+  const auto npc = actor ? actor->GetActorBase() : nullptr;
+  if (!actor || !npc) return Tng::npcErr;
+  if (actor->IsPlayerRef()) Events::SetPlayerInfo(actor, aGenOption);
+  return Core::SetNPCAddn(npc, aGenOption, true);
 }
 
-int Papyrus::SetActorSize(RE::StaticFunctionTag*, RE::Actor* aActor, int aGenSize) {
-  const auto npc = aActor ? aActor->GetActorBase() : nullptr;
-  if (!aActor || !npc) return Tng::npcErr;
-  return Core::SetCharSize(aActor, npc, aGenSize);
-}
+int Papyrus::SetActorSize(RE::StaticFunctionTag*, RE::Actor* actor, int genSize) { return Core::SetActorSize(actor, genSize); }
 
 std::vector<std::string> Papyrus::GetSlot52Mods(RE::StaticFunctionTag*) {
-  auto lMods = Core::GetSlot52Mods();
-  return std::vector<std::string>(lMods.begin(), lMods.end());
+  /*auto values = Core::GetSlot52Mods();
+  return std::vector<std::string>(values.begin(), values.end());*/
+  return {};
 }
 
-bool Papyrus::Slot52ModBehavior(RE::StaticFunctionTag*, std::string aModName, int aBehavior) { return Inis::Slot52ModBehavior(aModName, aBehavior); }
+bool Papyrus::Slot52ModBehavior(RE::StaticFunctionTag*, std::string modName, int behavior) { return Inis::Slot52ModBehavior(modName, behavior); }
 
-bool Papyrus::SwapRevealing(RE::StaticFunctionTag*, RE::TESObjectARMO* aArmor) {
-  if (!aArmor) return false;
-  return Core::SwapRevealing(aArmor);
+bool Papyrus::SwapRevealing(RE::StaticFunctionTag*, RE::TESObjectARMO* armor) {
+  if (!armor) return false;
+  return Core::SwapRevealing(armor);
 }
 
 void Papyrus::UpdateSettings(RE::StaticFunctionTag*) {
