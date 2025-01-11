@@ -35,20 +35,19 @@ class Base : public Singleton<Base> {
 
   public:
     static void AddRace(RE::TESRace* race);
+    static int GetRaceRgIdx(RE::TESRace* race);
     static void UpdateRgSkins();
-
     static RE::TESRace* GetRgRace0(const size_t rgIdx, const bool onlyMCM);
     static std::vector<std::string> GetRgNames(const bool onlyMCM);
     static std::string GetRgRaceNames(size_t rgChoice, bool onlyMCM);
     static int GetRgAddn(const size_t rgChoice, bool onlyMCM);
+    static int GetRgAddn(RE::TESRace* race);
     static bool SetRgAddn(const size_t rgIdx, const int addnChoice, bool onlyMCM);
     static float GetRgMult(const size_t rgChoice, bool onlyMCM);
-    static bool SetRgMult(const size_t rgIdx, const float aMult);
-
-    static int GetRaceRgIdx(RE::TESRace* race);
-    static std::vector<size_t> GetRgAddonList(size_t rgChoice, bool isFemale, bool onlyDedicated, bool onlyMCM);
-    static int GetRgAddn(RE::TESRace* race);
     static float GetRgMult(RE::TESRace* race);
+    static bool SetRgMult(const size_t rgIdx, const float aMult);
+    static std::vector<size_t> GetRgAddonList(size_t rgChoice, bool isFemale, bool onlyDedicated, bool onlyMCM);
+    static std::vector<size_t> GetRgAddonList(RE::TESRace* race, bool isFemale, bool onlyDedicated);
     static RE::TESObjectARMO* GetSkinWithAddonForRg(const size_t rgIdx, RE::TESObjectARMO* skin, const size_t addonIdx, const bool isFemale);
 
   private:
@@ -61,8 +60,8 @@ class Base : public Singleton<Base> {
         std::vector<RE::TESRace*> races{};
         bool noMCM{false};
         float mult = {1.0f};
-        int defAddonIdx{-1};
-        int addonIdx{-1};
+        int defAddonIdx{Tng::cNA};
+        int addonIdx{Tng::cNA};
         std::map<size_t, std::pair<bool, RE::TESObjectARMA*>> malAddons{};
         std::map<size_t, std::pair<bool, RE::TESObjectARMA*>> femAddons{};
         std::map<RE::TESObjectARMO*, std::map<size_t, RE::TESObjectARMO*>> malSkins{};
@@ -81,7 +80,6 @@ class Base : public Singleton<Base> {
     static Tng::TNGRes CanModifyActor(RE::Actor* actor);
     static Tng::TNGRes GetActorSizeCat(RE::Actor* actor, int& sizeCat);
     static Tng::TNGRes SetActorSizeCat(RE::Actor* actor, const int sizeCat);
-
     static void ExcludeNPC(const std::string npcRecord);
     static std::pair<bool, int> GetNPCAddn(RE::TESNPC* npc);
     static Tng::TNGRes SetNPCAddn(RE::TESNPC* npc, int addnIdx, bool isUser);

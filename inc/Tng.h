@@ -18,10 +18,13 @@ namespace Tng {
 
   inline static constexpr SEFormLoc cGentifiedID{0xE00, cName};
 
-  inline static constexpr int cMalDefAddnPriority{0};
+  inline static constexpr int cMalRandomPriority{100};
+  inline static constexpr int cNA{-99};
+  inline static constexpr int cDef{-2};
+  inline static constexpr int cNul{-1};
 
   enum TNGRes {
-    pgErr = -9,
+    pgErr = cNA,
     rgErr = -8,
     skeletonErr = -7,
     playerErr = -6,
@@ -182,8 +185,6 @@ namespace Tng {
       if (res = lFactory ? lFactory->Create() : nullptr; res) {
         res->formEditorID = keword;
         allKeywords.push_back(res);
-      } else {
-        //logger::critical("Couldn't create keyword [{}]!", &keword);
       }
     }
     return res;
@@ -218,7 +219,7 @@ static bool FormHasKW(const RE::BGSKeywordForm* form, const SEFormLoc formID) {
 }
 
 static bool AddonHasRace(const RE::TESObjectARMA* addnIdx, const RE::TESRace* race) {
-  if (race = addnIdx->race) return true;
+  if (race == addnIdx->race) return true;
   for (auto& iRace : addnIdx->additionalRaces)
     if (iRace == race) return true;
   return false;

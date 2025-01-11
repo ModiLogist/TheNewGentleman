@@ -63,13 +63,14 @@ class Inis : public Singleton<Inis> {
     static bool GetSettingBool(Tng::BoolSetting settingID);
     static void SaveSettingBool(Tng::BoolSetting settingID, bool value);
     static void SaveRgMult(const size_t rg, const float mult);
-    static void SaveRgAddn(const size_t rg, const int choice, const bool onlyMCM);
+    static void SaveRgAddn(const size_t rg, const int choice);
     static void SaveNPCAddn(RE::TESNPC* npc, const int choice);
     static void SaveNPCSize(RE::TESNPC* npc, int genSize);
-    static void SaveActiveAddon(const bool isFemale, const int addnIdx, const bool status);
+    static void SaveAddonStatus(const bool isFemale, const int addnIdx, const bool status);
     static void SaveRevealingArmor(RE::TESObjectARMO* armor);
     static void SaveCoveringArmor(RE::TESObjectARMO* armor);
     static void SaveGlobals();
+    static std::vector<std::string> Slot52Mods();
     static bool Slot52ModBehavior(const std::string modName, const int behavior);
 
   private:

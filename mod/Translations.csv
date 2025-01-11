@@ -3,7 +3,8 @@ $TNG_Rac,Races,
 $TNG_Add,Addons,
 $TNG_S52,Conflicts,
 ,,
-$TNG_TNT,No genital,Esp
+$TNG_TRS,Reset to default,
+$TNG_TNT,No genital,
 $TNG_TCT,Circumcised,Esp
 $TNG_TMT,Muscular-Style 1,Esp
 $TNG_TM2,Muscular-Style 2,Esp
@@ -12,6 +13,7 @@ $TNG_TR2,Regular-Style 2,Esp
 ,,
 $TNG_SOH,Default Sizes,
 $TNG_SRS,Reset Size,
+$TNG_SDC,Do not change,
 $TNG_SXS,X-Small,
 $TNG_S_S,Small,
 $TNG_S_M,Medium,
@@ -52,7 +54,6 @@ $TNG_52N,No conflicting mods with slot 52 found!,
 ,,
 $TNG_Yes,Yes,
 $TNG__No,No,
-$TNG_RES,Reset Skin,
 ,,
 $TNG_N_1,Could not find a relevant armor!,
 $TNG_N_2,The armor was handled successfully!,

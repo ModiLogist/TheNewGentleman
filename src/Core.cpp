@@ -44,10 +44,10 @@ void Core::GenitalizeRaces() {
   Tng::logger::info("Recognized assigned genitals to [{}] races, found [{}] races to be ready and ignored [{}] races.", processed, ready, ignored);
 }
 
-bool Core::SetRgAddn(const size_t rgChoice, const int addnIdx, const bool onlyMCM) {
-  auto res = Base::SetRgAddn(rgChoice, addnIdx, onlyMCM);
+bool Core::SetRgAddn(const size_t rgChoice, const int addnIdx) {
+  auto res = Base::SetRgAddn(rgChoice, addnIdx, true);
   if (!res) return res;
-  Inis::SaveRgAddn(rgChoice, addnIdx, onlyMCM);
+  Inis::SaveRgAddn(rgChoice, addnIdx);
   return true;
 }
 
@@ -189,17 +189,8 @@ Tng::TNGRes Core::SetNPCAddn(RE::TESNPC* npc, int addnIdx, bool isUser) {
   if (!npc->race || !npc->race->HasKeyword(Tng::RaceKey(Tng::rkeyProcessed))) return Tng::raceErr;
   if (Inis::IsNPCExcluded(npc)) return Tng::npcErr;
   auto res = Base::SetNPCAddn(npc, addnIdx, isUser);
-  if (res < 0 || !isUser) return res;
-  switch (addnIdx) {
-    case -1:
-      break;
-    case -2:
-      if (!npc->IsPlayer()) Inis::SaveNPCAddn(npc, npc->IsFemale() ? -3 : addnIdx);
-      break;
-    default:
-      if (!npc->IsPlayer() && isUser) Inis::SaveNPCAddn(npc, addnIdx);
-      break;
-  }
+  if (res < 0) return res;
+  if (!npc->IsPlayer() && isUser) Inis::SaveNPCAddn(npc, addnIdx);
   return res;
 }
 
@@ -222,23 +213,21 @@ RE::TESObjectARMO* Core::FixSkin(RE::TESObjectARMO* skin, RE::TESRace* race, con
     Tng::logger::warn("\t\tThe skin [0x{:x}] does not have any arma! TNG ignores it.", skin->GetFormID());
     return nullptr;
   }
-  auto addonIdx = Base::GetRgAddn(race);
-  if (addonIdx == Tng::pgErr) {
-    Tng::logger::error("\t\tTNG Error 11: Skin [0x{:x}] caused an issue. Please report this issue with the mod that the skin belongs to.", skin->GetFormID());
-    return nullptr;
-  }
-  if (addonIdx == -2) return skin;
   auto rgIdx = Base::GetRaceRgIdx(race);
-  if (rgIdx < 0) {
-    Tng::logger::error("\t\tTNG Error 12: Skin [0x{:x}] caused an issue. Please report this issue with the mod that the skin belongs to.", skin->GetFormID());
+  auto addonIdx = Base::GetRgAddn(race);
+  if (rgIdx < 0 || addonIdx == Tng::pgErr) {
+    Tng::logger::critical("\t\tSkin [0x{:x}] from file [{}] together with race [0x{:x}] from file caused a critical error!", skin->GetFormID(), skin->GetFile() ? skin->GetFile()->GetFilename() : "Unknown",
+                          race->GetFormID(), race->GetFile() ? race->GetFile()->GetFilename() : "Unknown");
     return nullptr;
   }
+  if (addonIdx == Tng::cNul) return skin;
   if (aName) Tng::logger::info("\t\tThe skin [0x{:x}: {}] added as extra skin.", skin->GetFormID(), aName);
   return Base::GetSkinWithAddonForRg(rgIdx, skin, addonIdx, false);
 }
 
 void Core::CheckOutfits() {
   Tng::logger::info("Checking OTFT records...");
+  bool b = false;
   auto& allOutfits = Tng::SEDH()->GetFormArray<RE::BGSOutfit>();
   for (auto& outfit : allOutfits) {
     RE::TESObjectARMO* body = nullptr;
@@ -252,9 +241,11 @@ void Core::CheckOutfits() {
     if (body && down && body != down) {
       body->AddKeyword(Tng::ArmoKey(Tng::akeyAutoReveal));
       Tng::logger::info("\tThe armor [0x{:x} : {}] was used together with an item equipped on slot 52 [0x{:x} : {}] in an outfit. It was marked revealing so the item on slot 52 won't be covered.",
-                      body->GetFormID(), body->GetName(), down->GetFormID(), down->GetName());
+                        body->GetFormID(), body->GetName(), down->GetFormID(), down->GetName());
+      b = true;
     }
   }
+  if (!b) Tng::logger::info("\t TNG did not find any outfit that uses items on slot 32 and 52 at the same time.");
 }
 
 void Core::CheckArmorPieces() {

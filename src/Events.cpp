@@ -23,7 +23,7 @@ void Events::SetPlayerInfo(RE::Actor* aPlayer, const int addnIdx) {
   playerInfo.race = npc->race;
   playerInfo.isInfoSet = true;
   auto addnFl = static_cast<float>(addnIdx);
-  if (addnFl != Tng::PCAddon()->value) Tng::PCAddon()->value = addnFl;
+  Tng::PCAddon()->value = addnFl;
 }
 
 RE::BSEventNotifyControl Events::ProcessEvent(const RE::TESEquipEvent* aEvent, RE::BSTEventSource<RE::TESEquipEvent>*) {
@@ -39,13 +39,13 @@ RE::BSEventNotifyControl Events::ProcessEvent(const RE::TESEquipEvent* aEvent, R
 RE::BSEventNotifyControl Events::ProcessEvent(const RE::TESObjectLoadedEvent* aEvent, RE::BSTEventSource<RE::TESObjectLoadedEvent>*) {
   if (!aEvent) return RE::BSEventNotifyControl::kContinue;
   const auto actor = RE::TESForm::LookupByID<RE::Actor>(aEvent->formID);
-  if (!actor) return RE::BSEventNotifyControl::kContinue;
-  if (Core::CanModifyActor(actor) < 0) return RE::BSEventNotifyControl::kContinue;
   const auto npc = actor ? actor->GetActorBase() : nullptr;
-  if (playerInfo.isInfoSet && actor->IsPlayerRef() && npc && npc->race->HasKeyword(Tng::RaceKey(Tng::rkeyProcessed)) && npc->skin && npc->skin != npc->race->skin) {
+  if (!npc) return RE::BSEventNotifyControl::kContinue;
+  if (Core::CanModifyActor(actor) != Tng::resOkRaceP) return RE::BSEventNotifyControl::kContinue;
+  if (playerInfo.isInfoSet && actor->IsPlayerRef() && npc->skin && npc->skin != npc->race->skin) {
     if (playerInfo.isFemale != npc->IsFemale() || playerInfo.race != npc->race || Tng::PCAddon()->value >= Base::GetAddonCount(npc->IsFemale(), false)) {
-      Core::SetNPCAddn(npc, -2, true);
-      SetPlayerInfo(actor, -2);
+      Core::SetNPCAddn(npc, Tng::cDef, true);
+      SetPlayerInfo(actor, Tng::cDef);
     }
   }
   CheckCovering(actor);
@@ -62,8 +62,9 @@ RE::BSEventNotifyControl Events::ProcessEvent(const RE::TESSwitchRaceCompleteEve
     npc->skin = nullptr;
     return RE::BSEventNotifyControl::kContinue;
   }
-  if (oldSkins.find(npc->GetFormID()) != oldSkins.end()) {
+  if (oldSkins.find(npc->GetFormID()) != oldSkins.end() && npc->race->HasKeyword(Tng::RaceKey(Tng::rkeyProcessed))) {
     npc->skin = oldSkins[npc->GetFormID()];
+    oldSkins.erase(npc->GetFormID());
   }
   return RE::BSEventNotifyControl::kContinue;
 }
@@ -71,7 +72,7 @@ RE::BSEventNotifyControl Events::ProcessEvent(const RE::TESSwitchRaceCompleteEve
 void Events::CheckForAddons(RE::Actor* actor) {
   const auto npc = actor ? actor->GetActorBase() : nullptr;
   if (!npc) return;
-  if (!npc->IsPlayer() || !Tng::BoolSetting(Tng::bsExcludePlayerSize)) Core::SetActorSize(actor, -1);
+  if (!npc->IsPlayer() || !Tng::BoolSetting(Tng::bsExcludePlayerSize)) Core::SetActorSize(actor, Tng::cNul);
   auto addnPair = Base::GetNPCAddn(npc);
   if (Base::GetRgAddn(npc->race) == 0) return;
   if (addnPair.second < 0 &&
@@ -86,14 +87,10 @@ void Events::CheckForAddons(RE::Actor* actor) {
 }
 
 int Events::GetNPCAutoAddn(RE::TESNPC* npc) {
-  if (npc->IsFemale()) {
-    const auto femAddonCount = Base::GetAddonCount(true, true);
-    if (femAddonCount == 0) return -1;
-    return (((npc->GetFormID() % 100) < (std::floor(Tng::WRndGlb()->value) + 1))) ? npc->GetFormID() % femAddonCount : -1;
-  } else {
-    const auto lMDistAddnCount = Base::GetAddonCount(false, true);
-    return (((npc->GetFormID() % 100) > Tng::cMalDefAddnPriority)) ? (npc->GetFormID() % lMDistAddnCount) + 1 : -1;
-  }
+  const auto count = Base::GetAddonCount(npc->IsFemale(), true);
+  const auto chance = npc->IsFemale() ? std::floor(Tng::WRndGlb()->value) : Tng::cMalRandomPriority;
+  if (count == 0 || chance == 0) return Tng::cDef;
+  return npc->GetFormID() % 100 < chance ? npc->GetFormID() % count : Tng::cDef;
 }
 
 void Events::CheckCovering(RE::Actor* actor, RE::TESObjectARMO* armor, bool isEquipped) {
@@ -104,7 +101,7 @@ void Events::CheckCovering(RE::Actor* actor, RE::TESObjectARMO* armor, bool isEq
   auto tngCover = ForceTngCover(actor, false);
   if (!tngCover && showErrMessage) {
     showErrMessage = false;
-    ShowSkyrimMessage("TNG Error 21: Faced an error when trying to cover genitalia. The New Gentleman won't function properly!");
+    ShowSkyrimMessage("TNG faced an error when trying to cover genitalia. The New Gentleman won't function properly!");
   }
   if (down && FormToLoc(down) == Tng::cCover) {
     RE::ActorEquipManager::GetSingleton()->UnequipObject(actor, down, nullptr, 1, nullptr, false, true, false, true);

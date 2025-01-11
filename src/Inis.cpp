@@ -152,7 +152,7 @@ void Inis::SaveRgMult(const size_t rg, const float mult) {
     Tng::logger::critical("Failed to save the size multiplier for race [{:x}: {}]!", race->GetFormID(), race->GetFormEditorID());
     return;
   }
-  if (mult < 0) {
+  if (mult < 1.0001f && mult > 0.9999f) {
     ini.Delete(cRacialSize, raceRecord.c_str());
   } else {
     ini.SetDoubleValue(cRacialSize, raceRecord.c_str(), static_cast<double>(mult));
@@ -160,11 +160,11 @@ void Inis::SaveRgMult(const size_t rg, const float mult) {
   ini.SaveFile(cSettings);
 }
 
-void Inis::SaveRgAddn(const size_t rg, const int choice, const bool onlyMCM) {
+void Inis::SaveRgAddn(const size_t rg, const int choice) {
   CSimpleIniA ini;
   ini.SetUnicode();
   ini.LoadFile(cSettings);
-  auto race = Base::GetRgRace0(rg, onlyMCM);
+  auto race = Base::GetRgRace0(rg, true);
   auto raceRecord = RecordToStr(race);
   if (raceRecord == "") {
     if (race) {
@@ -175,10 +175,10 @@ void Inis::SaveRgAddn(const size_t rg, const int choice, const bool onlyMCM) {
     return;
   }
   switch (choice) {
-    case -1:
+    case Tng::cDef:
       ini.Delete(cRacialGenital, raceRecord.c_str());
       break;
-    case -2:
+    case Tng::cNul:
       ini.SetValue(cRacialGenital, raceRecord.c_str(), "None");
       break;
     default:
@@ -207,17 +207,17 @@ void Inis::SaveNPCAddn(RE::TESNPC *npc, const int choice) {
   ini.SetUnicode();
   ini.LoadFile(cSettings);
   switch (choice) {
-    case -2:
+    case Tng::cDef:
       ini.Delete(cNPCAddnSection, npcRecord.c_str());
       break;
-    case -3:
+    case Tng::cNul:
       ini.Delete(cNPCAddnSection, npcRecord.c_str());
-      ini.SetBoolValue(cExcludeSection, npcRecord.c_str(), true);
+      ini.SetBoolValue(cExcludeNPCSection, npcRecord.c_str(), true);
       break;
     default:
       auto addon = Base::AddonByIdx(npc->IsFemale(), choice, false);
       auto addonRecord = RecordToStr(addon);
-      ini.Delete(cExcludeSection, npcRecord.c_str());
+      ini.Delete(cExcludeNPCSection, npcRecord.c_str());
       ini.SetValue(cNPCAddnSection, npcRecord.c_str(), addonRecord.c_str());
       break;
   }
@@ -230,7 +230,7 @@ void Inis::SaveNPCSize(RE::TESNPC *npc, int genSize) {
   CSimpleIniA ini;
   ini.SetUnicode();
   ini.LoadFile(cSettings);
-  if (genSize == -1) {
+  if (genSize == Tng::cDef) {
     ini.Delete(cNPCSizeSection, npcRecord.c_str());
   } else {
     ini.SetLongValue(cNPCSizeSection, npcRecord.c_str(), genSize);
@@ -238,7 +238,7 @@ void Inis::SaveNPCSize(RE::TESNPC *npc, int genSize) {
   ini.SaveFile(cSettings);
 }
 
-void Inis::SaveActiveAddon(const bool isFemale, const int addnIdx, const bool status) {
+void Inis::SaveAddonStatus(const bool isFemale, const int addnIdx, const bool status) {
   auto lAddonStr = RecordToStr(Base::AddonByIdx(isFemale, addnIdx, false));
   if (lAddonStr.empty()) return;
   CSimpleIniA ini;
@@ -278,6 +278,8 @@ void Inis::SaveGlobals() {
   ini.SetDoubleValue(cGentleWomen, cGentleWomenChance, Tng::WRndGlb()->value);
   ini.SaveFile(cSettings);
 }
+
+std::vector<std::string> Inis::Slot52Mods() { return std::vector<std::string>(slot52Mods.begin(), slot52Mods.end()); }
 
 bool Inis::Slot52ModBehavior(const std::string modName, const int behavior) {
   CSimpleIniA ini;

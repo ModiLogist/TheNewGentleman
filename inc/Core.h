@@ -3,7 +3,7 @@
 class Core : public Singleton<Core> {
   public:
     static void GenitalizeRaces();
-    static bool SetRgAddn(const size_t rgChoice, const int addnIdx, const bool onlyMCM);
+    static bool SetRgAddn(const size_t rgChoice, const int addnIdx);
 
   private:
     static bool IgnoreRace(RE::TESRace* race);
