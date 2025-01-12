@@ -97,8 +97,16 @@ void Events::CheckCovering(RE::Actor* actor, RE::TESObjectARMO* armor, bool isEq
   if (!actor) return;
   auto cover = armor && isEquipped ? armor : GetCoveringItem(actor, isEquipped ? nullptr : armor);
   auto down = actor->GetWornArmor(Tng::cSlotGenital);
-  if ((cover && down) || (!cover && !down)) return;
+  bool needsCover = NeedsCover(actor);
+  if (!needsCover) 
+  {
+    if (down && FormToLoc(down) == Tng::cCover) {
+      RE::ActorEquipManager::GetSingleton()->UnequipObject(actor, down, nullptr, 1, nullptr, false, true, false, true);
+    }
+    return;
+  }
   auto tngCover = ForceTngCover(actor, false);
+  if ((cover && down) || (!cover && !down)) return;
   if (!tngCover && showErrMessage) {
     showErrMessage = false;
     ShowSkyrimMessage("TNG faced an error when trying to cover genitalia. The New Gentleman won't function properly!");
@@ -119,6 +127,17 @@ RE::TESObjectARMO* Events::GetCoveringItem(RE::Actor* actor, RE::TESObjectARMO* 
     }
   }
   return nullptr;
+}
+
+bool Events::NeedsCover(RE::Actor* actor) {
+  const auto npc = actor ? actor->GetActorBase() : nullptr;
+  if (!npc) return false;
+  if (!npc->race || (!npc->race->HasKeyword(Tng::RaceKey(Tng::rkeyProcessed)) && !npc->race->HasKeyword(Tng::RaceKey(Tng::rkeyReady)))) return false;
+  if (npc->IsFemale()) {
+    return (npc->skin && npc->skin->HasKeyword(Tng::ArmoKey(Tng::akeySkinWP)));
+  } else {
+    return (!npc->HasKeyword(Tng::NPCKey(Tng::npckeyExclude)));
+  }
 }
 
 RE::TESBoundObject* Events::ForceTngCover(RE::Actor* actor, bool ifUpdate) {
