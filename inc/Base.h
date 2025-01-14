@@ -49,6 +49,7 @@ class Base : public Singleton<Base> {
     static std::vector<size_t> GetRgAddonList(size_t rgChoice, bool isFemale, bool onlyDedicated, bool onlyMCM);
     static std::vector<size_t> GetRgAddonList(RE::TESRace* race, bool isFemale, bool onlyDedicated);
     static RE::TESObjectARMO* GetSkinWithAddonForRg(const size_t rgIdx, RE::TESObjectARMO* skin, const size_t addonIdx, const bool isFemale);
+    static void ReportHiddenRgs();
 
   private:
     struct RaceGroupInfo {

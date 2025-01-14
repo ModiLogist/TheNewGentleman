@@ -200,6 +200,12 @@ RE::TESObjectARMO *Base::GetSkinWithAddonForRg(const size_t rgIdx, RE::TESObject
   return GetSkinWithAddonForRg(&rgInfoList[rgIdx], skin, addonIdx, isFemale);
 }
 
+void Base::ReportHiddenRgs() {
+  Tng::logger::info("TNG would not show the following race groups in the MCM since there are either no genital available to them or there are very few NPCs which use them:");
+  for (size_t i = 0; i < rgInfoList.size(); i++)
+    if (rgInfoList[i].noMCM) Tng::logger::info("\tRace group [{}] containing following races: {}.", rgInfoList[i].name, GetRgRaceNames(i, false));
+}
+
 Base::RaceGroupInfo *Base::GetRg(const size_t rgChoice, const bool onlyMCM) {
   int idx = Tng::cNA;
   if (onlyMCM) {
