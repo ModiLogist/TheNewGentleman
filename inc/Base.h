@@ -37,12 +37,12 @@ class Base : public Singleton<Base> {
     static void AddRace(RE::TESRace* race);
     static int GetRaceRgIdx(RE::TESRace* race);
     static void UpdateRgSkins();
-    static RE::TESRace* GetRgRace0(const size_t rgIdx, const bool onlyMCM);
+    static RE::TESRace* GetRgRace0(const size_t rgChoice, const bool onlyMCM);
     static std::vector<std::string> GetRgNames(const bool onlyMCM);
     static std::string GetRgRaceNames(size_t rgChoice, bool onlyMCM);
     static int GetRgAddn(const size_t rgChoice, bool onlyMCM);
     static int GetRgAddn(RE::TESRace* race);
-    static bool SetRgAddn(const size_t rgIdx, const int addnChoice, bool onlyMCM);
+    static bool SetRgAddn(const size_t rgChoice, const int addnChoice, bool onlyMCM);
     static float GetRgMult(const size_t rgChoice, bool onlyMCM);
     static float GetRgMult(RE::TESRace* race);
     static bool SetRgMult(const size_t rgIdx, const float aMult);

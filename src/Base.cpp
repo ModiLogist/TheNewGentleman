@@ -102,8 +102,8 @@ void Base::UpdateRgSkins() {
   }
 }
 
-RE::TESRace *Base::GetRgRace0(const size_t rgIdx, const bool onlyMCM) {
-  auto rg = GetRg(rgIdx, onlyMCM);
+RE::TESRace *Base::GetRgRace0(const size_t rgChoice, const bool onlyMCM) {
+  auto rg = GetRg(rgChoice, onlyMCM);
   return rg ? rg->races[0] : nullptr;
 }
 
@@ -164,8 +164,9 @@ float Base::GetRgMult(RE::TESRace *race) {
   return rg ? rg->mult : 1.0f;
 }
 
-bool Base::SetRgMult(const size_t rgIdx, const float aMult) {
-  if (rgInfoList.size() <= rgIdx || aMult < 0.1f || aMult >= 10.0f) {
+bool Base::SetRgMult(const size_t rgChoice, bool onlyMCM, const float aMult) {
+  auto rg = GetRg(rgChoice, onlyMCM);
+  if (!rg || aMult < 0.1f || aMult >= 10.0f) {
     Tng::logger::critical("Failure in setting a race mult!");
     return false;
   }
