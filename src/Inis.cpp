@@ -61,16 +61,16 @@ void Inis::LoadMainIni() {
   }
   ini.GetAllKeys(cRevealingSection, values);
   for (const auto &entry : values) {
-    auto lIsRevealing = ini.GetBoolValue(cRevealingSection, entry.pItem);
+    auto isRevealing = ini.GetBoolValue(cRevealingSection, entry.pItem);
     const std::string lArmorRecord(entry.pItem);
-    UpdateRevealing(lArmorRecord, lIsRevealing);
+    UpdateRevealing(lArmorRecord, isRevealing);
   }
   if (ini.KeyExists(cGentleWomen, cGentleWomenChance)) Tng::WRndGlb()->value = static_cast<float>(ini.GetDoubleValue(cGentleWomen, cGentleWomenChance));
   ini.SaveFile(cSettings);
   validSkeletons.insert(Tng::Race(Tng::raceDefault)->skeletonModels[0].model.data());
   validSkeletons.insert(Tng::Race(Tng::raceDefault)->skeletonModels[1].model.data());
-  validSkeletons.insert(Tng::Race(Tng::raceBeast)->skeletonModels[0].model.data());
-  validSkeletons.insert(Tng::Race(Tng::raceBeast)->skeletonModels[1].model.data());
+  validSkeletons.insert(Tng::Race(Tng::raceDefBeast)->skeletonModels[0].model.data());
+  validSkeletons.insert(Tng::Race(Tng::raceDefBeast)->skeletonModels[1].model.data());
 }
 
 void Inis::LoadTngInis() {
@@ -225,6 +225,7 @@ void Inis::SaveNPCAddn(RE::TESNPC *npc, const int choice) {
 }
 
 void Inis::SaveNPCSize(RE::TESNPC *npc, int genSize) {
+  if (genSize == Tng::cNul) return;
   auto npcRecord = RecordToStr(npc);
   if (npcRecord.empty()) return;
   CSimpleIniA ini;
@@ -244,7 +245,7 @@ void Inis::SaveAddonStatus(const bool isFemale, const int addnIdx, const bool st
   CSimpleIniA ini;
   ini.SetUnicode();
   ini.LoadFile(cSettings);
-  ini.SetBoolValue(isFemale ? cActiveFemAddons : cActiveMalAddons, lAddonStr.c_str(), status);
+  status == isFemale ? ini.SetBoolValue(isFemale ? cActiveFemAddons : cActiveMalAddons, lAddonStr.c_str(), status) : ini.Delete(isFemale ? cActiveFemAddons : cActiveMalAddons, lAddonStr.c_str());
   ini.SaveFile(cSettings);
 }
 
@@ -254,7 +255,7 @@ void Inis::SaveRevealingArmor(RE::TESObjectARMO *armor) {
   CSimpleIniA ini;
   ini.SetUnicode();
   ini.LoadFile(cSettings);
-  ini.SetBoolValue(cRevealingRecord, armoRecord.c_str(), true);
+  ini.SetBoolValue(cRevealingSection, armoRecord.c_str(), true);
   ini.SaveFile(cSettings);
 }
 
@@ -264,7 +265,7 @@ void Inis::SaveCoveringArmor(RE::TESObjectARMO *armor) {
   CSimpleIniA ini;
   ini.SetUnicode();
   ini.LoadFile(cSettings);
-  ini.SetBoolValue(cRevealingRecord, armoRecord.c_str(), false);
+  ini.SetBoolValue(cRevealingSection, armoRecord.c_str(), false);
   ini.SaveFile(cSettings);
 }
 
@@ -343,7 +344,7 @@ void Inis::UpdateRevealing(const std::string armorRecod, const bool isRevealing)
     Tng::logger::info("Previously marked {} armor from mod {} does not exist anymore!", isRevealing ? "revealing" : "covering", StrToRecord(armorRecod).first);
     return;
   }
-  auto &list = isRevealing ? runTimeRevealingRecordss : runtimeCoveringRecordss;
+  auto &list = isRevealing ? runTimeRevealingRecords : runtimeCoveringRecords;
   list.insert(std::make_pair<std::string, RE::FormID>(StrToRecord(armorRecod).first, StrToRecord(armorRecod).second));
 }
 
@@ -480,13 +481,13 @@ bool Inis::IsExtraRevealing(const std::string modName) {
 
 bool Inis::IsRTCovering(const RE::TESObjectARMO *armor, const std::string modName) {
   if (modName == "") return false;
-  if (runtimeCoveringRecordss.find({modName, armor->GetLocalFormID()}) != runtimeCoveringRecordss.end()) return true;
+  if (runtimeCoveringRecords.find({modName, armor->GetLocalFormID()}) != runtimeCoveringRecords.end()) return true;
   return false;
 }
 
 bool Inis::IsRTRevealing(const RE::TESObjectARMO *armor, const std::string modName) {
   if (modName == "") return false;
-  if (runTimeRevealingRecordss.find({modName, armor->GetLocalFormID()}) != runTimeRevealingRecordss.end()) return true;
+  if (runTimeRevealingRecords.find({modName, armor->GetLocalFormID()}) != runTimeRevealingRecords.end()) return true;
   return false;
 }
 

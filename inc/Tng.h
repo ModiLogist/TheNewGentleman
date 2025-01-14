@@ -18,7 +18,7 @@ namespace Tng {
 
   inline static constexpr SEFormLoc cGentifiedID{0xE00, cName};
 
-  inline static constexpr int cMalRandomPriority{100};
+  inline static constexpr size_t cMalRandomPriority{100};
   inline static constexpr int cNA{-99};
   inline static constexpr int cDef{-2};
   inline static constexpr int cNul{-1};
@@ -35,19 +35,17 @@ namespace Tng {
     raceErr = -1,
     resOkFixed = 0,
     resOkSizable = 1,
-    resOkRaceP = 2,
-    resOkRaceR = 3,
-    resOkAC = 4,
-    resOkCC = 5,
-    resOkAR = 6,
-    resOkRR = 7,
-    resOkIA = 8,
+    resOkRaceP = 10,
+    resOkRaceR = 11,
+    resOkMain = 20,
+    resOkDedicated = 21,
+    resOkSupported = 22,
   };
 
   enum BoolSetting { bsExcludePlayerSize, bsRevealSlot52Mods, bsRandomizeMaleAddn, BoolSettingCount };
   inline static bool boolSettings[BoolSettingCount] = {false};
 
-  enum Races { raceDefault, raceBeast, RacesCount };
+  enum Races { raceDefault, raceDefBeast, RacesCount };
 
   enum RaceKeys { rkeyProcessed, rkeyReady, rkeyIgnore, rkeyManMer, rkeyBeast, rkeyCreature, RaceKeysCount };
   enum NPCKeys { npckeyExclude, npckeyGentlewoman, NPCKeysCount };
@@ -134,7 +132,7 @@ namespace Tng {
 
   static std::vector<RE::BGSKeyword*> ArmoKeys(const size_t last = ArmoKeysCount) {
     std::vector<RE::BGSKeyword*> res = {};
-    for (size_t i = 0; i< (last> ArmoKeysCount ? ArmoKeysCount : last) ; i++) res.push_back(ArmoKey(i));
+    for (size_t i = 0; i< (last > ArmoKeysCount ? ArmoKeysCount : last) ; i++) res.push_back(ArmoKey(i));
     return res;
   }
 

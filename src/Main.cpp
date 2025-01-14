@@ -49,6 +49,7 @@ static void EventListener(SKSE::MessagingInterface::Message* message) {
   }
   if (message->type == SKSE::MessagingInterface::kNewGame || message->type == SKSE::MessagingInterface::kPostLoadGame) {
     Inis::LoadHoteKeys();
+    Base::UnsetPlayerInfo();
   }
 }
 

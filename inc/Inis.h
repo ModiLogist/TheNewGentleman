@@ -112,8 +112,8 @@ class Inis : public Singleton<Inis> {
     inline static std::set<std::pair<std::string, RE::FormID>> revealingRecords;
     inline static std::set<std::string> extraRevealingMods;
 
-    inline static std::set<std::pair<std::string, RE::FormID>> runTimeRevealingRecordss;
-    inline static std::set<std::pair<std::string, RE::FormID>> runtimeCoveringRecordss;
+    inline static std::set<std::pair<std::string, RE::FormID>> runTimeRevealingRecords;
+    inline static std::set<std::pair<std::string, RE::FormID>> runtimeCoveringRecords;
 
     inline static std::set<std::pair<std::pair<std::string, RE::FormID>, int>> fNPCSizes;
     inline static std::set<std::pair<std::pair<std::string, RE::FormID>, int>> fNPCAddns;

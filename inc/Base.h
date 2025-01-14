@@ -35,6 +35,7 @@ class Base : public Singleton<Base> {
 
   public:
     static void AddRace(RE::TESRace* race);
+    static void TryUnhideRace(RE::TESRace* race);
     static int GetRaceRgIdx(RE::TESRace* race);
     static void UpdateRgSkins();
     static RE::TESRace* GetRgRace0(const size_t rgChoice, const bool onlyMCM);
@@ -45,9 +46,10 @@ class Base : public Singleton<Base> {
     static bool SetRgAddn(const size_t rgChoice, const int addnChoice, bool onlyMCM);
     static float GetRgMult(const size_t rgChoice, bool onlyMCM);
     static float GetRgMult(RE::TESRace* race);
-    static bool SetRgMult(const size_t rgIdx, const float aMult);
-    static std::vector<size_t> GetRgAddonList(size_t rgChoice, bool isFemale, bool onlyDedicated, bool onlyMCM);
-    static std::vector<size_t> GetRgAddonList(RE::TESRace* race, bool isFemale, bool onlyDedicated);
+    static bool SetRgMult(const size_t rgChoice, bool onlyMCM, const float aMult);
+    static std::vector<size_t> GetRgAddonList(size_t rgChoice, bool isFemale,  bool onlyMCM, bool onlyActive);
+    static std::vector<size_t> GetRgAddonList(RE::TESRace* race, bool isFemale, bool onlyActive);
+    static int IsAddonDedicatedToRg(const size_t rgChoice, bool isFemale, bool onlyMCM, size_t addnChoice);
     static RE::TESObjectARMO* GetSkinWithAddonForRg(const size_t rgIdx, RE::TESObjectARMO* skin, const size_t addonIdx, const bool isFemale);
     static void ReportHiddenRgs();
 
@@ -84,9 +86,18 @@ class Base : public Singleton<Base> {
     static void ExcludeNPC(const std::string npcRecord);
     static std::pair<bool, int> GetNPCAddn(RE::TESNPC* npc);
     static Tng::TNGRes SetNPCAddn(RE::TESNPC* npc, int addnIdx, bool isUser);
+    static void SetPlayerInfo(RE::Actor* aPlayer, const int addnIdx);
+    static void UnsetPlayerInfo();
+    static bool HasPlayerChanged(RE::Actor* actor);
 
   private:
     static void OrganizeNPCAddonKeywords(RE::TESNPC* npc, int addnIdx, bool isUser);
+    struct PlayerInfo {
+        inline static bool isFemale;
+        inline static RE::TESRace* race;
+        inline static bool isInfoSet;
+    };
+    inline static PlayerInfo playerInfo{};
 
   public:
     static bool LoadRgMult(const std::string rgIdRaceRecord, const float size);

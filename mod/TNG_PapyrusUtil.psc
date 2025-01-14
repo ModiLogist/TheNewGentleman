@@ -24,11 +24,12 @@ Int Function CanModifyActor(Actor akActor) Global Native
 String[] Function GetActorAddons(Actor akActor) Global Native
 Int Function SetActorAddn(Actor akActor, Int aiChoice) Global Native
 Int Function SetActorSize(Actor akActor, Int aiSizeCat) Global Native
+String[] Function ActorItemsInfo(Actor akActor) Global Native
+Bool Function SwapRevealing(Actor akActor, Int aiChoice) Global Native
 
 String[] Function GetSlot52Mods() Global Native
 ;Behavior value: -1 -> Get behavior, 0 -> Set to Normal, 1 -> Set to Revealing
 Bool Function Slot52ModBehavior(String asModName, Int aiBehavior) Global Native 
-Bool Function SwapRevealing(Armor akArmor) Global Native
 
 Function UpdateSettings() Global Native
 
