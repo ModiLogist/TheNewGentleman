@@ -3,26 +3,31 @@ ScriptName TNG_PapyrusUtil hidden
 Int Function UpdateLogLvl(Int aLvl) Global Native
 
 ;For bool functions IDs: 
-; 1: Exclude Player,
+; 0: Exclude player,
+; 1: Check players addon after load,
 ; 2: Mark mods with slot 52 as revealing by default,
-; 3: Randomize Male addons among the active ones
+; 3: Allow user to choose the behavior of mods with slot 52,
+; 4: Randomize Male addons among the active ones
 Bool Function GetBoolValue(Int aiID) Global Native
 Function SetBoolValue(Int aiID, Bool abValue) Global Native
 
+Int Function GetAllAddonsCount(Bool abIsFemale) Global Native
 String[] Function GetAllPossibleAddons(Bool abIsFemale) Global Native
 Bool Function GetAddonStatus(Bool abIsFemale, Int aiAddon) Global Native
 Function SetAddonStatus(Bool abIsFemale, Int aiAddon, Bool abStatus) Global Native
 
 String[] Function GetRgNames() Global Native
 String[] Function GetRgAddons(Int aiRgIndex) Global Native
-Int Function GetRgAddn(Int aiRgIndex) Global Native
-Function SetRgAddn(Int aiRgIndex, Int aiChoice) Global Native
+Int Function GetRgAddon(Int aiRgIndex) Global Native
+Function SetRgAddon(Int aiRgIndex, Int aiChoice) Global Native
 Float Function GetRgMult(Int aiRgIndex) Global Native
 Function SetRgMult(Int aiRgIndex, Float afMult) Global Native
 
 Int Function CanModifyActor(Actor akActor) Global Native
 String[] Function GetActorAddons(Actor akActor) Global Native
-Int Function SetActorAddn(Actor akActor, Int aiChoice) Global Native
+Armor Function GetActorAddon(Actor akActor) Global Native ;Returns None if there is no addon or another error happens
+Int Function SetActorAddon(Actor akActor, Int aiChoice) Global Native
+Int Function GetActorSize(Actor akActor) Global Native ;Returns -1 if there is an issue
 Int Function SetActorSize(Actor akActor, Int aiSizeCat) Global Native
 String[] Function ActorItemsInfo(Actor akActor) Global Native
 Bool Function SwapRevealing(Actor akActor, Int aiChoice) Global Native

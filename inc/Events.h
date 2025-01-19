@@ -10,14 +10,15 @@ class Events : public RE::BSTEventSink<RE::TESObjectLoadedEvent>, public RE::BST
     RE::BSEventNotifyControl ProcessEvent(const RE::TESSwitchRaceCompleteEvent* aEvent, RE::BSTEventSource<RE::TESSwitchRaceCompleteEvent>*) override;
 
   public:
-    static void CheckCovering(RE::Actor* actor, RE::TESObjectARMO* armor = nullptr, bool isUnequipped = false);
+    static void DoChecks(RE::Actor* actor, RE::TESObjectARMO* armor = nullptr, bool isEquipped = false);
+    static int GetNPCAutoAddon(RE::TESNPC* npc);
 
   private:
+    static void CheckCovering(RE::Actor* actor, RE::TESObjectARMO* armor, bool isEquipped);
     static RE::TESObjectARMO* GetCoveringItem(RE::Actor* actor, RE::TESObjectARMO* armor);
     static bool NeedsCover(RE::Actor* actor);
     static RE::TESBoundObject* ForceTngCover(RE::Actor* actor, bool ifUpdate);
     static void CheckForAddons(RE::Actor* actor);
-    static int GetNPCAutoAddn(RE::TESNPC* npc);
 
     
 

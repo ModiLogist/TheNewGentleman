@@ -1,17 +1,29 @@
 ﻿$TNG_Gnl,General,
 $TNG_Rac,Races,
 $TNG_Add,Addons,
-$TNG_S52,Conflicts,
+$TNG_S52,Slot 52 Mods,
+$TNG_Adv,Advanced,
 ,,
-$TNG_TRS,Reset to default,C++,
-$TNG_TNT,No genital,C++,
-$TNG_DED{}, {}: Dedidcated,C++,
-$TNG_SUP{}, {}: Supported,C++,
+$TNG_TRS,Reset to default,C++
+$TNG_TNT,No genital,C++
+,,
 $TNG_TCT,Circumcised,Esp
 $TNG_TMT,Muscular-Style 1,Esp
 $TNG_TM2,Muscular-Style 2,Esp
 $TNG_TRT,Regular-Style 1,Esp
 $TNG_TR2,Regular-Style 2,Esp
+,,
+$TNG_TCT (d),Circumcised (d), C++
+$TNG_TMT (d),Muscular-Style 1 (d), C++
+$TNG_TM2 (d),Muscular-Style 2 (d), C++
+$TNG_TRT (d),Regular-Style 1 (d), C++
+$TNG_TR2 (d),Regular-Style 2 (d), C++
+,,
+$TNG_TCT (s),Circumcised (s), C++
+$TNG_TMT (s),Muscular-Style 1 (s), C++
+$TNG_TM2 (s),Muscular-Style 2 (s), C++
+$TNG_TRT (s),Regular-Style 1 (s), C++
+$TNG_TR2 (s),Regular-Style 2 (s), C++
 ,,
 $TNG_SOH,Default Sizes,
 $TNG_SRS,Reset Size,
@@ -22,11 +34,7 @@ $TNG_S_M,Medium,
 $TNG_S_L,Large,
 $TNG_SXL,X-Large,
 ,,
-$TNG_GRC,Clipping Check,
 $TNG_GNT,Notifications,
-$TNG_GRF,Female: Auto-reveal,
-$TNG_GRM,Male: Auto-reveal,
-$TNG_GEP,Don't change player size,
 ,,
 $TNG_KyH,Controls,
 $TNG_DAK,Integration with DAK,
@@ -35,7 +43,7 @@ $TNG_K_N,Addon/Size Customization,
 $TNG_K_R,Swap Revealing/Covering,
 $TNG_K_U,Raise genital,
 $TNG_K_D,Lower genital,
-$TNG_KAL{},TNG actor lock on: {},
+$TNG_KAL,TNG actor lock on:,
 $TNG_KAR,Released actor lock,
 ,,
 $TNG_OGT,Genital Type,
@@ -51,10 +59,10 @@ $TNG_A_M,Gentlemen Addons,
 $TNG_ANW,There seems to be no addons installed for women!,
 $TNG_ANM,There seems to be no addons installed for men!,
 ,,
-$TNG_52D,Conflict Management,
-$TNG_52C,Neglect conflicts,
-$TNG_52R,All are bikini mods,
-$TNG_52U,Custom,
+$TNG_52D,Body armor in the following:,
+$TNG_52C,Hides genitalia,
+$TNG_52R,Reveals genitalia,
+$TNG_52U,Allow me to choose,
 $TNG_52N,No conflicting mods with slot 52 found!,
 ,,
 $TNG_Yes,Yes,
@@ -70,15 +78,15 @@ $TNG_W_3,DAK Integration is enabled but relevant information cannot be found. Pl
 ,,
 $TNG_E_0,The New Gentleman DLL cannot be loaded successfully! Make sure you have all the requirements installed!,C++
 ,,
-$TNG_WN1,The current race cannot be modified by TNG.,C++,
-$TNG_WN2,The current actor cannot be modified by TNG.,C++,
-$TNG_WN3,The selected addon cannot be used.,C++,
-$TNG_WN4,TNG internal issue handling the armor.,C++,
-$TNG_WN5,The NPC current skin does not allow any modifications.,C++,
-$TNG_WN6,The player size cannot be modified due to the option in MCM.,C++,
-$TNG_WN7,The skeleton is missing the bones for genitalia. TNG won't modify the race!,C++,
-$TNG_WN8,The actor's race is not supported by TNG.,C++,
-$TNG_WN9,"TNG faced an internal error. If the error can be reproduced, please report this error on the mod page as a bug report!",C++,
+$TNG_WN1,The current race cannot be modified by TNG.,C++
+$TNG_WN2,The current actor cannot be modified by TNG.,C++
+$TNG_WN3,The selected addon cannot be used.,C++
+$TNG_WN4,TNG internal issue handling the armor.,C++
+$TNG_WN5,The NPC current skin does not allow any modifications.,C++
+$TNG_WN6,The player size cannot be modified due to the option in MCM.,C++
+$TNG_WN7,The skeleton is missing the bones for genitalia. TNG won't modify the race!,C++
+$TNG_WN8,The actor's race is not supported by TNG.,C++
+$TNG_WN9,"TNG faced an internal error. If the error can be reproduced, please report this error on the mod page as a bug report!",C++
 ,,
 $TNG_WPT,The players genital addon was reverted to original to avoid issues.,
 $TNG_WPS,The players genital size was reverted to original to avoid issues.,
@@ -97,16 +105,23 @@ $TNG_HOA,The default addon for the race. Every character in this race would rece
 $TNG_HOS,Changes the race multiplier. Each actor gets a size category randomly and can be customized using the customization key. Their final genital size would be: (their race multiplier) * (their size category),
 $TNG_HAC,The chance that women receive any of the selected addons below.,
 $TNG_HAD,Wheter to distribute this addon to NPCs. All addons are always available in customization menu.,
+$TNG_HLF,"If you click, a message the local folder on your device where the TNG log (and other SKSE logs) are saved.",
 $TNG_HLL,The level of the information that is logged. Don't change it unless you think that is necessary!,
 $TNG_H52,Default behavior to treat the conflicting mods.,
 $TNG_HMR,Set behavior to neglect conflict(unchecked) or to treat the mod as a revealing mod(checked).,
 $TNG_HRM,Randomizes men genitalia with a higher chance for racial addon,
+$TNG_HPU,"If your player addon disappears after load, enable this option. (e.g. with RSV)",
+,,
+$TNG_GPH,Player extra options,
+$TNG_GPC,Check after load,
+$TNG_GEP,Don't change size,
 ,,
 $TNG_L_H,Logging,
 $TNG_L_T,Log level,
 $TNG_L_D,Show log directory,C++
 $TNG_LDN,Log directory not found,
-$TNG_LLA,All,
+$TNG_LLD,Debug,
+$TNG_LLI,Info(Default),
 $TNG_LLW,Warnings and worse,
 $TNG_LLE,Errors and worse,
 $TNG_LLC,Critical,

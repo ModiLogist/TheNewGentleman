@@ -12,7 +12,8 @@ using namespace REL::literals;
 
 #include <Version.h>
 
-typedef std::pair<RE::FormID, std::string_view> SEFormLoc;
+typedef std::pair<RE::FormID, std::string_view> SEFormLocView;
+typedef std::pair<RE::FormID, std::string> SEFormLoc;
 
 template <typename T>
 class Singleton {

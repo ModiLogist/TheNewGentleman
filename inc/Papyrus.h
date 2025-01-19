@@ -10,19 +10,21 @@ class Papyrus : public Singleton<Papyrus> {
     static void SetBoolValue(RE::StaticFunctionTag*, int settingID, bool value);
 
     static std::vector<std::string> GetAllPossibleAddons(RE::StaticFunctionTag*, bool isFemale);
-    static bool GetAddonStatus(RE::StaticFunctionTag*, bool isFemale, int aAddn);
-    static void SetAddonStatus(RE::StaticFunctionTag*, bool isFemale, int aAddn, bool status);
+    static bool GetAddonStatus(RE::StaticFunctionTag*, bool isFemale, int addonIdx);
+    static void SetAddonStatus(RE::StaticFunctionTag*, bool isFemale, int addonIdx, bool status);
 
     static std::vector<std::string> GetRgNames(RE::StaticFunctionTag*);
     static std::vector<std::string> GetRgAddons(RE::StaticFunctionTag*, int rgIdx);
-    static int GetRgAddn(RE::StaticFunctionTag*, int rgIdx);
-    static void SetRgAddn(RE::StaticFunctionTag*, int rgIdx, int choice);
+    static int GetRgAddon(RE::StaticFunctionTag*, int rgIdx);
+    static void SetRgAddon(RE::StaticFunctionTag*, int rgIdx, int choice);
     static float GetRgMult(RE::StaticFunctionTag*, int rgIdx);
     static void SetRgMult(RE::StaticFunctionTag*, int rgIdx, float mult);
 
     static int CanModifyActor(RE::StaticFunctionTag*, RE::Actor* actor);
     static std::vector<std::string> GetActorAddons(RE::StaticFunctionTag*, RE::Actor* actor);
-    static int SetActorAddn(RE::StaticFunctionTag*, RE::Actor* actor, int choice);
+    static RE::TESObjectARMO* GetActorAddon(RE::StaticFunctionTag*, RE::Actor* actor);
+    static int SetActorAddon(RE::StaticFunctionTag*, RE::Actor* actor, int choice);
+    static int GetActorSize(RE::StaticFunctionTag*, RE::Actor* actor);
     static int SetActorSize(RE::StaticFunctionTag*, RE::Actor* actor, int sizeCat);
     static std::vector<std::string> ActorItemsInfo(RE::StaticFunctionTag*, RE::Actor* actor);
     static bool SwapRevealing(RE::StaticFunctionTag*, RE::Actor* actor, int choice);

@@ -7,8 +7,8 @@ class Base : public Singleton<Base> {
   private:
     inline static const char* cBaseBone{"NPC GenitalsBase [GenBase]"};
     inline static const char* cScrtBone{"NPC GenitalsScrotum [GenScrot]"};
-    inline static const char* cNPCAutoAddn{"TNG_ActorAddnAuto:"};
-    inline static const char* cNPCUserAddn{"TNG_ActorAddnUser:"};
+    inline static const char* cNPCAutoAddon{"TNG_ActorAddnAuto:"};
+    inline static const char* cNPCUserAddon{"TNG_ActorAddnUser:"};
 
     inline static constexpr int cVanillaRaceTypes{14};
     inline static constexpr RE::FormID cRaceDefaults[cVanillaRaceTypes]{0xA01, 0xA02, 0xA03, 0xA04, 0xA03, 0xA01, 0xA04, 0xA02, 0xA01, 0xA05, 0xA04, 0xA05, 0xA03, 0xA05};
@@ -19,6 +19,7 @@ class Base : public Singleton<Base> {
     };
 
   public:
+    static int AddonIdxByLoc(bool isFemale, SEFormLocView addonLoc);
     static RE::TESObjectARMO* AddonByIdx(bool isFemale, size_t choice, bool onlyActive);
     static size_t GetAddonCount(bool isFemale, bool onlyActive);
     static bool GetAddonStatus(const bool isFemale, const size_t addnIdx);
@@ -41,12 +42,12 @@ class Base : public Singleton<Base> {
     static RE::TESRace* GetRgRace0(const size_t rgChoice, const bool onlyMCM);
     static std::vector<std::string> GetRgNames(const bool onlyMCM);
     static std::string GetRgRaceNames(size_t rgChoice, bool onlyMCM);
-    static int GetRgAddn(const size_t rgChoice, bool onlyMCM);
-    static int GetRgAddn(RE::TESRace* race);
-    static bool SetRgAddn(const size_t rgChoice, const int addnChoice, bool onlyMCM);
+    static int GetRgAddon(const size_t rgChoice, bool onlyMCM);
+    static int GetRgAddon(RE::TESRace* race);
+    static bool SetRgAddon(const size_t rgChoice, const int addnChoice, bool onlyMCM);
     static float GetRgMult(const size_t rgChoice, bool onlyMCM);
     static float GetRgMult(RE::TESRace* race);
-    static bool SetRgMult(const size_t rgChoice, bool onlyMCM, const float aMult);
+    static bool SetRgMult(const size_t rgChoice, const float mult, bool onlyMCM);
     static std::vector<size_t> GetRgAddonList(size_t rgChoice, bool isFemale,  bool onlyMCM, bool onlyActive);
     static std::vector<size_t> GetRgAddonList(RE::TESRace* race, bool isFemale, bool onlyActive);
     static int IsAddonDedicatedToRg(const size_t rgChoice, bool isFemale, bool onlyMCM, size_t addnChoice);
@@ -75,18 +76,19 @@ class Base : public Singleton<Base> {
     inline static std::map<RE::TESObjectARMO*, RE::TESObjectARMO*> ogSkins;
     static RaceGroupInfo* GetRg(const size_t rgIdx, const bool onlyMCM);
     static RaceGroupInfo* GetRg(RE::TESRace* race, const bool allowAdd);
-    static int GetRgDefAddn(Base::RaceGroupInfo& rg);
+    static int GetRgDefAddon(Base::RaceGroupInfo& rg);
     static void UpdateRgAddons(RaceGroupInfo& rg);
+    static bool RgHasAddon(RaceGroupInfo& rg, bool isFemale, int addonIdx);
     static RE::TESObjectARMO* GetSkinWithAddonForRg(RaceGroupInfo* rg, RE::TESObjectARMO* skin, const size_t addonIdx, const bool isFemale);
 
   public:
-    static Tng::TNGRes CanModifyActor(RE::Actor* actor);
+    static Tng::TNGRes CanModifyNPC(RE::TESNPC* npc);
     static Tng::TNGRes GetActorSizeCat(RE::Actor* actor, int& sizeCat);
     static Tng::TNGRes SetActorSizeCat(RE::Actor* actor, const int sizeCat);
     static void ExcludeNPC(const std::string npcRecord);
-    static std::pair<bool, int> GetNPCAddn(RE::TESNPC* npc);
-    static Tng::TNGRes SetNPCAddn(RE::TESNPC* npc, int addnIdx, bool isUser);
-    static void SetPlayerInfo(RE::Actor* aPlayer, const int addnIdx);
+    static std::pair<bool, int> GetNPCAddon(RE::TESNPC* npc);
+    static Tng::TNGRes SetNPCAddon(RE::TESNPC* npc, int addnIdx, bool isUser);
+    static void SetPlayerInfo(RE::Actor* actor, const int addnIdx);
     static void UnsetPlayerInfo();
     static bool HasPlayerChanged(RE::Actor* actor);
 
@@ -98,10 +100,4 @@ class Base : public Singleton<Base> {
         inline static bool isInfoSet;
     };
     inline static PlayerInfo playerInfo{};
-
-  public:
-    static bool LoadRgMult(const std::string rgIdRaceRecord, const float size);
-    static bool LoadRgAddn(const std::string rgIdRaceRecord, const std::string addonRecord);
-    static bool LoadNPCSize(const std::string npcRecord, const int size);
-    static bool LoadNPCAddn(const std::string npcRecord, const std::string aAddonRecord);
 };

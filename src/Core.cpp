@@ -10,6 +10,7 @@ void Core::GenitalizeRaces() {
   int ready = 0;
   for (const auto& race : lAllRacesArray) {
     if (Inis::IsRaceExcluded(race)) {
+      Tng::logger::debug("\tThe race [{}: 0x{:x}: {}] was ignored because an ini excludes it!", race->GetFile(0)->GetFilename(), race->GetLocalFormID(), race->GetFormEditorID());
       IgnoreRace(race);
       ignored++;
       continue;
@@ -41,13 +42,14 @@ void Core::GenitalizeRaces() {
     }
   }
   Base::UpdateRgSkins();
+  Inis::LoadRgInfo();
   Tng::logger::info("Recognized assigned genitals to [{}] races, found [{}] races to be ready and ignored [{}] races.", processed, ready, ignored);
 }
 
-bool Core::SetRgAddn(const size_t rgChoice, const int addnIdx) {
-  auto res = Base::SetRgAddn(rgChoice, addnIdx, true);
+bool Core::SetRgAddon(const size_t rgChoice, const int addnIdx) {
+  auto res = Base::SetRgAddon(rgChoice, addnIdx, true);
   if (!res) return res;
-  Inis::SaveRgAddn(rgChoice, addnIdx);
+  Inis::SaveRgAddon(rgChoice, addnIdx);
   return true;
 }
 
@@ -71,18 +73,16 @@ bool Core::IgnoreRace(RE::TESRace* race) {
 
 bool Core::CheckRace(RE::TESRace* race) {
   try {
+    for (auto raceInfo : hardCodedRaces)
+      if (FormToLocView(race) == raceInfo) return true;
     if (!race->HasKeyword(Tng::RaceKey(Tng::rkeyManMer)) || race->HasKeyword(Tng::RaceKey(Tng::rkeyCreature)) || !race->HasPartOf(Tng::cSlotBody) || race->IsChildRace()) return false;
-    if (Inis::IsRaceExcluded(race)) {
-      Tng::logger::warn("\tThe race [{}: 0x{:x}: {}] was ignored because an ini excludes it!", race->GetFile(0)->GetFilename(), race->GetFormID(), race->GetFormEditorID());
-      return false;
-    }
     if (!Inis::IsValidSkeleton(race->skeletonModels[0].model.data()) || !Inis::IsValidSkeleton(race->skeletonModels[1].model.data())) {
-      Tng::logger::warn("\tThe race [0x{:x}: {}] was ignored because it uses a custom skeleton!", race->GetFormID(), race->GetFormEditorID());
+      Tng::logger::warn("\tThe race [{:x}: {}] was ignored because it uses a custom skeleton!", race->GetFormID(), race->GetFormEditorID());
       IgnoreRace(race);
       return false;
     }
     if (!race->skin) {
-      Tng::logger::warn("\tThe race [0x{:x}: {}] cannot have any genitals since they do not have a skin!", race->GetFormID(), race->GetFormEditorID());
+      Tng::logger::warn("\tThe race [{:x}: {}] cannot have any genitals since they do not have a skin!", race->GetFormID(), race->GetFormEditorID());
       IgnoreRace(race);
       return false;
     }
@@ -97,15 +97,15 @@ bool Core::CheckRace(RE::TESRace* race) {
       }
     }
     if (!skinAA) {
-      Tng::logger::warn("\tThe race [0x{:x}: {}] cannot have any genitals since their skin cannot be recognized.", race->GetFormID(), race->GetFormEditorID());
+      Tng::logger::warn("\tThe race [{:x}: {}] cannot have any genitals since their skin cannot be recognized.", race->GetFormID(), race->GetFormEditorID());
       IgnoreRace(race);
       return false;
     }
     return true;
   } catch (const std::exception& er) {
-    Tng::logger::warn("\tThe race [0x{:x}: {}] caused an error [{}] in the process. TNG tries to ignore it but it might not work properly!", race->GetFormID(), race->GetFormEditorID(), er.what());
+    Tng::logger::warn("\tThe race [{:x}: {}] caused an error [{}] in the process. TNG tries to ignore it but it might not work properly!", race->GetFormID(), race->GetFormEditorID(), er.what());
     const char* lMessage =
-        fmt::format("\tThe race [0x{:x}: {}] caused an error [{}] in the process. TNG tries to ignore it but it might not work properly!", race->GetFormID(), race->GetFormEditorID(), er.what()).c_str();
+        fmt::format("\tThe race [{:x}: {}] caused an error [{}] in the process. TNG tries to ignore it but it might not work properly!", race->GetFormID(), race->GetFormEditorID(), er.what()).c_str();
     ShowSkyrimMessage(lMessage);
     IgnoreRace(race);
     return false;
@@ -137,6 +137,7 @@ void Core::GenitalizeNPCSkins() {
   std::map<std::string_view, size_t> customSkinMods{};
   std::map<RE::TESRace*, int> raceNPCCount;
   auto& allNPCs = Tng::SEDH()->GetFormArray<RE::TESNPC>();
+  size_t sizeCount[Tng::cSizeCategories]{0};
   for (const auto& npc : allNPCs) {
     if (Inis::IsNPCExcluded(npc)) {
       npc->AddKeyword(Tng::NPCKey(Tng::npckeyExclude));
@@ -144,12 +145,13 @@ void Core::GenitalizeNPCSkins() {
     }
     const auto race = npc->race;
     if (!race) {
-      Tng::logger::warn("\t\tThe NPC [0x{:x}: {}] does not have a race! They cannot be modified by TNG.", npc->GetFormID(), npc->GetFormEditorID());
+      Tng::logger::warn("\t\tThe NPC [{:x}: {}] does not have a race! They cannot be modified by TNG.", npc->GetFormID(), npc->GetFormEditorID());
       continue;
     }
     if (!race->HasKeyword(Tng::RaceKey(Tng::rkeyProcessed))) continue;
     raceNPCCount[npc->race]++;
     if (npc->IsFemale()) continue;
+    sizeCount[npc->formID % Tng::cSizeCategories]++;
     const auto skin = npc->skin;
     if (!skin) continue;
     if (skin->HasKeyword(Tng::ArmoKey(Tng::akeyIgnored))) continue;
@@ -177,13 +179,14 @@ void Core::GenitalizeNPCSkins() {
     }
     Tng::logger::info("\t\t[{}] skins were not patched.", tot);
   }
+  Tng::logger::debug("TNG disributed the sizes (from smallest to largest) to [{}] npcs!", fmt::join(sizeCount, ", "));
   Base::ReportHiddenRgs();
 }
 
-Tng::TNGRes Core::CanModifyActor(RE::Actor* actor) {
-  auto res = Base::CanModifyActor(actor);
+Tng::TNGRes Core::CanModifyNPC(RE::TESNPC* npc) {
+  auto res = Base::CanModifyNPC(npc);
   if (res < 0) return res;
-  return (Inis::IsNPCExcluded(actor->GetActorBase())) ? Tng::npcErr : res;
+  return (Inis::IsNPCExcluded(npc)) ? Tng::npcErr : res;
 }
 
 Tng::TNGRes Core::SetActorSize(RE::Actor* actor, int genSize) {
@@ -192,12 +195,12 @@ Tng::TNGRes Core::SetActorSize(RE::Actor* actor, int genSize) {
   return res;
 }
 
-Tng::TNGRes Core::SetNPCAddn(RE::TESNPC* npc, int addnIdx, bool isUser) {
+Tng::TNGRes Core::SetNPCAddon(RE::TESNPC* npc, int addnIdx, bool isUser) {
   if (!npc->race || !npc->race->HasKeyword(Tng::RaceKey(Tng::rkeyProcessed))) return Tng::raceErr;
   if (Inis::IsNPCExcluded(npc)) return Tng::npcErr;
-  auto res = Base::SetNPCAddn(npc, addnIdx, isUser);
+  auto res = Base::SetNPCAddon(npc, addnIdx, isUser);
   if (res < 0) return res;
-  if (!npc->IsPlayer() && isUser) Inis::SaveNPCAddn(npc, addnIdx);
+  if (!npc->IsPlayer() && isUser) Inis::SaveNPCAddon(npc, addnIdx);
   return res;
 }
 
@@ -208,7 +211,7 @@ std::vector<RE::TESObjectARMO*> Core::GetActorWornArmor(RE::Actor* actor) {
   auto inv = actor->GetInventory([=](RE::TESBoundObject& a_object) { return a_object.IsArmor(); });
   for (const auto& [item, invData] : inv) {
     const auto& [count, entry] = invData;
-    if (count > 0 && entry && entry->IsWorn() && FormToLoc(item) != Tng::cCover) {
+    if (count > 0 && entry && entry->IsWorn() && FormToLocView(item) != Tng::cCover) {
       res.push_back(item->As<RE::TESObjectARMO>());
     }
   }
@@ -219,54 +222,31 @@ RE::TESObjectARMO* Core::FixSkin(RE::TESObjectARMO* skin, RE::TESRace* race, con
   skin->RemoveKeywords(Tng::ArmoKeys());
   skin->AddKeyword(Tng::ArmoKey(Tng::akeyIgnored));
   if (!skin->HasPartOf(Tng::cSlotBody)) {
-    Tng::logger::info("\t\tThe skin [0x{:x}] used does not have a body part. TNG ignores it.", skin->GetFormID());
+    Tng::logger::info("\t\tThe skin [{:x}] used does not have a body part. TNG ignores it.", skin->GetFormID());
     return nullptr;
   }
   if (skin->HasPartOf(Tng::cSlotGenital)) {
-    Tng::logger::warn("\t\tThe skin [0x{:x}] cannot have a male genital.", skin->GetFormID());
+    Tng::logger::warn("\t\tThe skin [{:x}] cannot have a male genital.", skin->GetFormID());
     return nullptr;
   }
   if (!skin->race) {
-    Tng::logger::warn("\t\tThe skin [0x{:x}] does not have a race! TNG ignores it.", skin->GetFormID());
+    Tng::logger::warn("\t\tThe skin [{:x}] does not have a race! TNG ignores it.", skin->GetFormID());
     return nullptr;
   }
   if (skin->armorAddons.size() == 0) {
-    Tng::logger::warn("\t\tThe skin [0x{:x}] does not have any arma! TNG ignores it.", skin->GetFormID());
+    Tng::logger::warn("\t\tThe skin [{:x}] does not have any arma! TNG ignores it.", skin->GetFormID());
     return nullptr;
   }
   auto rgIdx = Base::GetRaceRgIdx(race);
-  auto addonIdx = Base::GetRgAddn(race);
+  auto addonIdx = Base::GetRgAddon(race);
   if (rgIdx < 0 || addonIdx == Tng::pgErr) {
-    Tng::logger::critical("\t\tSkin [0x{:x}] from file [{}] together with race [0x{:x}] from file caused a critical error!", skin->GetFormID(), skin->GetFile() ? skin->GetFile()->GetFilename() : "Unknown",
-                          race->GetFormID(), race->GetFile() ? race->GetFile()->GetFilename() : "Unknown");
+    Tng::logger::critical("\t\tSkin [0x{:x}] from file [{}] together with race [0x{:x}] from file [{}] caused a critical error!", skin->GetLocalFormID(),
+                          skin->GetFile() ? skin->GetFile()->GetFilename() : "Unknown", race->GetLocalFormID(), race->GetFile() ? race->GetFile()->GetFilename() : "Unknown");
     return nullptr;
   }
   if (addonIdx == Tng::cNul) return skin;
-  if (aName) Tng::logger::info("\t\tThe skin [0x{:x}: {}] added as extra skin.", skin->GetFormID(), aName);
+  if (aName) Tng::logger::info("\t\tThe skin [{:x}: {}] added as extra skin.", skin->GetFormID(), aName);
   return Base::GetSkinWithAddonForRg(rgIdx, skin, addonIdx, false);
-}
-
-void Core::CheckOutfits() {
-  Tng::logger::info("Checking OTFT records...");
-  bool b = false;
-  auto& allOutfits = Tng::SEDH()->GetFormArray<RE::BGSOutfit>();
-  for (auto& outfit : allOutfits) {
-    RE::TESObjectARMO* body = nullptr;
-    RE::TESObjectARMO* down = nullptr;
-    for (auto& item : outfit->outfitItems) {
-      auto armo = item ? item->As<RE::TESObjectARMO>() : nullptr;
-      if (!armo) continue;
-      if (armo->HasPartOf(Tng::cSlotBody)) body = armo;
-      if (armo->HasPartOf(Tng::cSlotGenital) && !armo->HasKeyword(Tng::ArmoKey(Tng::akeyUnderwear))) down = armo;
-    }
-    if (body && down && body != down) {
-      body->AddKeyword(Tng::ArmoKey(Tng::akeyAutoReveal));
-      Tng::logger::info("\tThe armor [0x{:x} : {}] was used together with an item equipped on slot 52 [0x{:x} : {}] in an outfit. It was marked revealing so the item on slot 52 won't be covered.",
-                        body->GetFormID(), body->GetName(), down->GetFormID(), down->GetName());
-      b = true;
-    }
-  }
-  if (!b) Tng::logger::info("\t TNG did not find any outfit that uses items on slot 32 and 52 at the same time.");
 }
 
 void Core::CheckArmorPieces() {
@@ -279,32 +259,37 @@ void Core::CheckArmorPieces() {
   int cc = 0;
   int ac = 0;
   int pa = 0;
-  auto iaKey = Tng::ArmoKey(Tng::akeyIgnored);
   std::set<std::pair<std::string, RE::TESObjectARMO*>> potentialArmor = {};
   std::set<std::string> potentialMods{};
   std::set<std::string> potentialSlot52Mods{};
+  for (auto covRec : hardCodedCovering) {
+    auto armor = Tng::SEDH()->LookupForm<RE::TESObjectARMO>(covRec.first, covRec.second);
+    if (!armor) continue;
+    armor->RemoveKeywords(Tng::ArmoKeys());
+    armor->AddKeyword(Tng::ArmoKey(Tng::akeyCover));
+  }
   for (const auto& armor : armorlist) {
     if (!armor) {
       pa++;
       continue;
-    }
+    }    
     if (armor->HasKeywordInArray(Tng::ArmoKeys(), false)) {
       hk++;
       continue;
     }
-    if (armor->armorAddons.size() == 0) armor->AddKeyword(iaKey);
+    if (armor->armorAddons.size() == 0) armor->AddKeyword(Tng::ArmoKey(Tng::akeyIgnored));
     const auto armorID = (std::string(armor->GetName()).empty()) ? armor->GetFormEditorID() : armor->GetName();
     std::string modName = armor->GetFile(0) ? std::string(armor->GetFile(0)->GetFilename()) : "";
     if (!armor->race) {
-      if (!armor->HasKeyword(iaKey)) Tng::logger::warn("\t\tThe armor [0x{:x}: {}] does not have a race! It won't be touched by Tng!", armor->GetFormID(), armorID);
-      armor->AddKeyword(iaKey);
+      if (!armor->HasKeyword(Tng::ArmoKey(Tng::akeyIgnored))) Tng::logger::warn("\t\tThe armor [{:x}: {}] does not have a race! It won't be touched by Tng!", armor->GetFormID(), armorID);
+      armor->AddKeyword(Tng::ArmoKey(Tng::akeyIgnored));
       ia++;
       continue;
     }
     if (!armor->race->HasKeywordInArray(Tng::RaceKeys(Tng::rkeyIgnore), false) && armor->race != Tng::Race(Tng::raceDefault)) continue;
     if (Inis::IsSkin(armor, modName)) {
-      Tng::logger::info("\t\tThe record [0x{:x}: {}] was marked as a skin.", armor->GetFormID(), armorID);
-      armor->AddKeyword(iaKey);
+      Tng::logger::info("\t\tThe record [{:x}: {}] was marked as a skin.", armor->GetFormID(), armorID);
+      armor->AddKeyword(Tng::ArmoKey(Tng::akeyIgnored));
       ia++;
       continue;
     }
@@ -314,38 +299,66 @@ void Core::CheckArmorPieces() {
       has52 = aa->HasPartOf(Tng::cSlotGenital);
     }
     if (!has52) {
+      if (Inis::IsRTCovering(armor, modName)) {
+        armor->AddKeyword(Tng::ArmoKey(Tng::akeyCover));
+        Tng::logger::info("\t\tThe armor [[{:x}: {}] was marked covering since it was previously marked covering during gameplay.", armor->GetFormID(), armorID);
+        ac++;
+        continue;
+      }
+      auto keyPair = [&]() -> std::pair<RE::BGSKeyword*, std::string> {
+        switch (Inis::IsRTRevealing(armor, modName)) {
+          case Tng::akeyReveal:
+            return {Tng::ArmoKey(Tng::akeyReveal), "all"};
+          case Tng::akeyRevFem:
+            return {Tng::ArmoKey(Tng::akeyRevFem), "women"};
+          case Tng::akeyRevMal:
+            return {Tng::ArmoKey(Tng::akeyRevMal), "men"};
+          default:
+            return {nullptr, ""};
+        }
+      }();
+      if (keyPair.first) {
+        if (armor->HasPartOf(Tng::cSlotBody)) {
+          armor->AddKeyword(keyPair.first);
+          Tng::logger::info("\t\tThe armor [[{:x}: {}] was marked revealing for {} since it was previously marked revealing during gameplay.", armor->GetFormID(), armorID, keyPair.second);
+          ar++;
+        } else {
+          ia++;
+        }
+        continue;
+      }
       if (Inis::IsCovering(armor, modName)) {
-        armor->AddKeyword(Tng::ArmoKey(Tng::akeyFixCover));
-        Tng::logger::info("\t\tThe armor [0x{:x}: {}] was marked covering.", armor->GetFormID(), armorID);
+        armor->AddKeyword(Tng::ArmoKey(Tng::akeyCover));
+        Tng::logger::info("\t\tThe armor [{:x}: {}] was marked covering.", armor->GetFormID(), armorID);
         cc++;
         continue;
       }
-      if (Inis::IsRevealing(armor, modName) || armor->HasKeywordString(Tng::cSOSR)) {
+      keyPair = [&]() -> std::pair<RE::BGSKeyword*, std::string> {
+        switch (Inis::IsRevealing(armor, modName)) {
+          case Tng::akeyReveal:
+            return {Tng::ArmoKey(Tng::akeyReveal), "all"};
+          case Tng::akeyRevFem:
+            return {Tng::ArmoKey(Tng::akeyRevFem), "women"};
+          case Tng::akeyRevMal:
+            return {Tng::ArmoKey(Tng::akeyRevMal), "men"};
+          default:
+            return {nullptr, ""};
+        }
+      }();
+      if (keyPair.first) {
         if (armor->HasPartOf(Tng::cSlotBody)) {
-          armor->AddKeyword(Tng::ArmoKey(Tng::akeyFixReveal));
-          Tng::logger::info("\t\tArmor [0x{:x}: {}] was marked revealing.", armor->GetFormID(), armorID);
+          armor->AddKeyword(keyPair.first);
+          Tng::logger::info("\t\tArmor [{:x}: {}] was marked revealing for {}.", armor->GetFormID(), armorID, keyPair.second);
           rr++;
         } else {
           ia++;
         }
         continue;
       }
-      if (Inis::IsRTCovering(armor, modName)) {
-        armor->AddKeyword(Tng::ArmoKey(Tng::akeyAutoCover));
-        Tng::logger::info("\t\tThe armor [[0x{:x}: {}] was marked covering since it was previously marked covering during gameplay.", armor->GetFormID(), armorID);
-        ac++;
-        continue;
-      }
-      if (Inis::IsRTRevealing(armor, modName)) {
-        armor->AddKeyword(Tng::ArmoKey(Tng::akeyAutoReveal));
-        Tng::logger::info("\t\tThe armor [[0x{:x}: {}] was marked revealing since it was previously marked revealing during gameplay.", armor->GetFormID(), armorID);
-        ar++;
-        continue;
-      }
       if (Inis::IsExtraRevealing(modName)) {
         if (armor->HasPartOf(Tng::cSlotBody)) {
-          armor->AddKeyword(Tng::ArmoKey(Tng::akeyAutoReveal));
-          Tng::logger::info("\t\tArmor [0x{:x}: {}] was marked revealing.", armor->GetFormID(), armorID);
+          armor->AddKeyword(Tng::ArmoKey(Tng::akeyReveal));
+          Tng::logger::info("\t\tArmor [{:x}: {}] was marked revealing.", armor->GetFormID(), armorID);
           ar++;
         } else {
           ia++;
@@ -354,11 +367,11 @@ void Core::CheckArmorPieces() {
       }
     } else {
       armor->RemoveKeywords(Tng::ArmoKeys());
-      armor->AddKeyword(Tng::ArmoKey(Tng::akeyFixCover));
+      armor->AddKeyword(Tng::ArmoKey(Tng::akeyCover));
       cc++;
       if (armor->HasPartOf(Tng::cSlotBody)) continue;
       if (modName != "" && Inis::IsUnhandled(modName)) potentialSlot52Mods.insert(modName);
-      Tng::logger::info("\t\tThe armor [0x{:x}: {}] would cover genitals and would have a conflict with non-revealing chest armor pieces!", armor->GetFormID(), armorID);
+      Tng::logger::info("\t\tThe armor [{:x}: {}] would cover genitals and would have a conflict with non-revealing chest armor pieces!", armor->GetFormID(), armorID);
       continue;
     }
     if (armor->HasPartOf(Tng::cSlotBody) && modName != "") potentialMods.insert(std::string{modName});
@@ -372,10 +385,10 @@ void Core::CheckArmorPieces() {
   for (auto& modName : potentialSlot52Mods) Inis::HandleModWithSlot52(modName, Inis::GetSettingBool(Tng::bsRevealSlot52Mods));
   for (auto& armorPair : potentialArmor) {
     if (Inis::IsExtraRevealing(armorPair.first)) {
-      armorPair.second->AddKeyword(Tng::ArmoKey(Tng::akeyAutoReveal));
+      armorPair.second->AddKeyword(Tng::ArmoKey(Tng::akeyReveal));
       ac++;
     } else {
-      armorPair.second->AddKeyword(Tng::ArmoKey(Tng::akeyAutoCover));
+      armorPair.second->AddKeyword(Tng::ArmoKey(Tng::akeyCover));
       ar++;
     }
   }
@@ -387,6 +400,7 @@ void Core::CheckArmorPieces() {
   if (ac > 0) Tng::logger::info("\t\t[{}]: were recognized to be covering.", ac);
   if (ar > 0) Tng::logger::info("\t\t[{}]: were recognized to be revealing.", ar);
   if (ia > 0) Tng::logger::info("\t\tThe rest [{}] are not relevant and are ignored!", ia);
+  Inis::CleanIniLists();
 }
 
 void Core::RevisitRevealingArmor() {
@@ -395,32 +409,50 @@ void Core::RevisitRevealingArmor() {
   for (const auto& armor : armorlist) {
     if (!armor) continue;
     auto modName = armor->GetFile(0) ? std::string(armor->GetFile(0)->GetFilename()) : "";
-    if (modName != "" && (armor->HasKeyword(Tng::ArmoKey(Tng::akeyAutoCover)) || armor->HasKeyword(Tng::ArmoKey(Tng::akeyAutoReveal)))) {
-      potentialArmor.insert({modName, armor});
+    if (modName != "" && (armor->HasKeyword(Tng::ArmoKey(Tng::akeyCover)) || armor->HasKeyword(Tng::ArmoKey(Tng::akeyReveal)))) {
       armor->RemoveKeywords(Tng::ArmoKeys());
+      potentialArmor.insert({modName, armor});
     }
   }
-  for (const auto& armorPair : potentialArmor) armorPair.second->AddKeyword(Tng::ArmoKey(Inis::IsExtraRevealing(armorPair.first) ? Tng::akeyAutoReveal : Tng::akeyAutoCover));
+  for (const auto& armorPair : potentialArmor) armorPair.second->AddKeyword(Tng::ArmoKey(Inis::IsExtraRevealing(armorPair.first) ? Tng::akeyReveal : Tng::akeyCover));
 }
 
-bool Core::SwapRevealing(RE::TESObjectARMO* armor) {
-  if (!armor) return false;
-  if (armor->HasKeyword(Tng::ArmoKey(Tng::akeyAutoCover))) {
-    armor->RemoveKeyword(Tng::ArmoKey(Tng::akeyAutoCover));
-    armor->AddKeyword(Tng::ArmoKey(Tng::akeyAutoReveal));
-    Inis::SaveRevealingArmor(armor);
+bool Core::SwapRevealing(RE::Actor* actor, RE::TESObjectARMO* armor) {
+  auto npc = actor ? actor->GetActorBase() : nullptr;
+  if (!npc || !armor) return false;
+  if (armor->HasKeyword(Tng::ArmoKey(Tng::akeyCover))) {
+    armor->RemoveKeyword(Tng::ArmoKey(Tng::akeyCover));
+    if (!armor->HasPartOf(Tng::cSlotBody)) return true;
+    auto revMode = npc->IsFemale() ? Tng::akeyRevFem : Tng::akeyRevMal;
+    armor->AddKeyword(Tng::ArmoKey(revMode));
+    Inis::SaveRevealingArmor(armor, revMode);
     return true;
   }
-  if (armor->HasKeyword(Tng::ArmoKey(Tng::akeyAutoReveal))) {
-    armor->RemoveKeyword(Tng::ArmoKey(Tng::akeyAutoReveal));
-    armor->AddKeyword(Tng::ArmoKey(Tng::akeyAutoCover));
-    Inis::SaveCoveringArmor(armor);
+  if (armor->HasKeyword(Tng::ArmoKey(Tng::akeyReveal))) {
+    armor->RemoveKeyword(Tng::ArmoKey(Tng::akeyReveal));
+    auto revMode = npc->IsFemale() ? Tng::akeyRevMal : Tng::akeyRevFem;
+    armor->AddKeyword(Tng::ArmoKey(revMode));
+    Inis::SaveRevealingArmor(armor, revMode);
+    return true;
+  }
+  if (armor->HasKeyword(Tng::ArmoKey(Tng::akeyRevFem))) {
+    armor->RemoveKeyword(Tng::ArmoKey(Tng::akeyRevFem));
+    auto revMode = npc->IsFemale() ? Tng::akeyCover : Tng::akeyReveal;
+    armor->AddKeyword(Tng::ArmoKey(revMode));
+    Inis::SaveRevealingArmor(armor, revMode);
+    return true;
+  }
+  if (armor->HasKeyword(Tng::ArmoKey(Tng::akeyRevMal))) {
+    armor->RemoveKeyword(Tng::ArmoKey(Tng::akeyRevMal));
+    auto revMode = npc->IsFemale() ? Tng::akeyReveal : Tng::akeyCover;
+    armor->AddKeyword(Tng::ArmoKey(revMode));
+    Inis::SaveRevealingArmor(armor, revMode);
     return true;
   }
   if (!armor->HasKeywordInArray(Tng::ArmoKeys(), false) || armor->HasKeyword(Tng::ArmoKey(Tng::akeyIgnored))) {
     armor->RemoveKeyword(Tng::ArmoKey(Tng::akeyIgnored));
-    armor->AddKeyword(Tng::ArmoKey(Tng::akeyAutoCover));
-    Inis::SaveCoveringArmor(armor);
+    armor->AddKeyword(Tng::ArmoKey(Tng::akeyCover));
+    Inis::SaveRevealingArmor(armor, Tng::akeyCover);
     return true;
   }
   return false;

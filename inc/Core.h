@@ -3,7 +3,7 @@
 class Core : public Singleton<Core> {
   public:
     static void GenitalizeRaces();
-    static bool SetRgAddn(const size_t rgChoice, const int addnIdx);
+    static bool SetRgAddon(const size_t rgChoice, const int addnIdx);
 
   private:
     static bool IgnoreRace(RE::TESRace* race);
@@ -13,17 +13,22 @@ class Core : public Singleton<Core> {
 
   public:
     static void GenitalizeNPCSkins();
-    static Tng::TNGRes CanModifyActor(RE::Actor* actor);
+    static Tng::TNGRes CanModifyNPC(RE::TESNPC* npc);
     static Tng::TNGRes SetActorSize(RE::Actor* actor, int genSize);
-    static Tng::TNGRes SetNPCAddn(RE::TESNPC* npc, int addnIdx, bool isUser);
+    static Tng::TNGRes SetNPCAddon(RE::TESNPC* npc, int addnIdx, bool isUser);
     static std::vector<RE::TESObjectARMO*> GetActorWornArmor(RE::Actor* actor);
 
   private:
     static RE::TESObjectARMO* FixSkin(RE::TESObjectARMO* skin, RE::TESRace* race, const char* const aName);
 
   public:
-    static void CheckOutfits();
     static void CheckArmorPieces();
     static void RevisitRevealingArmor();
-    static bool SwapRevealing(RE::TESObjectARMO* armor);
+    static bool SwapRevealing(RE::Actor* actor, RE::TESObjectARMO* armor);
+
+  private:
+    inline static constexpr size_t hardCodedCoveringCount{1};
+    inline static constexpr SEFormLocView hardCodedCovering[hardCodedCoveringCount]{{0x3D306, "Dragonborn.esm"}};
+    inline static constexpr size_t hardCodedRacesCount{1};
+    inline static constexpr SEFormLocView hardCodedRaces[hardCodedRacesCount]{{0x67CD8, Tng::cSkyrim}};
 };

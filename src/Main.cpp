@@ -22,8 +22,7 @@ static void InitializeLogging() {
 
   std::shared_ptr<spdlog::logger> log;
   log = std::make_shared<spdlog::logger>("Global", std::make_shared<spdlog::sinks::basic_file_sink_mt>(lPath->string(), true));
-  log->set_level(Inis::GetLogLvl() > static_cast<int>(spdlog::level::debug) && Inis::GetLogLvl() < static_cast<int>(spdlog::level::n_levels) ? static_cast<spdlog::level::level_enum>(Inis::GetLogLvl())
-                                                                                                                                             : spdlog::level::info);
+  log->set_level(Inis::GetLogLvl());
   log->flush_on(spdlog::level::trace);
   spdlog::set_default_logger(std::move(log));
   spdlog::set_pattern("[%H:%M:%S.%e] [%l] %v");
@@ -42,7 +41,6 @@ static void EventListener(SKSE::MessagingInterface::Message* message) {
     Inis::LoadTngInis();
     Core::GenitalizeRaces();
     Core::GenitalizeNPCSkins();
-    Core::CheckOutfits();
     Core::CheckArmorPieces();
     Tng::logger::info("TheNewGentleman finished initialization.");
     Events::RegisterEvents();
@@ -75,7 +73,7 @@ extern "C" __declspec(dllexport) bool SKSEAPI SKSEPlugin_Query(const SKSE::Query
 
 extern "C" [[maybe_unused]] __declspec(dllexport) bool SKSEPlugin_Load(const SKSE::LoadInterface* aSkse) {
   InitializeLogging();
-  SKSE::Init(aSkse);
+  SKSE::Init(aSkse, false);
   Tng::logger::info("Initializing TheNewGentleman {}!", Version::NAME.data());
   Tng::logger::info("Game version : {}", aSkse->RuntimeVersion().string());
   SKSE::GetMessagingInterface()->RegisterListener(EventListener);

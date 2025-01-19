@@ -12,11 +12,11 @@ namespace Tng {
   inline static constexpr RE::BGSBipedObjectForm::BipedObjectSlot cSlotBody{RE::BGSBipedObjectForm::BipedObjectSlot::kBody};
   inline static constexpr RE::BGSBipedObjectForm::BipedObjectSlot cSlotGenital{RE::BGSBipedObjectForm::BipedObjectSlot::kModPelvisSecondary};
 
-  inline static constexpr SEFormLoc cProblemArmoKeyID{0xFF4, cName};
-  inline static constexpr SEFormLoc cMalAddKeyID{0xFF9, cName};
-  inline static constexpr SEFormLoc cFemAddKeyID{0xFFA, cName};
+  inline static constexpr SEFormLocView cProblemArmoKeyID{0xFF4, cName};
+  inline static constexpr SEFormLocView cMalAddKeyID{0xFF9, cName};
+  inline static constexpr SEFormLocView cFemAddKeyID{0xFFA, cName};
 
-  inline static constexpr SEFormLoc cGentifiedID{0xE00, cName};
+  inline static constexpr SEFormLocView cGentifiedID{0xE00, cName};
 
   inline static constexpr size_t cMalRandomPriority{100};
   inline static constexpr int cNA{-99};
@@ -42,35 +42,36 @@ namespace Tng {
     resOkSupported = 22,
   };
 
-  enum BoolSetting { bsExcludePlayerSize, bsRevealSlot52Mods, bsRandomizeMaleAddn, BoolSettingCount };
-  inline static bool boolSettings[BoolSettingCount] = {false};
+  enum BoolSetting { bsExcludePlayerSize, bsCheckPlayerAddon, bsRevealSlot52Mods, bsAllowMixSlot52Mods, bsRandomizeMaleAddon, BoolSettingCount };
+  inline static bool boolSettings[BoolSettingCount] = {false, false, false, false, false};
 
   enum Races { raceDefault, raceDefBeast, RacesCount };
 
-  enum RaceKeys { rkeyProcessed, rkeyReady, rkeyIgnore, rkeyManMer, rkeyBeast, rkeyCreature, RaceKeysCount };
-  enum NPCKeys { npckeyExclude, npckeyGentlewoman, NPCKeysCount };
-  enum ArmoKeys { akeyIgnored, akeyAutoCover, akeyFixCover, akeyAutoReveal, akeyFixReveal, akeyUnderwear, akeySkinWP, akeyGenSkin, ArmoKeysCount };
+  enum eRaceKeys { rkeyProcessed, rkeyReady, rkeyIgnore, rkeyManMer, rkeyBeast, rkeyCreature, RaceKeysCount };
+  enum eNPCKeys { npckeyExclude, npckeyGentlewoman, NPCKeysCount };
+  enum eArmoKeys { akeyCover, akeyRevFem, akeyRevMal, akeyReveal, akeyIgnored, akeyUnderwear, akeySkinWP, akeyGenSkin, ArmoKeysCount };
+  inline static constexpr eArmoKeys RevKeys[3]{akeyReveal, akeyRevFem, akeyRevMal};
 
   enum UserCtrls { ctrlDAK, ctrlSetupNPC, ctrlRiseGen, ctrlFallGen, ctrlSwapRevealing, UserCtrlsCount };
 
   namespace {
-    inline static constexpr SEFormLoc cRaceIDs[RacesCount]{{0x19, cSkyrim}, {0x13745, cSkyrim}};
+    inline static constexpr SEFormLocView cRaceIDs[RacesCount]{{0x19, cSkyrim}, {0x13745, cSkyrim}};
 
-    inline static constexpr SEFormLoc cRaceKeyIDs[RaceKeysCount] = {{0xFF0, cName}, {0xFF1, cName}, {0xFF2, cName}, {0x13794, cSkyrim}, {0xD61D1, cSkyrim}, {0x13795, cSkyrim}};
+    inline static constexpr SEFormLocView cRaceKeyIDs[RaceKeysCount] = {{0xFF0, cName}, {0xFF1, cName}, {0xFF2, cName}, {0x13794, cSkyrim}, {0xD61D1, cSkyrim}, {0x13795, cSkyrim}};
 
-    inline static constexpr SEFormLoc cNPCKeyIDs[NPCKeysCount] = {{0xFF5, cName}, {0xFF8, cName}};
+    inline static constexpr SEFormLocView cNPCKeyIDs[NPCKeysCount] = {{0xFF5, cName}, {0xFF8, cName}};
 
-    inline static constexpr SEFormLoc cArmoKeyIDs[ArmoKeysCount] = {{0xFF3, cName}, {0xFFC, cName}, {0xFFD, cName}, {0xFFB, cName}, {0xFFF, cName}, {0xFFE, cName}, {0xFF7, cName}, {0xFF6, cName}};
+    inline static constexpr SEFormLocView cArmoKeyIDs[ArmoKeysCount] = {{0xFFD, cName}, {0xFFB, cName}, {0xFFC, cName}, {0xFFF, cName}, {0xFF3, cName}, {0xFFE, cName}, {0xFF7, cName}, {0xFF6, cName}};
 
     inline static constexpr RE::FormID cSizeKeyIDs[cSizeCategories]{0xFE1, 0xFE2, 0xFE3, 0xFE4, 0xFE5};
 
-    inline static constexpr SEFormLoc cPCAddon{0xCFF, cName};
-    inline static constexpr SEFormLoc cWomenChanceID{0xCA0, cName};
+    inline static constexpr SEFormLocView cPCAddon{0xCFF, cName};
+    inline static constexpr SEFormLocView cWomenChanceID{0xCA0, cName};
     inline static constexpr RE::FormID cSizeGlbIDs[cSizeCategories]{0xC01, 0xC02, 0xC03, 0xC04, 0xC05};
 
-    inline static constexpr SEFormLoc cUserCtrlIDs[UserCtrlsCount] = {{0xC00, Tng::cName}, {0xCB0, Tng::cName}, {0xCB1, Tng::cName}, {0xCB2, Tng::cName}, {0xCB3, Tng::cName}};
+    inline static constexpr SEFormLocView cUserCtrlIDs[UserCtrlsCount] = {{0xC00, Tng::cName}, {0xCB0, Tng::cName}, {0xCB1, Tng::cName}, {0xCB2, Tng::cName}, {0xCB3, Tng::cName}};
 
-    inline static constexpr SEFormLoc cCover{0xAFF, cName};
+    inline static constexpr SEFormLocView cCover{0xAFF, cName};
 
     inline static RE::TESDataHandler* fSEDH;
     inline static RE::TESRace* races[RacesCount];
@@ -87,6 +88,8 @@ namespace Tng {
     inline static RE::TESGlobal* ctrlGlbs[UserCtrlsCount]{nullptr};
 
     inline static RE::BGSListForm* fGentified;
+
+    inline static RE::TESObjectARMO* block;
   }
 
   static RE::TESDataHandler* SEDH() {
@@ -132,7 +135,7 @@ namespace Tng {
 
   static std::vector<RE::BGSKeyword*> ArmoKeys(const size_t last = ArmoKeysCount) {
     std::vector<RE::BGSKeyword*> res = {};
-    for (size_t i = 0; i< (last > ArmoKeysCount ? ArmoKeysCount : last) ; i++) res.push_back(ArmoKey(i));
+    for (size_t i = 0; i < (last > ArmoKeysCount ? ArmoKeysCount : last); i++) res.push_back(ArmoKey(i));
     return res;
   }
 
@@ -172,6 +175,11 @@ namespace Tng {
     return fGentified;
   }
 
+  static RE::TESObjectARMO* Block() {
+    if (!block) block = Tng::SEDH()->LookupForm<RE::TESObjectARMO>(cCover.first, cCover.second);
+    return block;
+  }
+
   static RE::BGSKeyword* ProduceOrGetKw(const std::string& keword) {
     auto& allKeywords = Tng::SEDH()->GetFormArray<RE::BGSKeyword>();
     auto it = std::find_if(allKeywords.begin(), allKeywords.end(), [&](const auto& kw) { return kw && kw->formEditorID == keword.c_str(); });
@@ -187,31 +195,36 @@ namespace Tng {
     }
     return res;
   }
-
 }
 
-static std::pair<std::string, RE::FormID> StrToRecord(const std::string record) {
-  const size_t lSepLoc = record.find(Tng::cDelimChar);
-  const RE::FormID lFormID = std::strtol(record.substr(0, lSepLoc).data(), nullptr, 0);
-  const std::string modName = record.substr(lSepLoc + 1);
-  return std::make_pair(modName, lFormID);
+static void ShowSkyrimMessage(const char* message) { RE::DebugMessageBox(message); }
+
+static SEFormLoc StrToLoc(const std::string recordStr) {
+  const size_t lSepLoc = recordStr.find(Tng::cDelimChar);
+  if (lSepLoc == std::string::npos) return {0, ""};
+  const RE::FormID lFormID = std::strtol(recordStr.substr(0, lSepLoc).data(), nullptr, 0);
+  const std::string modName = recordStr.substr(lSepLoc + 1);
+  return std::make_pair(lFormID, modName);
 }
 
-static std::string RecordToStr(RE::TESForm* form) {
+static SEFormLoc FormToLoc(const RE::TESForm* form) {
+  std::string filename = form->GetFile(0) ? std::string(form->GetFile(0)->GetFilename()) : "NoFile";
+  return {form->GetLocalFormID(), filename};
+}
+
+static SEFormLocView FormToLocView(RE::TESForm* form) {
+  auto filename = form->GetFile(0) ? form->GetFile(0)->GetFilename() : "NoFile";
+  return {form->GetLocalFormID(), filename};
+}
+
+static std::string FormToStr(RE::TESForm* form) {
   if (!form || !form->GetFile(0)) return "";
   std::ostringstream oss;
   oss << std::hex << form->GetLocalFormID();
   return "0x" + oss.str() + Tng::cDelimChar + std::string(form->GetFile(0)->GetFilename());
 }
 
-static void ShowSkyrimMessage(const char* message) { RE::DebugMessageBox(message); }
-
-static SEFormLoc FormToLoc(RE::TESForm* form) {
-  auto filename = form->GetFile(0) ? form->GetFile(0)->GetFilename() : "NoFile";
-  return {form->GetLocalFormID(), filename};
-}
-
-static bool FormHasKW(const RE::BGSKeywordForm* form, const SEFormLoc formID) {
+static bool FormHasKW(const RE::BGSKeywordForm* form, const SEFormLocView formID) {
   auto lRawID = Tng::SEDH()->LookupFormID(formID.first, formID.second);
   return form->HasKeywordID(lRawID);
 }
@@ -225,6 +238,6 @@ static bool AddonHasRace(const RE::TESObjectARMA* addnIdx, const RE::TESRace* ra
 
 template <typename FormType>
 static constexpr FormType* LoadForm(std::string formRecord) {
-  auto lRecod = StrToRecord(formRecord);
-  return Tng::SEDH()->LookupForm<FormType>(lRecod.second, lRecod.first);
+  auto record = StrToLoc(formRecord);
+  return Tng::SEDH()->LookupForm<FormType>(record.first, record.second);
 }
