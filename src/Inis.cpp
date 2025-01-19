@@ -190,12 +190,12 @@ void Inis::LoadRgInfo() {
     auto addonIdx = Base::AddonIdxByLoc(false, rgInfo.second);
     if ((rgIdx < 0) || (addonIdx < 0)) continue;
     if (Base::SetRgAddon(rgIdx, addonIdx, false))
-      Tng::logger::debug("Restored the addon of race [0x{:x}] from file [{}] to addon [0x{:x}] from file [{}]", rgInfo.first.first, rgInfo.first.second, rgInfo.second.first, rgInfo.second.second);
+      Tng::logger::debug("Restored the addon of race [xx{:x}] from file [{}] to addon [xx{:x}] from file [{}]", rgInfo.first.first, rgInfo.first.second, rgInfo.second.first, rgInfo.second.second);
   }
   for (auto &rgInfo : racialMults) {
     auto rgIdx = Base::GetRaceRgIdx(Tng::SEDH()->LookupForm<RE::TESRace>(rgInfo.first.first, rgInfo.first.second));
     if (rgIdx < 0) continue;
-    if (Base::SetRgMult(rgIdx, rgInfo.second, false)) Tng::logger::debug("Restored the size multiplier of race [0x{:x}] from file [{}] to [{}]", rgInfo.first.first, rgInfo.first.second, rgInfo.second);
+    if (Base::SetRgMult(rgIdx, rgInfo.second, false)) Tng::logger::debug("Restored the size multiplier of race [xx{:x}] from file [{}] to [{}]", rgInfo.first.first, rgInfo.first.second, rgInfo.second);
   }
   racialAddons.clear();
   racialMults.clear();
@@ -208,7 +208,7 @@ void Inis::LoadNpcInfo() {
     auto addonIdx = Base::AddonIdxByLoc(npc->IsFemale(), npcInfo.second);
     if (addonIdx < 0) continue;
     if (Base::SetNPCAddon(npc, addonIdx, true) >= 0)
-      Tng::logger::debug("Restored the addon of npc [0x{:x}] from file [{}] to addon [0x{:x}] from file [{}]", npcInfo.first.first, npcInfo.first.second, npcInfo.second.first, npcInfo.second.second);
+      Tng::logger::debug("Restored the addon of npc [xx{:x}] from file [{}] to addon [xx{:x}] from file [{}]", npcInfo.first.first, npcInfo.first.second, npcInfo.second.first, npcInfo.second.second);
   }
   for (auto &npcInfo : npcSizeCats) {
     auto npc = Tng::SEDH()->LookupForm<RE::TESNPC>(npcInfo.first.first, npcInfo.first.second);
@@ -216,7 +216,7 @@ void Inis::LoadNpcInfo() {
     if (!npc || sizeCat < 0 || sizeCat >= Tng::cSizeCategories) continue;
     npc->RemoveKeywords(Tng::SizeKeys());
     npc->AddKeyword(Tng::SizeKey(sizeCat));
-    Tng::logger::debug("Restored the size category of npc [0x{:x}] from file [{}] to [{}]", npcInfo.first.first, npcInfo.first.second, npcInfo.second);
+    Tng::logger::debug("Restored the size category of npc [xx{:x}] from file [{}] to [{}]", npcInfo.first.first, npcInfo.first.second, npcInfo.second);
   }
   npcAddons.clear();
   npcSizeCats.clear();
@@ -276,7 +276,7 @@ void Inis::SaveRgMult(const size_t rg, const float mult) {
   auto race = Base::GetRgRace0(rg, true);
   auto raceRecord = FormToStr(race);
   if (raceRecord.empty()) {
-    Tng::logger::critical("Failed to save the size multiplier for race [{:x}: {}]!", race->GetFormID(), race->GetFormEditorID());
+    Tng::logger::critical("Failed to save the size multiplier for race [0x{:x}: {}]!", race->GetFormID(), race->GetFormEditorID());
     return;
   }
   if (mult < 1.0001f && mult > 0.9999f) {
@@ -295,7 +295,7 @@ void Inis::SaveRgAddon(const size_t rg, const int choice) {
   auto raceRecord = FormToStr(race);
   if (raceRecord == "") {
     if (race) {
-      Tng::logger::critical("Failed to save the selected addon for race [{:x}: {}]!", race->GetFormID(), race->GetFormEditorID());
+      Tng::logger::critical("Failed to save the selected addon for race [0x{:x}: {}]!", race->GetFormID(), race->GetFormEditorID());
     } else {
       Tng::logger::critical("Failed to save the selected addon for a race!");
     }
@@ -313,7 +313,7 @@ void Inis::SaveRgAddon(const size_t rg, const int choice) {
       auto addonRecord = FormToStr(addon);
       if (addonRecord == "") {
         if (addon) {
-          Tng::logger::critical("Failed to save the addon [{:x}: {}] for a race !", addon->GetFormID(), addon->GetFormEditorID());
+          Tng::logger::critical("Failed to save the addon [0x{:x}: {}] for a race !", addon->GetFormID(), addon->GetFormEditorID());
         } else {
           Tng::logger::critical("Failed to save an addon for a race !");
         }

@@ -91,12 +91,12 @@ void Base::SetGlobalSize(size_t idx, float size) {
 // Race handling and info
 void Base::AddRace(RE::TESRace *race) {
   int rgCount = static_cast<int>(rgInfoList.size());
-  Tng::logger::debug("\tTrying to add race [{:x}: {}] ...", race->GetFormID(), race->GetFormEditorID());
+  Tng::logger::debug("\tTrying to add race [0x{:x}: {}] ...", race->GetFormID(), race->GetFormEditorID());
   auto rg = GetRg(race, true);
   if (rgInfoList.size() > rgCount)
-    Tng::logger::info("\tThe race [{:x}: {}] was recognized as a new group {}.", race->GetFormID(), race->GetFormEditorID(), rg->name);
+    Tng::logger::info("\tThe race [0x{:x}: {}] was recognized as a new group {}.", race->GetFormID(), race->GetFormEditorID(), rg->name);
   else
-    Tng::logger::info("\tThe race [{:x}: {}] was recognized as a member of existing group {}.", race->GetFormID(), race->GetFormEditorID(), rg->name);
+    Tng::logger::info("\tThe race [0x{:x}: {}] was recognized as a member of existing group {}.", race->GetFormID(), race->GetFormEditorID(), rg->name);
 }
 
 void Base::TryUnhideRace(RE::TESRace *race) {
@@ -348,9 +348,9 @@ void Base::UpdateRgAddons(Base::RaceGroupInfo &rg) {
       rg.addonIdx = i;
     }
     if (rg.malAddons[i].first)
-      Tng::logger::debug("\t\tThe addon [{:x}] from file [{}] fully supports men in the race group [{}]!", addon->GetFormID(), addon->GetFile(0)->GetFilename(), rg.name);
+      Tng::logger::debug("\t\tThe addon [0x{:x}] from file [{}] fully supports men in the race group [{}]!", addon->GetFormID(), addon->GetFile(0)->GetFilename(), rg.name);
     else
-      Tng::logger::debug("\t\tThe addon [{:x}] from file [{}] can be used for men in the race group [{}]!", addon->GetFormID(), addon->GetFile(0)->GetFilename(), rg.name);
+      Tng::logger::debug("\t\tThe addon [0x{:x}] from file [{}] can be used for men in the race group [{}]!", addon->GetFormID(), addon->GetFile(0)->GetFilename(), rg.name);
   }
   for (size_t i = 0; i < femAddons.size(); i++) {
     auto &addon = femAddons[i].first;
@@ -364,9 +364,9 @@ void Base::UpdateRgAddons(Base::RaceGroupInfo &rg) {
     }
     if (!lSupports) continue;
     if (rg.femAddons[i].first)
-      Tng::logger::debug("\t\tThe addon [{:x}] from file [{}] fully supports women in the race group [{}]!", addon->GetFormID(), addon->GetFile(0)->GetFilename(), rg.name);
+      Tng::logger::debug("\t\tThe addon [0x{:x}] from file [{}] fully supports women in the race group [{}]!", addon->GetFormID(), addon->GetFile(0)->GetFilename(), rg.name);
     else
-      Tng::logger::debug("\t\tThe addon [{:x}] from file [{}] can be used for women in the race group [{}]!", addon->GetFormID(), addon->GetFile(0)->GetFilename(), rg.name);
+      Tng::logger::debug("\t\tThe addon [0x{:x}] from file [{}] can be used for women in the race group [{}]!", addon->GetFormID(), addon->GetFile(0)->GetFilename(), rg.name);
   }
 }
 
