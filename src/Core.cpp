@@ -76,11 +76,7 @@ bool Core::CheckRace(RE::TESRace* race) {
     for (auto raceInfo : hardCodedRaces)
       if (FormToLocView(race) == raceInfo) return true;
     if (!race->HasKeyword(Tng::RaceKey(Tng::rkeyManMer)) || race->HasKeyword(Tng::RaceKey(Tng::rkeyCreature)) || !race->HasPartOf(Tng::cSlotBody) || race->IsChildRace()) return false;
-    if (!Inis::IsValidSkeleton(race->skeletonModels[0].model.data()) || !Inis::IsValidSkeleton(race->skeletonModels[1].model.data())) {
-      Tng::logger::warn("\tThe race [0x{:x}: {}] was ignored because it uses a custom skeleton!", race->GetFormID(), race->GetFormEditorID());
-      IgnoreRace(race);
-      return false;
-    }
+    
     if (!race->skin) {
       Tng::logger::warn("\tThe race [0x{:x}: {}] cannot have any genitals since they do not have a skin!", race->GetFormID(), race->GetFormEditorID());
       IgnoreRace(race);

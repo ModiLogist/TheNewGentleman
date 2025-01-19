@@ -37,20 +37,7 @@ void Inis::LoadSingleIni(const char *aPath, const std::string_view fileName) {
       Tng::logger::info("\t- Found [{}] excluded races in [{}].", values.size(), fileName);
       LoadModRecodPairs(values, excludedRaces);
     }
-  }
-  if (ini.SectionExists(cSkeleton)) {
-    if (ini.GetAllValues(cSkeleton, cValidModel, values)) {
-      Tng::logger::info("\t- Found [{}] skeleton models in [{}].", values.size(), fileName);
-      for (const auto &entry : values) {
-        const std::string model(entry.pItem);
-        validSkeletons.insert(model);
-      }
-    }
-    if (ini.GetAllValues(cSkeleton, cValidRace, values)) {
-      Tng::logger::info("\t- Found [{}] valid races in [{}].", values.size(), fileName);
-      LoadModRecodPairs(values, validRaces);
-    }
-  }
+  }  
   if (ini.SectionExists(cSkinSection)) {
     if (ini.GetAllValues(cSkinSection, cSkinMod, values)) {
       Tng::logger::info("\t- Found [{}] skin mods in [{}].", values.size(), fileName);
@@ -170,12 +157,6 @@ void Inis::LoadMainIni() {
     const std::string armorRecord(entry.pItem);
     UpdateRevealing(armorRecord, isRevealing ? Tng::akeyRevMal : Tng::cNA);
   }
-
-  validSkeletons.insert(Tng::Race(Tng::raceDefault)->skeletonModels[0].model.data());
-  validSkeletons.insert(Tng::Race(Tng::raceDefault)->skeletonModels[1].model.data());
-  validSkeletons.insert(Tng::Race(Tng::raceDefBeast)->skeletonModels[0].model.data());
-  validSkeletons.insert(Tng::Race(Tng::raceDefBeast)->skeletonModels[1].model.data());
-
   for (size_t i = 0; i < Tng::BoolSettingCount; i++) Tng::boolSettings[i] = ini.GetBoolValue(cGeneral, cBoolSettings[i], false);
   if (ini.KeyExists(cControls, cCtrlNames[Tng::ctrlDAK])) Tng::UserCtrl(Tng::ctrlDAK)->value = ini.GetBoolValue(cControls, cCtrlNames[Tng::ctrlDAK]) ? 2.0f : 0.0f;
   for (size_t i = 0; i < Tng::UserCtrlsCount; i++)
@@ -225,7 +206,6 @@ void Inis::LoadNpcInfo() {
 void Inis::CleanIniLists() {
   excludedRaceMods.clear();
   excludedRaces.clear();
-  validRaces.clear();
 
   skinMods.clear();
   skinRecords.clear();
@@ -512,8 +492,6 @@ void Inis::UpdateRevealing(const std::string armorRecod, const int revealingMode
   }();
   list.insert(StrToLoc(armorRecod));
 }
-
-bool Inis::IsValidSkeleton(const std::string model) { return validSkeletons.find(model) != validSkeletons.end(); }
 
 bool Inis::IsRaceExcluded(const RE::TESRace *race) {
   if (!race->GetFile(0)) return false;

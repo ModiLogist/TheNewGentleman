@@ -11,10 +11,6 @@ class Inis : public Singleton<Inis> {
     inline static constexpr const char* cExcModRaces{"ExcludeRacesInMod"};
     inline static constexpr const char* cExcRace{"ExcludeRace"};
 
-    inline static constexpr const char* cSkeleton{"Skeleton"};
-    inline static constexpr const char* cValidModel{"ValidModel"};
-    inline static constexpr const char* cValidRace{"ValidRace"};
-
     inline static constexpr const char* cSkinSection{"Skin"};
     inline static constexpr const char* cSkinMod{"SkinMod"};
     inline static constexpr const char* cSkinRecord{"SkinRecord"};
@@ -28,7 +24,6 @@ class Inis : public Singleton<Inis> {
 
     inline static std::set<std::string> excludedRaceMods;
     inline static std::set<SEFormLoc> excludedRaces;
-    inline static std::set<SEFormLoc> validRaces;
 
     inline static std::set<SEFormLoc> excludedNPCs;
 
@@ -118,7 +113,6 @@ class Inis : public Singleton<Inis> {
     static void UpdateRevealing(const std::string armorRecod, const int revealingMode);
 
   public:
-    static bool IsValidSkeleton(const std::string model);
     static bool IsRaceExcluded(const RE::TESRace* race);
 
     static bool IsNPCExcluded(const RE::TESNPC* npc);
@@ -134,7 +128,6 @@ class Inis : public Singleton<Inis> {
     static void HandleModWithSlot52(const std::string modName, const bool defRevealing);
 
   private:
-    inline static std::set<std::string> validSkeletons;
     inline static std::set<std::string> slot52Mods;
     inline static std::set<std::string> extraRevealingMods;
 
