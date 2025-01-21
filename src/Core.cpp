@@ -371,10 +371,10 @@ void Core::CheckArmorPieces() {
   for (auto& armorPair : potentialArmor) {
     if (Inis::IsExtraRevealing(armorPair.first)) {
       armorPair.second->AddKeyword(Tng::ArmoKey(Tng::akeyReveal));
-      ac++;
+      ar++;
     } else {
       armorPair.second->AddKeyword(Tng::ArmoKey(Tng::akeyCover));
-      ar++;
+      ac++;
     }
   }
   Tng::logger::info("\tProcessed [{}] armor pieces:", armorlist.size());
