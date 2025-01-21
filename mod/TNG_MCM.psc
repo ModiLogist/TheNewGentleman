@@ -66,7 +66,7 @@ Int fiPCEHdl
 Int fiPCUHdl
 
 Int Function GetVersion()
-  Return 7
+  Return 8
 EndFunction
 
 Event OnConfigInit()
@@ -176,116 +176,6 @@ Event OnGameReload()
     TNG_PapyrusUtil.SetActorSize(PlayerRef, PlayerSize)
     HandleWarnings(res)
   EndIf
-EndEvent
-
-Event OnOptionHighlight(Int aiOption)
-
-  If CurrentPage == Pages[0]
-    If aiOption == fiDAKHdl
-      SetInfoText("$TNG_HGD")
-      Return
-    EndIf
-    If aiOption == fiNotifsHdl
-      SetInfoText("$TNG_HGN")
-      Return
-    EndIf
-    If (aiOption == fiUpKeyHdl) || (aiOption == fiDownKeyHdl)
-      SetInfoText("$TNG_HKU")
-      Return
-    EndIf
-    If aiOption == fiNPCKeyHdl
-      SetInfoText("$TNG_HKN")
-      Return
-    EndIf    
-    If aiOption == fiRevealKeyHdl
-      SetInfoText("$TNG_HKS")
-      Return
-    EndIf
-    Int liCurr = cSSizeGlobals.Length
-    While liCurr > 0
-      liCurr -= 1
-      If aiOption == fIGlblSizeHdls[liCurr]
-        SetInfoText("$TNG_H_S")
-        Return
-      EndIf
-    EndWhile
-    Return
-  EndIf  
-  
-  If CurrentPage == Pages[1]
-    Int liCurr = TNG_PapyrusUtil.GetRGNames().Length
-    While liCurr > 0
-      liCurr -= 1
-      If aiOption == fIRaceTypeHdls[liCurr]
-        SetInfoText("$TNG_HOA")
-        Return
-      EndIf
-      If aiOption == fIRaceSizeHdls[liCurr]
-        SetInfoText("$TNG_HOS")
-        Return
-      EndIf
-    EndWhile
-    Return
-  EndIf
-  
-  If CurrentPage == Pages[2]
-    If aiOption == fiWomenChanceHdl
-      SetInfoText("$TNG_HAC")
-      Return
-    EndIf
-    If aiOption == fiRandMalAddonHdl
-      SetInfoText("$TNG_HRM")
-      Return
-    EndIf
-		Int liCurr = TNG_PapyrusUtil.GetAllPossibleAddons(True).Length		
-    While liCurr > 0
-		  liCurr -= 1
-      If aiOption == fIFemAddonHdls[liCurr]
-        SetInfoText("$TNG_HAD")
-        Return
-      EndIf
-    EndWhile
-		liCurr = TNG_PapyrusUtil.GetAllPossibleAddons(False).Length
-    While liCurr > 0
-			liCurr -= 1
-      If aiOption == fIMalAddonHdls[liCurr]
-        SetInfoText("$TNG_HAD")
-        Return
-      EndIf
-    EndWhile
-    Return
-  EndIf
-  
-  If CurrentPage == Pages[3]
-    If aiOption == fi52DefBehaviorHdl
-      SetInfoText("$TNG_H52")
-      Return
-    Else
-      SetInfoText("$TNG_HMR")
-      Return
-    EndIf
-  EndIf
-  
-  If CurrentPage == Pages[4]
-    If aiOption == fiPCUHdl
-      SetInfoText("$TNG_HPU")
-      Return
-    EndIf
-    If aiOption == fiPCEHdl
-      SetInfoText("$TNG_HGE")
-      Return
-    EndIf
-    If aiOption == fiLogLvlHdl
-      SetInfoText("$TNG_HLL")
-      Return
-    EndIf
-		If aiOption == fiLogDirHdl
-		  SetInfoText("$TNG_HLF")
-			Return
-		EndIf
-    Return
-  EndIf
-  
 EndEvent
 
 Event OnPageReset(String asPage)
@@ -415,6 +305,124 @@ Event OnPageReset(String asPage)
     fiLogDirHdl = AddToggleOption("$TNG_L_D", False)
 	EndIf
 
+  
+EndEvent
+
+Event OnOptionHighlight(Int aiOption)
+
+  If CurrentPage == Pages[0]
+    If aiOption == fiDAKHdl
+      SetInfoText("$TNG_HGD")
+      Return
+    EndIf
+    If aiOption == fiNotifsHdl
+      SetInfoText("$TNG_HGN")
+      Return
+    EndIf
+    If (aiOption == fiUpKeyHdl) || (aiOption == fiDownKeyHdl)
+      SetInfoText("$TNG_HKU")
+      Return
+    EndIf
+    If aiOption == fiNPCKeyHdl
+      SetInfoText("$TNG_HKN")
+      Return
+    EndIf    
+    If aiOption == fiRevealKeyHdl
+      SetInfoText("$TNG_HKS")
+      Return
+    EndIf
+    Int liCurr = cSSizeGlobals.Length
+    While liCurr > 0
+      liCurr -= 1
+      If aiOption == fIGlblSizeHdls[liCurr]
+        SetInfoText("$TNG_H_S")
+        Return
+      EndIf
+    EndWhile
+    Return
+  EndIf  
+  
+  If CurrentPage == Pages[1]
+    Int liCurr = TNG_PapyrusUtil.GetRGNames().Length
+    While liCurr > 0
+      liCurr -= 1
+      If aiOption == fIRaceTypeHdls[liCurr]		
+				If Input.IsKeyPressed(ciLockKey)
+					SetInfoText(TNG_PapyrusUtil.GetRgInfo(liCurr))
+				Else
+					SetInfoText("$TNG_HOA")
+				EndIf
+        Return
+      EndIf
+      If aiOption == fIRaceSizeHdls[liCurr]
+				If Input.IsKeyPressed(ciLockKey)
+					SetInfoText(TNG_PapyrusUtil.GetRgInfo(liCurr))
+				Else
+					SetInfoText("$TNG_HOS")
+				EndIf
+        Return
+      EndIf
+    EndWhile
+    Return
+  EndIf
+  
+  If CurrentPage == Pages[2]
+    If aiOption == fiWomenChanceHdl
+      SetInfoText("$TNG_HAC")
+      Return
+    EndIf
+    If aiOption == fiRandMalAddonHdl
+      SetInfoText("$TNG_HRM")
+      Return
+    EndIf
+		Int liCurr = TNG_PapyrusUtil.GetAllPossibleAddons(True).Length		
+    While liCurr > 0
+		  liCurr -= 1
+      If aiOption == fIFemAddonHdls[liCurr]
+        SetInfoText("$TNG_HAD")
+        Return
+      EndIf
+    EndWhile
+		liCurr = TNG_PapyrusUtil.GetAllPossibleAddons(False).Length
+    While liCurr > 0
+			liCurr -= 1
+      If aiOption == fIMalAddonHdls[liCurr]
+        SetInfoText("$TNG_HAD")
+        Return
+      EndIf
+    EndWhile
+    Return
+  EndIf
+  
+  If CurrentPage == Pages[3]
+    If aiOption == fi52DefBehaviorHdl
+      SetInfoText("$TNG_H52")
+      Return
+    Else
+      SetInfoText("$TNG_HMR")
+      Return
+    EndIf
+  EndIf
+  
+  If CurrentPage == Pages[4]
+    If aiOption == fiPCUHdl
+      SetInfoText("$TNG_HPU")
+      Return
+    EndIf
+    If aiOption == fiPCEHdl
+      SetInfoText("$TNG_HGE")
+      Return
+    EndIf
+    If aiOption == fiLogLvlHdl
+      SetInfoText("$TNG_HLL")
+      Return
+    EndIf
+		If aiOption == fiLogDirHdl
+		  SetInfoText("$TNG_HLF")
+			Return
+		EndIf
+    Return
+  EndIf
   
 EndEvent
 
@@ -1052,29 +1060,29 @@ Function RiseAndDrop(Bool aIfRise)
   If !lkActor
     Return
   EndIf
-  Int aDir = -1
+  Int liDir = -1
   If aIfRise
-    aDir = 1
+    liDir = 1
   EndIf
   If lkActor != fkLastActor
     fkLastActor = lkActor
     fiPos = -10
   EndIf
-  fiPos += aDir
-  If (fiPos*aDir) < 10    
+  fiPos += liDir
+  If (fiPos*liDir) < 10    
     Debug.SendAnimationEvent(lkActor, "SOSBend" + fiPos)
   ElseIf fiPos == -10
     Debug.SendAnimationEvent(lkActor, "SOSFlaccid")
   Else
-    fiPos -= aDir
+    fiPos -= liDir
   EndIf  
 EndFunction  
 
-Function HandleWarnings(Int aRes)
-  If aRes > 0
+Function HandleWarnings(Int aiRes)
+  If aiRes > 0
     Return
   EndIf
-  Debug.Notification(TNG_PapyrusUtil.GetErrDscr(aRes))
+  Debug.Notification(TNG_PapyrusUtil.GetErrDscr(aiRes))
 EndFunction
 
 
