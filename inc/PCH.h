@@ -28,7 +28,7 @@ class Singleton {
     constexpr auto operator=(Singleton&&) = delete;
 
     [[nodiscard]] static constexpr T* GetSingleton() noexcept {
-      static T aSingleton;
-      return std::addressof(aSingleton);
+      static T signleton;
+      return std::addressof(signleton);
     }
 };

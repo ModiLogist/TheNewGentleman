@@ -13,15 +13,15 @@ static bool CheckIncompatiblity() {
 }
 
 static void InitializeLogging() {
-  auto lPath{Tng::logger::log_directory()};
-  if (!lPath) {
+  auto path{Tng::logger::log_directory()};
+  if (!path) {
     SKSE::stl::report_and_fail("Unable to lookup SKSE logs directory.");
   }
-  *lPath /= Version::PROJECT;
-  *lPath += ".log"sv;
+  *path /= Version::PROJECT;
+  *path += ".log"sv;
 
   std::shared_ptr<spdlog::logger> log;
-  log = std::make_shared<spdlog::logger>("Global", std::make_shared<spdlog::sinks::basic_file_sink_mt>(lPath->string(), true));
+  log = std::make_shared<spdlog::logger>("Global", std::make_shared<spdlog::sinks::basic_file_sink_mt>(path->string(), true));
   log->set_level(Inis::GetLogLvl());
   log->flush_on(spdlog::level::trace);
   spdlog::set_default_logger(std::move(log));

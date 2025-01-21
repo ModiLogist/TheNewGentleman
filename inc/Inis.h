@@ -36,7 +36,7 @@ class Inis : public Singleton<Inis> {
     inline static std::set<SEFormLoc> femRevRecords;
     inline static std::set<SEFormLoc> malRevRecords;
 
-    static void LoadSingleIni(const char* aPath, const std::string_view fileName);
+    static void LoadSingleIni(const char* path, const std::string_view fileName);
 
   public:
     static void LoadMainIni();
@@ -93,7 +93,7 @@ class Inis : public Singleton<Inis> {
 
   public:
     static spdlog::level::level_enum GetLogLvl();
-    static void SetLogLvl(int aLvl);
+    static void SetLogLvl(int logLevel);
     static void SaveAddonStatus(const bool isFemale, const int addnIdx, const bool status);
     static void SaveRgMult(const size_t rg, const float mult);
     static void SaveRgAddon(const size_t rg, const int choice);

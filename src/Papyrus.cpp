@@ -4,47 +4,39 @@
 #include <Inis.h>
 #include <Papyrus.h>
 
-bool Papyrus::BindPapyrus(RE::BSScript::IVirtualMachine* aVM) {
-  aVM->RegisterFunction("UpdateLogLvl", "TNG_PapyrusUtil", UpdateLogLvl);
+bool Papyrus::BindPapyrus(RE::BSScript::IVirtualMachine* vm) {
+  vm->RegisterFunction("GetBoolValue", "TNG_PapyrusUtil", GetBoolValue);
+  vm->RegisterFunction("SetBoolValue", "TNG_PapyrusUtil", SetBoolValue);
 
-  aVM->RegisterFunction("GetBoolValue", "TNG_PapyrusUtil", GetBoolValue);
-  aVM->RegisterFunction("SetBoolValue", "TNG_PapyrusUtil", SetBoolValue);
+  vm->RegisterFunction("GetAllPossibleAddons", "TNG_PapyrusUtil", GetAllPossibleAddons);
+  vm->RegisterFunction("GetAddonStatus", "TNG_PapyrusUtil", GetAddonStatus);
+  vm->RegisterFunction("SetAddonStatus", "TNG_PapyrusUtil", SetAddonStatus);
 
-  aVM->RegisterFunction("GetAllPossibleAddons", "TNG_PapyrusUtil", GetAllPossibleAddons);
-  aVM->RegisterFunction("GetAddonStatus", "TNG_PapyrusUtil", GetAddonStatus);
-  aVM->RegisterFunction("SetAddonStatus", "TNG_PapyrusUtil", SetAddonStatus);
+  vm->RegisterFunction("GetRgNames", "TNG_PapyrusUtil", GetRgNames);
+  vm->RegisterFunction("GetRgAddons", "TNG_PapyrusUtil", GetRgAddons);
+  vm->RegisterFunction("GetRgAddon", "TNG_PapyrusUtil", GetRgAddon);
+  vm->RegisterFunction("GetRgMult", "TNG_PapyrusUtil", GetRgMult);
+  vm->RegisterFunction("SetRgAddon", "TNG_PapyrusUtil", SetRgAddon);
+  vm->RegisterFunction("SetRgMult", "TNG_PapyrusUtil", SetRgMult);
 
-  aVM->RegisterFunction("GetRgNames", "TNG_PapyrusUtil", GetRgNames);
-  aVM->RegisterFunction("GetRgAddons", "TNG_PapyrusUtil", GetRgAddons);
-  aVM->RegisterFunction("GetRgAddon", "TNG_PapyrusUtil", GetRgAddon);
-  aVM->RegisterFunction("GetRgMult", "TNG_PapyrusUtil", GetRgMult);
-  aVM->RegisterFunction("SetRgAddon", "TNG_PapyrusUtil", SetRgAddon);
-  aVM->RegisterFunction("SetRgMult", "TNG_PapyrusUtil", SetRgMult);
+  vm->RegisterFunction("CanModifyActor", "TNG_PapyrusUtil", CanModifyActor);
+  vm->RegisterFunction("GetActorAddons", "TNG_PapyrusUtil", GetActorAddons);
+  vm->RegisterFunction("SetActorAddon", "TNG_PapyrusUtil", SetActorAddon);
+  vm->RegisterFunction("SetActorSize", "TNG_PapyrusUtil", SetActorSize);
+  vm->RegisterFunction("ActorItemsInfo", "TNG_PapyrusUtil", ActorItemsInfo);
+  vm->RegisterFunction("SwapRevealing", "TNG_PapyrusUtil", SwapRevealing);
+  vm->RegisterFunction("GetActorAddon", "TNG_PapyrusUtil", GetActorAddon);
+  vm->RegisterFunction("GetActorSize", "TNG_PapyrusUtil", GetActorSize);
 
-  aVM->RegisterFunction("CanModifyActor", "TNG_PapyrusUtil", CanModifyActor);
-  aVM->RegisterFunction("GetActorAddons", "TNG_PapyrusUtil", GetActorAddons);
-  aVM->RegisterFunction("SetActorAddon", "TNG_PapyrusUtil", SetActorAddon);
-  aVM->RegisterFunction("SetActorSize", "TNG_PapyrusUtil", SetActorSize);
-  aVM->RegisterFunction("ActorItemsInfo", "TNG_PapyrusUtil", ActorItemsInfo);
-  aVM->RegisterFunction("SwapRevealing", "TNG_PapyrusUtil", SwapRevealing);
-  aVM->RegisterFunction("GetActorAddon", "TNG_PapyrusUtil", GetActorAddon);
-  aVM->RegisterFunction("GetActorSize", "TNG_PapyrusUtil", GetActorSize);
-  
+  vm->RegisterFunction("GetSlot52Mods", "TNG_PapyrusUtil", GetSlot52Mods);
+  vm->RegisterFunction("Slot52ModBehavior", "TNG_PapyrusUtil", Slot52ModBehavior);
 
+  vm->RegisterFunction("UpdateSettings", "TNG_PapyrusUtil", UpdateSettings);
 
-  aVM->RegisterFunction("GetSlot52Mods", "TNG_PapyrusUtil", GetSlot52Mods);
-  aVM->RegisterFunction("Slot52ModBehavior", "TNG_PapyrusUtil", Slot52ModBehavior);
-
-  aVM->RegisterFunction("UpdateSettings", "TNG_PapyrusUtil", UpdateSettings);
-
-  aVM->RegisterFunction("ShowLogLocation", "TNG_PapyrusUtil", ShowLogLocation);
-  aVM->RegisterFunction("GetErrDscr", "TNG_PapyrusUtil", GetErrDscr);
+  vm->RegisterFunction("UpdateLogLvl", "TNG_PapyrusUtil", UpdateLogLvl);
+  vm->RegisterFunction("ShowLogLocation", "TNG_PapyrusUtil", ShowLogLocation);
+  vm->RegisterFunction("GetErrDscr", "TNG_PapyrusUtil", GetErrDscr);
   return true;
-}
-
-int Papyrus::UpdateLogLvl(RE::StaticFunctionTag*, int aLogLvl) {
-  Inis::SetLogLvl(aLogLvl < 0 ? aLogLvl : aLogLvl + spdlog::level::debug);
-  return int(Inis::GetLogLvl()) - int(spdlog::level::debug);
 }
 
 bool Papyrus::GetBoolValue(RE::StaticFunctionTag*, int settingID) {
@@ -245,10 +237,15 @@ void Papyrus::UpdateSettings(RE::StaticFunctionTag*) {
   Core::RevisitRevealingArmor();
 }
 
+int Papyrus::UpdateLogLvl(RE::StaticFunctionTag*, int logLevel) {
+  Inis::SetLogLvl(logLevel < 0 ? logLevel : logLevel + spdlog::level::debug);
+  return int(Inis::GetLogLvl()) - int(spdlog::level::debug);
+}
+
 std::string Papyrus::ShowLogLocation(RE::StaticFunctionTag*) {
-  auto lMaybeDir{Tng::logger::log_directory};
-  std::filesystem::path lDir = lMaybeDir().value_or("$TNG_LDN");
-  return lDir.string();
+  auto logDir{Tng::logger::log_directory};
+  std::filesystem::path path = logDir().value_or("$TNG_LDN");
+  return path.string();
 }
 
 std::string Papyrus::GetErrDscr(RE::StaticFunctionTag*, int errCode) {

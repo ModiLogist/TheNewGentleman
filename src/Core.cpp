@@ -4,7 +4,7 @@
 
 void Core::GenitalizeRaces() {
   Tng::logger::info("Finding the genitals for relevant races...");
-  auto& lAllRacesArray = Tng::SEDH()->GetFormArray<RE::TESRace>();
+  auto& allRaces = Tng::SEDH()->GetFormArray<RE::TESRace>();
   int preprocessed = 0;
   int processed = 0;
   int ignored = 0;
@@ -14,7 +14,7 @@ void Core::GenitalizeRaces() {
   validSkeletons.insert(Tng::Race(Tng::raceDefault)->skeletonModels[1].model.data());
   validSkeletons.insert(Tng::Race(Tng::raceDefBeast)->skeletonModels[0].model.data());
   validSkeletons.insert(Tng::Race(Tng::raceDefBeast)->skeletonModels[1].model.data());
-  for (const auto& race : lAllRacesArray) {
+  for (const auto& race : allRaces) {
     if (Inis::IsRaceExcluded(race)) {
       Tng::logger::debug("\tThe race [{}: xx{:x}: {}] was ignored because an ini excludes it!", race->GetFile(0)->GetFilename(), race->GetLocalFormID(), race->GetFormEditorID());
       IgnoreRace(race, false);
@@ -105,9 +105,9 @@ Tng::TNGRes Core::AddPotentialRace(RE::TESRace* race, const std::set<std::string
     }
   } catch (const std::exception& er) {
     Tng::logger::warn("\tThe race [0x{:x}: {}] caused an error [{}] in the process. TNG tries to ignore it but it might not work properly!", race->GetFormID(), race->GetFormEditorID(), er.what());
-    const char* lMessage =
+    const char* message =
         fmt::format("\tThe race [0x{:x}: {}] caused an error [{}] in the process. TNG tries to ignore it but it might not work properly!", race->GetFormID(), race->GetFormEditorID(), er.what()).c_str();
-    ShowSkyrimMessage(lMessage);
+    ShowSkyrimMessage(message);
     IgnoreRace(race, false);
     return Tng::raceErr;
   }
@@ -204,7 +204,7 @@ std::vector<RE::TESObjectARMO*> Core::GetActorWornArmor(RE::Actor* actor) {
   return res;
 }
 
-RE::TESObjectARMO* Core::FixSkin(RE::TESObjectARMO* skin, RE::TESRace* race, const char* const aName) {
+RE::TESObjectARMO* Core::FixSkin(RE::TESObjectARMO* skin, RE::TESRace* race, const char* const name) {
   skin->RemoveKeywords(Tng::ArmoKeys());
   skin->AddKeyword(Tng::ArmoKey(Tng::akeyIgnored));
   if (!skin->HasPartOf(Tng::cSlotBody)) {
@@ -231,7 +231,7 @@ RE::TESObjectARMO* Core::FixSkin(RE::TESObjectARMO* skin, RE::TESRace* race, con
     return nullptr;
   }
   if (addonIdx == Tng::cNul) return skin;
-  if (aName) Tng::logger::info("\t\tThe skin [0x{:x}: {}] added as extra skin.", skin->GetFormID(), aName);
+  if (name) Tng::logger::info("\t\tThe skin [0x{:x}: {}] added as extra skin.", skin->GetFormID(), name);
   return Base::GetSkinWithAddonForRg(rgIdx, skin, addonIdx, false);
 }
 

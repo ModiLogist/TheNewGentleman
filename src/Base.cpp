@@ -358,18 +358,18 @@ void Base::UpdateRgAddons(Base::RaceGroupInfo &rg) {
   rg.femAddons.clear();
   for (int i = 0; i < malAddons.size(); i++) {
     auto &addon = malAddons[i].first;
-    bool lSupports = false;
+    bool supports = false;
     for (auto &aa : addon->armorAddons) {
       if (aa->IsValidRace(rg.armorRace)) {
         auto aaMainRace = aa->race;
         if (aaMainRace && aaMainRace == Tng::Race(Tng::raceDefault) && aa->additionalRaces.size() > 0) aaMainRace = aa->additionalRaces[0];
         if (auto mainRaceRg = GetRg(aaMainRace, false); rg.isMain && mainRaceRg && !mainRaceRg->isMain) continue;
         rg.malAddons.insert_or_assign(i, std::pair<bool, RE::TESObjectARMA *>({rg.isMain || AddonHasRace(aa, rg.races[0]), aa}));
-        lSupports = true;
+        supports = true;
         if (rg.malAddons[i].first) break;
       }
     }
-    if (!lSupports) continue;
+    if (!supports) continue;
     if (i == rg.defAddonIdx && rg.addonIdx < 0) rg.addonIdx = i;
     if (!rg.isMain && rg.malAddons[i].first && (rg.addonIdx < 0 || !rg.malAddons[rg.addonIdx].first)) {
       rg.defAddonIdx = i;
@@ -465,13 +465,13 @@ Tng::TNGRes Base::SetActorSizeCat(RE::Actor *actor, const int sizeCat) {
   auto catGlb = Tng::SizeGlb(cat);
   auto mult = GetRgMult(actor->GetRace());
   if (mult < 0.0f) return Tng::rgErr;
-  auto lScale = mult * catGlb->value;
-  if (lScale < 0.1) lScale = 1;
-  RE::NiAVObject *aBaseNode = actor->GetNodeByName(genBoneNames[egbBase]);
-  RE::NiAVObject *aScrtNode = actor->GetNodeByName(genBoneNames[egbScrt]);
-  if (!aBaseNode || !aScrtNode) return Tng::skeletonErr;
-  aBaseNode->local.scale = lScale;
-  aScrtNode->local.scale = 1.0f / sqrt(lScale);
+  auto scale = mult * catGlb->value;
+  if (scale < 0.1) scale = 1;
+  RE::NiAVObject *baseNode = actor->GetNodeByName(genBoneNames[egbBase]);
+  RE::NiAVObject *scrtNode = actor->GetNodeByName(genBoneNames[egbScrt]);
+  if (!baseNode || !scrtNode) return Tng::skeletonErr;
+  baseNode->local.scale = scale;
+  scrtNode->local.scale = 1.0f / sqrt(scale);
   return Tng::resOkSizable;
 }
 
@@ -494,12 +494,12 @@ std::pair<bool, int> Base::GetNPCAddon(RE::TESNPC *npc) {
   if (npc->keywords) {
     for (std::uint32_t idx = 0; idx < npc->numKeywords; ++idx) {
       if (!npc->keywords[idx] || npc->keywords[idx]->GetFormEditorID() == NULL) continue;
-      const std::string lKwStr(npc->keywords[idx]->GetFormEditorID());
-      if (lKwStr.starts_with(cNPCAutoAddon)) {
-        return std::make_pair(false, std::strtol(lKwStr.substr(strlen(cNPCAutoAddon), 2).data(), nullptr, 0));
+      const std::string kwStr(npc->keywords[idx]->GetFormEditorID());
+      if (kwStr.starts_with(cNPCAutoAddon)) {
+        return std::make_pair(false, std::strtol(kwStr.substr(strlen(cNPCAutoAddon), 2).data(), nullptr, 0));
       }
-      if (lKwStr.starts_with(cNPCUserAddon)) {
-        return std::make_pair(true, std::strtol(lKwStr.substr(strlen(cNPCUserAddon), 2).data(), nullptr, 0));
+      if (kwStr.starts_with(cNPCUserAddon)) {
+        return std::make_pair(true, std::strtol(kwStr.substr(strlen(cNPCUserAddon), 2).data(), nullptr, 0));
       }
     }
   }
@@ -579,10 +579,10 @@ void Base::OrganizeNPCAddonKeywords(RE::TESNPC *npc, int addnIdx, bool isUser) {
   if (addnIdx == Tng::cNul) {
     npc->AddKeyword(Tng::NPCKey(Tng::npckeyExclude));
   } else if (addnIdx >= 0) {
-    const std::string lReqKw = (isUser ? cNPCUserAddon : cNPCAutoAddon) + (addnIdx < 10 ? "0" + std::to_string(addnIdx) : std::to_string(addnIdx));
-    auto lKw = Tng::ProduceOrGetKw(lReqKw);
-    if (!lKw) Tng::logger::critical("Keword generation routine failed with keyword {}", lReqKw);
-    npc->AddKeyword(lKw);
+    const std::string reqKw = (isUser ? cNPCUserAddon : cNPCAutoAddon) + (addnIdx < 10 ? "0" + std::to_string(addnIdx) : std::to_string(addnIdx));
+    auto kw = Tng::ProduceOrGetKw(reqKw);
+    if (!kw) Tng::logger::critical("Keword generation routine failed with keyword {}", reqKw);
+    npc->AddKeyword(kw);
     auto &list = npc->IsFemale() ? femAddons : malAddons;
     if (npc->IsFemale() && list[addnIdx].first->HasKeyword(Tng::ArmoKey(Tng::akeySkinWP))) {
       Tng::GentFml()->AddForm(npc);

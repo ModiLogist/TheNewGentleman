@@ -17,7 +17,7 @@ class Core : public Singleton<Core> {
     static std::vector<RE::TESObjectARMO*> GetActorWornArmor(RE::Actor* actor);
 
   private:
-    static RE::TESObjectARMO* FixSkin(RE::TESObjectARMO* skin, RE::TESRace* race, const char* const aName);
+    static RE::TESObjectARMO* FixSkin(RE::TESObjectARMO* skin, RE::TESRace* race, const char* const name);
 
   public:
     static void CheckArmorPieces();

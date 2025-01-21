@@ -201,11 +201,11 @@ namespace Tng {
 static void ShowSkyrimMessage(const char* message) { RE::DebugMessageBox(message); }
 
 static SEFormLoc StrToLoc(const std::string recordStr) {
-  const size_t lSepLoc = recordStr.find(Tng::cDelimChar);
-  if (lSepLoc == std::string::npos) return {0, ""};
-  const RE::FormID lFormID = std::strtol(recordStr.substr(0, lSepLoc).data(), nullptr, 0);
-  const std::string modName = recordStr.substr(lSepLoc + 1);
-  return std::make_pair(lFormID, modName);
+  const size_t sepLoc = recordStr.find(Tng::cDelimChar);
+  if (sepLoc == std::string::npos) return {0, ""};
+  const RE::FormID formID = std::strtol(recordStr.substr(0, sepLoc).data(), nullptr, 0);
+  const std::string modName = recordStr.substr(sepLoc + 1);
+  return std::make_pair(formID, modName);
 }
 
 static SEFormLoc FormToLoc(const RE::TESForm* form) {
@@ -226,8 +226,8 @@ static std::string FormToStr(RE::TESForm* form) {
 }
 
 static bool FormHasKW(const RE::BGSKeywordForm* form, const SEFormLocView formID) {
-  auto lRawID = Tng::SEDH()->LookupFormID(formID.first, formID.second);
-  return form->HasKeywordID(lRawID);
+  auto rawID = Tng::SEDH()->LookupFormID(formID.first, formID.second);
+  return form->HasKeywordID(rawID);
 }
 
 static bool AddonHasRace(const RE::TESObjectARMA* addnIdx, const RE::TESRace* race) {

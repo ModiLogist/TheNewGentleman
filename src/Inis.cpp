@@ -5,22 +5,22 @@ void Inis::LoadTngInis() {
   Tng::logger::info("Loading ini files...");
   if (std::filesystem::exists(cTngInisPath)) {
     for (const auto &entry : std::filesystem::directory_iterator(cTngInisPath)) {
-      const std::string lFileName = entry.path().filename().string();
-      if (lFileName.ends_with(cTngIniEnding)) {
-        LoadSingleIni(entry.path().string().c_str(), lFileName);
+      const std::string fileName = entry.path().filename().string();
+      if (fileName.ends_with(cTngIniEnding)) {
+        LoadSingleIni(entry.path().string().c_str(), fileName);
       } else {
-        Tng::logger::warn("The file {} in TNG ini folder is not named correctly or is not a TNG ini file.", lFileName);
+        Tng::logger::warn("The file {} in TNG ini folder is not named correctly or is not a TNG ini file.", fileName);
       }
     }
   }
 }
 
-void Inis::LoadSingleIni(const char *aPath, const std::string_view fileName) {
+void Inis::LoadSingleIni(const char *path, const std::string_view fileName) {
   CSimpleIniA ini;
   CSimpleIniA::TNamesDepend values;
   ini.SetUnicode();
   ini.SetMultiKey();
-  ini.LoadFile(aPath);
+  ini.LoadFile(path);
   if (ini.SectionExists(cExcludeSection)) {
     if (ini.GetAllValues(cExcludeSection, cExcludeNPC, values)) {
       Tng::logger::info("\t- Found [{}] excluded NPCs in [{}].", values.size(), fileName);
@@ -86,9 +86,9 @@ void Inis::LoadSingleIni(const char *aPath, const std::string_view fileName) {
 
 void Inis::LoadMainIni() {
   if (!std::filesystem::exists(cSettings)) {
-    std::ofstream lTngSettings(cSettings);
-    lTngSettings << ";TNG Settings File" << std::endl;
-    lTngSettings.close();
+    std::ofstream title(cSettings);
+    title << ";TNG Settings File" << std::endl;
+    title.close();
   }
   Tng::logger::info("Loading TNG settings...");
   UpdateIniVersion();
@@ -244,18 +244,18 @@ spdlog::level::level_enum Inis::GetLogLvl() {
   return res > 0 && res < static_cast<int>(spdlog::level::n_levels) ? static_cast<spdlog::level::level_enum>(res) : spdlog::level::info;
 }
 
-void Inis::SetLogLvl(int aLvl) {
-  if (aLvl < 1 || aLvl >= static_cast<int>(spdlog::level::n_levels)) return;
+void Inis::SetLogLvl(int logLevel) {
+  if (logLevel < 1 || logLevel >= static_cast<int>(spdlog::level::n_levels)) return;
   CSimpleIniA ini;
   ini.SetUnicode();
   ini.LoadFile(cSettings);
-  ini.SetLongValue(cGeneral, cLogLvl, aLvl);
+  ini.SetLongValue(cGeneral, cLogLvl, logLevel);
   ini.SaveFile(cSettings);
 }
 
 void Inis::SaveAddonStatus(const bool isFemale, const int addnIdx, const bool status) {
-  auto lAddonStr = FormToStr(Base::AddonByIdx(isFemale, addnIdx, false));
-  if (lAddonStr.empty()) return;
+  auto addonStr = FormToStr(Base::AddonByIdx(isFemale, addnIdx, false));
+  if (addonStr.empty()) return;
   CSimpleIniA ini;
   ini.SetUnicode();
   ini.LoadFile(cSettings);
@@ -454,14 +454,14 @@ bool Inis::Slot52ModBehavior(const std::string modName, const int behavior) {
 
 void Inis::UpdateIniVersion() {
   CSimpleIniA ini;
-  CSimpleIniA::TNamesDepend lSections;
+  CSimpleIniA::TNamesDepend sections;
   ini.SetUnicode();
   ini.LoadFile(cSettings);
   int lIniVersion = ini.GetLongValue(cIniVersion, cVersion, 1);
   switch (lIniVersion) {
     case 1:
-      ini.GetAllSections(lSections);
-      for (CSimpleIniA::TNamesDepend::const_iterator lSection = lSections.begin(); lSection != lSections.end(); lSection++) ini.Delete(lSection->pItem, NULL);
+      ini.GetAllSections(sections);
+      for (CSimpleIniA::TNamesDepend::const_iterator section = sections.begin(); section != sections.end(); section++) ini.Delete(section->pItem, NULL);
       break;
     case 2:
       ini.Delete("AutoReveal", NULL);
@@ -478,8 +478,8 @@ void Inis::UpdateIniVersion() {
 
 void Inis::LoadModRecodPairs(CSimpleIniA::TNamesDepend records, std::set<SEFormLoc> &fieldToFill) {
   for (const auto &entry : records) {
-    const std::string lModRecord(entry.pItem);
-    fieldToFill.insert(StrToLoc(lModRecord));
+    const std::string modRecord(entry.pItem);
+    fieldToFill.insert(StrToLoc(modRecord));
   }
 }
 

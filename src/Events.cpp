@@ -17,21 +17,21 @@ void Events::RegisterEvents() {
   Tng::logger::info("Registered for necessary events.");
 }
 
-RE::BSEventNotifyControl Events::ProcessEvent(const RE::TESEquipEvent* aEvent, RE::BSTEventSource<RE::TESEquipEvent>*) {
-  if (!aEvent) return RE::BSEventNotifyControl::kContinue;
-  const auto actor = aEvent->actor->As<RE::Actor>();
+RE::BSEventNotifyControl Events::ProcessEvent(const RE::TESEquipEvent* event, RE::BSTEventSource<RE::TESEquipEvent>*) {
+  if (!event) return RE::BSEventNotifyControl::kContinue;
+  const auto actor = event->actor->As<RE::Actor>();
   auto npc = actor ? actor->GetActorBase() : nullptr;
-  auto armor = RE::TESForm::LookupByID<RE::TESObjectARMO>(aEvent->baseObject);
+  auto armor = RE::TESForm::LookupByID<RE::TESObjectARMO>(event->baseObject);
   if (Core::CanModifyNPC(npc) < 0 || !armor || !armor->HasKeywordInArray(coverKeys, false)) return RE::BSEventNotifyControl::kContinue;
   if (npc->race->HasKeyword(Tng::RaceKey(Tng::rkeyPreprocessed)) && !Base::ReevaluateRace(npc->race, actor)) return RE::BSEventNotifyControl::kContinue;
   if (armor->HasKeyword(Tng::ArmoKey(Tng::akeyCover)) || (armor->HasKeyword(Tng::ArmoKey(Tng::akeyRevFem)) && !npc->IsFemale()) || (armor->HasKeyword(Tng::ArmoKey(Tng::akeyRevMal)) && npc->IsFemale()))
-    DoChecks(actor, armor, aEvent->equipped);
+    DoChecks(actor, armor, event->equipped);
   return RE::BSEventNotifyControl::kContinue;
 }
 
-RE::BSEventNotifyControl Events::ProcessEvent(const RE::TESObjectLoadedEvent* aEvent, RE::BSTEventSource<RE::TESObjectLoadedEvent>*) {
-  if (!aEvent) return RE::BSEventNotifyControl::kContinue;
-  const auto actor = RE::TESForm::LookupByID<RE::Actor>(aEvent->formID);
+RE::BSEventNotifyControl Events::ProcessEvent(const RE::TESObjectLoadedEvent* event, RE::BSTEventSource<RE::TESObjectLoadedEvent>*) {
+  if (!event) return RE::BSEventNotifyControl::kContinue;
+  const auto actor = RE::TESForm::LookupByID<RE::Actor>(event->formID);
   const auto npc = actor ? actor->GetActorBase() : nullptr;
   if (!npc) return RE::BSEventNotifyControl::kContinue;
   if (Core::CanModifyNPC(npc) < 0) return RE::BSEventNotifyControl::kContinue;
@@ -43,8 +43,8 @@ RE::BSEventNotifyControl Events::ProcessEvent(const RE::TESObjectLoadedEvent* aE
   return RE::BSEventNotifyControl::kContinue;
 }
 
-RE::BSEventNotifyControl Events::ProcessEvent(const RE::TESSwitchRaceCompleteEvent* aEvent, RE::BSTEventSource<RE::TESSwitchRaceCompleteEvent>*) {
-  auto actor = aEvent->subject.get()->As<RE::Actor>();
+RE::BSEventNotifyControl Events::ProcessEvent(const RE::TESSwitchRaceCompleteEvent* event, RE::BSTEventSource<RE::TESSwitchRaceCompleteEvent>*) {
+  auto actor = event->subject.get()->As<RE::Actor>();
   auto npc = actor ? actor->GetActorBase() : nullptr;
   if (!actor || !npc || !npc->skin) return RE::BSEventNotifyControl::kContinue;
   if (npc->race->HasKeyword(Tng::RaceKey(Tng::rkeyPreprocessed)) && !Base::ReevaluateRace(npc->race, actor)) return RE::BSEventNotifyControl::kContinue;
