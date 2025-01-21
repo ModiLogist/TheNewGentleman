@@ -164,6 +164,7 @@ void Core::GenitalizeNPCSkins() {
     }
     Tng::logger::info("\t\t[{}] skins were not patched.", tot);
   }
+  Inis::LoadNpcInfo();
   Tng::logger::debug("TNG disributed the sizes (from smallest to largest) to [{}] npcs!", fmt::join(sizeCount, ", "));
   Base::ReportHiddenRgs();
 }

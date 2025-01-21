@@ -188,8 +188,8 @@ namespace Tng {
     if (it != allKeywords.end()) {
       res = *it;
     } else {
-      const auto lFactory = RE::IFormFactory::GetConcreteFormFactoryByType<RE::BGSKeyword>();
-      if (res = lFactory ? lFactory->Create() : nullptr; res) {
+      const auto factory = RE::IFormFactory::GetConcreteFormFactoryByType<RE::BGSKeyword>();
+      if (res = factory ? factory->Create() : nullptr; res) {
         res->formEditorID = keword;
         allKeywords.push_back(res);
       }
