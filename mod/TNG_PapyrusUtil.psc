@@ -1,6 +1,5 @@
 ScriptName TNG_PapyrusUtil hidden
 
-Int Function UpdateLogLvl(Int aLvl) Global Native
 
 ;For bool functions IDs: 
 ; 0: Exclude player,
@@ -17,6 +16,7 @@ Bool Function GetAddonStatus(Bool abIsFemale, Int aiAddon) Global Native
 Function SetAddonStatus(Bool abIsFemale, Int aiAddon, Bool abStatus) Global Native
 
 String[] Function GetRgNames() Global Native
+String Function GetRgInfo(Int aiRgIndex) Global Native
 String[] Function GetRgAddons(Int aiRgIndex) Global Native
 Int Function GetRgAddon(Int aiRgIndex) Global Native
 Function SetRgAddon(Int aiRgIndex, Int aiChoice) Global Native
@@ -38,5 +38,6 @@ Bool Function Slot52ModBehavior(String asModName, Int aiBehavior) Global Native
 
 Function UpdateSettings() Global Native
 
+Int Function UpdateLogLvl(Int aiLogLevel) Global Native
 String Function ShowLogLocation() Global Native
-String Function GetErrDscr(Int aErrCode) Global Native
+String Function GetErrDscr(Int aiErrCode) Global Native

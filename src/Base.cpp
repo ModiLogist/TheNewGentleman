@@ -158,17 +158,22 @@ std::vector<std::string> Base::GetRgNames(const bool onlyMCM) {
   return res;
 }
 
-std::string Base::GetRgRaceNames(size_t rgChoice, bool onlyMCM) {
+std::string Base::GetRgInfo(size_t rgChoice, bool onlyMCM) { 
   std::string res{""};
   auto rg = GetRg(rgChoice, onlyMCM);
   if (!rg) return res;
   auto &list = rg->races;
+  res = "Main race: [" + rg->file + " : " + rg->name + "]; ";
+  res = res + "Armor race: [" + rg->armorRace->GetFormEditorID() + "]; ";
+  res = res + "Additional races: [";
   for (auto race : list) {
-    res = res + std::string(race->GetFile(0) ? race->GetFile(0)->GetFilename() : "(no mod name)") + " : " + race->GetFormEditorID();
+    if (race == list.front()) continue;
+    res = res + std::string(race->GetFile(0) ? race->GetFile(0)->GetFilename() : "(Unknown)") + " : " + race->GetFormEditorID();
     if (race != list.back()) {
       res = res + ", ";
     }
   }
+  res = res + "]";
   return res;
 }
 
@@ -258,7 +263,7 @@ RE::TESObjectARMO *Base::GetSkinWithAddonForRg(const size_t rgIdx, RE::TESObject
 void Base::ReportHiddenRgs() {
   Tng::logger::info("TNG would not show the following race groups in the MCM since there are either no genital available to them or there are very few NPCs which use them:");
   for (size_t i = 1; i < rgInfoList.size(); i++)
-    if (rgInfoList[i].noMCM) Tng::logger::info("\tRace group [{}] containing following races: {}.", rgInfoList[i].name, GetRgRaceNames(i, false));
+    if (rgInfoList[i].noMCM) Tng::logger::info("\tRace group [{}] with the following information: {}.", rgInfoList[i].name, GetRgInfo(i, false));
 }
 
 Base::RaceGroupInfo *Base::GetRg(const size_t rgChoice, const bool onlyMCM) {
@@ -314,11 +319,11 @@ Base::RaceGroupInfo *Base::GetRg(RE::TESRace *race, const bool allowAdd) {
       pRace = pRace->armorParentRace;
     };
     auto filename = race->GetFile(0) ? race->GetFile(0)->GetFilename() : "Unknown";
-    auto lName = std::string(filename) + " : " + race->GetFormEditorID();
     rgInfoList.push_back({});
     auto &rg = rgInfoList.back();
     rg.idx = rgInfoList.size() - 1;
-    rg.name = lName;
+    rg.name = race->GetFormEditorID();
+    rg.file = filename;
     rg.armorRace = pRace;
     rg.ogSkin = race->skin;
     rg.isMain = (pRace == race);

@@ -13,6 +13,7 @@ class Papyrus : public Singleton<Papyrus> {
     static void SetAddonStatus(RE::StaticFunctionTag*, bool isFemale, int addonIdx, bool status);
 
     static std::vector<std::string> GetRgNames(RE::StaticFunctionTag*);
+    static std::string GetRgInfo(RE::StaticFunctionTag*, int rgIdx);
     static std::vector<std::string> GetRgAddons(RE::StaticFunctionTag*, int rgIdx);
     static int GetRgAddon(RE::StaticFunctionTag*, int rgIdx);
     static void SetRgAddon(RE::StaticFunctionTag*, int rgIdx, int choice);

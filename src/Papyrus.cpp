@@ -13,6 +13,7 @@ bool Papyrus::BindPapyrus(RE::BSScript::IVirtualMachine* vm) {
   vm->RegisterFunction("SetAddonStatus", "TNG_PapyrusUtil", SetAddonStatus);
 
   vm->RegisterFunction("GetRgNames", "TNG_PapyrusUtil", GetRgNames);
+  vm->RegisterFunction("GetRgInfo", "TNG_PapyrusUtil", GetRgInfo);
   vm->RegisterFunction("GetRgAddons", "TNG_PapyrusUtil", GetRgAddons);
   vm->RegisterFunction("GetRgAddon", "TNG_PapyrusUtil", GetRgAddon);
   vm->RegisterFunction("GetRgMult", "TNG_PapyrusUtil", GetRgMult);
@@ -67,6 +68,8 @@ void Papyrus::SetAddonStatus(RE::StaticFunctionTag*, bool isFemale, int addonIdx
 }
 
 std::vector<std::string> Papyrus::GetRgNames(RE::StaticFunctionTag*) { return Base::GetRgNames(true); }
+
+std::string Papyrus::GetRgInfo(RE::StaticFunctionTag*, int rgIdx) { return Base::GetRgInfo(rgIdx, true); };
 
 std::vector<std::string> Papyrus::GetRgAddons(RE::StaticFunctionTag*, int rgIdx) {
   std::vector<std::string> res{};

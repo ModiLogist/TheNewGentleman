@@ -51,7 +51,7 @@ class Base : public Singleton<Base> {
     static void UpdateRgSkins();
     static RE::TESRace* GetRgRace0(const size_t rgChoice, const bool onlyMCM);
     static std::vector<std::string> GetRgNames(const bool onlyMCM);
-    static std::string GetRgRaceNames(size_t rgChoice, bool onlyMCM);
+    static std::string GetRgInfo(size_t rgChoice, bool onlyMCM);
     static int GetRgAddon(const size_t rgChoice, bool onlyMCM);
     static int GetRgAddon(RE::TESRace* race);
     static bool SetRgAddon(const size_t rgChoice, const int addnChoice, bool onlyMCM);
@@ -68,6 +68,7 @@ class Base : public Singleton<Base> {
     struct RaceGroupInfo {
         size_t idx{0};
         std::string name{""};
+        std::string file{""};
         RE::TESRace* armorRace = nullptr;
         RE::TESObjectARMO* ogSkin = nullptr;
         bool isMain{false};
