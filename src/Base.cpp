@@ -89,7 +89,10 @@ void Base::SetGlobalSize(size_t idx, float size) {
 }
 
 // Race handling and info
-void Base::AddRace(RE::TESRace *race) {
+void Base::AddRace(RE::TESRace *race, bool isProccessed) {
+  race->AddKeyword(Tng::RaceKey(isProccessed ? Tng::rkeyProcessed : Tng::rkeyPreprocessed));
+  race->AddSlotToMask(Tng::cSlotGenital);
+  race->skin->AddKeyword(Tng::ArmoKey(Tng::akeyIgnored));
   int rgCount = static_cast<int>(rgInfoList.size());
   Tng::logger::debug("\tTrying to add race [0x{:x}: {}] ...", race->GetFormID(), race->GetFormEditorID());
   auto rg = GetRg(race, true);
@@ -97,6 +100,31 @@ void Base::AddRace(RE::TESRace *race) {
     Tng::logger::info("\tThe race [0x{:x}: {}] was recognized as a new group {}.", race->GetFormID(), race->GetFormEditorID(), rg->name);
   else
     Tng::logger::info("\tThe race [0x{:x}: {}] was recognized as a member of existing group {}.", race->GetFormID(), race->GetFormEditorID(), rg->name);
+}
+
+bool Base::ReevaluateRace(RE::TESRace *race, RE::Actor *actor) {
+  if (!actor || !race || raceRgs.find(race) == raceRgs.end()) return false;
+  Tng::logger::debug("Re-evaluating race [0x{:x}:{}] ...", race->GetFormID(), race->GetFormEditorID());
+  if (!actor->Is3DLoaded()) return false;
+  auto rgIdx = raceRgs[race];
+  auto &rg = rgInfoList[rgIdx];  
+  for (auto &boneName : genBoneNames) {
+    if (!actor->GetNodeByName(boneName)) {
+      race->skin = rg.ogSkin;
+      race->RemoveKeyword(Tng::RaceKey(Tng::rkeyPreprocessed));
+      race->AddKeyword(Tng::RaceKey(Tng::rkeyIgnore));
+      race->RemoveSlotFromMask(Tng::cSlotGenital);
+      auto it = std::find(rg.races.begin(), rg.races.end(), race);
+      rg.races.erase(it);
+      Tng::logger::info("\tTNG would neglect the race [0x{:x}:{}] since its skeleton is missing the bone [{}]", race->GetFormID(), race->GetFormEditorID(), boneName);
+      if (rg.races.empty()) rgInfoList.erase(rgInfoList.begin() + rgIdx);
+      return false;
+    }
+  }
+  Tng::logger::debug("\tThe race [0x{:x}:{}] was evaluated to be supported by TNG!", race->GetFormID(), race->GetFormEditorID());
+  race->RemoveKeyword(Tng::RaceKey(Tng::rkeyPreprocessed));
+  race->AddKeyword(Tng::RaceKey(Tng::rkeyProcessed));
+  return true;
 }
 
 void Base::TryUnhideRace(RE::TESRace *race) {
@@ -370,7 +398,7 @@ void Base::UpdateRgAddons(Base::RaceGroupInfo &rg) {
   }
 }
 
-bool Base::RgHasAddon(RaceGroupInfo &rg, bool isFemale, int addonIdx) { 
+bool Base::RgHasAddon(RaceGroupInfo &rg, bool isFemale, int addonIdx) {
   if (addonIdx < 0) return true;
   auto &list = isFemale ? rg.femAddons : rg.malAddons;
   return list.find(static_cast<size_t>(addonIdx)) != list.end();
@@ -405,15 +433,14 @@ Tng::TNGRes Base::CanModifyNPC(RE::TESNPC *npc) {
   if (!npc->race) return Tng::raceErr;
   if (npc->race->HasKeyword(Tng::RaceKey(Tng::rkeyProcessed))) return Tng::resOkRaceP;
   if (npc->race->HasKeyword(Tng::RaceKey(Tng::rkeyReady))) return Tng::resOkRaceR;
+  if (npc->race->HasKeyword(Tng::RaceKey(Tng::rkeyPreprocessed))) return Tng::resOkRacePP;
   return Tng::raceErr;
 }
 
 Tng::TNGRes Base::GetActorSizeCat(RE::Actor *actor, int &sizeCat) {
   sizeCat = Tng::cNA;
   const auto npc = actor ? actor->GetActorBase() : nullptr;
-  if (!npc) return Tng::npcErr;
-  if (!npc->race) return Tng::raceErr;
-  if (!(npc->race->HasKeyword(Tng::RaceKey(Tng::rkeyProcessed)) || npc->race->HasKeyword(Tng::RaceKey(Tng::rkeyReady)))) return Tng::raceErr;
+  if (auto res = CanModifyNPC(npc); res < 0) return res;
   if (npc->IsPlayer() && Tng::boolSettings[Tng::bsExcludePlayerSize]) return Tng::playerErr;
   for (size_t i = 0; i < Tng::cSizeCategories; i++) {
     if (npc->HasKeyword(Tng::SizeKey(i))) sizeCat = static_cast<int>(i);
@@ -440,8 +467,8 @@ Tng::TNGRes Base::SetActorSizeCat(RE::Actor *actor, const int sizeCat) {
   if (mult < 0.0f) return Tng::rgErr;
   auto lScale = mult * catGlb->value;
   if (lScale < 0.1) lScale = 1;
-  RE::NiAVObject *aBaseNode = actor->GetNodeByName(cBaseBone);
-  RE::NiAVObject *aScrtNode = actor->GetNodeByName(cScrtBone);
+  RE::NiAVObject *aBaseNode = actor->GetNodeByName(genBoneNames[egbBase]);
+  RE::NiAVObject *aScrtNode = actor->GetNodeByName(genBoneNames[egbScrt]);
   if (!aBaseNode || !aScrtNode) return Tng::skeletonErr;
   aBaseNode->local.scale = lScale;
   aScrtNode->local.scale = 1.0f / sqrt(lScale);

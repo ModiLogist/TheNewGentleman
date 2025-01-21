@@ -5,13 +5,19 @@
 void Core::GenitalizeRaces() {
   Tng::logger::info("Finding the genitals for relevant races...");
   auto& lAllRacesArray = Tng::SEDH()->GetFormArray<RE::TESRace>();
+  int preprocessed = 0;
   int processed = 0;
   int ignored = 0;
   int ready = 0;
+  std::set<std::string> validSkeletons;
+  validSkeletons.insert(Tng::Race(Tng::raceDefault)->skeletonModels[0].model.data());
+  validSkeletons.insert(Tng::Race(Tng::raceDefault)->skeletonModels[1].model.data());
+  validSkeletons.insert(Tng::Race(Tng::raceDefBeast)->skeletonModels[0].model.data());
+  validSkeletons.insert(Tng::Race(Tng::raceDefBeast)->skeletonModels[1].model.data());
   for (const auto& race : lAllRacesArray) {
     if (Inis::IsRaceExcluded(race)) {
       Tng::logger::debug("\tThe race [{}: xx{:x}: {}] was ignored because an ini excludes it!", race->GetFile(0)->GetFilename(), race->GetLocalFormID(), race->GetFormEditorID());
-      IgnoreRace(race);
+      IgnoreRace(race, false);
       ignored++;
       continue;
     }
@@ -27,8 +33,17 @@ void Core::GenitalizeRaces() {
       processed++;
       continue;
     }
-    switch (AddRace(race)) {
+    if (race->HasKeyword(Tng::RaceKey(Tng::rkeyPreprocessed))) {
+      preprocessed++;
+      continue;
+    }
+    switch (AddPotentialRace(race, validSkeletons)) {
+      case Tng::resOkRacePP:
+        Base::AddRace(race, false);
+        preprocessed++;
+        break;
       case Tng::resOkRaceP:
+        Base::AddRace(race, true);
         processed++;
         break;
       case Tng::resOkRaceR:
@@ -43,7 +58,7 @@ void Core::GenitalizeRaces() {
   }
   Base::UpdateRgSkins();
   Inis::LoadRgInfo();
-  Tng::logger::info("Recognized assigned genitals to [{}] races, found [{}] races to be ready and ignored [{}] races.", processed, ready, ignored);
+  Tng::logger::info("\tRecognized assigned genitalia to [{}] races. Preprocessed [{}] races, found [{}] races to be ready and ignored [{}] races.", processed, preprocessed, ready, ignored);
 }
 
 bool Core::SetRgAddon(const size_t rgChoice, const int addnIdx) {
@@ -53,78 +68,51 @@ bool Core::SetRgAddon(const size_t rgChoice, const int addnIdx) {
   return true;
 }
 
-bool Core::IgnoreRace(RE::TESRace* race) {
-  if (!race) return false;
-  bool ready = false;
-  auto& skin = race->skin;
-  if (skin) {
-    skin->AddKeyword(Tng::ArmoKey(Tng::akeyIgnored));
-    for (const auto& aa : race->skin->armorAddons) {
-      if (aa->HasPartOf(Tng::cSlotGenital) && aa->IsValidRace(race)) {
-        ready = true;
-        break;
-      }
-    }
-  }
+void Core::IgnoreRace(RE::TESRace* race, bool ready) {
+  if (!race) return;
+  if (auto& skin = race->skin; skin) skin->AddKeyword(Tng::ArmoKey(Tng::akeyIgnored));
   race->RemoveKeywords(Tng::RaceKeys(Tng::rkeyManMer));
   race->AddKeyword(Tng::RaceKey(ready ? Tng::rkeyReady : Tng::rkeyIgnore));
-  return ready;
 }
 
-bool Core::CheckRace(RE::TESRace* race) {
+Tng::TNGRes Core::AddPotentialRace(RE::TESRace* race, const std::set<std::string>& validSkeletons) {
   try {
     for (auto raceInfo : hardCodedRaces)
-      if (FormToLocView(race) == raceInfo) return true;
-    if (!race->HasKeyword(Tng::RaceKey(Tng::rkeyManMer)) || race->HasKeyword(Tng::RaceKey(Tng::rkeyCreature)) || !race->HasPartOf(Tng::cSlotBody) || race->IsChildRace()) return false;
-    
+      if (FormToLocView(race) == raceInfo) return Tng::resOkRaceP;
+    if (!race->HasKeyword(Tng::RaceKey(Tng::rkeyManMer)) || race->HasKeyword(Tng::RaceKey(Tng::rkeyCreature)) || !race->HasPartOf(Tng::cSlotBody) || race->IsChildRace()) return Tng::raceErr;
     if (!race->skin) {
       Tng::logger::warn("\tThe race [0x{:x}: {}] cannot have any genitals since they do not have a skin!", race->GetFormID(), race->GetFormEditorID());
-      IgnoreRace(race);
-      return false;
+      IgnoreRace(race, false);
+      return Tng::raceErr;
     }
-    RE::TESRace* lArmRace = race->armorParentRace ? race->armorParentRace : race;
-    RE::TESObjectARMA* skinAA{nullptr};
+    bool skinFound = false;
     for (const auto& aa : race->skin->armorAddons) {
-      std::set<RE::TESRace*> lAARaces{aa->race};
-      lAARaces.insert(aa->additionalRaces.begin(), aa->additionalRaces.end());
-      if (aa->HasPartOf(Tng::cSlotBody) && ((lAARaces.find(lArmRace) != lAARaces.end()) || (aa->race == Tng::Race(Tng::raceDefault)))) {
-        skinAA = aa;
+      if (aa->HasPartOf(Tng::cSlotBody) && aa->IsValidRace(race)) {
+        skinFound = true;
         break;
       }
     }
-    if (!skinAA) {
+    if (!skinFound) {
       Tng::logger::warn("\tThe race [0x{:x}: {}] cannot have any genitals since their skin cannot be recognized.", race->GetFormID(), race->GetFormEditorID());
-      IgnoreRace(race);
-      return false;
+      IgnoreRace(race, false);
+      return Tng::raceErr;
     }
-    return true;
+    if (race->HasPartOf(Tng::cSlotGenital)) {
+      auto ready = race->skin->HasPartOf(Tng::cSlotGenital);
+      Tng::logger::info("\tThe race [{}] is designed to be {} TNG. It was not modified.", race->GetFormEditorID(), ready ? "ready for" : "ignored by");
+      IgnoreRace(race, ready);
+      return ready ? Tng::resOkRaceR : Tng::raceErr;
+    }
   } catch (const std::exception& er) {
     Tng::logger::warn("\tThe race [0x{:x}: {}] caused an error [{}] in the process. TNG tries to ignore it but it might not work properly!", race->GetFormID(), race->GetFormEditorID(), er.what());
     const char* lMessage =
         fmt::format("\tThe race [0x{:x}: {}] caused an error [{}] in the process. TNG tries to ignore it but it might not work properly!", race->GetFormID(), race->GetFormEditorID(), er.what()).c_str();
     ShowSkyrimMessage(lMessage);
-    IgnoreRace(race);
-    return false;
+    IgnoreRace(race, false);
+    return Tng::raceErr;
   }
-}
-
-Tng::TNGRes Core::AddRace(RE::TESRace* race) {
-  if (!CheckRace(race)) return Tng::raceErr;
-  if (race->HasPartOf(Tng::cSlotGenital) || race->skin->HasPartOf(Tng::cSlotGenital)) {
-    Tng::logger::info("\tThe race [{}] seems to be ready for TNG. It was not modified.", race->GetFormEditorID());
-    return IgnoreRace(race) ? Tng::resOkRaceR : Tng::raceErr;
-  }
-  for (const auto aa : race->skin->armorAddons)
-    if (aa->HasPartOf(Tng::cSlotGenital)) {
-      Tng::logger::info("\tThe race [{}] seems to be ready for TNG. It was not modified.", race->GetFormEditorID());
-      return IgnoreRace(race) ? Tng::resOkRaceR : Tng::raceErr;
-    }
-  Base::AddRace(race);
-  race->AddKeyword(Tng::RaceKey(Tng::rkeyProcessed));
-  race->AddSlotToMask(Tng::cSlotGenital);
-  auto skin = race->skin;
-  skin->AddKeyword(Tng::ArmoKey(Tng::akeyIgnored));
-  return Tng::resOkRaceP;
+  bool isValidSk = validSkeletons.find(race->skeletonModels[0].model.data()) != validSkeletons.end() && validSkeletons.find(race->skeletonModels[1].model.data()) != validSkeletons.end();
+  return isValidSk ? Tng::resOkRaceP : Tng::resOkRacePP;
 }
 
 void Core::GenitalizeNPCSkins() {
@@ -144,13 +132,14 @@ void Core::GenitalizeNPCSkins() {
       Tng::logger::warn("\t\tThe NPC [0x{:x}: {}] does not have a race! They cannot be modified by TNG.", npc->GetFormID(), npc->GetFormEditorID());
       continue;
     }
-    if (!race->HasKeyword(Tng::RaceKey(Tng::rkeyProcessed))) continue;
+    if (!race->HasKeywordInArray(Tng::RaceKeys(Tng::rkeyReady), false)) continue;
     raceNPCCount[npc->race]++;
     if (npc->IsFemale()) continue;
     sizeCount[npc->formID % Tng::cSizeCategories]++;
     const auto skin = npc->skin;
     if (!skin) continue;
     if (skin->HasKeyword(Tng::ArmoKey(Tng::akeyIgnored))) continue;
+    if (!race->HasKeyword(Tng::RaceKey(Tng::rkeyProcessed))) continue;
     skinsToPatch[{skin, race}].insert(npc);
   }
   for (auto& racePair : raceNPCCount) {
@@ -268,7 +257,7 @@ void Core::CheckArmorPieces() {
     if (!armor) {
       pa++;
       continue;
-    }    
+    }
     if (armor->HasKeywordInArray(Tng::ArmoKeys(), false)) {
       hk++;
       continue;

@@ -37,7 +37,7 @@ void Inis::LoadSingleIni(const char *aPath, const std::string_view fileName) {
       Tng::logger::info("\t- Found [{}] excluded races in [{}].", values.size(), fileName);
       LoadModRecodPairs(values, excludedRaces);
     }
-  }  
+  }
   if (ini.SectionExists(cSkinSection)) {
     if (ini.GetAllValues(cSkinSection, cSkinMod, values)) {
       Tng::logger::info("\t- Found [{}] skin mods in [{}].", values.size(), fileName);

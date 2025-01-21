@@ -6,10 +6,8 @@ class Core : public Singleton<Core> {
     static bool SetRgAddon(const size_t rgChoice, const int addnIdx);
 
   private:
-    static bool IgnoreRace(RE::TESRace* race);
-    static bool CheckRace(RE::TESRace* race);
-    static Tng::TNGRes AddRace(RE::TESRace* race);
-    // static RE::TESObjectARMO* ProduceAddonSkin(RE::TESObjectARMO* aOgSkin, int aAddonChoice, bool isFemale) ;
+    static void IgnoreRace(RE::TESRace* race, bool ready);
+    static Tng::TNGRes AddPotentialRace(RE::TESRace* race, const std::set<std::string>& validSkeletons);
 
   public:
     static void GenitalizeNPCSkins();

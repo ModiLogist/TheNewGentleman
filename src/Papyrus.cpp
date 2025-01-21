@@ -135,6 +135,8 @@ int Papyrus::CanModifyActor(RE::StaticFunctionTag*, RE::Actor* actor) {
   switch (res) {
     case Tng::resOkRaceP:
       return Tng::resOkSizable;
+    case Tng::resOkRacePP:
+      return Tng::resOkSizable;
     case Tng::resOkRaceR:
       return Tng::resOkFixed;
     default:
@@ -208,6 +210,7 @@ int Papyrus::SetActorAddon(RE::StaticFunctionTag*, RE::Actor* actor, int choice)
   auto list = Base::GetRgAddonList(npc->race, npc->IsFemale(), false);
   int addnIdx = choice < 0 ? choice : static_cast<int>(list[choice]);
   if (actor->IsPlayerRef()) Base::SetPlayerInfo(actor, addnIdx);
+  if (npc->race->HasKeyword(Tng::RaceKey(Tng::rkeyPreprocessed)) && !Base::ReevaluateRace(npc->race, actor)) return Tng::raceErr;
   return Core::SetNPCAddon(npc, addnIdx, true);
 }
 

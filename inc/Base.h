@@ -5,8 +5,17 @@ class Base : public Singleton<Base> {
     static void Init();
 
   private:
-    inline static const char* cBaseBone{"NPC GenitalsBase [GenBase]"};
-    inline static const char* cScrtBone{"NPC GenitalsScrotum [GenScrot]"};
+    enum eGenBones { egbBase, egbScrt, egbScrtL, egbScrtR, egbGen01, egbGen02, egbGen03, egbGen04, egbGen05, egbGen06, GenBonesCount };
+    inline static const char* genBoneNames[GenBonesCount]{"NPC GenitalsBase [GenBase]",
+                                                          "NPC GenitalsScrotum [GenScrot]",
+                                                          "NPC L GenitalsScrotum [LGenScrot]",
+                                                          "NPC R GenitalsScrotum [RGenScrot]",
+                                                          "NPC Genitals01 [Gen01]",
+                                                          "NPC Genitals02 [Gen02]",
+                                                          "NPC Genitals03 [Gen03]",
+                                                          "NPC Genitals04 [Gen04]",
+                                                          "NPC Genitals05 [Gen05]",
+                                                          "NPC Genitals06 [Gen06]"};
     inline static const char* cNPCAutoAddon{"TNG_ActorAddnAuto:"};
     inline static const char* cNPCUserAddon{"TNG_ActorAddnUser:"};
 
@@ -35,7 +44,8 @@ class Base : public Singleton<Base> {
     static void SetGlobalSize(size_t idx, float size);
 
   public:
-    static void AddRace(RE::TESRace* race);
+    static void AddRace(RE::TESRace* race, bool isProccessed);
+    static bool ReevaluateRace(RE::TESRace* race, RE::Actor* actor);
     static void TryUnhideRace(RE::TESRace* race);
     static int GetRaceRgIdx(RE::TESRace* race);
     static void UpdateRgSkins();
@@ -48,7 +58,7 @@ class Base : public Singleton<Base> {
     static float GetRgMult(const size_t rgChoice, bool onlyMCM);
     static float GetRgMult(RE::TESRace* race);
     static bool SetRgMult(const size_t rgChoice, const float mult, bool onlyMCM);
-    static std::vector<size_t> GetRgAddonList(size_t rgChoice, bool isFemale,  bool onlyMCM, bool onlyActive);
+    static std::vector<size_t> GetRgAddonList(size_t rgChoice, bool isFemale, bool onlyMCM, bool onlyActive);
     static std::vector<size_t> GetRgAddonList(RE::TESRace* race, bool isFemale, bool onlyActive);
     static int IsAddonDedicatedToRg(const size_t rgChoice, bool isFemale, bool onlyMCM, size_t addnChoice);
     static RE::TESObjectARMO* GetSkinWithAddonForRg(const size_t rgIdx, RE::TESObjectARMO* skin, const size_t addonIdx, const bool isFemale);
