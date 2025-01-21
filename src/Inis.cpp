@@ -259,7 +259,7 @@ void Inis::SaveAddonStatus(const bool isFemale, const int addnIdx, const bool st
   CSimpleIniA ini;
   ini.SetUnicode();
   ini.LoadFile(cSettings);
-  status == isFemale ? ini.SetBoolValue(isFemale ? cActiveFemAddons : cActiveMalAddons, lAddonStr.c_str(), status) : ini.Delete(isFemale ? cActiveFemAddons : cActiveMalAddons, lAddonStr.c_str());
+  status == isFemale ? ini.SetBoolValue(isFemale ? cActiveFemAddons : cActiveMalAddons, addonStr.c_str(), status) : ini.Delete(isFemale ? cActiveFemAddons : cActiveMalAddons, addonStr.c_str(), true);
   ini.SaveFile(cSettings);
 }
 
