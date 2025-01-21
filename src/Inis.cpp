@@ -105,6 +105,7 @@ void Inis::LoadMainIni() {
     auto addon = Base::AddonByIdx(true, i, false);
     Base::SetAddonStatus(true, i, ini.GetBoolValue(cActiveFemAddons, FormToStr(addon).c_str(), false));
   }
+  Tng::logger::debug("\tRestored all addon status to previous selections");
   ini.GetAllKeys(cRacialAddon, values);
   for (const auto &entry : values) {
     std::string addonStr = ini.GetValue(cRacialAddon, entry.pItem);
@@ -137,32 +138,45 @@ void Inis::LoadMainIni() {
   for (const auto &entry : values) {
     auto isExcluded = ini.GetBoolValue(cExcludeNPCSection, entry.pItem);
     const std::string npcRecord(entry.pItem);
-    if (isExcluded) Base::ExcludeNPC(npcRecord);
+    if (isExcluded) {
+      Base::ExcludeNPC(npcRecord);
+      Tng::logger::debug("\tThe npc [{}] was excluded, since it was excluded by user previously.", npcRecord);
+    }
   }
   ini.GetAllKeys(cRevealingSection, values);
   for (const auto &entry : values) {
     auto isRevealing = ini.GetBoolValue(cRevealingSection, entry.pItem);
     const std::string armorRecord(entry.pItem);
     UpdateRevealing(armorRecord, isRevealing ? Tng::akeyReveal : Tng::akeyCover);
+    Tng::logger::debug("\tThe amor [{}] was marked revealing, due to user choice in the past.", armorRecord);
   }
   ini.GetAllKeys(cFemRevRecordSection, values);
   for (const auto &entry : values) {
     auto isRevealing = ini.GetBoolValue(cFemRevRecordSection, entry.pItem);
     const std::string armorRecord(entry.pItem);
     UpdateRevealing(armorRecord, isRevealing ? Tng::akeyRevFem : Tng::cNA);
+    Tng::logger::debug("\tThe amor [{}] was marked revealing for women, due to user choice in the past.", armorRecord);
   }
   ini.GetAllKeys(cMalRevRecordSection, values);
   for (const auto &entry : values) {
     auto isRevealing = ini.GetBoolValue(cMalRevRecordSection, entry.pItem);
     const std::string armorRecord(entry.pItem);
     UpdateRevealing(armorRecord, isRevealing ? Tng::akeyRevMal : Tng::cNA);
+    Tng::logger::debug("\tThe amor [{}] was marked revealing for men, due to user choice in the past.", armorRecord);
   }
-  for (size_t i = 0; i < Tng::BoolSettingCount; i++) Tng::boolSettings[i] = ini.GetBoolValue(cGeneral, cBoolSettings[i], false);
+
+  for (size_t i = 0; i < Tng::BoolSettingCount; i++) {
+    Tng::boolSettings[i] = ini.GetBoolValue(cGeneral, cBoolSettings[i], false);
+    Tng::logger::debug("\tThe boolean setting [{}] was restored to [{}].", cBoolSettings[i], Tng::boolSettings[i]);
+  }
   if (ini.KeyExists(cControls, cCtrlNames[Tng::ctrlDAK])) Tng::UserCtrl(Tng::ctrlDAK)->value = ini.GetBoolValue(cControls, cCtrlNames[Tng::ctrlDAK]) ? 2.0f : 0.0f;
   for (size_t i = 0; i < Tng::UserCtrlsCount; i++)
     if (ini.KeyExists(cControls, cCtrlNames[i])) Tng::UserCtrl(i)->value = static_cast<float>(ini.GetLongValue(cControls, cCtrlNames[i]));
+  Tng::logger::debug("\tInput settings loaded.");
   for (size_t i = 0; i < Tng::cSizeCategories; i++) Base::SetGlobalSize(i, static_cast<float>(ini.GetDoubleValue(cGlobalSize, cSizeNames[i], cDefSizes[i])));
+  Tng::logger::debug("\tGlobal size settings loaded.");
   if (ini.KeyExists(cGentleWomen, cGentleWomenChance)) Tng::WRndGlb()->value = static_cast<float>(ini.GetDoubleValue(cGentleWomen, cGentleWomenChance));
+  Tng::logger::debug("\tGentlewomen chance value loaded.");
 }
 
 void Inis::LoadRgInfo() {
@@ -171,12 +185,12 @@ void Inis::LoadRgInfo() {
     auto addonIdx = Base::AddonIdxByLoc(false, rgInfo.second);
     if ((rgIdx < 0) || (addonIdx < 0)) continue;
     if (Base::SetRgAddon(rgIdx, addonIdx, false))
-      Tng::logger::debug("Restored the addon of race [xx{:x}] from file [{}] to addon [xx{:x}] from file [{}]", rgInfo.first.first, rgInfo.first.second, rgInfo.second.first, rgInfo.second.second);
+      Tng::logger::debug("\tRestored the addon of race [xx{:x}] from file [{}] to addon [xx{:x}] from file [{}]", rgInfo.first.first, rgInfo.first.second, rgInfo.second.first, rgInfo.second.second);
   }
   for (auto &rgInfo : racialMults) {
     auto rgIdx = Base::GetRaceRgIdx(Tng::SEDH()->LookupForm<RE::TESRace>(rgInfo.first.first, rgInfo.first.second));
     if (rgIdx < 0) continue;
-    if (Base::SetRgMult(rgIdx, rgInfo.second, false)) Tng::logger::debug("Restored the size multiplier of race [xx{:x}] from file [{}] to [{}]", rgInfo.first.first, rgInfo.first.second, rgInfo.second);
+    if (Base::SetRgMult(rgIdx, rgInfo.second, false)) Tng::logger::debug("\tRestored the size multiplier of race [xx{:x}] from file [{}] to [{}]", rgInfo.first.first, rgInfo.first.second, rgInfo.second);
   }
   racialAddons.clear();
   racialMults.clear();
@@ -189,7 +203,7 @@ void Inis::LoadNpcInfo() {
     auto addonIdx = Base::AddonIdxByLoc(npc->IsFemale(), npcInfo.second);
     if (addonIdx < 0) continue;
     if (Base::SetNPCAddon(npc, addonIdx, true) >= 0)
-      Tng::logger::debug("Restored the addon of npc [xx{:x}] from file [{}] to addon [xx{:x}] from file [{}]", npcInfo.first.first, npcInfo.first.second, npcInfo.second.first, npcInfo.second.second);
+      Tng::logger::debug("\tRestored the addon of npc [xx{:x}] from file [{}] to addon [xx{:x}] from file [{}]", npcInfo.first.first, npcInfo.first.second, npcInfo.second.first, npcInfo.second.second);
   }
   for (auto &npcInfo : npcSizeCats) {
     auto npc = Tng::SEDH()->LookupForm<RE::TESNPC>(npcInfo.first.first, npcInfo.first.second);
@@ -197,7 +211,7 @@ void Inis::LoadNpcInfo() {
     if (!npc || sizeCat < 0 || sizeCat >= Tng::cSizeCategories) continue;
     npc->RemoveKeywords(Tng::SizeKeys());
     npc->AddKeyword(Tng::SizeKey(sizeCat));
-    Tng::logger::debug("Restored the size category of npc [xx{:x}] from file [{}] to [{}]", npcInfo.first.first, npcInfo.first.second, npcInfo.second);
+    Tng::logger::debug("\tRestored the size category of npc [xx{:x}] from file [{}] to [{}]", npcInfo.first.first, npcInfo.first.second, npcInfo.second);
   }
   npcAddons.clear();
   npcSizeCats.clear();
@@ -211,7 +225,7 @@ void Inis::CleanIniLists() {
   skinRecords.clear();
 
   coveringRecords.clear();
-  revealingMods.clear();  
+  revealingMods.clear();
   revealingRecords.clear();
   femRevRecords.clear();
   malRevRecords.clear();
