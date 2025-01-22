@@ -517,7 +517,7 @@ Tng::TNGRes Base::SetNPCAddon(RE::TESNPC *npc, int addnIdx, bool isUser) {
     Tng::logger::critical("Failure in setting a NPC genital!");
     return Tng::npcErr;
   }
-  auto res = npc->IsPlayer() && Tng::boolSettings[Tng::bsExcludePlayerSize] ? Tng::resOkFixed : Tng::resOkSizable;
+  auto res = (npc->IsPlayer() && Tng::boolSettings[Tng::bsExcludePlayerSize]) || addnIdx == Tng::cNul ? Tng::resOkFixed : Tng::resOkSizable;
   if (addnIdx == Tng::cDef && !npc->skin) return !npc->IsFemale() ? res : Tng::resOkFixed;
   auto &skin = npc->skin ? npc->skin : npc->race->skin;
   bool skinHasRace = false;
@@ -546,7 +546,7 @@ Tng::TNGRes Base::SetNPCAddon(RE::TESNPC *npc, int addnIdx, bool isUser) {
   OrganizeNPCAddonKeywords(npc, addnIdx, isUser);
   auto resSkin = addonChoice == Tng::cNul ? ogSkin : GetSkinWithAddonForRg(rg, ogSkin, addonChoice, npc->IsFemale());
   if (resSkin != skin) npc->skin = resSkin == npc->race->skin ? nullptr : resSkin;
-  return addonChoice == Tng::cNul || !npc->IsFemale() || npc->HasKeyword(Tng::NPCKey(Tng::npckeyGentlewoman)) ? res : Tng::resOkFixed;
+  return !npc->IsFemale() || npc->HasKeyword(Tng::NPCKey(Tng::npckeyGentlewoman)) ? res : Tng::resOkFixed;
 }
 
 void Base::SetPlayerInfo(RE::Actor *actor, const int addnIdx) {
