@@ -206,7 +206,9 @@ int Papyrus::SetActorAddon(RE::StaticFunctionTag*, RE::Actor* actor, int choice)
   int addnIdx = choice < 0 ? choice : static_cast<int>(list[choice]);
   if (actor->IsPlayerRef()) Base::SetPlayerInfo(actor, addnIdx);
   if (npc->race->HasKeyword(Tng::RaceKey(Tng::rkeyPreprocessed)) && !Base::ReevaluateRace(npc->race, actor)) return Tng::raceErr;
-  return Core::SetNPCAddon(npc, addnIdx, true);
+  auto res = Core::SetNPCAddon(npc, addnIdx, true);
+  if (res >= 0) Events::DoChecks(actor);
+  return res;
 }
 
 int Papyrus::GetActorSize(RE::StaticFunctionTag*, RE::Actor* actor) {
