@@ -61,8 +61,8 @@ void Core::GenitalizeRaces() {
   Tng::logger::info("\tRecognized assigned genitalia to [{}] races. Preprocessed [{}] races, found [{}] races to be ready and ignored [{}] races.", processed, preprocessed, ready, ignored);
 }
 
-bool Core::SetRgAddon(const size_t rgChoice, const int addnIdx) {
-  auto res = Base::SetRgAddon(rgChoice, addnIdx, true);
+bool Core::SetRgAddon(const size_t rgChoice, const int addnIdx, const bool onlyMCM) {
+  auto res = Base::SetRgAddon(rgChoice, addnIdx, onlyMCM);
   if (!res) return res;
   Inis::SaveRgAddon(rgChoice, addnIdx);
   return true;
