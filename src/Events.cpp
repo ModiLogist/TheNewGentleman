@@ -108,7 +108,7 @@ bool Events::NeedsCover(RE::Actor* actor) {
   const auto npc = actor ? actor->GetActorBase() : nullptr;
   if (Base::CanModifyNPC(npc) < 0) return false;
   if (npc->IsFemale()) {
-    return (npc->HasKeyword(Tng::NPCKey(Tng::npckeyGentlewoman)));
+    return npc->HasKeyword(Tng::NPCKey(Tng::npckeyGentlewoman)) || (Base::GetNPCAddon(npc).second >= 0);
   } else {
     return (!npc->HasKeyword(Tng::NPCKey(Tng::npckeyExclude)));
   }
