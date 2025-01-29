@@ -24,8 +24,13 @@ RE::BSEventNotifyControl Events::ProcessEvent(const RE::TESEquipEvent* event, RE
   auto armor = RE::TESForm::LookupByID<RE::TESObjectARMO>(event->baseObject);
   if (Core::CanModifyNPC(npc) < 0 || !armor || !armor->HasKeywordInArray(coverKeys, false)) return RE::BSEventNotifyControl::kContinue;
   if (npc->race->HasKeyword(Tng::RaceKey(Tng::rkeyPreprocessed)) && !Base::ReevaluateRace(npc->race, actor)) return RE::BSEventNotifyControl::kContinue;
-  if (armor->HasKeyword(Tng::ArmoKey(Tng::akeyCover)) || (armor->HasKeyword(Tng::ArmoKey(Tng::akeyRevFem)) && !npc->IsFemale()) || (armor->HasKeyword(Tng::ArmoKey(Tng::akeyRevMal)) && npc->IsFemale()))
-    DoChecks(actor, armor, event->equipped);
+  if (armor->HasPartOf(Tng::cSlotBody)) { 
+    auto covArmor =
+        armor->HasKeyword(Tng::ArmoKey(Tng::akeyCover)) || (armor->HasKeyword(Tng::ArmoKey(Tng::akeyRevFem)) && !npc->IsFemale()) || (armor->HasKeyword(Tng::ArmoKey(Tng::akeyRevMal)) && npc->IsFemale())
+            ? armor
+            : nullptr;
+    DoChecks(actor, covArmor, event->equipped);
+  }
   return RE::BSEventNotifyControl::kContinue;
 }
 
