@@ -192,7 +192,7 @@ int Base::GetRgAddon(RE::TESRace *race) {
 
 bool Base::SetRgAddon(const size_t rgChoice, const int addnChoice, bool onlyMCM) {
   auto rg = GetRg(rgChoice, onlyMCM);
-  if (!rg || addnChoice < Tng::cDef || rg->malAddons.find(addnChoice) == rg->malAddons.end()) return false;
+  if (!rg || addnChoice < Tng::cDef || (addnChoice >= 0 && rg->malAddons.find(addnChoice) == rg->malAddons.end())) return false;
   rg->addonIdx = (addnChoice == Tng::cDef) ? rg->defAddonIdx : addnChoice;
   auto skin = (rg->addonIdx == Tng::cNul) ? rg->ogSkin : GetSkinWithAddonForRg(rg, rg->ogSkin, rg->addonIdx, false);
   if (skin) {

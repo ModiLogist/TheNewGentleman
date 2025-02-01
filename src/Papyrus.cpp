@@ -109,7 +109,7 @@ int Papyrus::GetRgAddon(RE::StaticFunctionTag*, int rgIdx) {
 
 void Papyrus::SetRgAddon(RE::StaticFunctionTag*, int rgIdx, int choice) {
   if (rgIdx < 0) return;
-  if (choice < 0) return;
+  if (choice < Tng::cDef) return;
   auto list = Base::GetRgAddonList(static_cast<size_t>(rgIdx), false, true, false);
   int addnIdx = choice < 0 ? choice : static_cast<int>(list[choice]);
   Core::SetRgAddon(static_cast<size_t>(rgIdx), addnIdx, true);

@@ -505,7 +505,8 @@ Event OnOptionDefault(Int aiOption)
 			If aiOption == fIRaceTypeHdls[liOpLoop]
 				TNG_PapyrusUtil.SetRGAddon(liOpLoop, -2)
 				String[] lSOptions = TNG_PapyrusUtil.GetRgAddons(liOpLoop)
-				SetMenuOptionValue(fIRaceTypeHdls[liOpLoop], lSOptions[TNG_PapyrusUtil.GetRGAddon(liOpLoop) + 2])
+				Int liChoiceRes = TNG_PapyrusUtil.GetRGAddon(liOpLoop) + 2
+				SetMenuOptionValue(fIRaceTypeHdls[liOpLoop], lSOptions[liChoiceRes])
 				Return
 			EndIf
 		EndWhile
@@ -548,7 +549,7 @@ Event OnOptionDefault(Int aiOption)
 		If aiOption == fi52DefBehaviorHdl
 			TNG_PapyrusUtil.SetBoolValue(ciRevealSlot52s, False)
 			TNG_PapyrusUtil.SetBoolValue(ciLetMixSlot52s, False)    
-			SetMenuOptionValue(fi52DefBehaviorHdl, 0)
+			SetMenuOptionValue(fi52DefBehaviorHdl, cS52Options[0])
 			Update52Behaviors(0)
 		EndIf
 		Return
@@ -561,7 +562,7 @@ Event OnOptionDefault(Int aiOption)
 		EndIf
 		If aiOption == fiPCEHdl
 			TNG_PapyrusUtil.SetBoolValue(ciExcludePlayer, False)
-			SetToggleOptionValue(ciExcludePlayer, TNG_PapyrusUtil.GetBoolValue(ciExcludePlayer))
+			SetToggleOptionValue(ciExcludePlayer, False)
 			Return
 		EndIf
 		If aiOption == fiLogLvlHdl
@@ -625,7 +626,8 @@ Event OnOptionMenuAccept(Int aiOption, Int aiChoice)
 			If aiOption == fIRaceTypeHdls[liRg]
 				TNG_PapyrusUtil.SetRGAddon(liRg, aiChoice - 2)
 				String[] lSOptions = TNG_PapyrusUtil.GetRgAddons(liRg)
-				SetMenuOptionValue(fIRaceTypeHdls[liRg], lSOptions[aiChoice])
+				Int liChoiceRes = TNG_PapyrusUtil.GetRGAddon(liRg) + 2
+				SetMenuOptionValue(fIRaceTypeHdls[liRg], lSOptions[liChoiceRes])
 				Return
 			EndIf
 		EndWhile
