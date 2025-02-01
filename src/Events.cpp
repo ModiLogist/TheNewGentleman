@@ -24,13 +24,8 @@ RE::BSEventNotifyControl Events::ProcessEvent(const RE::TESEquipEvent* event, RE
   auto armor = RE::TESForm::LookupByID<RE::TESObjectARMO>(event->baseObject);
   if (Core::CanModifyNPC(npc) < 0 || !armor || !armor->HasKeywordInArray(coverKeys, false)) return RE::BSEventNotifyControl::kContinue;
   if (npc->race->HasKeyword(Tng::RaceKey(Tng::rkeyPreprocessed)) && !Base::ReevaluateRace(npc->race, actor)) return RE::BSEventNotifyControl::kContinue;
-  if (armor->HasPartOf(Tng::cSlotBody)) { 
-    auto covArmor =
-        armor->HasKeyword(Tng::ArmoKey(Tng::akeyCover)) || (armor->HasKeyword(Tng::ArmoKey(Tng::akeyRevFem)) && !npc->IsFemale()) || (armor->HasKeyword(Tng::ArmoKey(Tng::akeyRevMal)) && npc->IsFemale())
-            ? armor
-            : nullptr;
-    DoChecks(actor, covArmor, event->equipped);
-  }
+  if (armor->HasKeyword(Tng::ArmoKey(Tng::akeyCover)) || (armor->HasKeyword(Tng::ArmoKey(Tng::akeyRevFem)) && !npc->IsFemale()) || (armor->HasKeyword(Tng::ArmoKey(Tng::akeyRevMal)) && npc->IsFemale()))
+    DoChecks(actor, armor, event->equipped);
   return RE::BSEventNotifyControl::kContinue;
 }
 
@@ -75,7 +70,7 @@ void Events::CheckCovering(RE::Actor* actor, RE::TESObjectARMO* armor, bool isEq
   auto down = actor->GetWornArmor(Tng::cSlotGenital);
   auto cover = armor && isEquipped ? armor : GetCoveringItem(actor, isEquipped ? nullptr : armor);
   bool needsCover = NeedsCover(actor);
-  if (!needsCover || (down && FormToLocView(down) != Tng::cCover)) {
+  if (!needsCover || (down && FormToLocView(down) != Tng::cCover) || (!cover && down && FormToLocView(down) == Tng::cCover)) {
     if (down && FormToLocView(down) == Tng::cCover) {
       RE::ActorEquipManager::GetSingleton()->UnequipObject(actor, down, nullptr, 1, nullptr, false, true, false, true);
     }
@@ -91,7 +86,9 @@ void Events::CheckCovering(RE::Actor* actor, RE::TESObjectARMO* armor, bool isEq
   if (down && FormToLocView(down) == Tng::cCover) {
     RE::ActorEquipManager::GetSingleton()->UnequipObject(actor, down, nullptr, 1, nullptr, false, true, false, true);
   }
-  if (cover && !down) RE::ActorEquipManager::GetSingleton()->EquipObject(actor, tngCover);
+  if (cover && !down) {
+    RE::ActorEquipManager::GetSingleton()->EquipObject(actor, tngCover);
+  }
 }
 
 RE::TESObjectARMO* Events::GetCoveringItem(RE::Actor* actor, RE::TESObjectARMO* armor) {
