@@ -583,6 +583,7 @@ Event OnOptionMenuOpen(Int aiOption)
 				String[] lSOptions = TNG_PapyrusUtil.GetRgAddons(liRg)
 				SetMenuDialogOptions(lSOptions)
 				SetMenuDialogStartIndex(TNG_PapyrusUtil.GetRGAddon(liRg) + 2)
+				SetMenuDialogDefaultIndex(0)
 				Return
 			EndIf
 		EndWhile
@@ -600,17 +601,19 @@ Event OnOptionMenuOpen(Int aiOption)
 				li52Option = 1
 			EndIf
 			SetMenuDialogOptions(cS52Options)
-			SetMenuDialogStartIndex(li52Option)
+			SetMenuDialogStartIndex(li52Option)			
+			SetMenuDialogDefaultIndex(0)
 			Return
 		EndIf
 		Return
   EndIf
 	
 	If CurrentPage == Pages[4]
-		If aiOption == fiLogLvlHdl
+		If aiOption == fiLogLvlHdl			
 			SetMenuDialogOptions(cSLogOptions)
 			Int liLvl = TNG_PapyrusUtil.UpdateLogLvl(-1)
 			SetMenuDialogStartIndex(liLvl)
+			SetMenuDialogDefaultIndex(1)
 			Return
 		EndIf
 		Return
