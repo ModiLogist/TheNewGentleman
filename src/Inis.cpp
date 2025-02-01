@@ -65,6 +65,26 @@ void Inis::LoadSingleIni(const char *path, const std::string_view fileName) {
         }
       }
     }
+    if (ini.GetAllValues(cArmorSection, cFemRevMod, values)) {
+      Tng::logger::info("\t- Found [{}] female revealing mods in [{}].", values.size(), fileName);
+      for (const auto &entry : values) {
+        const std::string modName(entry.pItem);
+        if (Tng::SEDH()->LookupModByName(modName)) {
+          femRevMods.insert(modName);
+          Tng::logger::info("\t\tTheNewGentleman keeps an eye for [{}] as a female revealing armor mod.", modName);
+        }
+      }
+    }
+    if (ini.GetAllValues(cArmorSection, cMalRevMod, values)) {
+      Tng::logger::info("\t- Found [{}] male revealing mods in [{}].", values.size(), fileName);
+      for (const auto &entry : values) {
+        const std::string modName(entry.pItem);
+        if (Tng::SEDH()->LookupModByName(modName)) {
+          malRevMods.insert(modName);
+          Tng::logger::info("\t\tTheNewGentleman keeps an eye for [{}] as a male revealing armor mod.", modName);
+        }
+      }
+    }    
     if (ini.GetAllValues(cArmorSection, cCoveringRecord, values)) {
       Tng::logger::info("\t- Found [{}] covering records in ini file [{}].", values.size(), fileName);
       LoadModRecodPairs(values, coveringRecords);
@@ -226,6 +246,8 @@ void Inis::CleanIniLists() {
 
   coveringRecords.clear();
   revealingMods.clear();
+  femRevMods.clear();
+  malRevMods.clear();
   revealingRecords.clear();
   femRevRecords.clear();
   malRevRecords.clear();
@@ -537,6 +559,8 @@ bool Inis::IsCovering(const RE::TESObjectARMO *armor, const std::string modName)
 int Inis::IsRevealing(const RE::TESObjectARMO *armor, const std::string modName) {
   if (modName == "") return Tng::cNA;
   if (revealingMods.find(modName) != revealingMods.end()) return Tng::akeyReveal;
+  if (femRevMods.find(modName) != femRevMods.end()) return Tng::akeyRevFem;
+  if (malRevMods.find(modName) != malRevMods.end()) return Tng::akeyRevMal;
   if (revealingRecords.find({armor->GetLocalFormID(), modName}) != revealingRecords.end()) return Tng::akeyReveal;
   if (femRevRecords.find({armor->GetLocalFormID(), modName}) != femRevRecords.end()) return Tng::akeyRevFem;
   if (malRevRecords.find({armor->GetLocalFormID(), modName}) != malRevRecords.end()) return Tng::akeyRevMal;

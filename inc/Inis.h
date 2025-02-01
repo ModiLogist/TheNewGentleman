@@ -18,6 +18,8 @@ class Inis : public Singleton<Inis> {
     inline static constexpr const char* cArmorSection{"Armor"};
     inline static constexpr const char* cCoveringRecord{"CoveringRecord"};
     inline static constexpr const char* cRevealingMod{"RevealingMod"};
+    inline static constexpr const char* cFemRevMod{"FemaleRevealingMod"};
+    inline static constexpr const char* cMalRevMod{"MaleRevealingMod"};
     inline static constexpr const char* cRevealingRecord{"RevealingRecord"};
     inline static constexpr const char* cFemRevRecord{"FemaleRevealingRecord"};
     inline static constexpr const char* cMalRevRecord{"MaleRevealingRecord"};
@@ -31,6 +33,8 @@ class Inis : public Singleton<Inis> {
     inline static std::set<SEFormLoc> skinRecords;
 
     inline static std::set<std::string> revealingMods;
+    inline static std::set<std::string> femRevMods;
+    inline static std::set<std::string> malRevMods;
     inline static std::set<SEFormLoc> coveringRecords;
     inline static std::set<SEFormLoc> revealingRecords;
     inline static std::set<SEFormLoc> femRevRecords;
