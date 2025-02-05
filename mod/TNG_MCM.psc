@@ -3,6 +3,7 @@ Scriptname TNG_MCM extends SKI_ConfigBase
 ;Property
 
 GlobalVariable Property DAKIntegration auto
+GlobalVariable Property DebugKey auto
 GlobalVariable Property GenDownKey auto
 FormList Property Gentified auto
 GlobalVariable Property GenUpKey auto
@@ -55,6 +56,7 @@ Int fiNPCKeyHdl
 Int fiRevealKeyHdl
 Int fiUpKeyHdl
 Int fiDownKeyHdl
+Int fiDebugKeyHdl
 Int fiWomenChanceHdl
 Int fiRandMalAddonHdl
 Int fiLogLvlHdl
@@ -159,6 +161,9 @@ Event OnGameReload()
   EndIf
   If GenDownKey.GetValueInt() > 0
     RegisterForKey(GenDownKey.GetValueInt())
+  EndIf
+	If DebugKey.GetValueInt() > 0
+	  RegisterForKey(DebugKey.GetValueInt())
   EndIf
   Int res = TNG_PapyrusUtil.SetActorAddon(PlayerRef, PlayerSkin.GetValueInt())
 	If (res >= 0) && !PlayerRef.IsOnMount()
@@ -303,6 +308,8 @@ Event OnPageReset(String asPage)
     Int liLvl = TNG_PapyrusUtil.UpdateLogLvl(-1)
     fiLogLvlHdl = AddMenuOption("$TNG_L_T", cSLogOptions[liLvl])
     fiLogDirHdl = AddToggleOption("$TNG_L_D", False)
+		
+    fiDebugKeyHdl = AddKeyMapOption("$TNG_P_K", DebugKey.GetValueInt(), OPTION_FLAG_WITH_UNMAP)
 	EndIf
 
   
@@ -421,6 +428,10 @@ Event OnOptionHighlight(Int aiOption)
 		  SetInfoText("$TNG_HLF")
 			Return
 		EndIf
+		If aiOption == fiDebugKeyHdl
+			SetInfoText("$TNG_HLD")
+			Return
+		EndIf
     Return
   EndIf
   
@@ -443,6 +454,7 @@ Event OnOptionDefault(Int aiOption)
 				OnOptionDefault(fiRevealKeyHdl)
 				OnOptionDefault(fiUpKeyHdl)
 				OnOptionDefault(fiDownKeyHdl)
+				OnOptionDefault(fiDebugKeyHdl)
 			EndIf
 			Return
 		EndIf
@@ -475,6 +487,14 @@ Event OnOptionDefault(Int aiOption)
 				UnregisterForKey(GenDownKey.GetValueInt())
 				GenDownKey.SetValueInt(-1)
 				SetKeymapOptionValue(fiDownKeyHdl, -1)
+			EndIf
+			Return
+		EndIf
+		If aiOption == fiDebugKeyHdl
+			If DebugKey.GetValueInt() > 0
+				UnregisterForKey(DebugKey.GetValueInt())
+				DebugKey.SetValueInt(-1)
+				SetKeymapOptionValue(fiDebugKeyHdl, -1)
 			EndIf
 			Return
 		EndIf
@@ -760,6 +780,7 @@ Event OnOptionSelect(Int aiOption)
           OnOptionDefault(fiRevealKeyHdl)
           OnOptionDefault(fiUpKeyHdl)
           OnOptionDefault(fiDownKeyHdl)
+					OnOptionDefault(fiDebugKeyHdl)
         EndIf
       EndIf
       Return
@@ -863,7 +884,7 @@ Event OnOptionKeyMapChange(Int aiOption, Int aiKeyCode, String asConflictControl
       EndIf
     EndIf
   EndIf
-  If (aiOption == fiNPCKeyHdl) || (aiOption == fiRevealKeyHdl) || (aiOption == fiUpKeyHdl) || (aiOption == fiDownKeyHdl)
+  If (aiOption == fiNPCKeyHdl) || (aiOption == fiRevealKeyHdl) || (aiOption == fiUpKeyHdl) || (aiOption == fiDownKeyHdl) || (aiOption == fiDebugKeyHdl)
     UpdateKey(aiOption, aiKeyCode)
     SetKeymapOptionValue(aiOption, aiKeyCode)
   EndIf
@@ -941,6 +962,13 @@ Event OnKeyDown(Int aiKey)
     EndIf
     Return
   EndIf
+	If aiKey == DebugKey.GetValueInt()
+    If Utility.IsInMenuMode()
+      Return
+    EndIf
+    ShowDebugMenu(TargetOrPlayer(False))
+    Return
+  EndIf
 EndEvent
 
 Event OnUpdate()
@@ -973,6 +1001,9 @@ Function UpdateKey(Int aHdl, Int aiNewKey)
   ElseIf (aHdl == fiDownKeyHdl)
     liCurrKey = GenDownKey.GetValueInt()
     GenDownKey.SetValueInt(aiNewKey)
+	ElseIf (aHdl == fiDebugKeyHdl)
+    liCurrKey = DebugKey.GetValueInt()
+    DebugKey.SetValueInt(aiNewKey)
   EndIf
   If liCurrKey > 0
     UnregisterForKey(liCurrKey)
@@ -1161,5 +1192,16 @@ Actor Function GetLockedActor()
 	EndIf
 	fiL = 0
 	Return lkActor
+EndFunction
+
+Function ShowDebugMenu(Actor akActor)
+  UIListMenu lkDebugMenu = UIExtensions.GetMenu("UIListMenu") as UIListMenu
+	lkDebugMenu.ResetMenu()
+  lkDebugMenu.AddEntryItem("$TNG_P_0")
+	lkDebugMenu.AddEntryItem("$TNG_P_1")
+	lkDebugMenu.AddEntryItem("$TNG_P_2")	
+  lkDebugMenu.OpenMenu(akActor)
+  Int liIssueID = lkDebugMenu.GetResultInt()	
+	Debug.Notification(TNG_PapyrusUtil.WhyProblem(akActor,liIssueID))
 EndFunction
 

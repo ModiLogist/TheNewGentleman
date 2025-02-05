@@ -37,6 +37,9 @@ bool Papyrus::BindPapyrus(RE::BSScript::IVirtualMachine* vm) {
   vm->RegisterFunction("UpdateLogLvl", "TNG_PapyrusUtil", UpdateLogLvl);
   vm->RegisterFunction("ShowLogLocation", "TNG_PapyrusUtil", ShowLogLocation);
   vm->RegisterFunction("GetErrDscr", "TNG_PapyrusUtil", GetErrDscr);
+
+  vm->RegisterFunction("WhyProblem", "TNG_PapyrusUtil", WhyProblem);
+
   return true;
 }
 
@@ -276,4 +279,46 @@ std::string Papyrus::GetErrDscr(RE::StaticFunctionTag*, int errCode) {
     default:
       return "$TNG_WN9";
   }
+}
+
+std::string Papyrus::WhyProblem(RE::StaticFunctionTag* tag, RE::Actor* actor, int issueID) {
+  auto npc = actor ? actor->GetActorBase() : nullptr;
+  if (!npc) return "$TNG_PD9";
+  auto down = actor->GetWornArmor(Tng::cSlotGenital);
+  auto cover = Events::GetCoveringItem(actor, nullptr);
+  switch (issueID) {
+    case iidCanSee:
+      if (!cover) return "$TNG_PA1";
+      if (down) return FormToLocView(down) == Tng::cCover ? "$TNG_PD0" : "$TNG_PA2";
+      return WhyProblem(tag, actor, iidCanSeeRep);
+    case iidCanSeeRep:
+      Events::DoChecks(actor);
+      return actor->GetWornArmor(Tng::cSlotGenital) ? "$TNG_PD1" : "$TNG_PD2";
+    case iidCannotSee:
+      auto skin = npc->skin ? npc->skin : npc->race->skin;
+      if (cover) return "$TNG_PA6";
+      if (down && FormToLocView(down) != Tng::cCover) return "$TNG_PA2";
+      if (!down) {
+        auto res = Core::CanModifyNPC(npc);
+        switch (res) {
+          case Tng::resOkRaceP:
+            break;
+          case Tng::resOkRaceR:
+            return GetErrDscr(tag, Tng::raceErr).c_str();
+          case Tng::resOkRacePP:
+            if (!Base::ReevaluateRace(npc->race, actor)) {
+              return GetErrDscr(tag, Tng::raceErr).c_str();
+            }
+          default:
+            return GetErrDscr(tag, res).c_str();
+        }
+        if (skin->HasKeyword(Tng::ArmoKey(Tng::akeyGenSkin))) return "$TNG_PD0";
+        if (npc->HasKeyword(Tng::NPCKey(Tng::npckeyExclude))) return "$TNG_PA3";
+        if (npc->IsFemale() && static_cast<size_t>(std::floor(Tng::WRndGlb()->value + 0.1)) < 100) return "$TNG_PA4";
+        if (Base::GetRgAddon(npc->race) == Tng::cNul) return "$TNG_PA5";
+      }
+      Events::DoChecks(actor);
+      return !actor->GetWornArmor(Tng::cSlotGenital) && skin->HasKeyword(Tng::ArmoKey(Tng::akeyGenSkin)) ? "$TNG_PD1" : "$TNG_PD2";
+  }
+  return "";
 }

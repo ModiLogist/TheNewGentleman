@@ -53,7 +53,7 @@ namespace Tng {
   enum eArmoKeys { akeyCover, akeyRevFem, akeyRevMal, akeyReveal, akeyIgnored, akeyUnderwear, akeySkinWP, akeyGenSkin, ArmoKeysCount };
   inline static constexpr eArmoKeys RevKeys[3]{akeyReveal, akeyRevFem, akeyRevMal};
 
-  enum UserCtrls { ctrlDAK, ctrlSetupNPC, ctrlRiseGen, ctrlFallGen, ctrlSwapRevealing, UserCtrlsCount };
+  enum UserCtrls { ctrlDAK, ctrlSetupNPC, ctrlRiseGen, ctrlFallGen, ctrlSwapRevealing, ctrWhyProblem, UserCtrlsCount };
 
   namespace {
     inline static constexpr SEFormLocView cRaceIDs[RacesCount]{{0x19, cSkyrim}, {0x13745, cSkyrim}};
@@ -70,7 +70,7 @@ namespace Tng {
     inline static constexpr SEFormLocView cWomenChanceID{0xCA0, cName};
     inline static constexpr RE::FormID cSizeGlbIDs[cSizeCategories]{0xC01, 0xC02, 0xC03, 0xC04, 0xC05};
 
-    inline static constexpr SEFormLocView cUserCtrlIDs[UserCtrlsCount] = {{0xC00, Tng::cName}, {0xCB0, Tng::cName}, {0xCB1, Tng::cName}, {0xCB2, Tng::cName}, {0xCB3, Tng::cName}};
+    inline static constexpr SEFormLocView cUserCtrlIDs[UserCtrlsCount] = {{0xC00, Tng::cName}, {0xCB0, Tng::cName}, {0xCB1, Tng::cName}, {0xCB2, Tng::cName}, {0xCB3, Tng::cName}, {0xCB4, Tng::cName}};
 
     inline static constexpr SEFormLocView cCover{0xAFF, cName};
 

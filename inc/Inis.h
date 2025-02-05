@@ -68,7 +68,7 @@ class Inis : public Singleton<Inis> {
     inline static constexpr double cDefSizes[Tng::cSizeCategories]{0.8, 0.9, 1.0, 1.2, 1.4};
 
     inline static constexpr const char* cControls{"Controls"};
-    inline static constexpr const char* cCtrlNames[Tng::UserCtrlsCount]{"DAK_Integration", "NPCEdit", "GenitalUp", "GenitalDown", "Revealing"};
+    inline static constexpr const char* cCtrlNames[Tng::UserCtrlsCount]{"DAK_Integration", "NPCEdit", "GenitalUp", "GenitalDown", "Revealing", "WhyProblem"};
 
     inline static constexpr const char* cRacialAddon{"RaceGenital"};
     inline static constexpr const char* cRacialSize{"RaceSizeMultplier"};

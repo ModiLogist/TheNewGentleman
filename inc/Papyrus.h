@@ -1,10 +1,10 @@
 #pragma once
+
 class Papyrus : public Singleton<Papyrus> {
   public:
     static bool BindPapyrus(RE::BSScript::IVirtualMachine* vm);
 
   private:
-
     static bool GetBoolValue(RE::StaticFunctionTag*, int settingID);
     static void SetBoolValue(RE::StaticFunctionTag*, int settingID, bool value);
 
@@ -39,5 +39,7 @@ class Papyrus : public Singleton<Papyrus> {
     static std::string ShowLogLocation(RE::StaticFunctionTag*);
     static std::string GetErrDscr(RE::StaticFunctionTag*, int errCode);
 
+    static std::string WhyProblem(RE::StaticFunctionTag* tag, RE::Actor* actor, int issueID);
 
+    enum eIssueID { iidNone, iidCanSee, iidCannotSee, iidCanSeeRep };
 };
