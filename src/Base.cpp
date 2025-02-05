@@ -519,6 +519,7 @@ Tng::TNGRes Base::SetNPCAddon(RE::TESNPC *npc, int addnIdx, bool isUser) {
     return Tng::npcErr;
   }
   auto res = (npc->IsPlayer() && Tng::boolSettings[Tng::bsExcludePlayerSize]) || addnIdx == Tng::cNul ? Tng::resOkFixed : Tng::resOkSizable;
+  npc->RemoveKeyword(Tng::NPCKey(Tng::npckeyExclude));
   if (addnIdx == Tng::cDef && !npc->skin) return !npc->IsFemale() ? res : Tng::resOkFixed;
   auto &skin = npc->skin ? npc->skin : npc->race->skin;
   bool skinHasRace = false;
