@@ -28,7 +28,7 @@ class Papyrus : public Singleton<Papyrus> {
     static int SetActorSize(RE::StaticFunctionTag*, RE::Actor* actor, int sizeCat);
     static std::vector<std::string> ActorItemsInfo(RE::StaticFunctionTag*, RE::Actor* actor);
     static bool SwapRevealing(RE::StaticFunctionTag*, RE::Actor* actor, int choice);
-
+    static std::vector<RE::Actor*> CheckActors(RE::StaticFunctionTag*, RE::TESObjectCELL* cell);
 
     static std::vector<std::string> GetSlot52Mods(RE::StaticFunctionTag*);
     static bool Slot52ModBehavior(RE::StaticFunctionTag*, std::string modName, int behavior);

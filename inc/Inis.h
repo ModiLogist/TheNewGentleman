@@ -61,7 +61,7 @@ class Inis : public Singleton<Inis> {
 
     inline static constexpr const char* cGeneral{"General"};
     inline static constexpr const char* cLogLvl{"LoggingLevel"};
-    inline static constexpr const char* cBoolSettings[Tng::BoolSettingCount]{"ExcludePlayerSize", "CheckPlayerRegularly", "Slot52ModsAreRevealing", "Slot52ModsAreMixed", "RandomizeMaleAddons"};
+    inline static constexpr const char* cBoolSettings[Tng::BoolSettingCount]{"ExcludePlayerSize", "CheckPlayerRegularly", "CheckNPCsAfterLoad", "ForceChecks", "Slot52ModsAreRevealing", "Slot52ModsAreMixed", "RandomizeMaleAddons"};
 
     inline static constexpr const char* cGlobalSize{"GlobalSizes"};
     inline static constexpr const char* cSizeNames[Tng::cSizeCategories]{"Size_XS", "Size__S", "Size__M", "Size__L", "Size_XL"};

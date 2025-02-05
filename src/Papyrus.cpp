@@ -22,12 +22,13 @@ bool Papyrus::BindPapyrus(RE::BSScript::IVirtualMachine* vm) {
 
   vm->RegisterFunction("CanModifyActor", "TNG_PapyrusUtil", CanModifyActor);
   vm->RegisterFunction("GetActorAddons", "TNG_PapyrusUtil", GetActorAddons);
+  vm->RegisterFunction("GetActorAddon", "TNG_PapyrusUtil", GetActorAddon);
   vm->RegisterFunction("SetActorAddon", "TNG_PapyrusUtil", SetActorAddon);
+  vm->RegisterFunction("GetActorSize", "TNG_PapyrusUtil", GetActorSize);
   vm->RegisterFunction("SetActorSize", "TNG_PapyrusUtil", SetActorSize);
   vm->RegisterFunction("ActorItemsInfo", "TNG_PapyrusUtil", ActorItemsInfo);
   vm->RegisterFunction("SwapRevealing", "TNG_PapyrusUtil", SwapRevealing);
-  vm->RegisterFunction("GetActorAddon", "TNG_PapyrusUtil", GetActorAddon);
-  vm->RegisterFunction("GetActorSize", "TNG_PapyrusUtil", GetActorSize);
+  vm->RegisterFunction("CheckActors", "TNG_PapyrusUtil", CheckActors);
 
   vm->RegisterFunction("GetSlot52Mods", "TNG_PapyrusUtil", GetSlot52Mods);
   vm->RegisterFunction("Slot52ModBehavior", "TNG_PapyrusUtil", Slot52ModBehavior);
@@ -233,6 +234,32 @@ bool Papyrus::SwapRevealing(RE::StaticFunctionTag*, RE::Actor* actor, int choice
   if (choice < 0 || choice > wornArmor.size()) return false;
   auto res = Core::SwapRevealing(actor, wornArmor[choice]);
   Events::DoChecks(actor);
+  return res;
+}
+
+std::vector<RE::Actor*> Papyrus::CheckActors(RE::StaticFunctionTag*, RE::TESObjectCELL* cell) {
+  Tng::logger::debug("Started checking cell");
+  std::vector<RE::Actor*> res{};
+  size_t tot = 0;
+  cell->ForEachReference([&](RE::TESObjectREFR* ref) {
+    if (ref && ref->GetBaseObject()) {
+      if (ref->GetBaseObject()->formType != RE::FormType::NPC && ref->GetBaseObject()->formType != RE::FormType::LeveledNPC) return RE::BSContainer::ForEachResult::kContinue;
+      tot++;
+      auto actor = ref->As<RE::Actor>();
+      auto npc = actor ? actor->GetActorBase() : nullptr;
+      if (!npc || Core::CanModifyNPC(npc) != Tng::resOkRaceP) return RE::BSContainer::ForEachResult::kContinue;
+      if (!npc->IsLeveled() && (!npc->skin || npc->skin->HasKeyword(Tng::ArmoKey(Tng::akeyGenSkin)))) return RE::BSContainer::ForEachResult::kContinue;
+      auto addnPair = Base::GetNPCAddon(npc);
+      Core::SetNPCAddon(npc, addnPair.second, addnPair.first);
+      Events::DoChecks(actor);
+      if (actor->GetSkin()->HasKeyword(Tng::ArmoKey(Tng::akeyGenSkin))) {
+        Tng::logger::debug("\tFixed [0x{:x}:{}] with addon [{}].", actor->GetFormID(), npc->GetName(), addnPair.second);
+        res.push_back(actor);
+      }
+    }
+    return RE::BSContainer::ForEachResult::kContinue;
+  });
+  Tng::logger::debug("Finished checking cell. {} out of {} actors needed update!", res.size(), tot);
   return res;
 }
 

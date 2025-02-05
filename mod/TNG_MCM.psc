@@ -13,6 +13,7 @@ GlobalVariable Property NPCKey auto
 Actor Property PlayerRef auto
 Int Property PlayerSize auto
 GlobalVariable Property PlayerSkin auto
+Spell Property ReloadSpell auto
 GlobalVariable Property RevealKey auto
 GlobalVariable Property WomenChance auto
 
@@ -20,6 +21,8 @@ GlobalVariable Property WomenChance auto
 ;Constants
 Int ciExcludePlayer
 Int ciCheckingPCGen
+Int ciCheckNPCsGens
+Int ciForceTheCheck
 Int ciRevealSlot52s
 Int ciLetMixSlot52s    
 Int ciRandomizeMale
@@ -66,9 +69,10 @@ Int fi52DefBehaviorHdl
 
 Int fiPCEHdl
 Int fiPCUHdl
+Int fiPCNHdl
 
 Int Function GetVersion()
-  Return 8
+  Return 9
 EndFunction
 
 Event OnConfigInit()
@@ -115,9 +119,11 @@ Event OnConfigInit()
 	
 	ciExcludePlayer = 0
 	ciCheckingPCGen = 1
-  ciRevealSlot52s = 2
-	ciLetMixSlot52s = 3
-  ciRandomizeMale = 4
+	ciCheckNPCsGens = 2
+	ciForceTheCheck = 3
+  ciRevealSlot52s = 4
+	ciLetMixSlot52s = 5
+  ciRandomizeMale = 6
 
 	ciLockKey = 56 ; Left Alt Key
 EndEvent
@@ -146,6 +152,10 @@ Event OnGameReload()
   If TNG_PapyrusUtil.GetBoolValue(ciCheckingPCGen) 
     RegisterForSingleUpdate(1)
   EndIf
+
+	If TNG_PapyrusUtil.GetBoolValue(ciCheckNPCsGens)
+		PlayerRef.AddSpell(ReloadSpell,False)
+	EndIf
   
   If Game.GetModByName("Dynamic Activation Key.esp")
     fkDAK = Game.GetFormFromFile(0x801, "Dynamic Activation Key.esp") As GlobalVariable
@@ -301,8 +311,14 @@ Event OnPageReset(String asPage)
 		AddHeaderOption("$TNG_GPH")
 		AddHeaderOption("")
     fiPCEHdl = AddToggleOption("$TNG_GEP", TNG_PapyrusUtil.GetBoolValue(ciExcludePlayer))
-    fiPCUHdl = AddToggleOption("$TNG_GPC", TNG_PapyrusUtil.GetBoolValue(ciCheckingPCGen))
-				
+    Int liFlag = OPTION_FLAG_NONE
+    If TNG_PapyrusUtil.GetBoolValue(ciForceTheCheck)
+      liFlag = OPTION_FLAG_DISABLED
+    EndIf
+    fiPCUHdl = AddToggleOption("$TNG_GPC", TNG_PapyrusUtil.GetBoolValue(ciCheckingPCGen), liFlag)
+		AddEmptyOption()
+		fiPCNHdl = AddToggleOption("$TNG_GNP", TNG_PapyrusUtil.GetBoolValue(ciCheckNPCsGens), liFlag)
+						
 		AddHeaderOption("$TNG_L_H")
 		AddHeaderOption("")
     Int liLvl = TNG_PapyrusUtil.UpdateLogLvl(-1)
@@ -414,6 +430,10 @@ Event OnOptionHighlight(Int aiOption)
   If CurrentPage == Pages[4]
     If aiOption == fiPCUHdl
       SetInfoText("$TNG_HPU")
+      Return
+    EndIf
+		If aiOption == fiPCNHdl
+      SetInfoText("$TNG_HPN")
       Return
     EndIf
     If aiOption == fiPCEHdl
@@ -576,9 +596,13 @@ Event OnOptionDefault(Int aiOption)
 	EndIf
 
 	If CurrentPage == Pages[4]
-		If aiOption == fiPCUHdl
+		If (aiOption == fiPCUHdl) && !TNG_PapyrusUtil.GetBoolValue(ciForceTheCheck)
 			TNG_PapyrusUtil.SetBoolValue(ciCheckingPCGen, False)
 			SetToggleOptionValue(fiPCUHdl,False)
+		EndIf
+		If (aiOption == fiPCNHdl) && !TNG_PapyrusUtil.GetBoolValue(ciForceTheCheck)
+			TNG_PapyrusUtil.SetBoolValue(ciCheckNPCsGens, False)
+			SetToggleOptionValue(fiPCNHdl,False)
 		EndIf
 		If aiOption == fiPCEHdl
 			TNG_PapyrusUtil.SetBoolValue(ciExcludePlayer, False)
@@ -857,8 +881,18 @@ Event OnOptionSelect(Int aiOption)
 					TNG_PapyrusUtil.SetActorAddon(PlayerRef, PlayerSkin.GetValueInt())
 					HandleWarnings(res)
 				EndIf  
-			EndIf			
+			EndIf		
+			Return
 		EndIf		
+		If aiOption == fiPCNHdl
+		  TNG_PapyrusUtil.SetBoolValue(ciCheckNPCsGens, !TNG_PapyrusUtil.GetBoolValue(ciCheckNPCsGens))			
+			SetToggleOptionValue(fiPCNHdl, TNG_PapyrusUtil.GetBoolValue(ciCheckNPCsGens))
+			PlayerRef.RemoveSpell(ReloadSpell)
+			If TNG_PapyrusUtil.GetBoolValue(ciCheckNPCsGens)
+			  PlayerRef.AddSpell(ReloadSpell)  
+			EndIf
+			Return
+		EndIf
     If aiOption == fiLogDirHdl
       ShowMessage(TNG_PapyrusUtil.ShowLogLocation(), true, "Ok")
       Return

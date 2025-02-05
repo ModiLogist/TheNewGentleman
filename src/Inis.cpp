@@ -187,6 +187,12 @@ void Inis::LoadMainIni() {
 
   for (size_t i = 0; i < Tng::BoolSettingCount; i++) {
     Tng::boolSettings[i] = ini.GetBoolValue(cGeneral, cBoolSettings[i], false);
+    if (Tng::SEDH()->LookupModByName("Racial Skin Variance - SPID.esp")) {
+      Tng::boolSettings[Tng::bsCheckPlayerAddon] = true;
+      Tng::boolSettings[Tng::bsCheckNPCsAddons] = true;
+      Tng::boolSettings[Tng::bsForceRechecks] = true;      
+      Tng::logger::info("\tTNG detected Racial Skin Variance and would force the player and NPCs to be reloaded");
+    }
     Tng::logger::debug("\tThe boolean setting [{}] was restored to [{}].", cBoolSettings[i], Tng::boolSettings[i]);
   }
   if (ini.KeyExists(cControls, cCtrlNames[Tng::ctrlDAK])) Tng::UserCtrl(Tng::ctrlDAK)->value = ini.GetBoolValue(cControls, cCtrlNames[Tng::ctrlDAK]) ? 2.0f : 0.0f;

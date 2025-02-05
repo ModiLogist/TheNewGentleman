@@ -43,8 +43,8 @@ namespace Tng {
     resOkSupported = 22,
   };
 
-  enum BoolSetting { bsExcludePlayerSize, bsCheckPlayerAddon, bsRevealSlot52Mods, bsAllowMixSlot52Mods, bsRandomizeMaleAddon, BoolSettingCount };
-  inline static bool boolSettings[BoolSettingCount] = {false, false, false, false, false};
+  enum BoolSetting { bsExcludePlayerSize, bsCheckPlayerAddon, bsCheckNPCsAddons, bsForceRechecks, bsRevealSlot52Mods, bsAllowMixSlot52Mods, bsRandomizeMaleAddon, BoolSettingCount };
+  inline static bool boolSettings[BoolSettingCount] = {};
 
   enum Races { raceDefault, raceDefBeast, RacesCount };
 

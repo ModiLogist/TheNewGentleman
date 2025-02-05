@@ -3,10 +3,12 @@ ScriptName TNG_PapyrusUtil hidden
 
 ;For bool functions IDs: 
 ; 0: Exclude player,
-; 1: Check players addon after load,
-; 2: Mark mods with slot 52 as revealing by default,
-; 3: Allow user to choose the behavior of mods with slot 52,
-; 4: Randomize Male addons among the active ones
+; 1: Check player addon after load,
+; 2: Check NPCs addon after load,
+; 3: (Used internally)
+; 4: Mark mods with slot 52 as revealing by default,
+; 5: Allow user to choose the behavior of mods with slot 52,
+; 6: Randomize Male addons among the active ones
 Bool Function GetBoolValue(Int aiID) Global Native
 Function SetBoolValue(Int aiID, Bool abValue) Global Native
 
@@ -31,6 +33,7 @@ Int Function GetActorSize(Actor akActor) Global Native ;Returns -1 if there is a
 Int Function SetActorSize(Actor akActor, Int aiSizeCat) Global Native
 String[] Function ActorItemsInfo(Actor akActor) Global Native
 Bool Function SwapRevealing(Actor akActor, Int aiChoice) Global Native
+Actor[] Function CheckActors(Cell akCell) Global Native
 
 String[] Function GetSlot52Mods() Global Native
 ;Behavior value: -1 -> Get behavior, 0 -> Set to Normal, 1 -> Set to Revealing
