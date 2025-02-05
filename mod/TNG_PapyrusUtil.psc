@@ -41,3 +41,5 @@ Function UpdateSettings() Global Native
 Int Function UpdateLogLvl(Int aiLogLevel) Global Native
 String Function ShowLogLocation() Global Native
 String Function GetErrDscr(Int aiErrCode) Global Native
+
+String Function WhyProblem(Actor akActor, Int aiIssueID) Global Native
