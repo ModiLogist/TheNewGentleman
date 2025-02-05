@@ -1158,7 +1158,7 @@ Actor Function LockOnNext()
   Actor lkActor = TargetOrPlayer(True)  
 	If Notifs
 		If fiLastActor == 0
-		  Debug.Notification("TNG_KAL")
+		  Debug.Notification("$TNG_KAL")
 		EndIf
 	  Debug.Notification(lkActor.GetLeveledActorBase().GetName())
 	EndIf
