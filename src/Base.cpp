@@ -107,7 +107,7 @@ bool Base::ReevaluateRace(RE::TESRace *race, RE::Actor *actor) {
   Tng::logger::debug("Re-evaluating race [0x{:x}:{}] ...", race->GetFormID(), race->GetFormEditorID());
   if (!actor->Is3DLoaded()) return false;
   auto rgIdx = raceRgs[race];
-  auto &rg = rgInfoList[rgIdx];  
+  auto &rg = rgInfoList[rgIdx];
   for (auto &boneName : genBoneNames) {
     if (!actor->GetNodeByName(boneName)) {
       race->skin = rg.ogSkin;
@@ -158,7 +158,7 @@ std::vector<std::string> Base::GetRgNames(const bool onlyMCM) {
   return res;
 }
 
-std::string Base::GetRgInfo(size_t rgChoice, bool onlyMCM) { 
+std::string Base::GetRgInfo(size_t rgChoice, bool onlyMCM) {
   std::string res{""};
   auto rg = GetRg(rgChoice, onlyMCM);
   if (!rg) return res;
@@ -423,6 +423,7 @@ RE::TESObjectARMO *Base::GetSkinWithAddonForRg(RaceGroupInfo *rg, RE::TESObjectA
     if (isFemale && femAddons[addonIdx].first->HasKeyword(Tng::ArmoKey(Tng::akeySkinWP))) resSkin->AddKeyword(Tng::ArmoKey(Tng::akeySkinWP));
     resSkin->AddSlotToMask(Tng::cSlotGenital);
     ogSkins.insert({resSkin, ogSkin});
+    skinMap[ogSkin].insert({addonIdx, resSkin});
   } else {
     resSkin = skinMap[ogSkin][addonIdx];
   }
