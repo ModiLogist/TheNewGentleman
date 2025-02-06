@@ -154,6 +154,7 @@ Event OnGameReload()
   EndIf
 
   If TNG_PapyrusUtil.GetBoolValue(ciCheckNPCsGens)
+    PlayerRef.RemoveSpell(ReloadSpell)
     PlayerRef.AddSpell(ReloadSpell,False)
   EndIf
   

@@ -237,18 +237,18 @@ bool Papyrus::SwapRevealing(RE::StaticFunctionTag*, RE::Actor* actor, int choice
   return res;
 }
 
-std::vector<RE::Actor*> Papyrus::CheckActors(RE::StaticFunctionTag*, RE::TESObjectCELL* cell) {
-  Tng::logger::debug("Started checking cell");
+std::vector<RE::Actor*> Papyrus::CheckActors(RE::StaticFunctionTag*) {
+  Tng::logger::debug("Started checking actors");
   std::vector<RE::Actor*> res{};
   size_t tot = 0;
-  cell->ForEachReference([&](RE::TESObjectREFR* ref) {
-    if (ref && ref->GetBaseObject()) {
+  RE::TES::GetSingleton()->ForEachReference([&](RE::TESObjectREFR* ref) {
+    if (ref && ref->Is3DLoaded() && ref->GetBaseObject()) {
       if (ref->GetBaseObject()->formType != RE::FormType::NPC && ref->GetBaseObject()->formType != RE::FormType::LeveledNPC) return RE::BSContainer::ForEachResult::kContinue;
       tot++;
       auto actor = ref->As<RE::Actor>();
       auto npc = actor ? actor->GetActorBase() : nullptr;
       if (!npc || Core::CanModifyNPC(npc) != Tng::resOkRaceP) return RE::BSContainer::ForEachResult::kContinue;
-      if (!npc->IsLeveled() && (!npc->skin || npc->skin->HasKeyword(Tng::ArmoKey(Tng::akeyGenSkin)))) return RE::BSContainer::ForEachResult::kContinue;
+      if (!npc->skin || npc->skin->HasKeyword(Tng::ArmoKey(Tng::akeyGenSkin))) return RE::BSContainer::ForEachResult::kContinue;
       auto addnPair = Base::GetNPCAddon(npc);
       Core::SetNPCAddon(npc, addnPair.second, addnPair.first);
       Events::DoChecks(actor);
@@ -259,7 +259,7 @@ std::vector<RE::Actor*> Papyrus::CheckActors(RE::StaticFunctionTag*, RE::TESObje
     }
     return RE::BSContainer::ForEachResult::kContinue;
   });
-  Tng::logger::debug("Finished checking cell. {} out of {} actors needed update!", res.size(), tot);
+  Tng::logger::debug("Finished checking actors. {} out of {} actors needed update!", res.size(), tot);
   return res;
 }
 
