@@ -85,7 +85,11 @@ float Base::GetGlobalSize(size_t idx) {
 
 void Base::SetGlobalSize(size_t idx, float size) {
   if (idx < 0 || idx >= Tng::cSizeCategories) return;
-  Tng::SizeGlb(idx)->value = size;
+  if (Tng::SizeGlb(idx)) {
+    Tng::SizeGlb(idx)->value = size;
+  } else {
+    Tng::logger::error("The [{}] record for size #[{}] cannot be loaded!", Tng::cName, idx);
+  }
 }
 
 // Race handling and info

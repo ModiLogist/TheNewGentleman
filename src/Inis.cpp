@@ -84,7 +84,7 @@ void Inis::LoadSingleIni(const char *path, const std::string_view fileName) {
           Tng::logger::info("\t\tTheNewGentleman keeps an eye for [{}] as a male revealing armor mod.", modName);
         }
       }
-    }    
+    }
     if (ini.GetAllValues(cArmorSection, cCoveringRecord, values)) {
       Tng::logger::info("\t- Found [{}] covering records in ini file [{}].", values.size(), fileName);
       LoadModRecodPairs(values, coveringRecords);
@@ -106,9 +106,9 @@ void Inis::LoadSingleIni(const char *path, const std::string_view fileName) {
 
 void Inis::LoadMainIni() {
   if (!std::filesystem::exists(cSettings)) {
-    std::ofstream title(cSettings);
-    title << ";TNG Settings File" << std::endl;
-    title.close();
+    std::ofstream newSetting(cSettings);
+    newSetting << ";TNG Settings File" << std::endl;
+    newSetting.close();
   }
   Tng::logger::info("Loading TNG settings...");
   UpdateIniVersion();
@@ -190,18 +190,30 @@ void Inis::LoadMainIni() {
     if (Tng::SEDH()->LookupModByName("Racial Skin Variance - SPID.esp")) {
       Tng::boolSettings[Tng::bsCheckPlayerAddon] = true;
       Tng::boolSettings[Tng::bsCheckNPCsAddons] = true;
-      Tng::boolSettings[Tng::bsForceRechecks] = true;      
+      Tng::boolSettings[Tng::bsForceRechecks] = true;
       Tng::logger::info("\tTNG detected Racial Skin Variance and would force the player and NPCs to be reloaded");
     }
     Tng::logger::debug("\tThe boolean setting [{}] was restored to [{}].", cBoolSettings[i], Tng::boolSettings[i]);
   }
   if (ini.KeyExists(cControls, cCtrlNames[Tng::ctrlDAK])) Tng::UserCtrl(Tng::ctrlDAK)->value = ini.GetBoolValue(cControls, cCtrlNames[Tng::ctrlDAK]) ? 2.0f : 0.0f;
   for (size_t i = 0; i < Tng::UserCtrlsCount; i++)
-    if (ini.KeyExists(cControls, cCtrlNames[i])) Tng::UserCtrl(i)->value = static_cast<float>(ini.GetLongValue(cControls, cCtrlNames[i]));
+    if (ini.KeyExists(cControls, cCtrlNames[i])) {
+      if (Tng::UserCtrl(i)) {
+        Tng::UserCtrl(i)->value = static_cast<float>(ini.GetLongValue(cControls, cCtrlNames[i]));
+      } else {
+        Tng::logger::error("The [{}] record for [{}] cannot be loaded!", Tng::cName, cCtrlNames[i]);
+      }
+    }
   Tng::logger::debug("\tInput settings loaded.");
   for (size_t i = 0; i < Tng::cSizeCategories; i++) Base::SetGlobalSize(i, static_cast<float>(ini.GetDoubleValue(cGlobalSize, cSizeNames[i], cDefSizes[i])));
   Tng::logger::debug("\tGlobal size settings loaded.");
-  if (ini.KeyExists(cGentleWomen, cGentleWomenChance)) Tng::WRndGlb()->value = static_cast<float>(ini.GetDoubleValue(cGentleWomen, cGentleWomenChance));
+  if (ini.KeyExists(cGentleWomen, cGentleWomenChance)) {
+    if (Tng::WRndGlb()) {
+      Tng::WRndGlb()->value = static_cast<float>(ini.GetDoubleValue(cGentleWomen, cGentleWomenChance));
+    } else {
+      Tng::logger::error("The [{}] record for [{} {}] cannot be loaded!", Tng::cName, cGentleWomen, cGentleWomenChance);
+    }
+  }  
   Tng::logger::debug("\tGentlewomen chance value loaded.");
 }
 
