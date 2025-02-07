@@ -594,7 +594,7 @@ void Base::OrganizeNPCAddonKeywords(RE::TESNPC *npc, int addnIdx, bool isUser) {
     }
     return RE::BSContainer::ForEachResult::kContinue;
   });
-  if (addnIdx < 0 && npc->IsFemale() && npc->HasKeyword(Tng::NPCKey(Tng::npckeyGentlewoman))) {
+  if (npc->IsFemale() && npc->HasKeyword(Tng::NPCKey(Tng::npckeyGentlewoman))) {
     for (RE::BSTArray<RE::TESForm *>::const_iterator it = Tng::GentFml()->forms.begin(); it < Tng::GentFml()->forms.end(); it++) {
       if ((*it)->As<RE::TESNPC>() == npc) Tng::GentFml()->forms.erase(it);
     }
