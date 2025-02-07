@@ -90,20 +90,25 @@ class Base : public Singleton<Base> {
     static int GetRgDefAddon(Base::RaceGroupInfo& rg);
     static void UpdateRgAddons(RaceGroupInfo& rg);
     static bool RgHasAddon(RaceGroupInfo& rg, bool isFemale, int addonIdx);
+    static bool AddonHasRace(const RE::TESObjectARMA* addnIdx, const RE::TESRace* race);
     static RE::TESObjectARMO* GetSkinWithAddonForRg(RaceGroupInfo* rg, RE::TESObjectARMO* skin, const size_t addonIdx, const bool isFemale);
 
   public:
     static Tng::TNGRes CanModifyNPC(RE::TESNPC* npc);
     static Tng::TNGRes GetActorSizeCat(RE::Actor* actor, int& sizeCat);
     static Tng::TNGRes SetActorSizeCat(RE::Actor* actor, const int sizeCat);
-    static void ExcludeNPC(const std::string npcRecord);
+    static void ExcludeNPC(const std::string npcRecordStr);
     static std::pair<bool, int> GetNPCAddon(RE::TESNPC* npc);
     static Tng::TNGRes SetNPCAddon(RE::TESNPC* npc, int addnIdx, bool isUser);
     static void SetPlayerInfo(RE::Actor* actor, const int addnIdx);
     static void UnsetPlayerInfo();
     static bool HasPlayerChanged(RE::Actor* actor);
+    static bool GetBoolSetting(const size_t idx);
+    static void SetBoolSetting(const size_t idx, const bool value);
 
   private:
+    inline static bool boolSettings[Tng::BoolSettingCount];
+
     static void OrganizeNPCAddonKeywords(RE::TESNPC* npc, int addnIdx, bool isUser);
     struct PlayerInfo {
         inline static bool isFemale;

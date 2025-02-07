@@ -45,7 +45,7 @@ bool Papyrus::BindPapyrus(RE::BSScript::IVirtualMachine* vm) {
 }
 
 bool Papyrus::GetBoolValue(RE::StaticFunctionTag*, int settingID) {
-  if (0 <= settingID && settingID < Tng::BoolSettingCount) return Inis::GetSettingBool(static_cast<Tng::BoolSetting>(settingID));
+  if (0 <= settingID && settingID < Tng::BoolSettingCount) return Base::GetBoolSetting(static_cast<Tng::BoolSetting>(settingID));
   return false;
 }
 
@@ -238,7 +238,7 @@ bool Papyrus::SwapRevealing(RE::StaticFunctionTag*, RE::Actor* actor, int choice
 }
 
 std::vector<RE::Actor*> Papyrus::CheckActors(RE::StaticFunctionTag*) {
-  Tng::logger::debug("Started checking actors");
+  SKSE::log::debug("Started checking actors");
   std::vector<RE::Actor*> res{};
   size_t tot = 0;
   RE::TES::GetSingleton()->ForEachReference([&](RE::TESObjectREFR* ref) {
@@ -253,13 +253,13 @@ std::vector<RE::Actor*> Papyrus::CheckActors(RE::StaticFunctionTag*) {
       Core::SetNPCAddon(npc, addnPair.second, addnPair.first);
       Events::DoChecks(actor);
       if (actor->GetSkin()->HasKeyword(Tng::ArmoKey(Tng::akeyGenSkin))) {
-        Tng::logger::debug("\tFixed [0x{:x}:{}] with addon [{}].", actor->GetFormID(), npc->GetName(), addnPair.second);
+        SKSE::log::debug("\tFixed [0x{:x}:{}] with addon [{}].", actor->GetFormID(), npc->GetName(), addnPair.second);
         res.push_back(actor);
       }
     }
     return RE::BSContainer::ForEachResult::kContinue;
   });
-  Tng::logger::debug("Finished checking actors. {} out of {} actors needed update!", res.size(), tot);
+  SKSE::log::debug("Finished checking actors. {} out of {} actors needed update!", res.size(), tot);
   return res;
 }
 
@@ -278,7 +278,7 @@ int Papyrus::UpdateLogLvl(RE::StaticFunctionTag*, int logLevel) {
 }
 
 std::string Papyrus::ShowLogLocation(RE::StaticFunctionTag*) {
-  auto logDir{Tng::logger::log_directory};
+  auto logDir{SKSE::log::log_directory};
   std::filesystem::path path = logDir().value_or("$TNG_LDN");
   return path.string();
 }

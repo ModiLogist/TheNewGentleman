@@ -14,7 +14,7 @@ void Events::RegisterEvents() {
   sesh->AddEventSink<RE::TESObjectLoadedEvent>(GetSingleton());
   sesh->AddEventSink<RE::TESSwitchRaceCompleteEvent>(GetSingleton());
 
-  Tng::logger::info("Registered for necessary events.");
+  SKSE::log::info("Registered for necessary events.");
 }
 
 RE::BSEventNotifyControl Events::ProcessEvent(const RE::TESEquipEvent* event, RE::BSTEventSource<RE::TESEquipEvent>*) {
@@ -141,10 +141,10 @@ RE::TESBoundObject* Events::ForceTngCover(RE::Actor* actor, bool ifUpdate) {
 void Events::CheckForAddons(RE::Actor* actor) {
   const auto npc = actor ? actor->GetActorBase() : nullptr;
   if (!npc) return;
-  if (!npc->IsPlayer() || !Inis::GetSettingBool(Tng::bsExcludePlayerSize)) Core::SetActorSize(actor, Tng::cNul);
+  if (!npc->IsPlayer() || !Base::GetBoolSetting(Tng::bsExcludePlayerSize)) Core::SetActorSize(actor, Tng::cNul);
   auto addnPair = Base::GetNPCAddon(npc);
   if (addnPair.second == Tng::pgErr) {
-    Tng::logger::critical("Faced an issue retrieving information for {}!", npc->GetName());
+    SKSE::log::critical("Faced an issue retrieving information for {}!", npc->GetName());
     return;
   }
   switch (addnPair.second) {
@@ -163,7 +163,7 @@ void Events::CheckForAddons(RE::Actor* actor) {
         if ((addnIdx < 0 && npc->skin && npc->skin->HasKeyword(Tng::ArmoKey(Tng::akeyGenSkin))) || (addnIdx >= 0 && (!npc->skin || !npc->skin->HasKeyword(Tng::ArmoKey(Tng::akeyGenSkin)))))
           Core::SetNPCAddon(npc, addnIdx, false);
       } else {
-        auto addnIdx = Inis::GetSettingBool(Tng::bsRandomizeMaleAddon) ? GetNPCAutoAddon(npc) : Tng::cDef;
+        auto addnIdx = Base::GetBoolSetting(Tng::bsRandomizeMaleAddon) ? GetNPCAutoAddon(npc) : Tng::cDef;
         if (addnIdx < 0 && (!npc->skin || npc->skin->HasKeyword(Tng::ArmoKey(Tng::akeyGenSkin)))) return;
         Core::SetNPCAddon(npc, addnIdx, false);
       }

@@ -2,14 +2,14 @@
 #include <Inis.h>
 
 void Inis::LoadTngInis() {
-  Tng::logger::info("Loading ini files...");
+  SKSE::log::info("Loading ini files...");
   if (std::filesystem::exists(cTngInisPath)) {
     for (const auto &entry : std::filesystem::directory_iterator(cTngInisPath)) {
       const std::string fileName = entry.path().filename().string();
       if (fileName.ends_with(cTngIniEnding)) {
         LoadSingleIni(entry.path().string().c_str(), fileName);
       } else {
-        Tng::logger::warn("The file {} in TNG ini folder is not named correctly or is not a TNG ini file.", fileName);
+        SKSE::log::warn("The file {} in TNG ini folder is not named correctly or is not a TNG ini file.", fileName);
       }
     }
   }
@@ -23,82 +23,82 @@ void Inis::LoadSingleIni(const char *path, const std::string_view fileName) {
   ini.LoadFile(path);
   if (ini.SectionExists(cExcludeSection)) {
     if (ini.GetAllValues(cExcludeSection, cExcludeNPC, values)) {
-      Tng::logger::info("\t- Found [{}] excluded NPCs in [{}].", values.size(), fileName);
+      SKSE::log::info("\t- Found [{}] excluded NPCs in [{}].", values.size(), fileName);
       LoadModRecodPairs(values, excludedNPCs);
     }
     if (ini.GetAllValues(cExcludeSection, cExcModRaces, values)) {
-      Tng::logger::info("\t- Found [{}] excluded mods for their races in [{}].", values.size(), fileName);
+      SKSE::log::info("\t- Found [{}] excluded mods for their races in [{}].", values.size(), fileName);
       for (const auto &entry : values) {
         const std::string modName(entry.pItem);
         excludedRaceMods.insert(modName);
       }
     }
     if (ini.GetAllValues(cExcludeSection, cExcRace, values)) {
-      Tng::logger::info("\t- Found [{}] excluded races in [{}].", values.size(), fileName);
+      SKSE::log::info("\t- Found [{}] excluded races in [{}].", values.size(), fileName);
       LoadModRecodPairs(values, excludedRaces);
     }
   }
   if (ini.SectionExists(cSkinSection)) {
     if (ini.GetAllValues(cSkinSection, cSkinMod, values)) {
-      Tng::logger::info("\t- Found [{}] skin mods in [{}].", values.size(), fileName);
+      SKSE::log::info("\t- Found [{}] skin mods in [{}].", values.size(), fileName);
       for (const auto &entry : values) {
         const std::string modName(entry.pItem);
         if (Tng::SEDH()->LookupModByName(modName)) {
-          Tng::logger::info("\t\tTheNewGentleman keeps an eye for [{}] as a skin mod.", modName);
+          SKSE::log::info("\t\tTheNewGentleman keeps an eye for [{}] as a skin mod.", modName);
           skinMods.insert(modName);
         }
       }
     }
     if (ini.GetAllValues(cSkinSection, cSkinRecord, values)) {
-      Tng::logger::info("\t- Found [{}] skin records in [{}].", values.size(), fileName);
+      SKSE::log::info("\t- Found [{}] skin records in [{}].", values.size(), fileName);
       LoadModRecodPairs(values, skinRecords);
     }
   }
   if (ini.SectionExists(cArmorSection)) {
     if (ini.GetAllValues(cArmorSection, cRevealingMod, values)) {
-      Tng::logger::info("\t- Found [{}] revealing mods in [{}].", values.size(), fileName);
+      SKSE::log::info("\t- Found [{}] revealing mods in [{}].", values.size(), fileName);
       for (const auto &entry : values) {
         const std::string modName(entry.pItem);
         if (Tng::SEDH()->LookupModByName(modName)) {
           revealingMods.insert(modName);
-          Tng::logger::info("\t\tTheNewGentleman keeps an eye for [{}] as a revealing armor mod.", modName);
+          SKSE::log::info("\t\tTheNewGentleman keeps an eye for [{}] as a revealing armor mod.", modName);
         }
       }
     }
     if (ini.GetAllValues(cArmorSection, cFemRevMod, values)) {
-      Tng::logger::info("\t- Found [{}] female revealing mods in [{}].", values.size(), fileName);
+      SKSE::log::info("\t- Found [{}] female revealing mods in [{}].", values.size(), fileName);
       for (const auto &entry : values) {
         const std::string modName(entry.pItem);
         if (Tng::SEDH()->LookupModByName(modName)) {
           femRevMods.insert(modName);
-          Tng::logger::info("\t\tTheNewGentleman keeps an eye for [{}] as a female revealing armor mod.", modName);
+          SKSE::log::info("\t\tTheNewGentleman keeps an eye for [{}] as a female revealing armor mod.", modName);
         }
       }
     }
     if (ini.GetAllValues(cArmorSection, cMalRevMod, values)) {
-      Tng::logger::info("\t- Found [{}] male revealing mods in [{}].", values.size(), fileName);
+      SKSE::log::info("\t- Found [{}] male revealing mods in [{}].", values.size(), fileName);
       for (const auto &entry : values) {
         const std::string modName(entry.pItem);
         if (Tng::SEDH()->LookupModByName(modName)) {
           malRevMods.insert(modName);
-          Tng::logger::info("\t\tTheNewGentleman keeps an eye for [{}] as a male revealing armor mod.", modName);
+          SKSE::log::info("\t\tTheNewGentleman keeps an eye for [{}] as a male revealing armor mod.", modName);
         }
       }
     }
     if (ini.GetAllValues(cArmorSection, cCoveringRecord, values)) {
-      Tng::logger::info("\t- Found [{}] covering records in ini file [{}].", values.size(), fileName);
+      SKSE::log::info("\t- Found [{}] covering records in ini file [{}].", values.size(), fileName);
       LoadModRecodPairs(values, coveringRecords);
     }
     if (ini.GetAllValues(cArmorSection, cRevealingRecord, values)) {
-      Tng::logger::info("\t- Found [{}] revealing records in ini file [{}].", values.size(), fileName);
+      SKSE::log::info("\t- Found [{}] revealing records in ini file [{}].", values.size(), fileName);
       LoadModRecodPairs(values, revealingRecords);
     }
     if (ini.GetAllValues(cArmorSection, cFemRevRecord, values)) {
-      Tng::logger::info("\t- Found [{}] revealing records for women in ini file [{}].", values.size(), fileName);
+      SKSE::log::info("\t- Found [{}] revealing records for women in ini file [{}].", values.size(), fileName);
       LoadModRecodPairs(values, femRevRecords);
     }
     if (ini.GetAllValues(cArmorSection, cMalRevRecord, values)) {
-      Tng::logger::info("\t- Found [{}] revealing records for men in ini file [{}].", values.size(), fileName);
+      SKSE::log::info("\t- Found [{}] revealing records for men in ini file [{}].", values.size(), fileName);
       LoadModRecodPairs(values, malRevRecords);
     }
   }
@@ -110,7 +110,7 @@ void Inis::LoadMainIni() {
     newSetting << ";TNG Settings File" << std::endl;
     newSetting.close();
   }
-  Tng::logger::info("Loading TNG settings...");
+  SKSE::log::info("Loading TNG settings...");
   UpdateIniVersion();
   CSimpleIniA ini;
   CSimpleIniA::TNamesDepend values;
@@ -125,7 +125,7 @@ void Inis::LoadMainIni() {
     auto addon = Base::AddonByIdx(true, i, false);
     Base::SetAddonStatus(true, i, ini.GetBoolValue(cActiveFemAddons, FormToStr(addon).c_str(), false));
   }
-  Tng::logger::debug("\tRestored all addon status to previous selections");
+  SKSE::log::debug("\tRestored all addon status to previous selections");
   ini.GetAllKeys(cRacialAddon, values);
   for (const auto &entry : values) {
     std::string addonStr = ini.GetValue(cRacialAddon, entry.pItem);
@@ -160,7 +160,7 @@ void Inis::LoadMainIni() {
     const std::string npcRecord(entry.pItem);
     if (isExcluded) {
       Base::ExcludeNPC(npcRecord);
-      Tng::logger::debug("\tThe npc [{}] was excluded, since it was excluded by user previously.", npcRecord);
+      SKSE::log::debug("\tThe npc [{}] was excluded, since it was excluded by user previously.", npcRecord);
     }
   }
   ini.GetAllKeys(cRevealingSection, values);
@@ -168,49 +168,49 @@ void Inis::LoadMainIni() {
     auto isRevealing = ini.GetBoolValue(cRevealingSection, entry.pItem);
     const std::string armorRecord(entry.pItem);
     UpdateRevealing(armorRecord, isRevealing ? Tng::akeyReveal : Tng::akeyCover);
-    Tng::logger::debug("\tThe amor [{}] was marked revealing, due to user choice in the past.", armorRecord);
+    SKSE::log::debug("\tThe amor [{}] was marked revealing, due to user choice in the past.", armorRecord);
   }
   ini.GetAllKeys(cFemRevRecordSection, values);
   for (const auto &entry : values) {
     auto isRevealing = ini.GetBoolValue(cFemRevRecordSection, entry.pItem);
     const std::string armorRecord(entry.pItem);
     UpdateRevealing(armorRecord, isRevealing ? Tng::akeyRevFem : Tng::cNA);
-    Tng::logger::debug("\tThe amor [{}] was marked revealing for women, due to user choice in the past.", armorRecord);
+    SKSE::log::debug("\tThe amor [{}] was marked revealing for women, due to user choice in the past.", armorRecord);
   }
   ini.GetAllKeys(cMalRevRecordSection, values);
   for (const auto &entry : values) {
     auto isRevealing = ini.GetBoolValue(cMalRevRecordSection, entry.pItem);
     const std::string armorRecord(entry.pItem);
     UpdateRevealing(armorRecord, isRevealing ? Tng::akeyRevMal : Tng::cNA);
-    Tng::logger::debug("\tThe amor [{}] was marked revealing for men, due to user choice in the past.", armorRecord);
+    SKSE::log::debug("\tThe amor [{}] was marked revealing for men, due to user choice in the past.", armorRecord);
   }
 
   for (size_t i = 0; i < Tng::BoolSettingCount; i++) {
-    Tng::boolSettings[i] = ini.GetBoolValue(cGeneral, cBoolSettings[i], false);
+    Base::SetBoolSetting(i, ini.GetBoolValue(cGeneral, cBoolSettings[i], false));
     if (Tng::SEDH()->LookupModByName("Racial Skin Variance - SPID.esp")) {
-      Tng::boolSettings[Tng::bsCheckPlayerAddon] = true;
-      Tng::boolSettings[Tng::bsCheckNPCsAddons] = true;
-      Tng::boolSettings[Tng::bsForceRechecks] = true;
-      Tng::logger::info("\tTNG detected Racial Skin Variance and would force the player and NPCs to be reloaded");
+      Base::SetBoolSetting(i, true);
+      Base::SetBoolSetting(i, true);
+      Base::SetBoolSetting(i, true);
+      SKSE::log::info("\tTNG detected Racial Skin Variance and would force the player and NPCs to be reloaded");
     }
     if (Tng::SEDH()->LookupModByName("UIExtensions.esp")) {
-      Tng::boolSettings[Tng::bsUIExtensions] = true;
-      Tng::logger::info("\tTNG detected UIExtensions and would use it for the MCM");
+      Base::SetBoolSetting(Tng::bsUIExtensions, true);
+      SKSE::log::info("\tTNG detected UIExtensions and would use it for the MCM");
     }
-    Tng::logger::debug("\tThe boolean setting [{}] was restored to [{}].", cBoolSettings[i], Tng::boolSettings[i]);
+    SKSE::log::debug("\tThe boolean setting [{}] was restored to [{}].", cBoolSettings[i], Base::GetBoolSetting(i));
   }
   for (size_t i = 0; i < Tng::cSizeCategories; i++) Base::SetGlobalSize(i, static_cast<float>(ini.GetDoubleValue(cGlobalSize, cSizeNames[i], cDefSizes[i])));
-  Tng::logger::debug("\tGlobal size settings loaded.");
+  SKSE::log::debug("\tGlobal size settings loaded.");
   if (ini.KeyExists(cGentleWomen, cGentleWomenChance)) {
     if (Tng::WRndGlb()) {
       Tng::WRndGlb()->value = static_cast<float>(ini.GetDoubleValue(cGentleWomen, cGentleWomenChance));
     } else {
-      Tng::logger::error("The [{}] record for [{} {}] cannot be loaded!", Tng::cName, cGentleWomen, cGentleWomenChance);
+      SKSE::log::error("The [{}] record for [{} {}] cannot be loaded!", Tng::cName, cGentleWomen, cGentleWomenChance);
     }
   }
-  Tng::logger::debug("\tGentlewomen chance value loaded.");
+  SKSE::log::debug("\tGentlewomen chance value loaded.");
   LoadHoteKeys();
-  Tng::logger::debug("\tInput settings loaded.");
+  SKSE::log::debug("\tInput settings loaded.");
 }
 
 void Inis::LoadRgInfo() {
@@ -219,12 +219,12 @@ void Inis::LoadRgInfo() {
     auto addonIdx = Base::AddonIdxByLoc(false, rgInfo.second);
     if ((rgIdx < 0) || (addonIdx < 0)) continue;
     if (Base::SetRgAddon(rgIdx, addonIdx, false))
-      Tng::logger::debug("\tRestored the addon of race [xx{:x}] from file [{}] to addon [xx{:x}] from file [{}]", rgInfo.first.first, rgInfo.first.second, rgInfo.second.first, rgInfo.second.second);
+      SKSE::log::debug("\tRestored the addon of race [xx{:x}] from file [{}] to addon [xx{:x}] from file [{}]", rgInfo.first.first, rgInfo.first.second, rgInfo.second.first, rgInfo.second.second);
   }
   for (auto &rgInfo : racialMults) {
     auto rgIdx = Base::GetRaceRgIdx(Tng::SEDH()->LookupForm<RE::TESRace>(rgInfo.first.first, rgInfo.first.second));
     if (rgIdx < 0) continue;
-    if (Base::SetRgMult(rgIdx, rgInfo.second, false)) Tng::logger::debug("\tRestored the size multiplier of race [xx{:x}] from file [{}] to [{}]", rgInfo.first.first, rgInfo.first.second, rgInfo.second);
+    if (Base::SetRgMult(rgIdx, rgInfo.second, false)) SKSE::log::debug("\tRestored the size multiplier of race [xx{:x}] from file [{}] to [{}]", rgInfo.first.first, rgInfo.first.second, rgInfo.second);
   }
   racialAddons.clear();
   racialMults.clear();
@@ -237,7 +237,7 @@ void Inis::LoadNpcInfo() {
     auto addonIdx = Base::AddonIdxByLoc(npc->IsFemale(), npcInfo.second);
     if (addonIdx < 0) continue;
     if (Base::SetNPCAddon(npc, addonIdx, true) >= 0)
-      Tng::logger::debug("\tRestored the addon of npc [xx{:x}] from file [{}] to addon [xx{:x}] from file [{}]", npcInfo.first.first, npcInfo.first.second, npcInfo.second.first, npcInfo.second.second);
+      SKSE::log::debug("\tRestored the addon of npc [xx{:x}] from file [{}] to addon [xx{:x}] from file [{}]", npcInfo.first.first, npcInfo.first.second, npcInfo.second.first, npcInfo.second.second);
   }
   for (auto &npcInfo : npcSizeCats) {
     auto npc = Tng::SEDH()->LookupForm<RE::TESNPC>(npcInfo.first.first, npcInfo.first.second);
@@ -245,7 +245,7 @@ void Inis::LoadNpcInfo() {
     if (!npc || sizeCat < 0 || sizeCat >= Tng::cSizeCategories) continue;
     npc->RemoveKeywords(Tng::SizeKeys());
     npc->AddKeyword(Tng::SizeKey(sizeCat));
-    Tng::logger::debug("\tRestored the size category of npc [xx{:x}] from file [{}] to [{}]", npcInfo.first.first, npcInfo.first.second, npcInfo.second);
+    SKSE::log::debug("\tRestored the size category of npc [xx{:x}] from file [{}] to [{}]", npcInfo.first.first, npcInfo.first.second, npcInfo.second);
   }
   npcAddons.clear();
   npcSizeCats.clear();
@@ -306,7 +306,7 @@ void Inis::SaveRgMult(const size_t rg, const float mult) {
   auto race = Base::GetRgRace0(rg, true);
   auto raceRecord = FormToStr(race);
   if (raceRecord.empty()) {
-    Tng::logger::critical("Failed to save the size multiplier for race [0x{:x}: {}]!", race->GetFormID(), race->GetFormEditorID());
+    SKSE::log::critical("Failed to save the size multiplier for race [0x{:x}: {}]!", race->GetFormID(), race->GetFormEditorID());
     return;
   }
   if (mult < 1.0001f && mult > 0.9999f) {
@@ -325,9 +325,9 @@ void Inis::SaveRgAddon(const size_t rg, const int choice) {
   auto raceRecord = FormToStr(race);
   if (raceRecord == "") {
     if (race) {
-      Tng::logger::critical("Failed to save the selected addon for race [0x{:x}: {}]!", race->GetFormID(), race->GetFormEditorID());
+      SKSE::log::critical("Failed to save the selected addon for race [0x{:x}: {}]!", race->GetFormID(), race->GetFormEditorID());
     } else {
-      Tng::logger::critical("Failed to save the selected addon for a race!");
+      SKSE::log::critical("Failed to save the selected addon for a race!");
     }
     return;
   }
@@ -343,9 +343,9 @@ void Inis::SaveRgAddon(const size_t rg, const int choice) {
       auto addonRecord = FormToStr(addon);
       if (addonRecord == "") {
         if (addon) {
-          Tng::logger::critical("Failed to save the addon [0x{:x}: {}] for a race !", addon->GetFormID(), addon->GetFormEditorID());
+          SKSE::log::critical("Failed to save the addon [0x{:x}: {}] for a race !", addon->GetFormID(), addon->GetFormEditorID());
         } else {
-          Tng::logger::critical("Failed to save an addon for a race !");
+          SKSE::log::critical("Failed to save an addon for a race !");
         }
         return;
       }
@@ -433,7 +433,7 @@ void Inis::LoadHoteKeys() {
     if (Tng::UserCtrl(Tng::ctrlDAK)) {
       Tng::UserCtrl(Tng::ctrlDAK)->value = static_cast<float>(ini.GetLongValue(cControls, cCtrlNames[Tng::ctrlDAK]));
     } else {
-      Tng::logger::error("The [{}] record for [{}] cannot be loaded!", Tng::cName, cCtrlNames[Tng::ctrlDAK]);
+      SKSE::log::error("The [{}] record for [{}] cannot be loaded!", Tng::cName, cCtrlNames[Tng::ctrlDAK]);
     }
   }
   for (size_t i = 0; i < Tng::UserCtrlsCount; i++) {
@@ -441,17 +441,9 @@ void Inis::LoadHoteKeys() {
       if (Tng::UserCtrl(i)) {
         Tng::UserCtrl(i)->value = static_cast<float>(ini.GetLongValue(cControls, cCtrlNames[i]));
       } else {
-        Tng::logger::error("The [{}] record for [{}] cannot be loaded!", Tng::cName, cCtrlNames[i]);
+        SKSE::log::error("The [{}] record for [{}] cannot be loaded!", Tng::cName, cCtrlNames[i]);
       }
     }
-  }
-}
-
-bool Inis::GetSettingBool(Tng::BoolSetting settingID) {
-  if (settingID < Tng::BoolSettingCount) {
-    return Tng::boolSettings[settingID];
-  } else {
-    return false;
   }
 }
 
@@ -460,7 +452,7 @@ void Inis::SaveSettingBool(Tng::BoolSetting settingID, bool value) {
   ini.SetUnicode();
   ini.LoadFile(cSettings);
   ini.SetBoolValue(cGeneral, cBoolSettings[settingID], value);
-  Tng::boolSettings[settingID] = value;
+  Base::SetBoolSetting(settingID, value);
   ini.SaveFile(cSettings);
 }
 
@@ -517,7 +509,7 @@ void Inis::UpdateIniVersion() {
       if (ini.SectionExists(cNPCAddonSection)) ini.Delete(cNPCAddonSection, NULL);
       break;
     case 3:
-      if (std::filesystem::remove(R"(.\Data\SKSE\Plugins\Defaults_TNG.ini)")) Tng::logger::info("Removed the [Defaults_TNG.ini] file since it is not used anymore");
+      if (std::filesystem::remove(R"(.\Data\SKSE\Plugins\Defaults_TNG.ini)")) SKSE::log::info("Removed the [Defaults_TNG.ini] file since it is not used anymore");
     default:
       break;
   }
@@ -535,7 +527,7 @@ void Inis::LoadModRecodPairs(CSimpleIniA::TNamesDepend records, std::set<SEFormL
 void Inis::UpdateRevealing(const std::string armorRecod, const int revealingMode) {
   auto armor = Tng::SEDH()->LookupForm<RE::TESObjectARMO>(StrToLoc(armorRecod).first, StrToLoc(armorRecod).second);
   if (!armor) {
-    Tng::logger::info("Previously save armor from mod {} does not exist anymore!", StrToLoc(armorRecod).first);
+    SKSE::log::info("Previously save armor from mod {} does not exist anymore!", StrToLoc(armorRecod).first);
     return;
   }
   if (revealingMode < 0) return;

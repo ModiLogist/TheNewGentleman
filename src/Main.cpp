@@ -13,7 +13,7 @@ static bool CheckIncompatiblity() {
 }
 
 static void InitializeLogging() {
-  auto path{Tng::logger::log_directory()};
+  auto path{SKSE::log::log_directory()};
   if (!path) {
     SKSE::stl::report_and_fail("Unable to lookup SKSE logs directory.");
   }
@@ -42,7 +42,7 @@ static void EventListener(SKSE::MessagingInterface::Message* message) {
     Core::GenitalizeRaces();
     Core::GenitalizeNPCSkins();
     Core::CheckArmorPieces();
-    Tng::logger::info("TheNewGentleman finished initialization.");
+    SKSE::log::info("TheNewGentleman finished initialization.");
     Events::RegisterEvents();
   }
   if (message->type == SKSE::MessagingInterface::kNewGame || message->type == SKSE::MessagingInterface::kPostLoadGame) {
@@ -74,8 +74,8 @@ extern "C" __declspec(dllexport) bool SKSEAPI SKSEPlugin_Query(const SKSE::Query
 extern "C" [[maybe_unused]] __declspec(dllexport) bool SKSEPlugin_Load(const SKSE::LoadInterface* aSkse) {
   InitializeLogging();
   SKSE::Init(aSkse, false);
-  Tng::logger::info("Initializing TheNewGentleman {}!", Version::NAME.data());
-  Tng::logger::info("Game version : {}", aSkse->RuntimeVersion().string());
+  SKSE::log::info("Initializing TheNewGentleman {}!", Version::NAME.data());
+  SKSE::log::info("Game version : {}", aSkse->RuntimeVersion().string());
   SKSE::GetMessagingInterface()->RegisterListener(EventListener);
   SKSE::GetPapyrusInterface()->Register(Papyrus::BindPapyrus);
   return true;
