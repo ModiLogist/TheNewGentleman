@@ -26,6 +26,7 @@ Int ciForceTheCheck
 Int ciRevealSlot52s
 Int ciLetMixSlot52s    
 Int ciRandomizeMale
+Int ciUI_Extensions
 
 Int ciLockKey
 
@@ -124,6 +125,7 @@ Event OnConfigInit()
   ciRevealSlot52s = 4
   ciLetMixSlot52s = 5
   ciRandomizeMale = 6
+  ciUI_Extensions = 7
 
   ciLockKey = 56 ; Left Alt Key
 EndEvent
@@ -212,8 +214,12 @@ Event OnPageReset(String asPage)
     If !fkDAK
       DAKIntegration.SetValue(0)
     EndIf
-    fiNPCKeyHdl = AddKeyMapOption("$TNG_K_N", NPCKey.GetValueInt(), OPTION_FLAG_WITH_UNMAP)
-    fiRevealKeyHdl = AddKeyMapOption("$TNG_K_R", RevealKey.GetValueInt(), OPTION_FLAG_WITH_UNMAP)
+    Int liOption = OPTION_FLAG_WITH_UNMAP
+    If !TNG_PapyrusUtil.GetBoolValue(ciUI_Extensions)
+      liOption = OPTION_FLAG_DISABLED
+    EndIf
+    fiNPCKeyHdl = AddKeyMapOption("$TNG_K_N", NPCKey.GetValueInt(), liOption)
+    fiRevealKeyHdl = AddKeyMapOption("$TNG_K_R", RevealKey.GetValueInt(), liOption)
     fiUpKeyHdl = AddKeyMapOption("$TNG_K_U", GenUpKey.GetValueInt(), OPTION_FLAG_WITH_UNMAP)
     fiDownKeyHdl = AddKeyMapOption("$TNG_K_D", GenDownKey.GetValueInt(), OPTION_FLAG_WITH_UNMAP)
     AddHeaderOption("$TNG_SOH")
@@ -325,8 +331,11 @@ Event OnPageReset(String asPage)
     Int liLvl = TNG_PapyrusUtil.UpdateLogLvl(-1)
     fiLogLvlHdl = AddMenuOption("$TNG_L_T", cSLogOptions[liLvl])
     fiLogDirHdl = AddToggleOption("$TNG_L_D", False)
-    
-    fiDebugKeyHdl = AddKeyMapOption("$TNG_P_K", DebugKey.GetValueInt(), OPTION_FLAG_WITH_UNMAP)
+    Int liOption = OPTION_FLAG_WITH_UNMAP
+    If !TNG_PapyrusUtil.GetBoolValue(ciUI_Extensions)
+      liOption = OPTION_FLAG_DISABLED
+    EndIf
+    fiDebugKeyHdl = AddKeyMapOption("$TNG_P_K", DebugKey.GetValueInt(), liOption)
   EndIf
 
   

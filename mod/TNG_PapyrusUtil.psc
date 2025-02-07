@@ -5,10 +5,11 @@ ScriptName TNG_PapyrusUtil hidden
 ; 0: Exclude player,
 ; 1: Check player addon after load,
 ; 2: Check NPCs addon after load,
-; 3: (Used internally)
+; 3: RSV Compatiblity (Used internally)
 ; 4: Mark mods with slot 52 as revealing by default,
 ; 5: Allow user to choose the behavior of mods with slot 52,
 ; 6: Randomize Male addons among the active ones
+; 7: UIExtensions compatibility (Used internally)
 Bool Function GetBoolValue(Int aiID) Global Native
 Function SetBoolValue(Int aiID, Bool abValue) Global Native
 
