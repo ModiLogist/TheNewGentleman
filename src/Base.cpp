@@ -275,7 +275,7 @@ void Base::ReportHiddenRgs() {
 
 Base::RaceGroupInfo *Base::GetRg(const size_t rgChoice, const bool onlyMCM) {
   int idx = Tng::cNA;
-  if (onlyMCM) {
+  if (onlyMCM && !boolSettings[Tng::bsShowAllRaces]) {
     size_t curr = 0;
     for (int i = 0; i < rgInfoList.size(); i++) {
       auto &rg = rgInfoList[i];

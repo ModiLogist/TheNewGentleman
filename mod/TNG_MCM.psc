@@ -27,6 +27,7 @@ Int ciRevealSlot52s
 Int ciLetMixSlot52s    
 Int ciRandomizeMale
 Int ciUI_Extensions
+Int ciShowEveryRace
 
 Int ciLockKey
 
@@ -71,6 +72,7 @@ Int fi52DefBehaviorHdl
 Int fiPCEHdl
 Int fiPCUHdl
 Int fiPCNHdl
+Int fiPCRHdl
 
 Int Function GetVersion()
   Return 9
@@ -126,6 +128,7 @@ Event OnConfigInit()
   ciLetMixSlot52s = 5
   ciRandomizeMale = 6
   ciUI_Extensions = 7
+  ciShowEveryRace = 8
 
   ciLockKey = 56 ; Left Alt Key
 EndEvent
@@ -323,7 +326,7 @@ Event OnPageReset(String asPage)
       liFlag = OPTION_FLAG_DISABLED
     EndIf
     fiPCUHdl = AddToggleOption("$TNG_GPC", TNG_PapyrusUtil.GetBoolValue(ciCheckingPCGen), liFlag)
-    AddEmptyOption()
+    fiPCRHdl = AddToggleOption("$TNG_GPR", TNG_PapyrusUtil.GetBoolValue(ciShowEveryRace))
     fiPCNHdl = AddToggleOption("$TNG_GNP", TNG_PapyrusUtil.GetBoolValue(ciCheckNPCsGens), liFlag)
             
     AddHeaderOption("$TNG_L_H")
@@ -444,6 +447,10 @@ Event OnOptionHighlight(Int aiOption)
     EndIf
     If aiOption == fiPCNHdl
       SetInfoText("$TNG_HPN")
+      Return
+    EndIf
+    If aiOption == fiPCRHdl
+      SetInfoText("$TNG_HPR")
       Return
     EndIf
     If aiOption == fiPCEHdl
@@ -614,10 +621,14 @@ Event OnOptionDefault(Int aiOption)
       TNG_PapyrusUtil.SetBoolValue(ciCheckNPCsGens, False)
       PlayerRef.RemoveSpell(ReloadSpell)
       SetToggleOptionValue(fiPCNHdl,False)
+    EndIf    
+    If (aiOption == fiPCRHdl)
+      TNG_PapyrusUtil.SetBoolValue(ciShowEveryRace, False)
+      SetToggleOptionValue(fiPCRHdl,False)
     EndIf
     If aiOption == fiPCEHdl
       TNG_PapyrusUtil.SetBoolValue(ciExcludePlayer, False)
-      SetToggleOptionValue(ciExcludePlayer, False)
+      SetToggleOptionValue(fiPCEHdl, False)
       Return
     EndIf
     If aiOption == fiLogLvlHdl
@@ -902,6 +913,11 @@ Event OnOptionSelect(Int aiOption)
       If TNG_PapyrusUtil.GetBoolValue(ciCheckNPCsGens)
         PlayerRef.AddSpell(ReloadSpell)
       EndIf
+      Return
+    EndIf
+    If aiOption == fiPCRHdl
+      TNG_PapyrusUtil.SetBoolValue(ciShowEveryRace, !TNG_PapyrusUtil.GetBoolValue(ciShowEveryRace))      
+      SetToggleOptionValue(fiPCRHdl, TNG_PapyrusUtil.GetBoolValue(ciShowEveryRace))
       Return
     EndIf
     If aiOption == fiLogDirHdl

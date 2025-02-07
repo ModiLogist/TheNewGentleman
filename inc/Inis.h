@@ -61,7 +61,8 @@ class Inis : public Singleton<Inis> {
 
     inline static constexpr const char* cGeneral{"General"};
     inline static constexpr const char* cLogLvl{"LoggingLevel"};
-    inline static constexpr const char* cBoolSettings[Tng::BoolSettingCount]{"ExcludePlayerSize", "CheckPlayerRegularly", "CheckNPCsAfterLoad", "ForceChecks", "Slot52ModsAreRevealing", "Slot52ModsAreMixed", "RandomizeMaleAddons", "UIExtensions"};
+    inline static constexpr const char* cBoolSettings[Tng::BoolSettingCount]{"ExcludePlayerSize",  "CheckPlayerRegularly", "CheckNPCsAfterLoad", "ForceChecks", "Slot52ModsAreRevealing",
+                                                                             "Slot52ModsAreMixed", "RandomizeMaleAddons",  "UIExtensions",       "ShowAllRaces"};
 
     inline static constexpr const char* cGlobalSize{"GlobalSizes"};
     inline static constexpr const char* cSizeNames[Tng::cSizeCategories]{"Size_XS", "Size__S", "Size__M", "Size__L", "Size_XL"};
@@ -89,7 +90,7 @@ class Inis : public Singleton<Inis> {
 
     inline static std::set<std::pair<SEFormLoc, SEFormLoc>> npcAddons;
     inline static std::set<std::pair<SEFormLoc, int>> npcSizeCats;
-    
+
     inline static std::set<SEFormLoc> runTimeRevealingRecords;
     inline static std::set<SEFormLoc> runtimeCoveringRecords;
     inline static std::set<SEFormLoc> runTimeFemRevRecords;
@@ -105,7 +106,6 @@ class Inis : public Singleton<Inis> {
     static void SaveNPCSize(RE::TESNPC* npc, int genSize);
     static void SaveRevealingArmor(RE::TESObjectARMO* armor, int revMode);
     static void LoadHoteKeys();
-    static bool GetSettingBool(Tng::BoolSetting settingID);
     static void SaveSettingBool(Tng::BoolSetting settingID, bool value);
     static void SaveGlobals();
     static std::vector<std::string> Slot52Mods();
@@ -134,6 +134,4 @@ class Inis : public Singleton<Inis> {
   private:
     inline static std::set<std::string> slot52Mods;
     inline static std::set<std::string> extraRevealingMods;
-
-
 };
