@@ -199,16 +199,6 @@ void Inis::LoadMainIni() {
     }
     Tng::logger::debug("\tThe boolean setting [{}] was restored to [{}].", cBoolSettings[i], Tng::boolSettings[i]);
   }
-  if (ini.KeyExists(cControls, cCtrlNames[Tng::ctrlDAK])) Tng::UserCtrl(Tng::ctrlDAK)->value = ini.GetBoolValue(cControls, cCtrlNames[Tng::ctrlDAK]) ? 2.0f : 0.0f;
-  for (size_t i = 0; i < Tng::UserCtrlsCount; i++)
-    if (ini.KeyExists(cControls, cCtrlNames[i])) {
-      if (Tng::UserCtrl(i)) {
-        Tng::UserCtrl(i)->value = static_cast<float>(ini.GetLongValue(cControls, cCtrlNames[i]));
-      } else {
-        Tng::logger::error("The [{}] record for [{}] cannot be loaded!", Tng::cName, cCtrlNames[i]);
-      }
-    }
-  Tng::logger::debug("\tInput settings loaded.");
   for (size_t i = 0; i < Tng::cSizeCategories; i++) Base::SetGlobalSize(i, static_cast<float>(ini.GetDoubleValue(cGlobalSize, cSizeNames[i], cDefSizes[i])));
   Tng::logger::debug("\tGlobal size settings loaded.");
   if (ini.KeyExists(cGentleWomen, cGentleWomenChance)) {
@@ -219,6 +209,8 @@ void Inis::LoadMainIni() {
     }
   }
   Tng::logger::debug("\tGentlewomen chance value loaded.");
+  LoadHoteKeys();
+  Tng::logger::debug("\tInput settings loaded.");
 }
 
 void Inis::LoadRgInfo() {
@@ -437,9 +429,22 @@ void Inis::LoadHoteKeys() {
   CSimpleIniA ini;
   ini.SetUnicode();
   ini.LoadFile(cSettings);
-  if (ini.KeyExists(cControls, cCtrlNames[Tng::ctrlDAK])) Tng::UserCtrl(Tng::ctrlDAK)->value = ini.GetBoolValue(cControls, cCtrlNames[Tng::ctrlDAK]) ? 2.0f : 0.0f;
-  for (size_t i = 0; i < Tng::UserCtrlsCount; i++)
-    if (ini.KeyExists(cControls, cCtrlNames[i])) Tng::UserCtrl(i)->value = static_cast<float>(ini.GetLongValue(cControls, cCtrlNames[i]));
+  if (ini.KeyExists(cControls, cCtrlNames[Tng::ctrlDAK])) {
+    if (Tng::UserCtrl(Tng::ctrlDAK)) {
+      Tng::UserCtrl(Tng::ctrlDAK)->value = static_cast<float>(ini.GetLongValue(cControls, cCtrlNames[Tng::ctrlDAK]));
+    } else {
+      Tng::logger::error("The [{}] record for [{}] cannot be loaded!", Tng::cName, cCtrlNames[Tng::ctrlDAK]);
+    }
+  }
+  for (size_t i = 0; i < Tng::UserCtrlsCount; i++) {
+    if (ini.KeyExists(cControls, cCtrlNames[i])) {
+      if (Tng::UserCtrl(i)) {
+        Tng::UserCtrl(i)->value = static_cast<float>(ini.GetLongValue(cControls, cCtrlNames[i]));
+      } else {
+        Tng::logger::error("The [{}] record for [{}] cannot be loaded!", Tng::cName, cCtrlNames[i]);
+      }
+    }
+  }
 }
 
 bool Inis::GetSettingBool(Tng::BoolSetting settingID) {
