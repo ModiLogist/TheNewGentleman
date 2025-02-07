@@ -154,9 +154,9 @@ Event OnGameReload()
   If TNG_PapyrusUtil.GetBoolValue(ciCheckingPCGen) 
     RegisterForSingleUpdate(1)
   EndIf
-
+  
+  PlayerRef.RemoveSpell(ReloadSpell)
   If TNG_PapyrusUtil.GetBoolValue(ciCheckNPCsGens)
-    PlayerRef.RemoveSpell(ReloadSpell)
     PlayerRef.AddSpell(ReloadSpell,False)
   EndIf
   
@@ -612,6 +612,7 @@ Event OnOptionDefault(Int aiOption)
     EndIf
     If (aiOption == fiPCNHdl) && !TNG_PapyrusUtil.GetBoolValue(ciForceTheCheck)
       TNG_PapyrusUtil.SetBoolValue(ciCheckNPCsGens, False)
+      PlayerRef.RemoveSpell(ReloadSpell)
       SetToggleOptionValue(fiPCNHdl,False)
     EndIf
     If aiOption == fiPCEHdl
@@ -899,7 +900,7 @@ Event OnOptionSelect(Int aiOption)
       SetToggleOptionValue(fiPCNHdl, TNG_PapyrusUtil.GetBoolValue(ciCheckNPCsGens))
       PlayerRef.RemoveSpell(ReloadSpell)
       If TNG_PapyrusUtil.GetBoolValue(ciCheckNPCsGens)
-        PlayerRef.AddSpell(ReloadSpell)  
+        PlayerRef.AddSpell(ReloadSpell)
       EndIf
       Return
     EndIf
