@@ -332,7 +332,7 @@ Base::RaceGroupInfo *Base::GetRg(RE::TESRace *race, const bool allowAdd) {
     rg.ogSkin = race->skin;
     rg.isMain = (pRace == race);
     rg.races.push_back(race);
-    rg.noMCM = !pRace->GetPlayable();
+    rg.noMCM = !pRace->GetPlayable() && !pRace->HasKeyword(Tng::RaceKey(Tng::rkeyVampire));
     rg.mult = 1.0f;
     rg.defAddonIdx = GetRgDefAddon(rg);
     raceRgs.insert({race, rg.idx});

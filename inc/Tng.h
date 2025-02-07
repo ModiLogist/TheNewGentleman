@@ -48,7 +48,7 @@ namespace Tng {
 
   enum Races { raceDefault, raceDefBeast, RacesCount };
 
-  enum eRaceKeys { rkeyPreprocessed, rkeyProcessed, rkeyReady, rkeyIgnore, rkeyManMer, rkeyBeast, rkeyCreature, RaceKeysCount };
+  enum eRaceKeys { rkeyPreprocessed, rkeyProcessed, rkeyReady, rkeyIgnore, rkeyManMer, rkeyBeast, rkeyCreature, rkeyVampire, RaceKeysCount };
   enum eNPCKeys { npckeyExclude, npckeyGentlewoman, NPCKeysCount };
   enum eArmoKeys { akeyCover, akeyRevFem, akeyRevMal, akeyReveal, akeyIgnored, akeyUnderwear, akeySkinWP, akeyGenSkin, ArmoKeysCount };
   inline static constexpr eArmoKeys RevKeys[3]{akeyReveal, akeyRevFem, akeyRevMal};
@@ -58,7 +58,7 @@ namespace Tng {
   namespace {
     inline static constexpr SEFormLocView cRaceIDs[RacesCount]{{0x19, cSkyrim}, {0x13745, cSkyrim}};
 
-    inline static constexpr SEFormLocView cRaceKeyIDs[RaceKeysCount] = {{0xFEF, cName}, {0xFF0, cName}, {0xFF1, cName}, {0xFF2, cName}, {0x13794, cSkyrim}, {0xD61D1, cSkyrim}, {0x13795, cSkyrim}};
+    inline static constexpr SEFormLocView cRaceKeyIDs[RaceKeysCount] = {{0xFEF, cName}, {0xFF0, cName}, {0xFF1, cName}, {0xFF2, cName}, {0x13794, cSkyrim}, {0xD61D1, cSkyrim}, {0x13795, cSkyrim}, {0xA82BB, cSkyrim}};
 
     inline static constexpr SEFormLocView cNPCKeyIDs[NPCKeysCount] = {{0xFF5, cName}, {0xFF8, cName}};
 
