@@ -333,9 +333,9 @@ Base::RaceGroupInfo *Base::GetRg(RE::TESRace *race, const bool allowAdd) {
     rg.file = filename;
     rg.armorRace = pRace;
     rg.ogSkin = race->skin;
-    rg.isMain = (pRace == race);
+    rg.isMain = pRace == race || (race->armorParentRace == pRace && pRace == Tng::Race(Tng::raceDefault));
     rg.races.push_back(race);
-    rg.noMCM = !pRace->GetPlayable() && !pRace->HasKeyword(Tng::RaceKey(Tng::rkeyVampire));
+    rg.noMCM = !race->GetPlayable() && !race->HasKeyword(Tng::RaceKey(Tng::rkeyVampire));
     rg.mult = 1.0f;
     rg.defAddonIdx = GetRgDefAddon(rg);
     raceRgs.insert({race, rg.idx});
