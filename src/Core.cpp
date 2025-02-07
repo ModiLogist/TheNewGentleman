@@ -4,16 +4,17 @@
 
 void Core::GenitalizeRaces() {
   Tng::logger::info("Finding the genitals for relevant races...");
-  auto& allRaces = Tng::SEDH()->GetFormArray<RE::TESRace>();
+  const auto& allRaces = Tng::SEDH()->GetFormArray<RE::TESRace>();
   int preprocessed = 0;
   int processed = 0;
   int ignored = 0;
   int ready = 0;
   std::set<std::string> validSkeletons;
-  validSkeletons.insert(Tng::Race(Tng::raceDefault)->skeletonModels[0].model.data());
-  validSkeletons.insert(Tng::Race(Tng::raceDefault)->skeletonModels[1].model.data());
-  validSkeletons.insert(Tng::Race(Tng::raceDefBeast)->skeletonModels[0].model.data());
-  validSkeletons.insert(Tng::Race(Tng::raceDefBeast)->skeletonModels[1].model.data());
+  validSkeletons.emplace(Tng::Race(Tng::raceDefault)->skeletonModels[0].model.data());
+  validSkeletons.emplace(Tng::Race(Tng::raceDefault)->skeletonModels[1].model.data());
+  validSkeletons.emplace(Tng::Race(Tng::raceDefBeast)->skeletonModels[0].model.data());
+  validSkeletons.emplace(Tng::Race(Tng::raceDefBeast)->skeletonModels[1].model.data());
+
   for (const auto& race : allRaces) {
     if (Inis::IsRaceExcluded(race)) {
       Tng::logger::debug("\tThe race [{}: xx{:x}: {}] was ignored because an ini excludes it!", race->GetFile(0)->GetFilename(), race->GetLocalFormID(), race->GetFormEditorID());
@@ -51,8 +52,6 @@ void Core::GenitalizeRaces() {
         break;
       case Tng::raceErr:
         ignored++;
-        break;
-      default:
         break;
     }
   }

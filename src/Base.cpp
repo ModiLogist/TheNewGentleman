@@ -1,7 +1,7 @@
 #include <Base.h>
 
 void Base::Init() {
-  rgInfoList.push_back(Base::RaceGroupInfo{});
+  rgInfoList.emplace_back();
   auto &rg0 = rgInfoList[0];
   rg0.idx = 0;
   rg0.name = "TNGRg0";
@@ -15,10 +15,10 @@ void Base::Init() {
 void Base::LoadAddons() {
   malAddons.clear();
   femAddons.clear();
-  auto &armorlist = Tng::SEDH()->GetFormArray<RE::TESObjectARMO>();
+  const auto &armorlist = Tng::SEDH()->GetFormArray<RE::TESObjectARMO>();
   for (const auto &armor : armorlist) {
-    if (FormHasKW(armor, Tng::cMalAddKeyID)) malAddons.push_back({armor, true});
-    if (FormHasKW(armor, Tng::cFemAddKeyID)) femAddons.push_back({armor, false});
+    if (FormHasKW(armor, Tng::cMalAddKeyID)) malAddons.emplace_back(armor, true);
+    if (FormHasKW(armor, Tng::cFemAddKeyID)) femAddons.emplace_back(armor, false);
   }
   for (auto &armorPair : malAddons)
     if (!armorPair.first->HasKeyword(Tng::ArmoKey(Tng::akeyIgnored))) armorPair.first->AddKeyword(Tng::ArmoKey(Tng::akeyIgnored));
@@ -27,14 +27,14 @@ void Base::LoadAddons() {
 }
 
 int Base::AddonIdxByLoc(bool isFemale, SEFormLocView addonLoc) {
-  auto &list = isFemale ? femAddons : malAddons;
+  const auto &list = isFemale ? femAddons : malAddons;
   for (int i = 0; i < list.size(); i++)
     if (FormToLocView(list[i].first) == addonLoc) return i;
   return -1;
 }
 
 RE::TESObjectARMO *Base::AddonByIdx(bool isFemale, size_t choice, bool onlyActive) {
-  auto &list = isFemale ? femAddons : malAddons;
+  const auto &list = isFemale ? femAddons : malAddons;
   RE::TESObjectARMO *res = nullptr;
   if (onlyActive) {
     int activeCount = 0;
@@ -365,51 +365,43 @@ int Base::GetRgDefAddon(Base::RaceGroupInfo &rg) {
 void Base::UpdateRgAddons(Base::RaceGroupInfo &rg) {
   rg.malAddons.clear();
   rg.femAddons.clear();
-  for (int i = 0; i < malAddons.size(); i++) {
-    auto &addon = malAddons[i].first;
-    bool supports = false;
-    for (auto &aa : addon->armorAddons) {
-      if (aa->IsValidRace(rg.armorRace)) {
-        auto aaMainRace = aa->race;
-        if (aaMainRace && aaMainRace == Tng::Race(Tng::raceDefault) && aa->additionalRaces.size() > 0) aaMainRace = aa->additionalRaces[0];
-        if (auto mainRaceRg = GetRg(aaMainRace, false); rg.isMain && mainRaceRg && !mainRaceRg->isMain) continue;
-        rg.malAddons.insert_or_assign(i, std::pair<bool, RE::TESObjectARMA *>({rg.isMain || AddonHasRace(aa, rg.races[0]), aa}));
-        supports = true;
-        if (rg.malAddons[i].first) break;
+
+  auto processAddons = [&](auto &addons, auto &rgAddons, const char *gender) {
+    for (size_t i = 0; i < addons.size(); i++) {
+      auto &addon = addons[i].first;
+      bool supports = false;
+      for (const auto &aa : addon->armorAddons) {
+        if (aa->IsValidRace(rg.armorRace)) {
+          auto aaMainRace = aa->race;
+          if (aaMainRace && aaMainRace == Tng::Race(Tng::raceDefault) && !aa->additionalRaces.empty()) {
+            aaMainRace = aa->additionalRaces[0];
+          }
+          if (auto mainRaceRg = GetRg(aaMainRace, false); rg.isMain && mainRaceRg && !mainRaceRg->isMain) continue;
+          rgAddons.emplace(i, std::pair<bool, RE::TESObjectARMA *>({rg.isMain || AddonHasRace(aa, rg.races[0]), aa}));
+          supports = true;
+          if (rgAddons[i].first) break;
+        }
       }
-    }
-    if (!supports) continue;
-    if (i == rg.defAddonIdx && rg.addonIdx < 0) rg.addonIdx = i;
-    if (!rg.isMain && rg.malAddons[i].first && (rg.addonIdx < 0 || !rg.malAddons[rg.addonIdx].first)) {
-      rg.defAddonIdx = i;
-      rg.addonIdx = i;
-    }
-    if (rg.malAddons[i].first)
-      Tng::logger::debug("\t\tThe addon [0x{:x}] from file [{}] fully supports men in the race group [{}]!", addon->GetFormID(), addon->GetFile(0)->GetFilename(), rg.name);
-    else
-      Tng::logger::debug("\t\tThe addon [0x{:x}] from file [{}] can be used for men in the race group [{}]!", addon->GetFormID(), addon->GetFile(0)->GetFilename(), rg.name);
-  }
-  for (size_t i = 0; i < femAddons.size(); i++) {
-    auto &addon = femAddons[i].first;
-    bool lSupports = false;
-    for (auto &aa : addon->armorAddons) {
-      if (aa->IsValidRace(rg.armorRace)) {
-        rg.femAddons.insert_or_assign(i, std::pair<bool, RE::TESObjectARMA *>({rg.isMain || AddonHasRace(aa, rg.races[0]), aa}));
-        lSupports = true;
-        if (rg.femAddons[i].first) break;
+      if (!supports) continue;
+      if (i == rg.defAddonIdx && rg.addonIdx < 0) rg.addonIdx = static_cast<int>(i);
+      if (!rg.isMain && rgAddons[i].first && (rg.addonIdx < 0 || !rgAddons[rg.addonIdx].first)) {
+        rg.defAddonIdx = static_cast<int>(i);
+        rg.addonIdx = static_cast<int>(i);
       }
+      if (rgAddons[i].first)
+        Tng::logger::debug("\t\tThe addon [0x{:x}] from file [{}] fully supports {} in the race group [{}]!", addon->GetFormID(), addon->GetFile(0)->GetFilename(), gender, rg.name);
+      else
+        Tng::logger::debug("\t\tThe addon [0x{:x}] from file [{}] can be used for {} in the race group [{}]!", addon->GetFormID(), addon->GetFile(0)->GetFilename(), gender, rg.name);
     }
-    if (!lSupports) continue;
-    if (rg.femAddons[i].first)
-      Tng::logger::debug("\t\tThe addon [0x{:x}] from file [{}] fully supports women in the race group [{}]!", addon->GetFormID(), addon->GetFile(0)->GetFilename(), rg.name);
-    else
-      Tng::logger::debug("\t\tThe addon [0x{:x}] from file [{}] can be used for women in the race group [{}]!", addon->GetFormID(), addon->GetFile(0)->GetFilename(), rg.name);
-  }
+  };
+
+  processAddons(malAddons, rg.malAddons, "men");
+  processAddons(femAddons, rg.femAddons, "women");
 }
 
 bool Base::RgHasAddon(RaceGroupInfo &rg, bool isFemale, int addonIdx) {
   if (addonIdx < 0) return true;
-  auto &list = isFemale ? rg.femAddons : rg.malAddons;
+  const auto &list = isFemale ? rg.femAddons : rg.malAddons;
   return list.find(static_cast<size_t>(addonIdx)) != list.end();
 }
 

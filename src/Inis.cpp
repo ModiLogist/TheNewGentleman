@@ -193,6 +193,10 @@ void Inis::LoadMainIni() {
       Tng::boolSettings[Tng::bsForceRechecks] = true;
       Tng::logger::info("\tTNG detected Racial Skin Variance and would force the player and NPCs to be reloaded");
     }
+    if (Tng::SEDH()->LookupModByName("UIExtensions.esp")) {
+      Tng::boolSettings[Tng::bsUIExtensions] = true;
+      Tng::logger::info("\tTNG detected UIExtensions and would use it for the MCM");
+    }
     Tng::logger::debug("\tThe boolean setting [{}] was restored to [{}].", cBoolSettings[i], Tng::boolSettings[i]);
   }
   if (ini.KeyExists(cControls, cCtrlNames[Tng::ctrlDAK])) Tng::UserCtrl(Tng::ctrlDAK)->value = ini.GetBoolValue(cControls, cCtrlNames[Tng::ctrlDAK]) ? 2.0f : 0.0f;
@@ -213,7 +217,7 @@ void Inis::LoadMainIni() {
     } else {
       Tng::logger::error("The [{}] record for [{} {}] cannot be loaded!", Tng::cName, cGentleWomen, cGentleWomenChance);
     }
-  }  
+  }
   Tng::logger::debug("\tGentlewomen chance value loaded.");
 }
 

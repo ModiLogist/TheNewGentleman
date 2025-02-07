@@ -43,7 +43,7 @@ namespace Tng {
     resOkSupported = 22,
   };
 
-  enum BoolSetting { bsExcludePlayerSize, bsCheckPlayerAddon, bsCheckNPCsAddons, bsForceRechecks, bsRevealSlot52Mods, bsAllowMixSlot52Mods, bsRandomizeMaleAddon, BoolSettingCount };
+  enum BoolSetting { bsExcludePlayerSize, bsCheckPlayerAddon, bsCheckNPCsAddons, bsForceRechecks, bsRevealSlot52Mods, bsAllowMixSlot52Mods, bsRandomizeMaleAddon, bsUIExtensions, BoolSettingCount };
   inline static bool boolSettings[BoolSettingCount] = {};
 
   enum Races { raceDefault, raceDefBeast, RacesCount };
@@ -88,7 +88,7 @@ namespace Tng {
     inline static RE::TESGlobal* sizeGlbs[cSizeCategories]{nullptr};
     inline static RE::TESGlobal* ctrlGlbs[UserCtrlsCount]{nullptr};
 
-    inline static RE::BGSListForm* fGentified;
+    inline static RE::BGSListForm* gentifiedList;
 
     inline static RE::TESObjectARMO* block;
   }
@@ -172,8 +172,8 @@ namespace Tng {
   }
 
   static RE::BGSListForm* GentFml() {
-    if (!fGentified) fGentified = SEDH()->LookupForm<RE::BGSListForm>(cGentifiedID.first, cGentifiedID.second);
-    return fGentified;
+    if (!gentifiedList) gentifiedList = SEDH()->LookupForm<RE::BGSListForm>(cGentifiedID.first, cGentifiedID.second);
+    return gentifiedList;
   }
 
   static RE::TESObjectARMO* Block() {
