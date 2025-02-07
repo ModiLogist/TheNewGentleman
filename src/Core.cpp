@@ -81,7 +81,8 @@ Tng::TNGRes Core::AddPotentialRace(RE::TESRace* race, const std::set<std::string
       if (FormToLocView(race) == raceInfo) return Tng::resOkRaceP;
     if (!race->HasKeyword(Tng::RaceKey(Tng::rkeyManMer)) || race->HasKeyword(Tng::RaceKey(Tng::rkeyCreature)) || !race->HasPartOf(Tng::cSlotBody) || race->IsChildRace()) return Tng::raceErr;
     if (!race->skin) {
-      Tng::logger::warn("\tThe race [0x{:x}: {}] cannot have any genitals since they do not have a skin!", race->GetFormID(), race->GetFormEditorID());
+      Tng::logger::warn("\tThe race [0x{:x}: {}] cannot have any genitals since they do not have a skin! It was last modified by [{}].", race->GetFormID(), race->GetFormEditorID(),
+                        race->GetFile() ? race->GetFile()->GetFilename() : "Unrecognized File");
       IgnoreRace(race, false);
       return Tng::raceErr;
     }
@@ -93,7 +94,8 @@ Tng::TNGRes Core::AddPotentialRace(RE::TESRace* race, const std::set<std::string
       }
     }
     if (!skinFound) {
-      Tng::logger::warn("\tThe race [0x{:x}: {}] cannot have any genitals since their skin cannot be recognized.", race->GetFormID(), race->GetFormEditorID());
+      Tng::logger::warn("\tThe race [0x{:x}: {}] cannot have any genitals since their skin cannot be recognized!  It was last modified by [{}].", race->GetFormID(), race->GetFormEditorID(),
+                        race->GetFile() ? race->GetFile()->GetFilename() : "Unrecognized File");
       IgnoreRace(race, false);
       return Tng::raceErr;
     }
