@@ -78,7 +78,7 @@ Tng::TNGRes Core::AddPotentialRace(RE::TESRace* race, const std::set<std::string
   try {
     for (auto raceInfo : hardCodedRaces)
       if (FormToLocView(race) == raceInfo) return Tng::resOkRaceP;
-    if (!race->HasKeyword(Tng::RaceKey(Tng::rkeyManMer)) || race->HasKeyword(Tng::RaceKey(Tng::rkeyCreature)) || !race->HasPartOf(Tng::cSlotBody) || race->IsChildRace()) return Tng::raceErr;
+    if (!race->HasKeyword(Tng::RaceKey(Tng::rkeyManMer)) || race->HasKeyword(Tng::RaceKey(Tng::rkeyCreature)) || race->IsChildRace()) return Tng::raceErr;
     if (!race->skin) {
       SKSE::log::warn("\tThe race [0x{:x}: {}] cannot have any genitals since they do not have a skin! It was last modified by [{}].", race->GetFormID(), race->GetFormEditorID(),
                         race->GetFile() ? race->GetFile()->GetFilename() : "Unrecognized File");
