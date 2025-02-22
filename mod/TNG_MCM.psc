@@ -181,13 +181,13 @@ Event OnGameReload()
   If DebugKey.GetValueInt() > 0
     RegisterForKey(DebugKey.GetValueInt())
   EndIf
-  Int res = TNG_PapyrusUtil.SetActorAddon(PlayerRef, PlayerSkin.GetValueInt())
+  Int res = TNGSetAddon(PlayerRef, PlayerSkin.GetValueInt())
   If (res >= 0) && !PlayerRef.IsOnMount()
     PlayerRef.QueueNiNodeUpdate()
   Else
     Debug.Notification("$TNG_WPT")
     PlayerSkin.SetValueInt(-2)
-    TNG_PapyrusUtil.SetActorAddon(PlayerRef, PlayerSkin.GetValueInt())
+    TNGSetAddon(PlayerRef, PlayerSkin.GetValueInt())
     HandleWarnings(res)
   EndIf  
   res = TNG_PapyrusUtil.SetActorSize(PlayerRef, PlayerSize)
@@ -894,13 +894,13 @@ Event OnOptionSelect(Int aiOption)
       TNG_PapyrusUtil.SetBoolValue(ciCheckingPCGen, !TNG_PapyrusUtil.GetBoolValue(ciCheckingPCGen))      
       SetToggleOptionValue(fiPCUHdl, TNG_PapyrusUtil.GetBoolValue(ciCheckingPCGen))
       If TNG_PapyrusUtil.GetBoolValue(ciCheckingPCGen)
-        Int res = TNG_PapyrusUtil.SetActorAddon(PlayerRef, PlayerSkin.GetValueInt())
+        Int res = TNGSetAddon(PlayerRef, PlayerSkin.GetValueInt())
         If (res >= 0) && !PlayerRef.IsOnMount()
           PlayerRef.QueueNiNodeUpdate()
         Else
           Debug.Notification("$TNG_WPT")
           PlayerSkin.SetValueInt(-2)
-          TNG_PapyrusUtil.SetActorAddon(PlayerRef, PlayerSkin.GetValueInt())
+          TNGSetAddon(PlayerRef, PlayerSkin.GetValueInt())
           HandleWarnings(res)
         EndIf  
       EndIf    
@@ -1034,7 +1034,7 @@ EndEvent
 
 Event OnUpdate()
   If TNG_PapyrusUtil.GetBoolValue(ciCheckingPCGen)
-    Int res = TNG_PapyrusUtil.SetActorAddon(PlayerRef, PlayerSkin.GetValueInt())
+    Int res = TNGSetAddon(PlayerRef, PlayerSkin.GetValueInt())
     If (res >= 0) && !PlayerRef.IsOnMount()
       PlayerRef.QueueNiNodeUpdate()
     EndIf
@@ -1104,7 +1104,7 @@ Function ShowTNGMenu(Actor akActor)
         Return
       EndIf
       If liShape >= 2
-        Int liShapeRes = TNG_PapyrusUtil.SetActorAddon(akActor, liShape - 4)
+        Int liShapeRes = TNGSetAddon(akActor, liShape - 4)
         If liShapeRes < 0
           HandleWarnings(liShapeRes)
           Return
@@ -1266,3 +1266,8 @@ Function ShowDebugMenu(Actor akActor)
   Debug.Notification(TNG_PapyrusUtil.WhyProblem(akActor,liIssueID))
 EndFunction
 
+Int Function TNGSetAddon(Actor akActor, Int aiAddon)
+  akActor.SendModEvent("TNGSetMyAddon", akActor.GetName(), aiAddon as Float + 0.1)
+  Return TNG_PapyrusUtil.SetActorAddon(akActor, aiAddon)  
+EndFunction
+  
