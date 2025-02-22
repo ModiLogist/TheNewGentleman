@@ -382,12 +382,17 @@ void Base::UpdateRgAddons(Base::RaceGroupInfo &rg) {
             aaMainRace = aa->additionalRaces[0];
           }
           if (auto mainRaceRg = GetRg(aaMainRace, false); rg.isMain && mainRaceRg && !mainRaceRg->isMain) continue;
-          rgAddons.emplace(i, std::pair<bool, RE::TESObjectARMA *>({rg.isMain || AddonHasRace(aa, rg.races[0]), aa}));
           supports = true;
+          rgAddons.emplace(i, std::pair<bool, RE::TESObjectARMA *>({rg.isMain || AddonHasRace(aa, rg.races[0]), aa}));
           if (rgAddons[i].first) break;
         }
       }
-      if (!supports) continue;
+      if (!supports) {
+        if (i == rg.defAddonIdx) rg.defAddonIdx = rg.malAddons.size() == 0 ? Tng::cNul : static_cast<int>(rg.malAddons.begin()->first);
+        if (i == rg.defAddonIdx && rg.addonIdx < 0) rg.addonIdx = rg.defAddonIdx;
+        continue;
+      }
+      if (rg.defAddonIdx < 0) rg.defAddonIdx = static_cast<int>(i);
       if (i == rg.defAddonIdx && rg.addonIdx < 0) rg.addonIdx = static_cast<int>(i);
       if (!rg.isMain && rgAddons[i].first && (rg.addonIdx < 0 || !rgAddons[rg.addonIdx].first)) {
         rg.defAddonIdx = static_cast<int>(i);
