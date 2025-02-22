@@ -189,8 +189,11 @@ Event OnGameReload()
     PlayerSkin.SetValueInt(-2)
     TNGSetAddon(PlayerRef, PlayerSkin.GetValueInt())
     HandleWarnings(res)
+  EndIf
+  res = 0
+  If !TNG_PapyrusUtil.GetBoolValue(ciExcludePlayer)
+    res = TNG_PapyrusUtil.SetActorSize(PlayerRef, PlayerSize)
   EndIf  
-  res = TNG_PapyrusUtil.SetActorSize(PlayerRef, PlayerSize)
   If res < 0     
     Debug.Notification("$TNG_WPS")
     PlayerSize = -2
