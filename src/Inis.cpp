@@ -187,18 +187,19 @@ void Inis::LoadMainIni() {
 
   for (size_t i = 0; i < Tng::BoolSettingCount; i++) {
     Base::SetBoolSetting(i, ini.GetBoolValue(cGeneral, cBoolSettings[i], false));
-    if (Tng::SEDH()->LookupModByName("Racial Skin Variance - SPID.esp")) {
-      Base::SetBoolSetting(i, true);
-      Base::SetBoolSetting(i, true);
-      Base::SetBoolSetting(i, true);
-      SKSE::log::info("\tTNG detected Racial Skin Variance and would force the player and NPCs to be reloaded");
-    }
-    if (Tng::SEDH()->LookupModByName("UIExtensions.esp")) {
-      Base::SetBoolSetting(Tng::bsUIExtensions, true);
-      SKSE::log::info("\tTNG detected UIExtensions and would use it for the MCM");
-    }
     SKSE::log::debug("\tThe boolean setting [{}] was restored to [{}].", cBoolSettings[i], Base::GetBoolSetting(i));
   }
+  if (Tng::SEDH()->LookupModByName("Racial Skin Variance - SPID.esp")) {
+    Base::SetBoolSetting(Tng::bsCheckPlayerAddon, true);
+    Base::SetBoolSetting(Tng::bsCheckNPCsAddons, true);
+    Base::SetBoolSetting(Tng::bsForceRechecks, true);
+    SKSE::log::info("\tTNG detected Racial Skin Variance and would force the player and NPCs to be reloaded");
+  }
+  if (Tng::SEDH()->LookupModByName("UIExtensions.esp")) {
+    Base::SetBoolSetting(Tng::bsUIExtensions, true);
+    SKSE::log::info("\tTNG detected UIExtensions and would use it for the MCM");
+  }
+
   for (size_t i = 0; i < Tng::cSizeCategories; i++) Base::SetGlobalSize(i, static_cast<float>(ini.GetDoubleValue(cGlobalSize, cSizeNames[i], cDefSizes[i])));
   SKSE::log::debug("\tGlobal size settings loaded.");
   if (ini.KeyExists(cGentleWomen, cGentleWomenChance)) {
