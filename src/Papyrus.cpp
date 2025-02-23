@@ -50,7 +50,7 @@ bool Papyrus::GetBoolValue(RE::StaticFunctionTag*, int settingID) {
 }
 
 void Papyrus::SetBoolValue(RE::StaticFunctionTag*, int settingID, bool value) {
-  if (0 <= settingID && settingID < Tng::BoolSettingCount) Inis::SaveSettingBool(static_cast<Tng::BoolSetting>(settingID), value);
+  if (0 <= settingID && settingID < Tng::BoolSettingCount) Core::SetBoolSetting(static_cast<Tng::BoolSetting>(settingID), value);
 }
 
 std::vector<std::string> Papyrus::GetAllPossibleAddons(RE::StaticFunctionTag*, bool isFemale) {
@@ -67,8 +67,7 @@ bool Papyrus::GetAddonStatus(RE::StaticFunctionTag*, bool isFemale, int addonIdx
 
 void Papyrus::SetAddonStatus(RE::StaticFunctionTag*, bool isFemale, int addonIdx, bool status) {
   if (addonIdx < 0 || addonIdx >= Base::GetAddonCount(isFemale, false)) return;
-  Inis::SaveAddonStatus(isFemale, addonIdx, status);
-  Base::SetAddonStatus(isFemale, addonIdx, status);
+  Core::SetAddonStatus(isFemale, addonIdx, status);
 }
 
 std::vector<std::string> Papyrus::GetRgNames(RE::StaticFunctionTag*) { return Base::GetRgNames(true); }
@@ -125,7 +124,7 @@ float Papyrus::GetRgMult(RE::StaticFunctionTag*, int rgIdx) {
 }
 
 void Papyrus::SetRgMult(RE::StaticFunctionTag*, int rgIdx, float mult) {
-  if (Base::SetRgMult(static_cast<size_t>(rgIdx), mult, true)) Inis::SaveRgMult(static_cast<size_t>(rgIdx), mult);
+  Core::SetRgMult(static_cast<size_t>(rgIdx), mult, true);
 }
 
 int Papyrus::CanModifyActor(RE::StaticFunctionTag*, RE::Actor* actor) {

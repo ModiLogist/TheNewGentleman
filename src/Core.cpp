@@ -444,3 +444,16 @@ bool Core::SwapRevealing(RE::Actor* actor, RE::TESObjectARMO* armor) {
   }
   return false;
 }
+
+void Core::SetBoolSetting(Tng::BoolSetting settingID, bool value) {
+  Base::SetBoolSetting(settingID, value);
+  Inis::SetBoolSetting(settingID, value);
+}
+
+void Core::SetAddonStatus(const bool isFemale, const int addnIdx, const bool status) {
+  Base::SetAddonStatus(isFemale, addnIdx, status);
+  Inis::SetAddonStatus(isFemale, addnIdx, status);
+}
+
+void Core::SetRgMult(const size_t rgChoice, const float mult, bool onlyMCM) { 
+  if (Base::SetRgMult(rgChoice, mult, true)) Inis::SetRgMult(rgChoice, mult); }

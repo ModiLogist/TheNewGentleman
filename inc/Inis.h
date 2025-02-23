@@ -99,14 +99,14 @@ class Inis : public Singleton<Inis> {
   public:
     static spdlog::level::level_enum GetLogLvl();
     static void SetLogLvl(int logLevel);
-    static void SaveAddonStatus(const bool isFemale, const int addnIdx, const bool status);
-    static void SaveRgMult(const size_t rg, const float mult);
+    static void SetAddonStatus(const bool isFemale, const int addnIdx, const bool status);
+    static void SetRgMult(const size_t rg, const float mult);
     static void SaveRgAddon(const size_t rg, const int choice);
     static void SaveNPCAddon(RE::TESNPC* npc, const int choice);
     static void SaveNPCSize(RE::TESNPC* npc, int genSize);
     static void SaveRevealingArmor(RE::TESObjectARMO* armor, int revMode);
     static void LoadHoteKeys();
-    static void SaveSettingBool(Tng::BoolSetting settingID, bool value);
+    static void SetBoolSetting(Tng::BoolSetting settingID, bool value);
     static void SaveGlobals();
     static std::vector<std::string> Slot52Mods();
     static bool Slot52ModBehavior(const std::string modName, const int behavior);

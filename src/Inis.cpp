@@ -290,7 +290,7 @@ void Inis::SetLogLvl(int logLevel) {
   ini.SaveFile(cSettings);
 }
 
-void Inis::SaveAddonStatus(const bool isFemale, const int addnIdx, const bool status) {
+void Inis::SetAddonStatus(const bool isFemale, const int addnIdx, const bool status) {
   auto addonStr = FormToStr(Base::AddonByIdx(isFemale, addnIdx, false));
   if (addonStr.empty()) return;
   CSimpleIniA ini;
@@ -300,7 +300,7 @@ void Inis::SaveAddonStatus(const bool isFemale, const int addnIdx, const bool st
   ini.SaveFile(cSettings);
 }
 
-void Inis::SaveRgMult(const size_t rg, const float mult) {
+void Inis::SetRgMult(const size_t rg, const float mult) {
   CSimpleIniA ini;
   ini.SetUnicode();
   ini.LoadFile(cSettings);
@@ -448,7 +448,7 @@ void Inis::LoadHoteKeys() {
   }
 }
 
-void Inis::SaveSettingBool(Tng::BoolSetting settingID, bool value) {
+void Inis::SetBoolSetting(Tng::BoolSetting settingID, bool value) {
   CSimpleIniA ini;
   ini.SetUnicode();
   ini.LoadFile(cSettings);

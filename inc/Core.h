@@ -29,4 +29,9 @@ class Core : public Singleton<Core> {
     inline static constexpr SEFormLocView hardCodedCovering[hardCodedCoveringCount]{{0x3D306, "Dragonborn.esm"}};
     inline static constexpr size_t hardCodedRacesCount{1};
     inline static constexpr SEFormLocView hardCodedRaces[hardCodedRacesCount]{{0x67CD8, Tng::cSkyrim}};
+
+  public:
+    static void SetBoolSetting(Tng::BoolSetting settingID, bool value);
+    static void SetAddonStatus(const bool isFemale, const int addnIdx, const bool status);    
+    static void SetRgMult(const size_t rgChoice, const float mult, bool onlyMCM);
 };
