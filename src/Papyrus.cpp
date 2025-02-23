@@ -123,9 +123,7 @@ float Papyrus::GetRgMult(RE::StaticFunctionTag*, int rgIdx) {
   return Base::GetRgMult(static_cast<size_t>(rgIdx), true);
 }
 
-void Papyrus::SetRgMult(RE::StaticFunctionTag*, int rgIdx, float mult) {
-  Core::SetRgMult(static_cast<size_t>(rgIdx), mult, true);
-}
+void Papyrus::SetRgMult(RE::StaticFunctionTag*, int rgIdx, float mult) { Core::SetRgMult(static_cast<size_t>(rgIdx), mult, true); }
 
 int Papyrus::CanModifyActor(RE::StaticFunctionTag*, RE::Actor* actor) {
   auto npc = actor ? actor->GetActorBase() : nullptr;

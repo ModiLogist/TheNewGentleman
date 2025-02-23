@@ -198,9 +198,7 @@ class Tng : public Singleton<Tng> {
     }
 };
 
-static void ShowSkyrimMessage(const char* message) {
-  RE::DebugMessageBox(message);
-}
+static void ShowSkyrimMessage(const char* message) { RE::DebugMessageBox(message); }
 
 static SEFormLoc StrToLoc(const std::string recordStr) {
   const size_t sepLoc = recordStr.find(Tng::cDelimChar);

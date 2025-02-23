@@ -81,7 +81,7 @@ Tng::TNGRes Core::AddPotentialRace(RE::TESRace* race, const std::set<std::string
     if (!race->HasKeyword(Tng::RaceKey(Tng::rkeyManMer)) || race->HasKeyword(Tng::RaceKey(Tng::rkeyCreature)) || race->IsChildRace()) return Tng::raceErr;
     if (!race->skin) {
       SKSE::log::warn("\tThe race [0x{:x}: {}] cannot have any genitals since they do not have a skin! It was last modified by [{}].", race->GetFormID(), race->GetFormEditorID(),
-                        race->GetFile() ? race->GetFile()->GetFilename() : "Unrecognized File");
+                      race->GetFile() ? race->GetFile()->GetFilename() : "Unrecognized File");
       IgnoreRace(race, false);
       return Tng::raceErr;
     }
@@ -94,7 +94,7 @@ Tng::TNGRes Core::AddPotentialRace(RE::TESRace* race, const std::set<std::string
     }
     if (!skinFound) {
       SKSE::log::warn("\tThe race [0x{:x}: {}] cannot have any genitals since their skin cannot be recognized!  It was last modified by [{}].", race->GetFormID(), race->GetFormEditorID(),
-                        race->GetFile() ? race->GetFile()->GetFilename() : "Unrecognized File");
+                      race->GetFile() ? race->GetFile()->GetFilename() : "Unrecognized File");
       IgnoreRace(race, false);
       return Tng::raceErr;
     }
@@ -228,7 +228,7 @@ RE::TESObjectARMO* Core::FixSkin(RE::TESObjectARMO* skin, RE::TESRace* race, con
   auto addonIdx = Base::GetRgAddon(race);
   if (rgIdx < 0 || addonIdx == Tng::pgErr) {
     SKSE::log::critical("\t\tSkin [xx{:x}] from file [{}] together with race [xx{:x}] from file [{}] caused a critical error!", skin->GetLocalFormID(),
-                          skin->GetFile() ? skin->GetFile()->GetFilename() : "Unknown", race->GetLocalFormID(), race->GetFile() ? race->GetFile()->GetFilename() : "Unknown");
+                        skin->GetFile() ? skin->GetFile()->GetFilename() : "Unknown", race->GetLocalFormID(), race->GetFile() ? race->GetFile()->GetFilename() : "Unknown");
     return nullptr;
   }
   if (addonIdx == Tng::cNul) return skin;
@@ -455,5 +455,6 @@ void Core::SetAddonStatus(const bool isFemale, const int addnIdx, const bool sta
   Inis::SetAddonStatus(isFemale, addnIdx, status);
 }
 
-void Core::SetRgMult(const size_t rgChoice, const float mult, bool onlyMCM) { 
-  if (Base::SetRgMult(rgChoice, mult, true)) Inis::SetRgMult(rgChoice, mult); }
+void Core::SetRgMult(const size_t rgChoice, const float mult, bool onlyMCM) {
+  if (Base::SetRgMult(rgChoice, mult, onlyMCM)) Inis::SetRgMult(rgChoice, mult);
+}

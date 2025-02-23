@@ -32,6 +32,6 @@ class Core : public Singleton<Core> {
 
   public:
     static void SetBoolSetting(Tng::BoolSetting settingID, bool value);
-    static void SetAddonStatus(const bool isFemale, const int addnIdx, const bool status);    
+    static void SetAddonStatus(const bool isFemale, const int addnIdx, const bool status);
     static void SetRgMult(const size_t rgChoice, const float mult, bool onlyMCM);
 };

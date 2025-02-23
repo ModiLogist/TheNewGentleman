@@ -104,7 +104,7 @@ void Base::AddRace(RE::TESRace *race, bool isProccessed) {
   auto rg = GetRg(race, true);
   if (rgInfoList.size() > rgCount) {
     SKSE::log::info("\tThe race [0x{:x}: {}] was recognized as a new group {}.", race->GetFormID(), race->GetFormEditorID(), rg->name);
-    if (Tng::Block() && !Tng::Block()->armorAddons[0]->IsValidRace(race) ) Tng::Block()->armorAddons[0]->additionalRaces.push_back(race);
+    if (Tng::Block() && !Tng::Block()->armorAddons[0]->IsValidRace(race)) Tng::Block()->armorAddons[0]->additionalRaces.push_back(race);
   } else {
     SKSE::log::info("\tThe race [0x{:x}: {}] was recognized as a member of existing group {}.", race->GetFormID(), race->GetFormEditorID(), rg->name);
   }
