@@ -29,8 +29,8 @@ class Base : public Singleton<Base> {
 
   public:
     static int AddonIdxByLoc(bool isFemale, SEFormLocView addonLoc);
-    static RE::TESObjectARMO* AddonByIdx(bool isFemale, size_t choice, bool onlyActive);
-    static size_t GetAddonCount(bool isFemale, bool onlyActive);
+    static RE::TESObjectARMO* AddonByIdx(const bool isFemale, const size_t choice, const bool onlyActive);
+    static size_t GetAddonCount(const bool isFemale, const bool onlyActive);
     static bool GetAddonStatus(const bool isFemale, const size_t addnIdx);
     static void SetAddonStatus(const bool isFemale, const size_t addnIdx, const bool aIsActive);
 
@@ -40,8 +40,8 @@ class Base : public Singleton<Base> {
     static void LoadAddons();
 
   public:
-    static float GetGlobalSize(size_t idx);
-    static void SetGlobalSize(size_t idx, float size);
+    static float GetGlobalSize(const size_t idx);
+    static void SetGlobalSize(const size_t idx, float size);
 
   public:
     static void AddRace(RE::TESRace* race, bool isProccessed);
@@ -51,14 +51,14 @@ class Base : public Singleton<Base> {
     static void UpdateRgSkins();
     static RE::TESRace* GetRgRace0(const size_t rgChoice, const bool onlyMCM);
     static std::vector<std::string> GetRgNames(const bool onlyMCM);
-    static std::string GetRgInfo(size_t rgChoice, bool onlyMCM);
+    static std::string GetRgInfo(const size_t rgChoice, bool onlyMCM);
     static int GetRgAddon(const size_t rgChoice, bool onlyMCM);
     static int GetRgAddon(RE::TESRace* race);
     static bool SetRgAddon(const size_t rgChoice, const int addnChoice, bool onlyMCM);
     static float GetRgMult(const size_t rgChoice, bool onlyMCM);
     static float GetRgMult(RE::TESRace* race);
     static bool SetRgMult(const size_t rgChoice, const float mult, bool onlyMCM);
-    static std::vector<size_t> GetRgAddonList(size_t rgChoice, bool isFemale, bool onlyMCM, bool onlyActive);
+    static std::vector<size_t> GetRgAddonList(const size_t rgChoice, bool isFemale, bool onlyMCM, bool onlyActive);
     static std::vector<size_t> GetRgAddonList(RE::TESRace* race, bool isFemale, bool onlyActive);
     static int IsAddonDedicatedToRg(const size_t rgChoice, bool isFemale, bool onlyMCM, size_t addnChoice);
     static RE::TESObjectARMO* GetSkinWithAddonForRg(const size_t rgIdx, RE::TESObjectARMO* skin, const size_t addonIdx, const bool isFemale);
@@ -99,7 +99,7 @@ class Base : public Singleton<Base> {
     static Tng::TNGRes SetActorSizeCat(RE::Actor* actor, const int sizeCat);
     static void ExcludeNPC(const std::string npcRecordStr);
     static std::pair<bool, int> GetNPCAddon(RE::TESNPC* npc);
-    static Tng::TNGRes SetNPCAddon(RE::TESNPC* npc, int addnIdx, bool isUser);
+    static Tng::TNGRes SetNPCAddon(RE::TESNPC* npc, const int addnIdx, const bool isUser);
     static void SetPlayerInfo(RE::Actor* actor, const int addnIdx);
     static void UnsetPlayerInfo();
     static bool HasPlayerChanged(RE::Actor* actor);

@@ -55,7 +55,7 @@ RE::TESObjectARMO *Base::AddonByIdx(bool isFemale, size_t choice, bool onlyActiv
   return res;
 }
 
-size_t Base::GetAddonCount(bool isFemale, bool onlyActive) {
+size_t Base::GetAddonCount(const bool isFemale, const bool onlyActive) {
   auto &list = isFemale ? femAddons : malAddons;
   if (onlyActive) {
     size_t res = 0;
@@ -351,8 +351,8 @@ int Base::GetRgDefAddon(Base::RaceGroupInfo &rg) {
   SEFormLocView defAddon;
   bool defAddonSet = false;
   auto raceStr = std::string(rg.armorRace->GetFormEditorID()) + std::string(rg.armorRace->GetName());
-  std::transform(raceStr.begin(), raceStr.end(), raceStr.begin(), [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
-  for (std::uint32_t i = 0; i < cVanillaRaceTypes; i++) {
+  std::transform(raceStr.begin(), raceStr.end(), raceStr.begin(), [](uint8_t c) { return static_cast<char>(std::tolower(c)); });
+  for (std::size_t i = 0; i < cVanillaRaceTypes; i++) {
     if (raceStr.contains(cRaceNames[i].first[0]) || raceStr.contains(cRaceNames[i].first[1]) && (rg.armorRace->HasKeyword(Tng::RaceKey(Tng::rkeyBeast)) == cRaceNames[i].second)) {
       defAddon = {cRaceDefaults[i], Tng::cName};
       defAddonSet = true;

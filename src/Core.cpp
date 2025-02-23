@@ -120,7 +120,7 @@ void Core::GenitalizeNPCSkins() {
   SKSE::log::info("Checking NPCs for custom skins.");
   std::map<std::pair<RE::TESObjectARMO*, RE::TESRace*>, std::set<RE::TESNPC*>> skinsToPatch{};
   std::map<std::string_view, size_t> customSkinMods{};
-  std::map<RE::TESRace*, int> raceNPCCount;
+  std::map<RE::TESRace*, size_t> raceNPCCount;
   auto& allNPCs = Tng::SEDH()->GetFormArray<RE::TESNPC>();
   size_t sizeCount[Tng::cSizeCategories]{0};
   for (const auto& npc : allNPCs) {
