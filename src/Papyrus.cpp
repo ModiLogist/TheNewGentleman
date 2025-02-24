@@ -206,7 +206,7 @@ int Papyrus::SetActorAddon(RE::StaticFunctionTag*, RE::Actor* actor, int choice)
   auto list = Base::GetRgAddonList(npc->race, npc->IsFemale(), false);
   int addnIdx = choice < 0 ? choice : static_cast<int>(list[choice]);
   if (actor->IsPlayerRef()) Base::SetPlayerInfo(actor, choice);
-  if (npc->race->HasKeyword(Tng::RaceKey(Tng::rkeyPreprocessed)) && !Base::ReevaluateRace(npc->race, actor)) return Tng::raceErr;
+  if (npc->race->HasKeyword(Tng::Key(Tng::kyPreProcessed)) && !Base::ReevaluateRace(npc->race, actor)) return Tng::raceErr;
   auto res = Core::SetNPCAddon(npc, addnIdx, true);
   if (res >= 0) Events::DoChecks(actor);
   return res;
@@ -245,11 +245,11 @@ std::vector<RE::Actor*> Papyrus::CheckActors(RE::StaticFunctionTag*) {
       auto actor = ref->As<RE::Actor>();
       auto npc = actor ? actor->GetActorBase() : nullptr;
       if (!npc || Core::CanModifyNPC(npc) != Tng::resOkRaceP) return RE::BSContainer::ForEachResult::kContinue;
-      if (!npc->skin || npc->skin->HasKeyword(Tng::ArmoKey(Tng::akeyGenSkin))) return RE::BSContainer::ForEachResult::kContinue;
+      if (npc->HasKeyword(Tng::Key(Tng::kyProcessed))) return RE::BSContainer::ForEachResult::kContinue;
       auto addnPair = Events::GetNPCAutoAddon(npc);
       Core::SetNPCAddon(npc, addnPair.first, addnPair.second, false);
       Events::DoChecks(actor);
-      if (actor->GetSkin()->HasKeyword(Tng::ArmoKey(Tng::akeyGenSkin))) {
+      if (actor->GetSkin()->HasKeyword(Tng::Key(Tng::kyTngSkin))) {
         SKSE::log::debug("\tFixed [0x{:x}:{}] with addon [{}].", actor->GetFormID(), npc->GetName(), addnPair.first);
         res.push_back(actor);
       }
@@ -336,13 +336,13 @@ std::string Papyrus::WhyProblem(RE::StaticFunctionTag* tag, RE::Actor* actor, in
           default:
             return GetErrDscr(tag, res).c_str();
         }
-        if (skin->HasKeyword(Tng::ArmoKey(Tng::akeyGenSkin))) return "$TNG_PD0";
-        if (npc->HasKeyword(Tng::NPCKey(Tng::npckeyExclude))) return "$TNG_PA3";
+        if (skin->HasKeyword(Tng::Key(Tng::kyTngSkin))) return "$TNG_PD0";
+        if (npc->HasKeyword(Tng::Key(Tng::kyExcluded))) return "$TNG_PA3";
         if (npc->IsFemale() && static_cast<size_t>(std::floor(Tng::WRndGlb()->value + 0.1)) < 100) return "$TNG_PA4";
         if (Base::GetRgAddon(npc->race) == Tng::cNul) return "$TNG_PA5";
       }
       Events::DoChecks(actor);
-      return !actor->GetWornArmor(Tng::cSlotGenital) && skin->HasKeyword(Tng::ArmoKey(Tng::akeyGenSkin)) ? "$TNG_PD1" : "$TNG_PD2";
+      return !actor->GetWornArmor(Tng::cSlotGenital) && skin->HasKeyword(Tng::Key(Tng::kyTngSkin)) ? "$TNG_PD1" : "$TNG_PD2";
   }
   return "";
 }

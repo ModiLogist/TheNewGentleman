@@ -167,21 +167,21 @@ void Inis::LoadMainIni() {
   for (const auto &entry : values) {
     auto isRevealing = ini.GetBoolValue(cRevealingSection, entry.pItem);
     const std::string armorRecord(entry.pItem);
-    UpdateRevealing(armorRecord, isRevealing ? Tng::akeyReveal : Tng::akeyCover);
+    UpdateRevealing(armorRecord, isRevealing ? Tng::kyRevealing : Tng::kyCovering);
     SKSE::log::debug("\tThe amor [{}] was marked revealing, due to user choice in the past.", armorRecord);
   }
   ini.GetAllKeys(cFemRevRecordSection, values);
   for (const auto &entry : values) {
     auto isRevealing = ini.GetBoolValue(cFemRevRecordSection, entry.pItem);
     const std::string armorRecord(entry.pItem);
-    UpdateRevealing(armorRecord, isRevealing ? Tng::akeyRevFem : Tng::cNA);
+    UpdateRevealing(armorRecord, isRevealing ? Tng::kyRevealingF : Tng::cNA);
     SKSE::log::debug("\tThe amor [{}] was marked revealing for women, due to user choice in the past.", armorRecord);
   }
   ini.GetAllKeys(cMalRevRecordSection, values);
   for (const auto &entry : values) {
     auto isRevealing = ini.GetBoolValue(cMalRevRecordSection, entry.pItem);
     const std::string armorRecord(entry.pItem);
-    UpdateRevealing(armorRecord, isRevealing ? Tng::akeyRevMal : Tng::cNA);
+    UpdateRevealing(armorRecord, isRevealing ? Tng::kyRevealingM : Tng::cNA);
     SKSE::log::debug("\tThe amor [{}] was marked revealing for men, due to user choice in the past.", armorRecord);
   }
 
@@ -407,16 +407,16 @@ void Inis::SaveRevealingArmor(RE::TESObjectARMO *armor, int revMode) {
   ini.Delete(cFemRevRecordSection, armoRecord.c_str(), true);
   ini.Delete(cMalRevRecordSection, armoRecord.c_str(), true);
   switch (revMode) {
-    case Tng::akeyCover:
+    case Tng::kyCovering:
       ini.SetBoolValue(cRevealingSection, armoRecord.c_str(), false);
       break;
-    case Tng::akeyReveal:
+    case Tng::kyRevealing:
       ini.SetBoolValue(cRevealingSection, armoRecord.c_str(), true);
       break;
-    case Tng::akeyRevFem:
+    case Tng::kyRevealingF:
       ini.SetBoolValue(cFemRevRecordSection, armoRecord.c_str(), true);
       break;
-    case Tng::akeyRevMal:
+    case Tng::kyRevealingM:
       ini.SetBoolValue(cMalRevRecordSection, armoRecord.c_str(), true);
       break;
     default:
@@ -534,13 +534,13 @@ void Inis::UpdateRevealing(const std::string armorRecod, const int revealingMode
   if (revealingMode < 0) return;
   auto &list = [&]() -> std::set<SEFormLoc> & {
     switch (revealingMode) {
-      case Tng::akeyCover:
+      case Tng::kyCovering:
         return runtimeCoveringRecords;
-      case Tng::akeyReveal:
+      case Tng::kyRevealing:
         return runTimeRevealingRecords;
-      case Tng::akeyRevFem:
+      case Tng::kyRevealingF:
         return runTimeFemRevRecords;
-      case Tng::akeyRevMal:
+      case Tng::kyRevealingM:
         return runTimeMalRevRecords;
       default:
         return runtimeCoveringRecords;
@@ -578,13 +578,13 @@ bool Inis::IsCovering(const RE::TESObjectARMO *armor, const std::string modName)
 
 int Inis::IsRevealing(const RE::TESObjectARMO *armor, const std::string modName) {
   if (modName == "") return Tng::cNA;
-  if (revealingMods.find(modName) != revealingMods.end()) return Tng::akeyReveal;
-  if (femRevMods.find(modName) != femRevMods.end()) return Tng::akeyRevFem;
-  if (malRevMods.find(modName) != malRevMods.end()) return Tng::akeyRevMal;
-  if (revealingRecords.find({armor->GetLocalFormID(), modName}) != revealingRecords.end()) return Tng::akeyReveal;
-  if (femRevRecords.find({armor->GetLocalFormID(), modName}) != femRevRecords.end()) return Tng::akeyRevFem;
-  if (malRevRecords.find({armor->GetLocalFormID(), modName}) != malRevRecords.end()) return Tng::akeyRevMal;
-  if (armor->HasKeywordString(Tng::cSOSR)) return Tng::akeyReveal;
+  if (revealingMods.find(modName) != revealingMods.end()) return Tng::kyRevealing;
+  if (femRevMods.find(modName) != femRevMods.end()) return Tng::kyRevealingF;
+  if (malRevMods.find(modName) != malRevMods.end()) return Tng::kyRevealingM;
+  if (revealingRecords.find({armor->GetLocalFormID(), modName}) != revealingRecords.end()) return Tng::kyRevealing;
+  if (femRevRecords.find({armor->GetLocalFormID(), modName}) != femRevRecords.end()) return Tng::kyRevealingF;
+  if (malRevRecords.find({armor->GetLocalFormID(), modName}) != malRevRecords.end()) return Tng::kyRevealingM;
+  if (armor->HasKeywordString(Tng::cSOSR)) return Tng::kyRevealing;
   return Tng::cNA;
 }
 
@@ -596,9 +596,9 @@ bool Inis::IsRTCovering(const RE::TESObjectARMO *armor, const std::string modNam
 
 int Inis::IsRTRevealing(const RE::TESObjectARMO *armor, const std::string modName) {
   if (modName == "") return Tng::cNA;
-  if (runTimeRevealingRecords.find({armor->GetLocalFormID(), modName}) != runTimeRevealingRecords.end()) return Tng::akeyReveal;
-  if (runTimeFemRevRecords.find({armor->GetLocalFormID(), modName}) != runTimeFemRevRecords.end()) return Tng::akeyRevFem;
-  if (runTimeMalRevRecords.find({armor->GetLocalFormID(), modName}) != runTimeMalRevRecords.end()) return Tng::akeyRevMal;
+  if (runTimeRevealingRecords.find({armor->GetLocalFormID(), modName}) != runTimeRevealingRecords.end()) return Tng::kyRevealing;
+  if (runTimeFemRevRecords.find({armor->GetLocalFormID(), modName}) != runTimeFemRevRecords.end()) return Tng::kyRevealingF;
+  if (runTimeMalRevRecords.find({armor->GetLocalFormID(), modName}) != runTimeMalRevRecords.end()) return Tng::kyRevealingM;
   return Tng::cNA;
 }
 

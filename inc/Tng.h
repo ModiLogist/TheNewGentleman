@@ -12,10 +12,6 @@ class Tng : public Singleton<Tng> {
     inline static constexpr RE::BGSBipedObjectForm::BipedObjectSlot cSlotBody{RE::BGSBipedObjectForm::BipedObjectSlot::kBody};
     inline static constexpr RE::BGSBipedObjectForm::BipedObjectSlot cSlotGenital{RE::BGSBipedObjectForm::BipedObjectSlot::kModPelvisSecondary};
 
-    inline static constexpr SEFormLocView cProblemArmoKeyID{0xFF4, cName};
-    inline static constexpr SEFormLocView cMalAddKeyID{0xFF9, cName};
-    inline static constexpr SEFormLocView cFemAddKeyID{0xFFA, cName};
-
     inline static constexpr SEFormLocView cCover{0xAFF, cName};
 
     inline static constexpr size_t cMalRandomPriority{100};
@@ -58,22 +54,42 @@ class Tng : public Singleton<Tng> {
 
     enum Races { raceDefault, raceDefBeast, RacesCount };
 
-    enum eRaceKeys { rkeyPreprocessed, rkeyProcessed, rkeyReady, rkeyIgnore, rkeyManMer, rkeyBeast, rkeyCreature, rkeyVampire, RaceKeysCount };
-    enum eNPCKeys { npckeyExclude, npckeyGentlewoman, NPCKeysCount };
-    enum eArmoKeys { akeyCover, akeyRevFem, akeyRevMal, akeyReveal, akeyIgnored, akeyUnderwear, akeySkinWP, akeyGenSkin, ArmoKeysCount };
+    enum eKeywords {
+      kyProcessed,
+      kyReady,
+      kyIgnored,
+      kyPreProcessed,
+      kyExcluded,
+      kyTngSkin,
+      kySkinWP,
+      kyGentlewoman,
+      kyAddonM,
+      kyAddonF,
+      kyRevealingF,
+      kyRevealingM,
+      kyCovering,
+      kyUnderwear,
+      kyRevealing,
+      kyManMer,
+      kyBeast,
+      kyCreature,
+      kyVampire,
+      KeywordsCount
+    };
+
     enum eTngFormLists { flmGentleWomen, flmNonGentleMen, TngFormListsCount };
-    inline static constexpr eArmoKeys RevKeys[3]{akeyReveal, akeyRevFem, akeyRevMal};
+    inline static constexpr eKeywords RevKeys[3]{kyRevealing, kyRevealingF, kyRevealingM};
     enum UserCtrls { ctrlDAK, ctrlSetupNPC, ctrlRiseGen, ctrlFallGen, ctrlSwapRevealing, ctrWhyProblem, UserCtrlsCount };
 
   private:
     inline static constexpr SEFormLocView cRaceIDs[RacesCount]{{0x19, cSkyrim}, {0x13745, cSkyrim}};
-    inline static constexpr SEFormLocView cRaceKeyIDs[RaceKeysCount] = {{0xFEF, cName},     {0xFF0, cName},     {0xFF1, cName},     {0xFF2, cName},
-                                                                        {0x13794, cSkyrim}, {0xD61D1, cSkyrim}, {0x13795, cSkyrim}, {0xA82BB, cSkyrim}};
-    inline static constexpr SEFormLocView cNPCKeyIDs[NPCKeysCount] = {{0xFF5, cName}, {0xFF8, cName}};
-    inline static constexpr SEFormLocView cArmoKeyIDs[ArmoKeysCount] = {{0xFFD, cName}, {0xFFB, cName}, {0xFFC, cName}, {0xFFF, cName}, {0xFF3, cName}, {0xFFE, cName}, {0xFF7, cName}, {0xFF6, cName}};
-    inline static constexpr RE::FormID cSizeKeyIDs[cSizeCategories]{0xFE1, 0xFE2, 0xFE3, 0xFE4, 0xFE5};
+    inline static constexpr SEFormLocView cTngKeyIDs[KeywordsCount] = {{0xFF0, cName}, {0xFF1, cName},     {0xFF2, cName},     {0xFF3, cName},     {0xFF4, cName},    {0xFF6, cName}, {0xFF7, cName},
+                                                                       {0xFF8, cName}, {0xFF9, cName},     {0xFFA, cName},     {0xFFB, cName},     {0xFFC, cName},    {0xFFD, cName}, {0xFFE, cName},
+                                                                       {0xFFF, cName}, {0x13794, cSkyrim}, {0xD61D1, cSkyrim}, {0x13795, cSkyrim}, {0xA82BB, cSkyrim}};
+
     inline static constexpr SEFormLocView cPCAddon{0xCFF, cName};
     inline static constexpr SEFormLocView cWomenChanceID{0xCA0, cName};
+    inline static constexpr RE::FormID cSizeKeyIDs[cSizeCategories]{0xFE1, 0xFE2, 0xFE3, 0xFE4, 0xFE5};
     inline static constexpr RE::FormID cSizeGlbIDs[cSizeCategories]{0xC01, 0xC02, 0xC03, 0xC04, 0xC05};
     inline static constexpr SEFormLocView cUserCtrlIDs[UserCtrlsCount] = {{0xC00, Tng::cName}, {0xCB0, Tng::cName}, {0xCB1, Tng::cName}, {0xCB2, Tng::cName}, {0xCB3, Tng::cName}, {0xCB4, Tng::cName}};
 
@@ -81,11 +97,7 @@ class Tng : public Singleton<Tng> {
 
     inline static RE::TESDataHandler* fSEDH;
     inline static RE::TESRace* races[RacesCount];
-    inline static RE::BGSKeyword* raceKeys[RaceKeysCount];
-    inline static RE::BGSKeyword* npcKeys[NPCKeysCount];
-    inline static RE::BGSKeyword* armoKeys[ArmoKeysCount];
-    inline static RE::BGSKeyword* skinwpKey;
-    inline static RE::BGSKeyword* generatedSkinKey;
+    inline static RE::BGSKeyword* keywords[KeywordsCount];
     inline static RE::BGSKeyword* sizeKey[cSizeCategories];
     inline static RE::TESGlobal* pcAddon;
     inline static RE::TESGlobal* gwChance;
@@ -106,39 +118,16 @@ class Tng : public Singleton<Tng> {
       return races[idx];
     }
 
-    static RE::BGSKeyword* RaceKey(const size_t idx) {
-      if (idx >= RaceKeysCount) return nullptr;
-      if (!raceKeys[idx]) raceKeys[idx] = SEDH()->LookupForm<RE::BGSKeyword>(cRaceKeyIDs[idx].first, cRaceKeyIDs[idx].second);
-      return raceKeys[idx];
+    static RE::BGSKeyword* Key(const size_t idx) {
+      if (idx >= KeywordsCount) return nullptr;
+      if (!keywords[idx]) keywords[idx] = SEDH()->LookupForm<RE::BGSKeyword>(cTngKeyIDs[idx].first, cTngKeyIDs[idx].second);
+      return keywords[idx];
     }
 
-    static std::vector<RE::BGSKeyword*> RaceKeys(const size_t last = RaceKeysCount) {
+    static std::vector<RE::BGSKeyword*> Keys(const size_t first, const size_t last) {
       std::vector<RE::BGSKeyword*> res = {};
-      for (auto i = 0; i < (last > RaceKeysCount ? RaceKeysCount : last); i++) res.push_back(RaceKey(i));
-      return res;
-    }
-
-    static RE::BGSKeyword* NPCKey(const size_t idx) {
-      if (idx >= NPCKeysCount) return nullptr;
-      if (!npcKeys[idx]) npcKeys[idx] = SEDH()->LookupForm<RE::BGSKeyword>(cNPCKeyIDs[idx].first, cNPCKeyIDs[idx].second);
-      return npcKeys[idx];
-    }
-
-    static std::vector<RE::BGSKeyword*> NPCKeys(const size_t last = NPCKeysCount) {
-      std::vector<RE::BGSKeyword*> res = {};
-      for (size_t i = 0; i < (last > NPCKeysCount ? NPCKeysCount : last); i++) res.push_back(NPCKey(i));
-      return res;
-    }
-
-    static RE::BGSKeyword* ArmoKey(const size_t idx) {
-      if (idx >= ArmoKeysCount) return nullptr;
-      if (!armoKeys[idx]) armoKeys[idx] = SEDH()->LookupForm<RE::BGSKeyword>(cArmoKeyIDs[idx].first, cArmoKeyIDs[idx].second);
-      return armoKeys[idx];
-    }
-
-    static std::vector<RE::BGSKeyword*> ArmoKeys(const size_t last = ArmoKeysCount) {
-      std::vector<RE::BGSKeyword*> res = {};
-      for (size_t i = 0; i < (last > ArmoKeysCount ? ArmoKeysCount : last); i++) res.push_back(ArmoKey(i));
+      if (last >= KeywordsCount) return res;
+      for (auto i = first; i <= last; i++) res.push_back(Key(i));
       return res;
     }
 
