@@ -57,8 +57,8 @@ class Tng : public Singleton<Tng> {
     enum eKeywords {
       kyProcessed,
       kyReady,
-      kyIgnored,
       kyPreProcessed,
+      kyIgnored,
       kyExcluded,
       kyTngSkin,
       kySkinWP,
