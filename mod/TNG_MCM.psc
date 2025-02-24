@@ -936,7 +936,7 @@ Event OnOptionKeyMapChange(Int aiOption, Int aiKeyCode, String asConflictControl
   If !fkDAK || (DAKIntegration.GetValue() < 1)
     Bool lbContinue = True
     String lsNotif
-    If asConflictControl != ""
+    If (asConflictControl != "") && (aiKeyCode != -1)
       If (asConflictName != "")
         lsNotif = "This key is already mapped to:\n\"" + asConflictControl + "\"\n(" + asConflictName + ")\n\nAre you sure you want to continue?"
       Else
