@@ -56,6 +56,10 @@ RE::BSEventNotifyControl Events::ProcessEvent(const RE::TESSwitchRaceCompleteEve
   if (oldSkins.find(npc->GetFormID()) != oldSkins.end() && npc->race->HasKeyword(Tng::Key(Tng::kyProcessed))) {
     npc->skin = oldSkins[npc->GetFormID()];
     oldSkins.erase(npc->GetFormID());
+    return RE::BSEventNotifyControl::kContinue;
+  }
+  if (GetNPCAutoAddon(npc).second && npc->race->HasKeyword(Tng::Key(Tng::kyProcessed)) && !npc->HasKeyword(Tng::Key(Tng::kyProcessed))) {
+    DoChecks(actor);
   }
   return RE::BSEventNotifyControl::kContinue;
 }

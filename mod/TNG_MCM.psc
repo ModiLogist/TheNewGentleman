@@ -181,6 +181,9 @@ Event OnGameReload()
   If DebugKey.GetValueInt() > 0
     RegisterForKey(DebugKey.GetValueInt())
   EndIf
+  If TNG_PapyrusUtil.CanModifyActor(PlayerRef) <= 0
+    Return
+  EndIf
   Int res = TNGSetAddon(PlayerRef, PlayerSkin.GetValueInt())
   If (res >= 0) && !PlayerRef.IsOnMount()
     PlayerRef.QueueNiNodeUpdate()
@@ -896,8 +899,8 @@ Event OnOptionSelect(Int aiOption)
     If aiOption == fiPCUHdl
       TNG_PapyrusUtil.SetBoolValue(ciCheckingPCGen, !TNG_PapyrusUtil.GetBoolValue(ciCheckingPCGen))      
       SetToggleOptionValue(fiPCUHdl, TNG_PapyrusUtil.GetBoolValue(ciCheckingPCGen))
-      If TNG_PapyrusUtil.GetBoolValue(ciCheckingPCGen)
-        Int res = TNGSetAddon(PlayerRef, PlayerSkin.GetValueInt())
+      If TNG_PapyrusUtil.GetBoolValue(ciCheckingPCGen) && (TNG_PapyrusUtil.CanModifyActor(PlayerRef) > 0)
+        Int res = TNGSetAddon(PlayerRef, PlayerSkin.GetValueInt()) 
         If (res >= 0) && !PlayerRef.IsOnMount()
           PlayerRef.QueueNiNodeUpdate()
         Else
@@ -1036,7 +1039,7 @@ Event OnKeyDown(Int aiKey)
 EndEvent
 
 Event OnUpdate()
-  If TNG_PapyrusUtil.GetBoolValue(ciCheckingPCGen)
+  If TNG_PapyrusUtil.GetBoolValue(ciCheckingPCGen) && (TNG_PapyrusUtil.CanModifyActor(PlayerRef) > 0)
     Int res = TNGSetAddon(PlayerRef, PlayerSkin.GetValueInt())
     If (res >= 0) && !PlayerRef.IsOnMount()
       PlayerRef.QueueNiNodeUpdate()

@@ -205,8 +205,8 @@ int Papyrus::SetActorAddon(RE::StaticFunctionTag*, RE::Actor* actor, int choice)
   if (!npc->race) return Tng::raceErr;
   auto list = Base::GetRgAddonList(npc->race, npc->IsFemale(), false);
   int addnIdx = choice < 0 ? choice : static_cast<int>(list[choice]);
-  if (actor->IsPlayerRef()) Base::SetPlayerInfo(actor, choice);
   if (npc->race->HasKeyword(Tng::Key(Tng::kyPreProcessed)) && !Base::ReevaluateRace(npc->race, actor)) return Tng::raceErr;
+  if (actor->IsPlayerRef()) Base::SetPlayerInfo(actor, choice);
   auto res = Core::SetNPCAddon(npc, addnIdx, true);
   if (res >= 0) Events::DoChecks(actor);
   return res;
