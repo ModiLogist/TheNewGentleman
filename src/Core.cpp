@@ -182,12 +182,12 @@ Tng::TNGRes Core::SetActorSize(RE::Actor* actor, int genSize) {
   return res;
 }
 
-Tng::TNGRes Core::SetNPCAddon(RE::TESNPC* npc, int addnIdx, bool isUser) {
+Tng::TNGRes Core::SetNPCAddon(RE::TESNPC* npc, const int addnIdx, const bool isUser, const bool shouldSave) {
   if (!npc->race || !npc->race->HasKeyword(Tng::RaceKey(Tng::rkeyProcessed))) return Tng::raceErr;
   if (Inis::IsNPCExcluded(npc)) return Tng::npcErr;
   auto res = Base::SetNPCAddon(npc, addnIdx, isUser);
   if (res < 0) return res;
-  if (!npc->IsPlayer() && isUser) Inis::SaveNPCAddon(npc, addnIdx);
+  if (!npc->IsPlayer() && shouldSave) Inis::SaveNPCAddon(npc, addnIdx);
   return res;
 }
 

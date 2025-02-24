@@ -109,7 +109,7 @@ bool Events::NeedsCover(RE::Actor* actor) {
   const auto npc = actor ? actor->GetActorBase() : nullptr;
   if (Base::CanModifyNPC(npc) < 0) return false;
   if (npc->IsFemale()) {
-    return npc->HasKeyword(Tng::NPCKey(Tng::npckeyGentlewoman)) || (Base::GetNPCAddon(npc).second >= 0);
+    return npc->HasKeyword(Tng::NPCKey(Tng::npckeyGentlewoman)) || (Base::GetNPCAddon(npc).first >= 0);
   } else {
     return (!npc->HasKeyword(Tng::NPCKey(Tng::npckeyExclude)));
   }
@@ -141,43 +141,49 @@ void Events::CheckForAddons(RE::Actor* actor) {
   const auto npc = actor ? actor->GetActorBase() : nullptr;
   if (!npc) return;
   if (!npc->IsPlayer() || !Base::GetBoolSetting(Tng::bsExcludePlayerSize)) Core::SetActorSize(actor, Tng::cNul);
-  auto addnPair = Base::GetNPCAddon(npc);
-  if (addnPair.second == Tng::pgErr) {
+  auto addnPair = GetNPCAutoAddon(npc);
+  if (addnPair.first == Tng::pgErr) {
     SKSE::log::critical("Faced an issue retrieving information for {}!", npc->GetName());
     return;
   }
-  switch (addnPair.second) {
+  bool requiresUpdate = false;
+  switch (addnPair.first) {
     case Tng::cNul:
       if (npc->IsFemale()) {
-        if (!npc->skin || !npc->skin->HasKeyword(Tng::ArmoKey(Tng::akeyGenSkin))) return;
+        if (!npc->skin || !npc->skin->HasKeyword(Tng::ArmoKey(Tng::akeyGenSkin))) break;
       } else {
-        if (npc->skin && !npc->skin->HasKeyword(Tng::ArmoKey(Tng::akeyGenSkin))) return;
+        if (npc->skin && !npc->skin->HasKeyword(Tng::ArmoKey(Tng::akeyGenSkin))) break;
       }
-      Core::SetNPCAddon(npc, Tng::cNul, false);
-      return;
-    case Tng::cDef:
-      if (Base::GetRgAddon(npc->race) < 0) return;
-      if (npc->IsFemale()) {
-        auto addnIdx = GetNPCAutoAddon(npc);
-        if ((addnIdx < 0 && npc->skin && npc->skin->HasKeyword(Tng::ArmoKey(Tng::akeyGenSkin))) || (addnIdx >= 0 && (!npc->skin || !npc->skin->HasKeyword(Tng::ArmoKey(Tng::akeyGenSkin)))))
-          Core::SetNPCAddon(npc, addnIdx, false);
-      } else {
-        auto addnIdx = Base::GetBoolSetting(Tng::bsRandomizeMaleAddon) ? GetNPCAutoAddon(npc) : Tng::cDef;
-        if (addnIdx < 0 && (!npc->skin || npc->skin->HasKeyword(Tng::ArmoKey(Tng::akeyGenSkin)))) return;
-        Core::SetNPCAddon(npc, addnIdx, false);
-      }
-      return;
-    default:
-      if (npc->skin && npc->skin->HasKeyword(Tng::ArmoKey(Tng::akeyGenSkin))) return;
-      Core::SetNPCAddon(npc, addnPair.second, addnPair.first);
+      requiresUpdate = true;
       break;
+    case Tng::cDef:
+      if (Base::GetRgAddon(npc->race) < 0) break;
+      if (npc->IsFemale()) {
+        if ((addnPair.first < 0 && npc->skin && npc->skin->HasKeyword(Tng::ArmoKey(Tng::akeyGenSkin))) || (addnPair.first >= 0 && (!npc->skin || !npc->skin->HasKeyword(Tng::ArmoKey(Tng::akeyGenSkin)))))
+          requiresUpdate = true;
+      } else {
+        if (addnPair.first < 0 && (!npc->skin || npc->skin->HasKeyword(Tng::ArmoKey(Tng::akeyGenSkin)))) break;
+        requiresUpdate = true;
+      }
+      break;
+    default:
+      if (npc->skin && npc->skin->HasKeyword(Tng::ArmoKey(Tng::akeyGenSkin))) break;
+      requiresUpdate = true;
+      break;
+  }
+  if (requiresUpdate) {
+    Core::SetNPCAddon(npc, addnPair.first, addnPair.second, false);
   }
 }
 
-int Events::GetNPCAutoAddon(RE::TESNPC* npc) {
+std::pair<int, bool> Events::GetNPCAutoAddon(RE::TESNPC* npc) {
+  auto res = Base::GetNPCAddon(npc);
+  if (res.first != Tng::cDef) return res;
   auto list = Base::GetRgAddonList(npc->race, npc->IsFemale(), true);
   const auto count = list.size();
-  const size_t chance = npc->IsFemale() ? static_cast<size_t>(std::floor(Tng::WRndGlb()->value + 0.1)) : Tng::cMalRandomPriority;
-  if (count == 0 || chance == 0) return Tng::cDef;
-  return npc->GetFormID() % 100 < chance ? static_cast<int>(list[npc->GetFormID() % count]) : Tng::cDef;
+  const auto malChance = Base::GetBoolSetting(Tng::bsRandomizeMaleAddon) ? Tng::cMalRandomPriority : 0;
+  const size_t chance = npc->IsFemale() ? static_cast<size_t>(std::floor(Tng::WRndGlb()->value + 0.1)) : malChance;
+  if (count == 0 || chance == 0) return {Tng::cDef, false};
+  auto addon = npc->GetFormID() % 100 < chance ? static_cast<int>(list[npc->GetFormID() % count]) : Tng::cDef;
+  return {addon, false};
 }

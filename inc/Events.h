@@ -13,7 +13,7 @@ class Events : public RE::BSTEventSink<RE::TESObjectLoadedEvent>, public RE::BST
 
   private:
     static void DoChecks(RE::Actor* actor, RE::TESObjectARMO* armor = nullptr, bool isEquipped = false);
-    static int GetNPCAutoAddon(RE::TESNPC* npc);
+    static std::pair<int, bool> GetNPCAutoAddon(RE::TESNPC* npc);
     static void CheckCovering(RE::Actor* actor, RE::TESObjectARMO* armor, bool isEquipped);
     static RE::TESObjectARMO* GetCoveringItem(RE::Actor* actor, RE::TESObjectARMO* armor);
     static bool NeedsCover(RE::Actor* actor);

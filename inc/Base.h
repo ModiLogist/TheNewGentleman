@@ -98,7 +98,7 @@ class Base : public Singleton<Base> {
     static Tng::TNGRes GetActorSizeCat(RE::Actor* actor, int& sizeCat);
     static Tng::TNGRes SetActorSizeCat(RE::Actor* actor, const int sizeCat);
     static void ExcludeNPC(const std::string npcRecordStr);
-    static std::pair<bool, int> GetNPCAddon(RE::TESNPC* npc);
+    static std::pair<int, bool> GetNPCAddon(RE::TESNPC* npc);
     static Tng::TNGRes SetNPCAddon(RE::TESNPC* npc, const int addnIdx, const bool isUser);
     static void SetPlayerInfo(RE::Actor* actor, const int addnIdx);
     static void UnsetPlayerInfo();

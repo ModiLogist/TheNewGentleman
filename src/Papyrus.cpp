@@ -173,7 +173,7 @@ RE::TESObjectARMO* Papyrus::GetActorAddon(RE::StaticFunctionTag*, RE::Actor* act
   auto npc = actor ? actor->GetActorBase() : nullptr;
   if (!npc) return nullptr;
   auto addnPair = Base::GetNPCAddon(npc);
-  switch (addnPair.second) {
+  switch (addnPair.first) {
     case Tng::pgErr:
       return nullptr;
     case Tng::cDef:
@@ -195,7 +195,7 @@ RE::TESObjectARMO* Papyrus::GetActorAddon(RE::StaticFunctionTag*, RE::Actor* act
     case Tng::cNul:
       return nullptr;
     default:
-      return Base::AddonByIdx(npc->IsFemale(), static_cast<size_t>(addnPair.second), false);
+      return Base::AddonByIdx(npc->IsFemale(), static_cast<size_t>(addnPair.first), false);
   }
 }
 
@@ -246,11 +246,11 @@ std::vector<RE::Actor*> Papyrus::CheckActors(RE::StaticFunctionTag*) {
       auto npc = actor ? actor->GetActorBase() : nullptr;
       if (!npc || Core::CanModifyNPC(npc) != Tng::resOkRaceP) return RE::BSContainer::ForEachResult::kContinue;
       if (!npc->skin || npc->skin->HasKeyword(Tng::ArmoKey(Tng::akeyGenSkin))) return RE::BSContainer::ForEachResult::kContinue;
-      auto addnPair = Base::GetNPCAddon(npc);
-      Core::SetNPCAddon(npc, addnPair.second, addnPair.first);
+      auto addnPair = Events::GetNPCAutoAddon(npc);
+      Core::SetNPCAddon(npc, addnPair.first, addnPair.second, false);
       Events::DoChecks(actor);
       if (actor->GetSkin()->HasKeyword(Tng::ArmoKey(Tng::akeyGenSkin))) {
-        SKSE::log::debug("\tFixed [0x{:x}:{}] with addon [{}].", actor->GetFormID(), npc->GetName(), addnPair.second);
+        SKSE::log::debug("\tFixed [0x{:x}:{}] with addon [{}].", actor->GetFormID(), npc->GetName(), addnPair.first);
         res.push_back(actor);
       }
     }

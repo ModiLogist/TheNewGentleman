@@ -502,32 +502,32 @@ void Base::ExcludeNPC(const std::string npcRecordStr) {
   npc->AddKeyword(Tng::NPCKey(Tng::npckeyExclude));
 }
 
-std::pair<bool, int> Base::GetNPCAddon(RE::TESNPC *npc) {
+std::pair<int, bool> Base::GetNPCAddon(RE::TESNPC *npc) {
   if (!npc) {
     SKSE::log::critical("Failure in getting a NPC genital!");
-    return std::make_pair(false, Tng::pgErr);
+    return std::make_pair(Tng::pgErr, false);
   }
   if (npc->IsPlayer()) {
     int addnIdx = Tng::PCAddon() ? static_cast<int>(Tng::PCAddon()->value) : Tng::cDef;
-    return std::make_pair(addnIdx > Tng::cDef, addnIdx);
+    return std::make_pair(addnIdx, addnIdx > Tng::cDef);
   }
-  if (npc->HasKeyword(Tng::NPCKey(Tng::npckeyExclude))) return std::make_pair(true, Tng::cNul);
+  if (npc->HasKeyword(Tng::NPCKey(Tng::npckeyExclude))) return std::make_pair(Tng::cNul, true);
   if (npc->keywords) {
-    for (std::uint32_t idx = 0; idx < npc->numKeywords; ++idx) {
+    for (std::size_t idx = 0; idx < npc->numKeywords; ++idx) {
       if (!npc->keywords[idx] || npc->keywords[idx]->GetFormEditorID() == NULL) continue;
       const std::string kwStr(npc->keywords[idx]->GetFormEditorID());
       if (kwStr.starts_with(cNPCAutoAddon)) {
-        return std::make_pair(false, std::strtol(kwStr.substr(strlen(cNPCAutoAddon), 2).data(), nullptr, 0));
+        return std::make_pair(std::strtol(kwStr.substr(strlen(cNPCAutoAddon), 2).data(), nullptr, 0), false);
       }
       if (kwStr.starts_with(cNPCUserAddon)) {
-        return std::make_pair(true, std::strtol(kwStr.substr(strlen(cNPCUserAddon), 2).data(), nullptr, 0));
+        return std::make_pair(std::strtol(kwStr.substr(strlen(cNPCUserAddon), 2).data(), nullptr, 0), true);
       }
     }
   }
-  return std::make_pair(false, Tng::cDef);
+  return std::make_pair(Tng::cDef, false);
 }
 
-Tng::TNGRes Base::SetNPCAddon(RE::TESNPC *npc, int addnIdx, bool isUser) {
+Tng::TNGRes Base::SetNPCAddon(RE::TESNPC *npc, const int addnIdx, const bool isUser) {
   if (addnIdx < Tng::cDef) return Tng::addonErr;
   if (!npc) {
     SKSE::log::critical("Failure in setting a NPC genital!");

@@ -13,7 +13,7 @@ class Core : public Singleton<Core> {
     static void GenitalizeNPCSkins();
     static Tng::TNGRes CanModifyNPC(RE::TESNPC* npc);
     static Tng::TNGRes SetActorSize(RE::Actor* actor, int genSize);
-    static Tng::TNGRes SetNPCAddon(RE::TESNPC* npc, int addnIdx, bool isUser);
+    static Tng::TNGRes SetNPCAddon(RE::TESNPC* npc, const int addnIdx, const bool isUser, const bool shouldSave = true);
     static std::vector<RE::TESObjectARMO*> GetActorWornArmor(RE::Actor* actor);
 
   private:
