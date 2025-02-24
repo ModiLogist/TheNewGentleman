@@ -11,7 +11,7 @@ We would like to solve all issues that might arise with TNG, so feel free to ask
 [*]No refitting requirements for vanilla or vanilla-compatible armor/clothes meshes.
 [*]No scripts (except for MCM). Almost everything happens in a few nano/milliseconds when you open the game.
 [*]No modification in vanilla armor slots, to keep the vanilla behavior of armor equipping as well as NPCs AI intact.(After version 4.0.0) 
-[*]Allowing armor pieces on slot 32 to be revealing only for one gender. (After version 4.0.0) 
+[*]Support for revealing and covering armor (from first version) and additionally, it is possible to have an armor piece set to revealing for one and covering for another gender.(After version 4.0.0) 
 [*]INI file support for other mods, so they don't need TNG as a master.
 [*]Compatibility with every adult animation framework/mod [b](OStim (any)/SL/FG/…)[/b].
 [*]Uncircumcised and circumcised genitalia, as well as MCM options for their customization on a per-race basis.
@@ -133,23 +133,27 @@ FemaleRevealingRecord = 0x[b]?..?[/b]~TheModName.esp
 [Armor]
 MaleRevealingRecord = 0x[b]?..?[/b]~TheModName.esp
 
-
-
+[b]Notes[/b]
 [list]
 [*]The ?..? should be replaced by the record ID. For normal ESP files that is the last 6 digits of the record ID in xEdit where you can omit the zeros at the beginning and for ESL-flagged ESP files that is the last three digits.
 [*]An INI file can have all the sections and as many lines in each section as you want.
 [*]You can modify, remove or add INI files at any point during your play-through without any problems. 
 [/list][/spoiler]
 [size=3][b]Custom Races[/b][/size]
-[spoiler]The old articles need an update, coming soon![/spoiler]
+[spoiler]There are three articles now to patch custom races:
+[list][*] [url=https://www.nexusmods.com/skyrimspecialedition/articles/9647]Exclude a custom race[/url]
+[*][url=https://www.nexusmods.com/skyrimspecialedition/articles/6049]Patching Custom Races for TNG with fixed genitalia[/url]
+[*][url=https://www.nexusmods.com/skyrimspecialedition/articles/9650]Patching a custom race to have customization menu with multiple genitalia[/url]
+[/list]Please use the one according to what you want to do. The last one requires a bit higher experience with modding.
+[/spoiler]
 
 [size=3][b]Revealing Armor Mods[/b][/size]
 [spoiler] TNG recognizes any armor using the SOS_Revealing, or any of its own revealing keywords to ensure compatibility with existing armor sets. However, if you see that the genitalia are hidden under a certain armor, you can:
 [list]
 [*]Use an INI file as it was mentioned before,
 [*]Use the key for swapping the revealing/covering items. (It might need re-equipping of the armor to apply the effect).
-[*]Add the keyword "TNG_Revealing" to the armor record (in the ESP  or a patch).[/list][/spoiler]
-[size=3][b]Covering Armor[/b][/size]
+[*]Add the keyword "TNG_Revealing" to the armor record (in the ESP  or a patch).
+[/list][/spoiler][size=3][b]Covering Armor[/b][/size]
 [spoiler]If a mod has a piece of clothing or armor that is not using slot 32, but it should cover the genitalia, then there are three solutions:
 [list]
 [*]Use an INI file, look below how to create the INI file.
@@ -166,7 +170,7 @@ MaleRevealingRecord = 0x[b]?..?[/b]~TheModName.esp
 
 [b]Note:[/b] CotR races would all be merged into one category, since they all used the default race as their armor race and they share skin. If you want to adjust them separately, you'd need a patch that adjusts the RNAM (armor race) of every CotR race to their respective vanilla race.[/spoiler]
 [size=4][b]Logging[/b][/size]
-TNG has a detailed logging system which shows different steps in mod operations and potential warnings/information that might be relevant to solve issues. The log is located in the SKSE log folder. If you don't know where that is, go to the MCM in the advanced tab, there is a checkbox that shows you the location. The log also offers a quick way to see if your INI files are working properly. If you see problems with INI files that you create, that should be the first place to look.
+TNG has a detailed logging system which shows different steps in mod operations and potential warnings/information that might be relevant to solve issues. The log is located in the SKSE log folder. If you don't know where that is, go to the MCM in the advanced tab, there is a checkbox that shows you the location. The log also offers a quick way to see if your INI files are working properly. If you see problems with INI files that you create, that should be the first place to look. 
 You can also adjust the logging level. The critical level shows the issues that you can report to us, since they should not happen normally.
 
 [size=4][b]FAQ[/b][/size]
@@ -187,6 +191,20 @@ Now about the issue itself, your problem is with skeleton and gravity physics (d
 Make sure you have XP32 installed(it’s in the requirements for a reason) and that you are consistent in your choices when you install CBPC and a female body overhaul.[/spoiler]
 [b]My thingy is aligned to the side![/b]
 [spoiler]This is an issue related to your physics setup. TNG cannot control that.[/spoiler]
+[b]During animations, or with physics setup, my character's pride turns to right or left[/b]
+[spoiler]I sincerely hope that your character has more depth than that!
+This issue is caused by the physics combination that comes with your setup and specially gravity settings. It is also the reason that TNG does not provide physics and collision info anymore.
+CBPC, as well as most 3 body bones female bodies, come with their own physics setup for genitalia. This is designed to match the counterpart physics and collision ideal, i.e. anus, vagina, breasts ... However, it affects both male and female characters as their bone names are the same. When we included physics and collision in TNG, there were many more conflicts with those mods which is why we stopped doing that.
+The fix however, is not very complicated. Full credits to [url=https://next.nexusmods.com/profile/MoJoJx?gameId=1704]MoJoJx[/url] who could explain it better than I do (with slight modifications):
+
+I was able to fix it by editing the CBPConfig_SOS.txt file. I don't know what female replacer mod that you might be using, but go to the SKSE folder, Plugins, then then find that file. Open the file in a text editor (I use nopepad++), and then look at the following lines at the top:
+SOS01.gravityBias 
+SOS02.gravityBias 
+SOS03.gravityBias 
+SOS04.gravityBias 
+SOS05.gravityBias 
+SOS06.gravityBias
+Each of the values next those lines should be "0.000". Change them to -0.001. Save the file, then check your character's Gentleman. If it's still curved to the left, then do the same thing, but add another -0.001. Keep doing this until things are straightened out down there. Adding negative values to those numbers will move the Gentleman to the right, and positive values will move things to the left. I ended up using -0.005 in my case. I hope this helps.[/spoiler]
 [b]I installed the mod but there is no MCM to customize the dongs![/b]
 [spoiler]Dongs? What is wrong with penis or genitalia? Anyway, either you are at the limit of your MCM menus (google is your friend to solve that) or you are not patient enough for the MCM to load. Try waiting a bit, start a new game, or run TNG with only the requirements and it will load.[/spoiler]
 [b]My manhood is too small![/b]
@@ -197,15 +215,18 @@ So possible causes:
 [list]
 [*]A custom race that needs patching: Check custom races.
 [*]A unique skin for the player: Check unique player.
-[*]A bug in TNG before 2.3.0 that could happen if stars aligned: It is fixed in 2.3.0.[/list][/spoiler]
+[*]A bug in TNG before 2.3.0 that could happen if stars aligned: It is fixed in 2.3.0.
+[/list][/spoiler]
 [b]I can see the umm…thing through the armor![/b]
 [spoiler]Ok this one is cute.
-
-
-Well this issue existed until version 2.3.0 and we were aware of it. But it was hard to reproduce so we couldn’t address it properly. Finally we found a consistent way of reproducing it and Version 2.3.0 reworks the whole covering mechanism, so it should be fixed now.
-
-
-Another possible cause is wrong priorities on the armor. If an armor has its priority set to zero, the skin would not unload which can cause this issue.[/spoiler]
+For an armor to become revealing:
+- You should mark it as revealing in a previous playthrough,
+- You have an ini file that marks it revealing,
+- It belongs to a mod that comes with items on slot 52, and you marked all mods with slot 52 or specifically that mod, as revealing in the tab for mods with slot 52.
+Solutions in order:
+- Find TheNewGentleman.ini in your data folder and adjust it.
+- Search for _TNG.ini files in your data folder and adjust them.
+- Go to MCM and adjust the mods that you marked as revealing.[/spoiler]
 [b]The manmeat has no collision![/b]
 [spoiler]Really? That’s terrible, I mean, out of all the options, you chose [i]man[/i]meat? Get some taste!
 And about the collision, the collision is controlled by other mods, TNG option in FOMOD with collision, just provides a surface for them to collide with. So you gotta take a look at physics and female body setup to solve your issue.[/spoiler]
