@@ -186,8 +186,8 @@ void Inis::LoadMainIni() {
   }
 
   for (size_t i = 0; i < Tng::BoolSettingCount; i++) {
-    Base::SetBoolSetting(i, ini.GetBoolValue(cGeneral, cBoolSettings[i], false));
-    SKSE::log::debug("\tThe boolean setting [{}] was restored to [{}].", cBoolSettings[i], Base::GetBoolSetting(i));
+    Base::SetBoolSetting(i, ini.GetBoolValue(cGeneral, cBoolSettings[i], cDefBoolSettings[i]));
+    SKSE::log::debug("\tThe boolean setting [{}] was restored to [{}({})].", cBoolSettings[i], Base::GetBoolSetting(i), cDefBoolSettings[i] == Base::GetBoolSetting(i) ? "default" : "user");
   }
   if (Tng::SEDH()->LookupModByName("Racial Skin Variance - SPID.esp")) {
     Base::SetBoolSetting(Tng::bsCheckPlayerAddon, true);
@@ -195,9 +195,9 @@ void Inis::LoadMainIni() {
     Base::SetBoolSetting(Tng::bsForceRechecks, true);
     SKSE::log::info("\tTNG detected Racial Skin Variance and would force the player and NPCs to be reloaded");
   }
-  if (Tng::SEDH()->LookupModByName("UIExtensions.esp")) {
+  if (!Tng::SEDH()->LookupModByName("UIExtensions.esp")) {
     Base::SetBoolSetting(Tng::bsUIExtensions, true);
-    SKSE::log::info("\tTNG detected UIExtensions and would use it for the MCM");
+    SKSE::log::warn("\tTNG could not detected UIExtensions. You may want to check if it is installed.");
   }
 
   for (size_t i = 0; i < Tng::cSizeCategories; i++) Base::SetGlobalSize(i, static_cast<float>(ini.GetDoubleValue(cGlobalSize, cSizeNames[i], cDefSizes[i])));
@@ -452,7 +452,11 @@ void Inis::SetBoolSetting(Tng::BoolSetting settingID, bool value) {
   CSimpleIniA ini;
   ini.SetUnicode();
   ini.LoadFile(cSettings);
-  ini.SetBoolValue(cGeneral, cBoolSettings[settingID], value);
+  if (cDefBoolSettings[settingID] == value) {
+    ini.Delete(cGeneral, cBoolSettings[settingID], true);
+  } else {
+    ini.SetBoolValue(cGeneral, cBoolSettings[settingID], value);
+  }
   Base::SetBoolSetting(settingID, value);
   ini.SaveFile(cSettings);
 }

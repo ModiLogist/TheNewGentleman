@@ -624,9 +624,9 @@ Event OnOptionDefault(Int aiOption)
       SetToggleOptionValue(fiPCUHdl,False)
     EndIf
     If (aiOption == fiPCNHdl) && !TNG_PapyrusUtil.GetBoolValue(ciForceTheCheck)
-      TNG_PapyrusUtil.SetBoolValue(ciCheckNPCsGens, False)
+      TNG_PapyrusUtil.SetBoolValue(ciCheckNPCsGens, True)
       PlayerRef.RemoveSpell(ReloadSpell)
-      SetToggleOptionValue(fiPCNHdl,False)
+      SetToggleOptionValue(fiPCNHdl,True)
     EndIf    
     If (aiOption == fiPCRHdl)
       TNG_PapyrusUtil.SetBoolValue(ciShowEveryRace, False)
