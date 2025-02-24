@@ -18,11 +18,12 @@ void Events::RegisterEvents() {
 
 RE::BSEventNotifyControl Events::ProcessEvent(const RE::TESEquipEvent* event, RE::BSTEventSource<RE::TESEquipEvent>*) {
   if (!event) return RE::BSEventNotifyControl::kContinue;
-  const auto actor = event->actor->As<RE::Actor>();
+  const auto actor = event->actor ? event->actor->As<RE::Actor>() : nullptr;
   auto npc = actor ? actor->GetActorBase() : nullptr;
   auto armor = RE::TESForm::LookupByID<RE::TESObjectARMO>(event->baseObject);
   if (Core::CanModifyNPC(npc) < 0 || !armor || !armor->HasKeywordInArray(coverKeys, false)) return RE::BSEventNotifyControl::kContinue;
   if (npc->race->HasKeyword(Tng::Key(Tng::kyPreProcessed)) && !Base::ReevaluateRace(npc->race, actor)) return RE::BSEventNotifyControl::kContinue;
+  if (FormToLocView(armor) == Tng::cCover) return RE::BSEventNotifyControl::kContinue;
   if (armor->HasKeyword(Tng::Key(Tng::kyCovering)) || (armor->HasKeyword(Tng::Key(Tng::kyRevealingF)) && !npc->IsFemale()) || (armor->HasKeyword(Tng::Key(Tng::kyRevealingM)) && npc->IsFemale()))
     DoChecks(actor, armor, event->equipped);
   return RE::BSEventNotifyControl::kContinue;
