@@ -601,12 +601,6 @@ void Base::OrganizeNPCAddonKeywords(RE::TESNPC *npc, int addnIdx, bool isUser) {
     }
     return RE::BSContainer::ForEachResult::kContinue;
   });
-  if (npc->IsFemale() && npc->HasKeyword(Tng::NPCKey(Tng::npckeyGentlewoman))) {
-    for (RE::BSTArray<RE::TESForm *>::const_iterator it = Tng::GentFml()->forms.begin(); it < Tng::GentFml()->forms.end(); it++) {
-      if ((*it)->As<RE::TESNPC>() == npc) Tng::GentFml()->forms.erase(it);
-    }
-    npc->RemoveKeyword(Tng::NPCKey(Tng::npckeyGentlewoman));
-  }
   if (addnIdx == Tng::cNul) {
     npc->AddKeyword(Tng::NPCKey(Tng::npckeyExclude));
   } else if (addnIdx >= 0) {
@@ -614,10 +608,12 @@ void Base::OrganizeNPCAddonKeywords(RE::TESNPC *npc, int addnIdx, bool isUser) {
     auto kw = Tng::ProduceOrGetKw(reqKw);
     if (!kw) SKSE::log::critical("Keword generation routine failed with keyword {}", reqKw);
     npc->AddKeyword(kw);
-    auto &list = npc->IsFemale() ? femAddons : malAddons;
-    if (npc->IsFemale() && list[addnIdx].first->HasKeyword(Tng::ArmoKey(Tng::akeySkinWP))) {
-      Tng::GentFml()->AddForm(npc);
+  }
+  if (npc->IsFemale() && addnIdx >= 0) {
+    if (femAddons[addnIdx].first->HasKeyword(Tng::ArmoKey(Tng::akeySkinWP))) {
       npc->AddKeyword(Tng::NPCKey(Tng::npckeyGentlewoman));
+    } else {
+      npc->RemoveKeyword(Tng::NPCKey(Tng::npckeyGentlewoman));
     }
   }
 }

@@ -174,6 +174,24 @@ void Events::CheckForAddons(RE::Actor* actor) {
   if (requiresUpdate) {
     Core::SetNPCAddon(npc, addnPair.first, addnPair.second, false);
   }
+  if (npc->IsFemale()) {
+    if (npc->HasKeyword(Tng::NPCKey(Tng::npckeyGentlewoman)) && !Tng::TngFml(Tng::flmGentleWomen)->HasForm(actor)) {
+      Tng::TngFml(Tng::flmGentleWomen)->AddForm(actor);
+    } else if (!npc->HasKeyword(Tng::NPCKey(Tng::npckeyGentlewoman)) && Tng::TngFml(Tng::flmGentleWomen)->HasForm(actor)) {
+      for (RE::BSTArray<RE::TESForm*>::const_iterator it = Tng::TngFml(Tng::flmGentleWomen)->forms.begin(); it < Tng::TngFml(Tng::flmGentleWomen)->forms.end(); it++) {
+        if ((*it)->As<RE::Actor>() == actor) Tng::TngFml(Tng::flmGentleWomen)->forms.erase(it);
+      }
+    }
+  }
+  if (!npc->IsFemale()) {
+    if (npc->HasKeyword(Tng::NPCKey(Tng::npckeyExclude)) && !Tng::TngFml(Tng::flmNonGentleMen)->HasForm(actor)) {
+      Tng::TngFml(Tng::flmNonGentleMen)->AddForm(actor);
+    } else if (!npc->HasKeyword(Tng::NPCKey(Tng::npckeyExclude)) && Tng::TngFml(Tng::flmNonGentleMen)->HasForm(actor)) {
+      for (RE::BSTArray<RE::TESForm*>::const_iterator it = Tng::TngFml(Tng::flmNonGentleMen)->forms.begin(); it < Tng::TngFml(Tng::flmNonGentleMen)->forms.end(); it++) {
+        if ((*it)->As<RE::Actor>() == actor) Tng::TngFml(Tng::flmNonGentleMen)->forms.erase(it);
+      }
+    }
+  }
 }
 
 std::pair<int, bool> Events::GetNPCAutoAddon(RE::TESNPC* npc) {

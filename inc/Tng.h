@@ -17,7 +17,6 @@ class Tng : public Singleton<Tng> {
     inline static constexpr SEFormLocView cFemAddKeyID{0xFFA, cName};
 
     inline static constexpr SEFormLocView cCover{0xAFF, cName};
-    inline static constexpr SEFormLocView cGentifiedID{0xE00, cName};
 
     inline static constexpr size_t cMalRandomPriority{100};
     inline static constexpr int cNA{-99};
@@ -62,6 +61,7 @@ class Tng : public Singleton<Tng> {
     enum eRaceKeys { rkeyPreprocessed, rkeyProcessed, rkeyReady, rkeyIgnore, rkeyManMer, rkeyBeast, rkeyCreature, rkeyVampire, RaceKeysCount };
     enum eNPCKeys { npckeyExclude, npckeyGentlewoman, NPCKeysCount };
     enum eArmoKeys { akeyCover, akeyRevFem, akeyRevMal, akeyReveal, akeyIgnored, akeyUnderwear, akeySkinWP, akeyGenSkin, ArmoKeysCount };
+    enum eTngFormLists { flmGentleWomen, flmNonGentleMen, TngFormListsCount };
     inline static constexpr eArmoKeys RevKeys[3]{akeyReveal, akeyRevFem, akeyRevMal};
     enum UserCtrls { ctrlDAK, ctrlSetupNPC, ctrlRiseGen, ctrlFallGen, ctrlSwapRevealing, ctrWhyProblem, UserCtrlsCount };
 
@@ -77,6 +77,8 @@ class Tng : public Singleton<Tng> {
     inline static constexpr RE::FormID cSizeGlbIDs[cSizeCategories]{0xC01, 0xC02, 0xC03, 0xC04, 0xC05};
     inline static constexpr SEFormLocView cUserCtrlIDs[UserCtrlsCount] = {{0xC00, Tng::cName}, {0xCB0, Tng::cName}, {0xCB1, Tng::cName}, {0xCB2, Tng::cName}, {0xCB3, Tng::cName}, {0xCB4, Tng::cName}};
 
+    inline static constexpr SEFormLocView cTngFormListIds[TngFormListsCount] = {{0xE00, cName}, {0xE01, cName}};
+
     inline static RE::TESDataHandler* fSEDH;
     inline static RE::TESRace* races[RacesCount];
     inline static RE::BGSKeyword* raceKeys[RaceKeysCount];
@@ -89,7 +91,7 @@ class Tng : public Singleton<Tng> {
     inline static RE::TESGlobal* gwChance;
     inline static RE::TESGlobal* sizeGlbs[cSizeCategories];
     inline static RE::TESGlobal* ctrlGlbs[UserCtrlsCount];
-    inline static RE::BGSListForm* gentifiedList;
+    inline static RE::BGSListForm* tngFormLists[TngFormListsCount];
     inline static RE::TESObjectARMO* block;
 
   public:
@@ -112,7 +114,7 @@ class Tng : public Singleton<Tng> {
 
     static std::vector<RE::BGSKeyword*> RaceKeys(const size_t last = RaceKeysCount) {
       std::vector<RE::BGSKeyword*> res = {};
-      for (size_t i = 0; i < (last > RaceKeysCount ? RaceKeysCount : last); i++) res.push_back(RaceKey(i));
+      for (auto i = 0; i < (last > RaceKeysCount ? RaceKeysCount : last); i++) res.push_back(RaceKey(i));
       return res;
     }
 
@@ -171,9 +173,9 @@ class Tng : public Singleton<Tng> {
       return gwChance;
     }
 
-    static RE::BGSListForm* GentFml() {
-      if (!gentifiedList) gentifiedList = SEDH()->LookupForm<RE::BGSListForm>(cGentifiedID.first, cGentifiedID.second);
-      return gentifiedList;
+    static RE::BGSListForm* TngFml(const size_t idx) {
+      if (!tngFormLists[idx]) tngFormLists[idx] = SEDH()->LookupForm<RE::BGSListForm>(cTngFormListIds[idx].first, cTngFormListIds[idx].second);
+      return tngFormLists[idx];
     }
 
     static RE::TESObjectARMO* Block() {
