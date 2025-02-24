@@ -196,7 +196,7 @@ void Inis::LoadMainIni() {
     SKSE::log::info("\tTNG detected Racial Skin Variance and would force the player and NPCs to be reloaded");
   }
   if (!Tng::SEDH()->LookupModByName("UIExtensions.esp")) {
-    Base::SetBoolSetting(Tng::bsUIExtensions, true);
+    Base::SetBoolSetting(Tng::bsUIExtensions, false);
     SKSE::log::warn("\tTNG could not detected UIExtensions. You may want to check if it is installed.");
   }
 

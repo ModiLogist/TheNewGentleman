@@ -224,9 +224,6 @@ Event OnPageReset(String asPage)
       DAKIntegration.SetValue(0)
     EndIf
     Int liOption = OPTION_FLAG_WITH_UNMAP
-    If !TNG_PapyrusUtil.GetBoolValue(ciUI_Extensions)
-      liOption = OPTION_FLAG_DISABLED
-    EndIf
     fiNPCKeyHdl = AddKeyMapOption("$TNG_K_N", NPCKey.GetValueInt(), liOption)
     fiRevealKeyHdl = AddKeyMapOption("$TNG_K_R", RevealKey.GetValueInt(), liOption)
     fiUpKeyHdl = AddKeyMapOption("$TNG_K_U", GenUpKey.GetValueInt(), OPTION_FLAG_WITH_UNMAP)
@@ -341,9 +338,6 @@ Event OnPageReset(String asPage)
     fiLogLvlHdl = AddMenuOption("$TNG_L_T", cSLogOptions[liLvl])
     fiLogDirHdl = AddToggleOption("$TNG_L_D", False)
     Int liOption = OPTION_FLAG_WITH_UNMAP
-    If !TNG_PapyrusUtil.GetBoolValue(ciUI_Extensions)
-      liOption = OPTION_FLAG_DISABLED
-    EndIf
     fiDebugKeyHdl = AddKeyMapOption("$TNG_P_K", DebugKey.GetValueInt(), liOption)
   EndIf
 
