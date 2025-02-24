@@ -28,7 +28,7 @@ class Core : public Singleton<Core> {
     inline static constexpr size_t hardCodedCoveringCount{1};
     inline static constexpr SEFormLocView hardCodedCovering[hardCodedCoveringCount]{{0x3D306, "Dragonborn.esm"}};
     inline static constexpr size_t hardCodedRacesCount{1};
-    inline static constexpr SEFormLocView hardCodedRaces[hardCodedRacesCount]{{0x67CD8, Tng::cSkyrim}};
+    inline static constexpr SEFormLocView hardCodedRaces[hardCodedRacesCount]{{0x3CA97, "Dragonborn.esm"}};
 
   public:
     static void SetBoolSetting(Tng::BoolSetting settingID, bool value);
