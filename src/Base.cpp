@@ -381,7 +381,7 @@ void Base::UpdateRgAddons(Base::RaceGroupInfo &rg) {
           }
           if (auto mainRaceRg = GetRg(aaMainRace, false); rg.isMain && mainRaceRg && !mainRaceRg->isMain) continue;
           supports = true;
-          rgAddons.emplace(i, std::pair<bool, RE::TESObjectARMA *>({rg.isMain || AddonHasRace(aa, rg.races[0]), aa}));
+          rgAddons.insert_or_assign(i, std::pair<bool, RE::TESObjectARMA *>({rg.isMain || AddonHasRace(aa, rg.races[0]), aa}));
           if (rgAddons[i].first) break;
         }
       }
