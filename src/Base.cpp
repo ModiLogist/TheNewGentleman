@@ -101,7 +101,7 @@ void Base::AddRace(RE::TESRace *race, bool isProccessed) {
   SKSE::log::debug("\tTrying to add race [0x{:x}: {}] ...", race->GetFormID(), race->GetFormEditorID());
   auto rg = GetRg(race, true);
   if (rgInfoList.size() > rgCount) {
-    SKSE::log::info("\tThe race [0x{:x}: {}] was recognized as a new group {}.", race->GetFormID(), race->GetFormEditorID(), rg->name);
+    SKSE::log::info("\tThe race [0x{:x}: {}] was recognized as a new {} group [{}].", race->GetFormID(), race->GetFormEditorID(), rg->isMain ? "primary" : "secondary", rg->name);
     if (Tng::Block() && !Tng::Block()->armorAddons[0]->IsValidRace(race)) Tng::Block()->armorAddons[0]->additionalRaces.push_back(race);
   } else {
     SKSE::log::info("\tThe race [0x{:x}: {}] was recognized as a member of existing group {}.", race->GetFormID(), race->GetFormEditorID(), rg->name);
@@ -333,7 +333,7 @@ Base::RaceGroupInfo *Base::GetRg(RE::TESRace *race, const bool allowAdd) {
     rg.file = filename;
     rg.armorRace = pRace;
     rg.ogSkin = race->skin;
-    rg.isMain = pRace == race || (race->armorParentRace == pRace && pRace == Tng::Race(Tng::raceDefault));
+    rg.isMain = pRace == race;
     rg.races.push_back(race);
     rg.noMCM = !race->GetPlayable() && !race->HasKeyword(Tng::Key(Tng::kyVampire));
     rg.mult = 1.0f;
