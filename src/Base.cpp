@@ -448,9 +448,9 @@ RE::TESObjectARMO *Base::GetSkinWithAddonForRg(RaceGroupInfo *rg, RE::TESObjectA
 Tng::TNGRes Base::CanModifyNPC(RE::TESNPC *npc) {
   if (!npc) return Tng::npcErr;
   if (!npc->race) return Tng::raceErr;
+  if (npc->race->HasKeyword(Tng::Key(Tng::kyReady))) return Tng::resOkRaceR;
   if (auto r = GetRg(npc->race, false); !r || r->malAddons.size() == 0) return Tng::raceErr;
   if (npc->race->HasKeyword(Tng::Key(Tng::kyProcessed))) return Tng::resOkRaceP;
-  if (npc->race->HasKeyword(Tng::Key(Tng::kyReady))) return Tng::resOkRaceR;
   if (npc->race->HasKeyword(Tng::Key(Tng::kyPreProcessed))) return Tng::resOkRacePP;
   return Tng::raceErr;
 }
