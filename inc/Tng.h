@@ -172,16 +172,16 @@ class Tng : public Singleton<Tng> {
       return block;
     }
 
-    static RE::BGSKeyword* ProduceOrGetKw(const std::string& keword) {
+    static RE::BGSKeyword* ProduceOrGetKw(const std::string& keyword) {
       auto& allKeywords = Tng::SEDH()->GetFormArray<RE::BGSKeyword>();
-      auto it = std::find_if(allKeywords.begin(), allKeywords.end(), [&](const auto& kw) { return kw && kw->formEditorID == keword.c_str(); });
+      auto it = std::find_if(allKeywords.begin(), allKeywords.end(), [&](const auto& kw) { return kw && kw->formEditorID == keyword.c_str(); });
       RE::BGSKeyword* res{nullptr};
       if (it != allKeywords.end()) {
         res = *it;
       } else {
         const auto factory = RE::IFormFactory::GetConcreteFormFactoryByType<RE::BGSKeyword>();
         if (res = factory ? factory->Create() : nullptr; res) {
-          res->formEditorID = keword;
+          res->formEditorID = keyword;
           allKeywords.push_back(res);
         }
       }

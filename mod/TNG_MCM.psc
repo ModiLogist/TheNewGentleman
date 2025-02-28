@@ -1,4 +1,4 @@
-Scriptname TNG_MCM extends SKI_ConfigBase
+ScriptName TNG_MCM extends SKI_ConfigBase
 
 ;Property
 

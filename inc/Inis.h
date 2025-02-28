@@ -106,7 +106,7 @@ class Inis : public Singleton<Inis> {
     static void SaveNPCAddon(RE::TESNPC* npc, const int choice);
     static void SaveNPCSize(RE::TESNPC* npc, int genSize);
     static void SaveRevealingArmor(RE::TESObjectARMO* armor, int revMode);
-    static void LoadHoteKeys();
+    static void LoadHotKeys();
     static void SetBoolSetting(Tng::BoolSetting settingID, bool value);
     static void SaveGlobals();
     static std::vector<std::string> Slot52Mods();
@@ -114,8 +114,8 @@ class Inis : public Singleton<Inis> {
 
   private:
     static void UpdateIniVersion();
-    static void LoadModRecodPairs(CSimpleIniA::TNamesDepend records, std::set<SEFormLoc>& fieldToFill);
-    static void UpdateRevealing(const std::string armorRecod, const int revealingMode);
+    static void LoadModRecordPairs(CSimpleIniA::TNamesDepend records, std::set<SEFormLoc>& fieldToFill);
+    static void UpdateRevealing(const std::string armorRecord, const int revealingMode);
 
   public:
     static bool IsRaceExcluded(const RE::TESRace* race);

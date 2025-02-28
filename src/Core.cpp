@@ -166,7 +166,7 @@ void Core::GenitalizeNPCSkins() {
     SKSE::log::info("\t\t[{}] skins were not patched.", tot);
   }
   Inis::LoadNpcInfo();
-  SKSE::log::debug("TNG disributed the sizes (from smallest to largest) to [{}] npcs!", fmt::join(sizeCount, ", "));
+  SKSE::log::debug("TNG distributed the sizes (from smallest to largest) to [{}] NPCs!", fmt::join(sizeCount, ", "));
   Base::ReportHiddenRgs();
 }
 
@@ -238,7 +238,7 @@ RE::TESObjectARMO* Core::FixSkin(RE::TESObjectARMO* skin, RE::TESRace* race, con
 
 void Core::CheckArmorPieces() {
   SKSE::log::info("Checking ARMO records...");
-  auto& armorlist = Tng::SEDH()->GetFormArray<RE::TESObjectARMO>();
+  auto& armorList = Tng::SEDH()->GetFormArray<RE::TESObjectARMO>();
   int hk = 0;
   int ia = 0;
   int rr = 0;
@@ -258,7 +258,7 @@ void Core::CheckArmorPieces() {
     armor->RemoveKeywords(armorKeys);
     armor->AddKeyword(Tng::Key(Tng::kyCovering));
   }
-  for (const auto& armor : armorlist) {
+  for (const auto& armor : armorList) {
     if (!armor) {
       pa++;
       continue;
@@ -382,7 +382,7 @@ void Core::CheckArmorPieces() {
       ac++;
     }
   }
-  SKSE::log::info("\tProcessed [{}] armor pieces:", armorlist.size());
+  SKSE::log::info("\tProcessed [{}] armor pieces:", armorList.size());
   if (pa > 0) SKSE::log::warn("\t\t[{}]: were problematic!", pa);
   if (hk > 0) SKSE::log::info("\t\t[{}]: were already marked with TNG keywords.", hk);
   if (cc > 0) SKSE::log::info("\t\t[{}]: are covering due to ini-files or having slot 52.", cc);
@@ -394,11 +394,11 @@ void Core::CheckArmorPieces() {
 }
 
 void Core::RevisitRevealingArmor() {
-  auto& armorlist = Tng::SEDH()->GetFormArray<RE::TESObjectARMO>();
+  auto& armorList = Tng::SEDH()->GetFormArray<RE::TESObjectARMO>();
   std::set<std::pair<std::string, RE::TESObjectARMO*>> potentialArmor = {};
   std::vector<RE::BGSKeyword*> armorKeys = Tng::Keys(Tng::kyRevealingF, Tng::kyRevealing);
   armorKeys.push_back(Tng::Key(Tng::kyIgnored));
-  for (const auto& armor : armorlist) {
+  for (const auto& armor : armorList) {
     if (!armor) continue;
     auto modName = armor->GetFile(0) ? std::string(armor->GetFile(0)->GetFilename()) : "";
     if (modName != "" && (armor->HasKeyword(Tng::Key(Tng::kyCovering)) || armor->HasKeyword(Tng::Key(Tng::kyRevealing)))) {

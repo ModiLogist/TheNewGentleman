@@ -15,8 +15,8 @@ void Base::Init() {
 void Base::LoadAddons() {
   malAddons.clear();
   femAddons.clear();
-  const auto &armorlist = Tng::SEDH()->GetFormArray<RE::TESObjectARMO>();
-  for (const auto &armor : armorlist) {
+  const auto &armorList = Tng::SEDH()->GetFormArray<RE::TESObjectARMO>();
+  for (const auto &armor : armorList) {
     if (armor->HasKeyword(Tng::Key(Tng::kyAddonM))) malAddons.emplace_back(armor, true);
     if (armor->HasKeyword(Tng::Key(Tng::kyAddonF))) femAddons.emplace_back(armor, false);
   }
@@ -93,8 +93,8 @@ void Base::SetGlobalSize(size_t idx, float size) {
 }
 
 // Race handling and info
-void Base::AddRace(RE::TESRace *race, bool isProccessed) {
-  race->AddKeyword(Tng::Key(isProccessed ? Tng::kyProcessed : Tng::kyPreProcessed));
+void Base::AddRace(RE::TESRace *race, bool isProcessed) {
+  race->AddKeyword(Tng::Key(isProcessed ? Tng::kyProcessed : Tng::kyPreProcessed));
   race->AddSlotToMask(Tng::cSlotGenital);
   race->skin->AddKeyword(Tng::Key(Tng::kyIgnored));
   int rgCount = static_cast<int>(rgInfoList.size());
@@ -237,8 +237,8 @@ std::vector<size_t> Base::GetRgAddonList(size_t rgChoice, bool isFemale, bool on
   if (!rg) return res;
   auto &list = isFemale ? rg->femAddons : rg->malAddons;
   auto &master = isFemale ? femAddons : malAddons;
-  for (auto &addonpair : list)
-    if (!onlyActive || master[addonpair.first].second) res.push_back(addonpair.first);
+  for (auto &addonPair : list)
+    if (!onlyActive || master[addonPair.first].second) res.push_back(addonPair.first);
   return res;
 }
 
@@ -249,8 +249,8 @@ std::vector<size_t> Base::GetRgAddonList(RE::TESRace *race, bool isFemale, bool 
   if (!rg) return res;
   auto &list = isFemale ? rg->femAddons : rg->malAddons;
   auto &master = isFemale ? femAddons : malAddons;
-  for (auto &addonpair : list)
-    if (!onlyActive || master[addonpair.first].second) res.push_back(addonpair.first);
+  for (auto &addonPair : list)
+    if (!onlyActive || master[addonPair.first].second) res.push_back(addonPair.first);
   return res;
 }
 
@@ -604,7 +604,7 @@ void Base::OrganizeNPCAddonKeywords(RE::TESNPC *npc, int addnIdx, bool isUser) {
   } else if (addnIdx >= 0) {
     const std::string reqKw = (isUser ? cNPCUserAddon : cNPCAutoAddon) + (addnIdx < 10 ? "0" + std::to_string(addnIdx) : std::to_string(addnIdx));
     auto kw = Tng::ProduceOrGetKw(reqKw);
-    if (!kw) SKSE::log::critical("Keword generation routine failed with keyword {}", reqKw);
+    if (!kw) SKSE::log::critical("Keyword generation routine failed with keyword {}", reqKw);
     npc->AddKeyword(kw);
   }
   if (npc->IsFemale() && addnIdx >= 0) {

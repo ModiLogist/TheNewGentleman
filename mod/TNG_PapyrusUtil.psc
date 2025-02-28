@@ -5,7 +5,7 @@ ScriptName TNG_PapyrusUtil hidden
 ; 0: Exclude player,
 ; 1: Check player addon after load,
 ; 2: Check NPCs addon after load,
-; 3: RSV Compatiblity (Used internally)
+; 3: RSV compatibility (Used internally)
 ; 4: Mark mods with slot 52 as revealing by default,
 ; 5: Allow user to choose the behavior of mods with slot 52,
 ; 6: Randomize Male addons among the active ones

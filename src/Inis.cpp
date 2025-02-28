@@ -24,7 +24,7 @@ void Inis::LoadSingleIni(const char *path, const std::string_view fileName) {
   if (ini.SectionExists(cExcludeSection)) {
     if (ini.GetAllValues(cExcludeSection, cExcludeNPC, values)) {
       SKSE::log::info("\t- Found [{}] excluded NPCs in [{}].", values.size(), fileName);
-      LoadModRecodPairs(values, excludedNPCs);
+      LoadModRecordPairs(values, excludedNPCs);
     }
     if (ini.GetAllValues(cExcludeSection, cExcModRaces, values)) {
       SKSE::log::info("\t- Found [{}] excluded mods for their races in [{}].", values.size(), fileName);
@@ -35,7 +35,7 @@ void Inis::LoadSingleIni(const char *path, const std::string_view fileName) {
     }
     if (ini.GetAllValues(cExcludeSection, cExcRace, values)) {
       SKSE::log::info("\t- Found [{}] excluded races in [{}].", values.size(), fileName);
-      LoadModRecodPairs(values, excludedRaces);
+      LoadModRecordPairs(values, excludedRaces);
     }
   }
   if (ini.SectionExists(cSkinSection)) {
@@ -51,7 +51,7 @@ void Inis::LoadSingleIni(const char *path, const std::string_view fileName) {
     }
     if (ini.GetAllValues(cSkinSection, cSkinRecord, values)) {
       SKSE::log::info("\t- Found [{}] skin records in [{}].", values.size(), fileName);
-      LoadModRecodPairs(values, skinRecords);
+      LoadModRecordPairs(values, skinRecords);
     }
   }
   if (ini.SectionExists(cArmorSection)) {
@@ -87,19 +87,19 @@ void Inis::LoadSingleIni(const char *path, const std::string_view fileName) {
     }
     if (ini.GetAllValues(cArmorSection, cCoveringRecord, values)) {
       SKSE::log::info("\t- Found [{}] covering records in ini file [{}].", values.size(), fileName);
-      LoadModRecodPairs(values, coveringRecords);
+      LoadModRecordPairs(values, coveringRecords);
     }
     if (ini.GetAllValues(cArmorSection, cRevealingRecord, values)) {
       SKSE::log::info("\t- Found [{}] revealing records in ini file [{}].", values.size(), fileName);
-      LoadModRecodPairs(values, revealingRecords);
+      LoadModRecordPairs(values, revealingRecords);
     }
     if (ini.GetAllValues(cArmorSection, cFemRevRecord, values)) {
       SKSE::log::info("\t- Found [{}] revealing records for women in ini file [{}].", values.size(), fileName);
-      LoadModRecodPairs(values, femRevRecords);
+      LoadModRecordPairs(values, femRevRecords);
     }
     if (ini.GetAllValues(cArmorSection, cMalRevRecord, values)) {
       SKSE::log::info("\t- Found [{}] revealing records for men in ini file [{}].", values.size(), fileName);
-      LoadModRecodPairs(values, malRevRecords);
+      LoadModRecordPairs(values, malRevRecords);
     }
   }
 }
@@ -210,7 +210,7 @@ void Inis::LoadMainIni() {
     }
   }
   SKSE::log::debug("\tGentlewomen chance value loaded.");
-  LoadHoteKeys();
+  LoadHotKeys();
   SKSE::log::debug("\tInput settings loaded.");
 }
 
@@ -426,7 +426,7 @@ void Inis::SaveRevealingArmor(RE::TESObjectARMO *armor, int revMode) {
   ini.SaveFile(cSettings);
 }
 
-void Inis::LoadHoteKeys() {
+void Inis::LoadHotKeys() {
   CSimpleIniA ini;
   ini.SetUnicode();
   ini.LoadFile(cSettings);
@@ -522,17 +522,17 @@ void Inis::UpdateIniVersion() {
   ini.SaveFile(cSettings);
 }
 
-void Inis::LoadModRecodPairs(CSimpleIniA::TNamesDepend records, std::set<SEFormLoc> &fieldToFill) {
+void Inis::LoadModRecordPairs(CSimpleIniA::TNamesDepend records, std::set<SEFormLoc> &fieldToFill) {
   for (const auto &entry : records) {
     const std::string modRecord(entry.pItem);
     fieldToFill.insert(StrToLoc(modRecord));
   }
 }
 
-void Inis::UpdateRevealing(const std::string armorRecod, const int revealingMode) {
-  auto armor = Tng::SEDH()->LookupForm<RE::TESObjectARMO>(StrToLoc(armorRecod).first, StrToLoc(armorRecod).second);
+void Inis::UpdateRevealing(const std::string armorRecord, const int revealingMode) {
+  auto armor = Tng::SEDH()->LookupForm<RE::TESObjectARMO>(StrToLoc(armorRecord).first, StrToLoc(armorRecord).second);
   if (!armor) {
-    SKSE::log::info("Previously save armor from mod {} does not exist anymore!", StrToLoc(armorRecod).first);
+    SKSE::log::info("Previously save armor from mod {} does not exist anymore!", StrToLoc(armorRecord).first);
     return;
   }
   if (revealingMode < 0) return;
@@ -550,7 +550,7 @@ void Inis::UpdateRevealing(const std::string armorRecod, const int revealingMode
         return runtimeCoveringRecords;
     }
   }();
-  list.insert(StrToLoc(armorRecod));
+  list.insert(StrToLoc(armorRecord));
 }
 
 bool Inis::IsRaceExcluded(const RE::TESRace *race) {

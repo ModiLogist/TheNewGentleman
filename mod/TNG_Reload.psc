@@ -1,4 +1,4 @@
-Scriptname TNG_Reload extends ActiveMagicEffect
+ScriptName TNG_Reload extends ActiveMagicEffect
 
 Event OnEffectStart(Actor akTarget, Actor akCaster)
   RegisterForSingleUpdate(5)

@@ -44,7 +44,7 @@ class Base : public Singleton<Base> {
     static void SetGlobalSize(const size_t idx, float size);
 
   public:
-    static void AddRace(RE::TESRace* race, bool isProccessed);
+    static void AddRace(RE::TESRace* race, bool isProcessed);
     static bool ReevaluateRace(RE::TESRace* race, RE::Actor* actor);
     static void TryUnhideRace(RE::TESRace* race);
     static int GetRaceRgIdx(RE::TESRace* race);

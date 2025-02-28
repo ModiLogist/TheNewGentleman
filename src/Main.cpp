@@ -4,7 +4,7 @@
 #include <Inis.h>
 #include <Papyrus.h>
 
-static bool CheckIncompatiblity() {
+static bool CheckIncompatibility() {
   if (GetModuleHandle(L"Data\\SKSE\\Plugins\\acon.dll")) {
     ShowSkyrimMessage("Warning: TNG is not compatible with acon.dll. Please don't use TNG with mods from that website!");
     return false;
@@ -30,7 +30,7 @@ static void InitializeLogging() {
 
 static void EventListener(SKSE::MessagingInterface::Message* message) {
   if (message->type == SKSE::MessagingInterface::kDataLoaded) {
-    if (!CheckIncompatiblity()) return;
+    if (!CheckIncompatibility()) return;
     if (!Tng::SEDH()->LookupModByName(Tng::cName)) {
       const char* err = fmt::format("Mod [{}] was not found! Make sure that the mod is active in your plugin load order!", Tng::cName).c_str();
       ShowSkyrimMessage(err);
@@ -46,7 +46,7 @@ static void EventListener(SKSE::MessagingInterface::Message* message) {
     Events::RegisterEvents();
   }
   if (message->type == SKSE::MessagingInterface::kNewGame || message->type == SKSE::MessagingInterface::kPostLoadGame) {
-    Inis::LoadHoteKeys();
+    Inis::LoadHotKeys();
     Base::UnsetPlayerInfo();
   }
 }
