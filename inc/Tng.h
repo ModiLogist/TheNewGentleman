@@ -201,17 +201,20 @@ static SEFormLoc StrToLoc(const std::string recordStr) {
 
 static SEFormLoc FormToLoc(const RE::TESForm* form) {
   std::string filename = form->GetFile(0) ? std::string(form->GetFile(0)->GetFilename()) : "NoFile";
-  return {form->GetLocalFormID(), filename};
+  auto formID = form->GetFormID() < 0xFF000000 ? form->GetLocalFormID() : form->GetFormID();
+  return {formID, filename};
 }
 
 static SEFormLocView FormToLocView(RE::TESForm* form) {
   auto filename = form->GetFile(0) ? form->GetFile(0)->GetFilename() : "NoFile";
-  return {form->GetLocalFormID(), filename};
+  auto formID = form->GetFormID() < 0xFF000000 ? form->GetLocalFormID() : form->GetFormID();
+  return {formID, filename};
 }
 
 static std::string FormToStr(RE::TESForm* form) {
   if (!form || !form->GetFile(0)) return "";
   std::ostringstream oss;
-  oss << std::hex << form->GetLocalFormID();
+  auto formID = form->GetFormID() < 0xFF000000 ? form->GetLocalFormID() : form->GetFormID();
+  oss << std::hex << formID;
   return "0x" + oss.str() + Tng::cDelimChar + std::string(form->GetFile(0)->GetFilename());
 }
