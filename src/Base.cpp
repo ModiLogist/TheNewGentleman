@@ -27,6 +27,7 @@ void Base::LoadAddons() {
 }
 
 int Base::AddonIdxByLoc(bool isFemale, SEFormLocView addonLoc) {
+  if (addonLoc.second == Tng::cNulStr) return Tng::cNul;
   const auto &list = isFemale ? femAddons : malAddons;
   for (int i = 0; i < list.size(); i++)
     if (FormToLocView(list[i].first) == addonLoc) return i;

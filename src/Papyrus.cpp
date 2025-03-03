@@ -213,8 +213,8 @@ int Papyrus::SetActorAddon(RE::StaticFunctionTag*, RE::Actor* actor, int choice)
 }
 
 int Papyrus::GetActorSize(RE::StaticFunctionTag*, RE::Actor* actor) {
-  int sizeCat = -1;
-  return Base::GetActorSizeCat(actor, sizeCat) < 0 ? -1 : sizeCat;
+  int sizeCat = Tng::cNA;
+  return Base::GetActorSizeCat(actor, sizeCat) < 0 ? Tng::cNul : sizeCat;
 }
 
 int Papyrus::SetActorSize(RE::StaticFunctionTag*, RE::Actor* actor, int genSize) { return Core::SetActorSize(actor, genSize); }

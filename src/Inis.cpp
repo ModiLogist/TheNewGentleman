@@ -130,7 +130,7 @@ void Inis::LoadMainIni() {
   for (const auto &entry : values) {
     std::string addonStr = ini.GetValue(cRacialAddon, entry.pItem);
     auto raceRecord = StrToLoc(std::string((entry.pItem)));
-    auto addonRecord = StrToLoc(addonStr);
+    auto addonRecord = StrToLoc(addonStr, true);
     if (!raceRecord.second.empty() && !addonRecord.second.empty()) racialAddons.insert({raceRecord, addonRecord});
   }
   ini.GetAllKeys(cRacialSize, values);
@@ -144,8 +144,8 @@ void Inis::LoadMainIni() {
   ini.GetAllKeys(cNPCAddonSection, values);
   for (const auto &entry : values) {
     auto addonStr = ini.GetValue(cNPCAddonSection, entry.pItem);
-    auto addonRecord = StrToLoc(addonStr);
     auto npcRecord = StrToLoc(entry.pItem);
+    auto addonRecord = StrToLoc(addonStr, true);
     if (!npcRecord.second.empty() && !addonRecord.second.empty()) npcAddons.insert({npcRecord, addonRecord});
   }
   ini.GetAllKeys(cNPCSizeSection, values);
@@ -218,7 +218,7 @@ void Inis::LoadRgInfo() {
   for (auto &rgInfo : racialAddons) {
     auto rgIdx = Base::GetRaceRgIdx(Tng::SEDH()->LookupForm<RE::TESRace>(rgInfo.first.first, rgInfo.first.second));
     auto addonIdx = Base::AddonIdxByLoc(false, rgInfo.second);
-    if ((rgIdx < 0) || (addonIdx < 0)) continue;
+    if ((rgIdx < 0) || (addonIdx < 0 && addonIdx != Tng::cNul)) continue;
     if (Base::SetRgAddon(rgIdx, addonIdx, false))
       SKSE::log::debug("\tRestored the addon of race [xx{:x}] from file [{}] to addon [xx{:x}] from file [{}]", rgInfo.first.first, rgInfo.first.second, rgInfo.second.first, rgInfo.second.second);
   }
@@ -236,7 +236,7 @@ void Inis::LoadNpcInfo() {
     auto npc = Tng::SEDH()->LookupForm<RE::TESNPC>(npcInfo.first.first, npcInfo.first.second);
     if (!npc) continue;
     auto addonIdx = Base::AddonIdxByLoc(npc->IsFemale(), npcInfo.second);
-    if (addonIdx < 0) continue;
+    if (addonIdx < 0 && addonIdx != Tng::cNul) continue;
     if (Base::SetNPCAddon(npc, addonIdx, true) >= 0)
       SKSE::log::debug("\tRestored the addon of npc [xx{:x}] from file [{}] to addon [xx{:x}] from file [{}]", npcInfo.first.first, npcInfo.first.second, npcInfo.second.first, npcInfo.second.second);
   }
@@ -337,7 +337,7 @@ void Inis::SaveRgAddon(const size_t rg, const int choice) {
       ini.Delete(cRacialAddon, raceRecord.c_str(), true);
       break;
     case Tng::cNul:
-      ini.SetValue(cRacialAddon, raceRecord.c_str(), "None");
+      ini.SetValue(cRacialAddon, raceRecord.c_str(), Tng::cNulStr.c_str());
       break;
     default:
       auto addon = Base::AddonByIdx(false, choice, false);

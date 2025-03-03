@@ -18,6 +18,9 @@ class Tng : public Singleton<Tng> {
     inline static constexpr int cNA{-99};
     inline static constexpr int cDef{-2};
     inline static constexpr int cNul{-1};
+    inline static constexpr std::string cNAStr{"NA"};
+    inline static constexpr std::string cDefStr{"Default"};
+    inline static constexpr std::string cNulStr{"None"};
 
     enum TNGRes {
       pgErr = cNA,
@@ -191,8 +194,9 @@ class Tng : public Singleton<Tng> {
 
 static void ShowSkyrimMessage(const char* message) { RE::DebugMessageBox(message); }
 
-static SEFormLoc StrToLoc(const std::string recordStr) {
+static SEFormLoc StrToLoc(const std::string recordStr, bool canBeNone = false) {
   const size_t sepLoc = recordStr.find(Tng::cDelimChar);
+  if (canBeNone && recordStr == Tng::cNulStr) return {0, Tng::cNulStr};
   if (sepLoc == std::string::npos) return {0, ""};
   const RE::FormID formID = std::strtol(recordStr.substr(0, sepLoc).data(), nullptr, 0);
   const std::string modName = recordStr.substr(sepLoc + 1);
