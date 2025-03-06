@@ -388,7 +388,7 @@ void Base::UpdateRgAddons(Base::RaceGroupInfo &rg) {
       }
       if (!supports) {
         if (i == rg.defAddonIdx) rg.defAddonIdx = rg.malAddons.size() == 0 ? Tng::cNul : static_cast<int>(rg.malAddons.begin()->first);
-        if (i == rg.defAddonIdx && rg.addonIdx < 0) rg.addonIdx = rg.defAddonIdx;
+        if (rg.addonIdx < 0 || rg.addonIdx == i) rg.addonIdx = rg.defAddonIdx;
         continue;
       }
       if (rg.defAddonIdx < 0) rg.defAddonIdx = static_cast<int>(i);
@@ -484,7 +484,7 @@ Tng::TNGRes Base::SetActorSizeCat(RE::Actor *actor, const int sizeCat) {
   auto catGlb = Tng::SizeGlb(cat);
   auto mult = GetRgMult(actor->GetRace());
   if (mult < 0.0f) return Tng::rgErr;
-  auto scale = mult * catGlb->value;
+  auto scale = mult * (catGlb ? catGlb->value : 1.0f);
   if (scale < 0.1) scale = 1;
   RE::NiAVObject *baseNode = actor->GetNodeByName(genBoneNames[egbBase]);
   RE::NiAVObject *scrtNode = actor->GetNodeByName(genBoneNames[egbScrt]);
