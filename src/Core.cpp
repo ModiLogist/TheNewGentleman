@@ -2,6 +2,8 @@
 #include <Core.h>
 #include <Inis.h>
 
+Core* core = Core::GetSingleton();
+
 void Core::GenitalizeRaces() {
   SKSE::log::info("Finding the genitals for relevant races...");
   const auto& allRaces = Tng::SEDH()->GetFormArray<RE::TESRace>();
@@ -9,14 +11,14 @@ void Core::GenitalizeRaces() {
   int processed = 0;
   int ignored = 0;
   int ready = 0;
+
   std::set<std::string> validSkeletons;
   validSkeletons.emplace(Tng::Race(Tng::raceDefault)->skeletonModels[0].model.data());
   validSkeletons.emplace(Tng::Race(Tng::raceDefault)->skeletonModels[1].model.data());
   validSkeletons.emplace(Tng::Race(Tng::raceDefBeast)->skeletonModels[0].model.data());
   validSkeletons.emplace(Tng::Race(Tng::raceDefBeast)->skeletonModels[1].model.data());
-
   for (const auto& race : allRaces) {
-    if (Inis::IsRaceExcluded(race)) {
+    if (inis->IsRaceExcluded(race)) {
       SKSE::log::debug("\tThe race [{}: xx{:x}: {}] was ignored because an ini excludes it!", race->GetFile(0)->GetFilename(), race->GetLocalFormID(), race->GetFormEditorID());
       IgnoreRace(race, false);
       ignored++;
@@ -40,11 +42,11 @@ void Core::GenitalizeRaces() {
     }
     switch (AddPotentialRace(race, validSkeletons)) {
       case Tng::resOkRacePP:
-        Base::AddRace(race, false);
+        base->AddRace(race, false);
         preprocessed++;
         break;
       case Tng::resOkRaceP:
-        Base::AddRace(race, true);
+        base->AddRace(race, true);
         processed++;
         break;
       case Tng::resOkRaceR:
@@ -55,15 +57,16 @@ void Core::GenitalizeRaces() {
         break;
     }
   }
-  Base::UpdateRgSkins();
-  Inis::LoadRgInfo();
-  SKSE::log::info("\tRecognized assigned genitalia to [{}] races. Preprocessed [{}] races, found [{}] races to be ready and ignored [{}] races.", processed, preprocessed, ready, ignored);
+  base->UpdateRgSkins();
+  inis->LoadRgInfo();
+  SKSE::log::info("\tRecognized assigned genitalia to [{}] races. Preprocessed [{}] races, found [{}] races to be ready and ignored [{}] races.", processed, preprocessed, ready,
+                  ignored);
 }
 
 bool Core::SetRgAddon(const size_t rgChoice, const int addnIdx, const bool onlyMCM) {
-  auto res = Base::SetRgAddon(rgChoice, addnIdx, onlyMCM);
+  auto res = base->SetRgAddon(rgChoice, addnIdx, onlyMCM);
   if (!res) return res;
-  Inis::SaveRgAddon(rgChoice, addnIdx);
+  inis->SaveRgAddon(rgChoice, addnIdx);
   return true;
 }
 
@@ -93,8 +96,8 @@ Tng::TNGRes Core::AddPotentialRace(RE::TESRace* race, const std::set<std::string
       }
     }
     if (!skinFound) {
-      SKSE::log::warn("\tThe race [0x{:x}: {}] cannot have any genitals since their skin cannot be recognized!  It was last modified by [{}].", race->GetFormID(), race->GetFormEditorID(),
-                      race->GetFile() ? race->GetFile()->GetFilename() : "Unrecognized File");
+      SKSE::log::warn("\tThe race [0x{:x}: {}] cannot have any genitals since their skin cannot be recognized!  It was last modified by [{}].", race->GetFormID(),
+                      race->GetFormEditorID(), race->GetFile() ? race->GetFile()->GetFilename() : "Unrecognized File");
       IgnoreRace(race, false);
       return Tng::raceErr;
     }
@@ -105,14 +108,17 @@ Tng::TNGRes Core::AddPotentialRace(RE::TESRace* race, const std::set<std::string
       return ready ? Tng::resOkRaceR : Tng::raceErr;
     }
   } catch (const std::exception& er) {
-    SKSE::log::warn("\tThe race [0x{:x}: {}] caused an error [{}] in the process. TNG tries to ignore it but it might not work properly!", race->GetFormID(), race->GetFormEditorID(), er.what());
-    const char* message =
-        fmt::format("\tThe race [0x{:x}: {}] caused an error [{}] in the process. TNG tries to ignore it but it might not work properly!", race->GetFormID(), race->GetFormEditorID(), er.what()).c_str();
+    SKSE::log::warn("\tThe race [0x{:x}: {}] caused an error [{}] in the process. TNG tries to ignore it but it might not work properly!", race->GetFormID(),
+                    race->GetFormEditorID(), er.what());
+    const char* message = fmt::format("\tThe race [0x{:x}: {}] caused an error [{}] in the process. TNG tries to ignore it but it might not work properly!", race->GetFormID(),
+                                      race->GetFormEditorID(), er.what())
+                              .c_str();
     ShowSkyrimMessage(message);
     IgnoreRace(race, false);
     return Tng::raceErr;
   }
-  bool isValidSk = validSkeletons.find(race->skeletonModels[0].model.data()) != validSkeletons.end() && validSkeletons.find(race->skeletonModels[1].model.data()) != validSkeletons.end();
+  bool isValidSk =
+      validSkeletons.find(race->skeletonModels[0].model.data()) != validSkeletons.end() && validSkeletons.find(race->skeletonModels[1].model.data()) != validSkeletons.end();
   return isValidSk ? Tng::resOkRaceP : Tng::resOkRacePP;
 }
 
@@ -124,7 +130,7 @@ void Core::GenitalizeNPCSkins() {
   auto& allNPCs = Tng::SEDH()->GetFormArray<RE::TESNPC>();
   size_t sizeCount[Tng::cSizeCategories]{0};
   for (const auto& npc : allNPCs) {
-    if (Inis::IsNPCExcluded(npc)) {
+    if (inis->IsNPCExcluded(npc)) {
       npc->AddKeyword(Tng::Key(Tng::kyExcluded));
       continue;
     }
@@ -145,7 +151,7 @@ void Core::GenitalizeNPCSkins() {
   }
   for (auto& racePair : raceNPCCount) {
     if (racePair.second < 5) continue;
-    Base::TryUnhideRace(racePair.first);
+    base->TryUnhideRace(racePair.first);
   }
   for (auto& skinPair : skinsToPatch) {
     auto& oldSkin = skinPair.first.first;
@@ -165,29 +171,29 @@ void Core::GenitalizeNPCSkins() {
     }
     SKSE::log::info("\t\t[{}] skins were not patched.", tot);
   }
-  Inis::LoadNpcInfo();
+  inis->LoadNpcInfo();
   SKSE::log::debug("TNG distributed the sizes (from smallest to largest) to [{}] NPCs!", fmt::join(sizeCount, ", "));
-  Base::ReportHiddenRgs();
+  base->ReportHiddenRgs();
 }
 
 Tng::TNGRes Core::CanModifyNPC(RE::TESNPC* npc) {
-  auto res = Base::CanModifyNPC(npc);
+  auto res = base->CanModifyNPC(npc);
   if (res < 0) return res;
-  return (Inis::IsNPCExcluded(npc)) ? Tng::npcErr : res;
+  return (inis->IsNPCExcluded(npc)) ? Tng::npcErr : res;
 }
 
 Tng::TNGRes Core::SetActorSize(RE::Actor* actor, int genSize) {
-  auto res = Base::SetActorSizeCat(actor, genSize);
-  if (res == Tng::resOkSizable && !actor->GetActorBase()->IsPlayer()) Inis::SaveNPCSize(actor->GetActorBase(), genSize);
+  auto res = base->SetActorSizeCat(actor, genSize);
+  if (res == Tng::resOkSizable && !actor->GetActorBase()->IsPlayer()) inis->SaveNPCSize(actor->GetActorBase(), genSize);
   return res;
 }
 
 Tng::TNGRes Core::SetNPCAddon(RE::TESNPC* npc, const int addnIdx, const bool isUser, const bool shouldSave) {
   if (!npc->race || !npc->race->HasKeyword(Tng::Key(Tng::kyProcessed))) return Tng::raceErr;
-  if (Inis::IsNPCExcluded(npc)) return Tng::npcErr;
-  auto res = Base::SetNPCAddon(npc, addnIdx, isUser);
+  if (inis->IsNPCExcluded(npc)) return Tng::npcErr;
+  auto res = base->SetNPCAddon(npc, addnIdx, isUser);
   if (res < 0) return res;
-  if (!npc->IsPlayer() && shouldSave) Inis::SaveNPCAddon(npc, addnIdx);
+  if (!npc->IsPlayer() && shouldSave) inis->SaveNPCAddon(npc, addnIdx);
   return res;
 }
 
@@ -224,8 +230,8 @@ RE::TESObjectARMO* Core::FixSkin(RE::TESObjectARMO* skin, RE::TESRace* race, con
     SKSE::log::warn("\t\tThe skin [0x{:x}] does not have any arma! TNG ignores it.", skin->GetFormID());
     return nullptr;
   }
-  auto rgIdx = Base::GetRaceRgIdx(race);
-  auto addonIdx = Base::GetRgAddon(race);
+  auto rgIdx = base->GetRaceRgIdx(race);
+  auto addonIdx = base->GetRgAddon(race);
   if (rgIdx < 0 || addonIdx == Tng::pgErr) {
     SKSE::log::critical("\t\tSkin [xx{:x}] from file [{}] together with race [xx{:x}] from file [{}] caused a critical error!", skin->GetLocalFormID(),
                         skin->GetFile() ? skin->GetFile()->GetFilename() : "Unknown", race->GetLocalFormID(), race->GetFile() ? race->GetFile()->GetFilename() : "Unknown");
@@ -233,7 +239,7 @@ RE::TESObjectARMO* Core::FixSkin(RE::TESObjectARMO* skin, RE::TESRace* race, con
   }
   if (addonIdx == Tng::cNul) return skin;
   if (name) SKSE::log::info("\t\tThe skin [0x{:x}: {}] added as extra skin.", skin->GetFormID(), name);
-  return Base::GetSkinWithAddonForRg(rgIdx, skin, addonIdx, false);
+  return base->GetSkinWithAddonForRg(rgIdx, skin, addonIdx, false);
 }
 
 void Core::CheckArmorPieces() {
@@ -271,13 +277,14 @@ void Core::CheckArmorPieces() {
     const auto armorID = (std::string(armor->GetName()).empty()) ? armor->GetFormEditorID() : armor->GetName();
     std::string modName = armor->GetFile(0) ? std::string(armor->GetFile(0)->GetFilename()) : "";
     if (!armor->race) {
-      if (!armor->HasKeyword(Tng::Key(Tng::kyIgnored))) SKSE::log::warn("\t\tThe armor [0x{:x}: {}] does not have a race! It won't be touched by Tng!", armor->GetFormID(), armorID);
+      if (!armor->HasKeyword(Tng::Key(Tng::kyIgnored)))
+        SKSE::log::warn("\t\tThe armor [0x{:x}: {}] does not have a race! It won't be touched by Tng!", armor->GetFormID(), armorID);
       armor->AddKeyword(Tng::Key(Tng::kyIgnored));
       ia++;
       continue;
     }
     if (!armor->race->HasKeywordInArray(relRaceKeys, false) && armor->race != Tng::Race(Tng::raceDefault)) continue;
-    if (Inis::IsSkin(armor, modName)) {
+    if (inis->IsSkin(armor, modName)) {
       SKSE::log::info("\t\tThe record [0x{:x}: {}] was marked as a skin.", armor->GetFormID(), armorID);
       armor->AddKeyword(Tng::Key(Tng::kyIgnored));
       ia++;
@@ -289,14 +296,14 @@ void Core::CheckArmorPieces() {
       has52 = aa->HasPartOf(Tng::cSlotGenital);
     }
     if (!has52) {
-      if (Inis::IsRTCovering(armor, modName)) {
+      if (inis->IsRTCovering(armor, modName)) {
         armor->AddKeyword(Tng::Key(Tng::kyCovering));
         SKSE::log::info("\t\tThe armor [[0x{:x}: {}] was marked covering since it was previously marked covering during gameplay.", armor->GetFormID(), armorID);
         ac++;
         continue;
       }
       auto keyPair = [&]() -> std::pair<RE::BGSKeyword*, std::string> {
-        switch (Inis::IsRTRevealing(armor, modName)) {
+        switch (inis->IsRTRevealing(armor, modName)) {
           case Tng::kyRevealing:
             return {Tng::Key(Tng::kyRevealing), "all"};
           case Tng::kyRevealingF:
@@ -310,21 +317,22 @@ void Core::CheckArmorPieces() {
       if (keyPair.first) {
         if (armor->HasPartOf(Tng::cSlotBody)) {
           armor->AddKeyword(keyPair.first);
-          SKSE::log::info("\t\tThe armor [[0x{:x}: {}] was marked revealing for {} since it was previously marked revealing during gameplay.", armor->GetFormID(), armorID, keyPair.second);
+          SKSE::log::info("\t\tThe armor [[0x{:x}: {}] was marked revealing for {} since it was previously marked revealing during gameplay.", armor->GetFormID(), armorID,
+                          keyPair.second);
           ar++;
         } else {
           ia++;
         }
         continue;
       }
-      if (Inis::IsCovering(armor, modName)) {
+      if (inis->IsCovering(armor, modName)) {
         armor->AddKeyword(Tng::Key(Tng::kyCovering));
         SKSE::log::info("\t\tThe armor [0x{:x}: {}] was marked covering.", armor->GetFormID(), armorID);
         cc++;
         continue;
       }
       keyPair = [&]() -> std::pair<RE::BGSKeyword*, std::string> {
-        switch (Inis::IsRevealing(armor, modName)) {
+        switch (inis->IsRevealing(armor, modName)) {
           case Tng::kyRevealing:
             return {Tng::Key(Tng::kyRevealing), "all"};
           case Tng::kyRevealingF:
@@ -345,7 +353,7 @@ void Core::CheckArmorPieces() {
         }
         continue;
       }
-      if (Inis::IsExtraRevealing(modName)) {
+      if (inis->IsExtraRevealing(modName)) {
         if (armor->HasPartOf(Tng::cSlotBody)) {
           armor->AddKeyword(Tng::Key(Tng::kyRevealing));
           SKSE::log::info("\t\tArmor [0x{:x}: {}] was marked revealing.", armor->GetFormID(), armorID);
@@ -360,7 +368,7 @@ void Core::CheckArmorPieces() {
       armor->AddKeyword(Tng::Key(Tng::kyCovering));
       cc++;
       if (armor->HasPartOf(Tng::cSlotBody)) continue;
-      if (modName != "" && Inis::IsUnhandled(modName)) potentialSlot52Mods.insert(modName);
+      if (modName != "" && inis->IsUnhandled(modName)) potentialSlot52Mods.insert(modName);
       SKSE::log::info("\t\tThe armor [0x{:x}: {}] would cover genitals and would have a conflict with non-revealing chest armor pieces!", armor->GetFormID(), armorID);
       continue;
     }
@@ -371,10 +379,11 @@ void Core::CheckArmorPieces() {
       ia++;
     }
   }
-  for (auto entry = potentialSlot52Mods.begin(); entry != potentialSlot52Mods.end();) potentialMods.find(*entry) == potentialMods.end() ? entry = potentialSlot52Mods.erase(entry) : ++entry;
-  for (auto& modName : potentialSlot52Mods) Inis::HandleModWithSlot52(modName, Base::GetBoolSetting(Tng::bsRevealSlot52Mods));
+  for (auto entry = potentialSlot52Mods.begin(); entry != potentialSlot52Mods.end();)
+    potentialMods.find(*entry) == potentialMods.end() ? entry = potentialSlot52Mods.erase(entry) : ++entry;
+  for (auto& modName : potentialSlot52Mods) inis->HandleModWithSlot52(modName, base->GetBoolSetting(Tng::bsRevealSlot52Mods));
   for (auto& armorPair : potentialArmor) {
-    if (Inis::IsExtraRevealing(armorPair.first)) {
+    if (inis->IsExtraRevealing(armorPair.first)) {
       armorPair.second->AddKeyword(Tng::Key(Tng::kyRevealing));
       ar++;
     } else {
@@ -390,7 +399,7 @@ void Core::CheckArmorPieces() {
   if (ac > 0) SKSE::log::info("\t\t[{}]: were recognized to be covering.", ac);
   if (ar > 0) SKSE::log::info("\t\t[{}]: were recognized to be revealing.", ar);
   if (ia > 0) SKSE::log::info("\t\tThe rest [{}] are not relevant and are ignored!", ia);
-  Inis::CleanIniLists();
+  inis->CleanIniLists();
 }
 
 void Core::RevisitRevealingArmor() {
@@ -406,7 +415,7 @@ void Core::RevisitRevealingArmor() {
       potentialArmor.insert({modName, armor});
     }
   }
-  for (const auto& armorPair : potentialArmor) armorPair.second->AddKeyword(Tng::Key(Inis::IsExtraRevealing(armorPair.first) ? Tng::kyRevealing : Tng::kyCovering));
+  for (const auto& armorPair : potentialArmor) armorPair.second->AddKeyword(Tng::Key(inis->IsExtraRevealing(armorPair.first) ? Tng::kyRevealing : Tng::kyCovering));
 }
 
 bool Core::SwapRevealing(RE::Actor* actor, RE::TESObjectARMO* armor) {
@@ -417,49 +426,49 @@ bool Core::SwapRevealing(RE::Actor* actor, RE::TESObjectARMO* armor) {
     if (!armor->HasPartOf(Tng::cSlotBody)) return true;
     auto revMode = npc->IsFemale() ? Tng::kyRevealingF : Tng::kyRevealingM;
     armor->AddKeyword(Tng::Key(revMode));
-    Inis::SaveRevealingArmor(armor, revMode);
+    inis->SaveRevealingArmor(armor, revMode);
     return true;
   }
   if (armor->HasKeyword(Tng::Key(Tng::kyRevealing))) {
     armor->RemoveKeyword(Tng::Key(Tng::kyRevealing));
     auto revMode = npc->IsFemale() ? Tng::kyRevealingM : Tng::kyRevealingF;
     armor->AddKeyword(Tng::Key(revMode));
-    Inis::SaveRevealingArmor(armor, revMode);
+    inis->SaveRevealingArmor(armor, revMode);
     return true;
   }
   if (armor->HasKeyword(Tng::Key(Tng::kyRevealingF))) {
     armor->RemoveKeyword(Tng::Key(Tng::kyRevealingF));
     auto revMode = npc->IsFemale() ? Tng::kyCovering : Tng::kyRevealing;
     armor->AddKeyword(Tng::Key(revMode));
-    Inis::SaveRevealingArmor(armor, revMode);
+    inis->SaveRevealingArmor(armor, revMode);
     return true;
   }
   if (armor->HasKeyword(Tng::Key(Tng::kyRevealingM))) {
     armor->RemoveKeyword(Tng::Key(Tng::kyRevealingM));
     auto revMode = npc->IsFemale() ? Tng::kyRevealing : Tng::kyCovering;
     armor->AddKeyword(Tng::Key(revMode));
-    Inis::SaveRevealingArmor(armor, revMode);
+    inis->SaveRevealingArmor(armor, revMode);
     return true;
   }
   if (!armor->HasKeywordInArray(Tng::Keys(Tng::kyRevealingF, Tng::kyRevealing), false) || armor->HasKeyword(Tng::Key(Tng::kyIgnored))) {
     armor->RemoveKeyword(Tng::Key(Tng::kyIgnored));
     armor->AddKeyword(Tng::Key(Tng::kyCovering));
-    Inis::SaveRevealingArmor(armor, Tng::kyCovering);
+    inis->SaveRevealingArmor(armor, Tng::kyCovering);
     return true;
   }
   return false;
 }
 
 void Core::SetBoolSetting(Tng::BoolSetting settingID, bool value) {
-  Base::SetBoolSetting(settingID, value);
-  Inis::SetBoolSetting(settingID, value);
+  base->SetBoolSetting(settingID, value);
+  inis->SetBoolSetting(settingID, value);
 }
 
 void Core::SetAddonStatus(const bool isFemale, const int addnIdx, const bool status) {
-  Base::SetAddonStatus(isFemale, addnIdx, status);
-  Inis::SetAddonStatus(isFemale, addnIdx, status);
+  base->SetAddonStatus(isFemale, addnIdx, status);
+  inis->SetAddonStatus(isFemale, addnIdx, status);
 }
 
 void Core::SetRgMult(const size_t rgChoice, const float mult, bool onlyMCM) {
-  if (Base::SetRgMult(rgChoice, mult, onlyMCM)) Inis::SetRgMult(rgChoice, mult);
+  if (base->SetRgMult(rgChoice, mult, onlyMCM)) inis->SetRgMult(rgChoice, mult);
 }

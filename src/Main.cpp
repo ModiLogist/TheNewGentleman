@@ -36,18 +36,18 @@ static void EventListener(SKSE::MessagingInterface::Message* message) {
       ShowSkyrimMessage(err);
       return;
     }
-    Base::Init();
-    Inis::LoadMainIni();
-    Inis::LoadTngInis();
-    Core::GenitalizeRaces();
-    Core::GenitalizeNPCSkins();
-    Core::CheckArmorPieces();
+    base->Init();
+    inis->LoadMainIni();
+    inis->LoadTngInis();
+    core->GenitalizeRaces();
+    core->GenitalizeNPCSkins();
+    core->CheckArmorPieces();
     SKSE::log::info("TheNewGentleman finished initialization.");
-    Events::RegisterEvents();
+    events->RegisterEvents();
   }
   if (message->type == SKSE::MessagingInterface::kNewGame || message->type == SKSE::MessagingInterface::kPostLoadGame) {
-    Inis::LoadHotKeys();
-    Base::UnsetPlayerInfo();
+    inis->LoadHotKeys();
+    base->UnsetPlayerInfo();
   }
 }
 

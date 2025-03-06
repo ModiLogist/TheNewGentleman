@@ -4,6 +4,8 @@
 #include <Inis.h>
 #include <Papyrus.h>
 
+Papyrus* papyrus = Papyrus::GetSingleton();
+
 bool Papyrus::BindPapyrus(RE::BSScript::IVirtualMachine* vm) {
   vm->RegisterFunction("GetBoolValue", "TNG_PapyrusUtil", GetBoolValue);
   vm->RegisterFunction("SetBoolValue", "TNG_PapyrusUtil", SetBoolValue);
@@ -45,44 +47,44 @@ bool Papyrus::BindPapyrus(RE::BSScript::IVirtualMachine* vm) {
 }
 
 bool Papyrus::GetBoolValue(RE::StaticFunctionTag*, int settingID) {
-  if (0 <= settingID && settingID < Tng::BoolSettingCount) return Base::GetBoolSetting(static_cast<Tng::BoolSetting>(settingID));
+  if (0 <= settingID && settingID < Tng::BoolSettingCount) return base->GetBoolSetting(static_cast<Tng::BoolSetting>(settingID));
   return false;
 }
 
 void Papyrus::SetBoolValue(RE::StaticFunctionTag*, int settingID, bool value) {
-  if (0 <= settingID && settingID < Tng::BoolSettingCount) Core::SetBoolSetting(static_cast<Tng::BoolSetting>(settingID), value);
+  if (0 <= settingID && settingID < Tng::BoolSettingCount) core->SetBoolSetting(static_cast<Tng::BoolSetting>(settingID), value);
 }
 
 std::vector<std::string> Papyrus::GetAllPossibleAddons(RE::StaticFunctionTag*, bool isFemale) {
   std::vector<std::string> res{};
-  auto count = Base::GetAddonCount(isFemale, false);
-  for (auto i = 0; i < count; i++) res.push_back(Base::AddonByIdx(isFemale, i, false)->GetName());
+  auto count = base->GetAddonCount(isFemale, false);
+  for (auto i = 0; i < count; i++) res.push_back(base->AddonByIdx(isFemale, i, false)->GetName());
   return res;
 }
 
 bool Papyrus::GetAddonStatus(RE::StaticFunctionTag*, bool isFemale, int addonIdx) {
-  if (addonIdx < 0 || addonIdx >= Base::GetAddonCount(isFemale, false)) return false;
-  return Base::GetAddonStatus(isFemale, static_cast<size_t>(addonIdx));
+  if (addonIdx < 0 || addonIdx >= base->GetAddonCount(isFemale, false)) return false;
+  return base->GetAddonStatus(isFemale, static_cast<size_t>(addonIdx));
 }
 
 void Papyrus::SetAddonStatus(RE::StaticFunctionTag*, bool isFemale, int addonIdx, bool status) {
-  if (addonIdx < 0 || addonIdx >= Base::GetAddonCount(isFemale, false)) return;
-  Core::SetAddonStatus(isFemale, addonIdx, status);
+  if (addonIdx < 0 || addonIdx >= base->GetAddonCount(isFemale, false)) return;
+  core->SetAddonStatus(isFemale, addonIdx, status);
 }
 
-std::vector<std::string> Papyrus::GetRgNames(RE::StaticFunctionTag*) { return Base::GetRgNames(true); }
+std::vector<std::string> Papyrus::GetRgNames(RE::StaticFunctionTag*) { return base->GetRgNames(true); }
 
-std::string Papyrus::GetRgInfo(RE::StaticFunctionTag*, int rgIdx) { return Base::GetRgInfo(rgIdx, true); };
+std::string Papyrus::GetRgInfo(RE::StaticFunctionTag*, int rgIdx) { return base->GetRgInfo(rgIdx, true); };
 
 std::vector<std::string> Papyrus::GetRgAddons(RE::StaticFunctionTag*, int rgIdx) {
   std::vector<std::string> res{};
   if (rgIdx < 0) return res;
-  auto list = Base::GetRgAddonList(static_cast<size_t>(rgIdx), false, true, false);
+  auto list = base->GetRgAddonList(static_cast<size_t>(rgIdx), false, true, false);
   res.push_back("$TNG_TRS");
   res.push_back("$TNG_TNT");
   for (auto i : list) {
-    auto isDed = Base::IsAddonDedicatedToRg(rgIdx, false, true, i);
-    std::string name = Base::AddonByIdx(false, i, false)->GetName();
+    auto isDed = base->IsAddonDedicatedToRg(rgIdx, false, true, i);
+    std::string name = base->AddonByIdx(false, i, false)->GetName();
     switch (isDed) {
       case Tng::resOkMain:
         break;
@@ -103,9 +105,9 @@ std::vector<std::string> Papyrus::GetRgAddons(RE::StaticFunctionTag*, int rgIdx)
 
 int Papyrus::GetRgAddon(RE::StaticFunctionTag*, int rgIdx) {
   if (rgIdx < 0) return Tng::pgErr;
-  auto rgAddon = Base::GetRgAddon(static_cast<size_t>(rgIdx), true);
+  auto rgAddon = base->GetRgAddon(static_cast<size_t>(rgIdx), true);
   if (rgAddon < 0) return rgAddon == Tng::cDef ? 0 : rgAddon;
-  auto list = Base::GetRgAddonList(static_cast<size_t>(rgIdx), false, true, false);
+  auto list = base->GetRgAddonList(static_cast<size_t>(rgIdx), false, true, false);
   auto it = std::find(list.begin(), list.end(), rgAddon);
   return static_cast<int>(it != list.end() ? std::distance(list.begin(), it) : Tng::rgErr);
 }
@@ -113,21 +115,21 @@ int Papyrus::GetRgAddon(RE::StaticFunctionTag*, int rgIdx) {
 void Papyrus::SetRgAddon(RE::StaticFunctionTag*, int rgIdx, int choice) {
   if (rgIdx < 0) return;
   if (choice < Tng::cDef) return;
-  auto list = Base::GetRgAddonList(static_cast<size_t>(rgIdx), false, true, false);
+  auto list = base->GetRgAddonList(static_cast<size_t>(rgIdx), false, true, false);
   int addnIdx = choice < 0 ? choice : static_cast<int>(list[choice]);
-  Core::SetRgAddon(static_cast<size_t>(rgIdx), addnIdx, true);
+  core->SetRgAddon(static_cast<size_t>(rgIdx), addnIdx, true);
 }
 
 float Papyrus::GetRgMult(RE::StaticFunctionTag*, int rgIdx) {
   if (rgIdx < 0) return -1.0f;
-  return Base::GetRgMult(static_cast<size_t>(rgIdx), true);
+  return base->GetRgMult(static_cast<size_t>(rgIdx), true);
 }
 
-void Papyrus::SetRgMult(RE::StaticFunctionTag*, int rgIdx, float mult) { Core::SetRgMult(static_cast<size_t>(rgIdx), mult, true); }
+void Papyrus::SetRgMult(RE::StaticFunctionTag*, int rgIdx, float mult) { core->SetRgMult(static_cast<size_t>(rgIdx), mult, true); }
 
 int Papyrus::CanModifyActor(RE::StaticFunctionTag*, RE::Actor* actor) {
   auto npc = actor ? actor->GetActorBase() : nullptr;
-  auto res = Core::CanModifyNPC(npc);
+  auto res = core->CanModifyNPC(npc);
   switch (res) {
     case Tng::resOkRaceP:
       return Tng::resOkSizable;
@@ -144,13 +146,13 @@ std::vector<std::string> Papyrus::GetActorAddons(RE::StaticFunctionTag*, RE::Act
   std::vector<std::string> res{};
   const auto npc = actor ? actor->GetActorBase() : nullptr;
   if (!npc || !npc->race) return res;
-  auto list = Base::GetRgAddonList(npc->race, npc->IsFemale(), false);
-  auto rgIdx = Base::GetRaceRgIdx(npc->race);
+  auto list = base->GetRgAddonList(npc->race, npc->IsFemale(), false);
+  auto rgIdx = base->GetRaceRgIdx(npc->race);
   res.push_back("$TNG_TRS");
   res.push_back("$TNG_TNT");
   for (auto i : list) {
-    auto isDed = Base::IsAddonDedicatedToRg(rgIdx, npc->IsFemale(), false, i);
-    std::string name = Base::AddonByIdx(npc->IsFemale(), i, false)->GetName();
+    auto isDed = base->IsAddonDedicatedToRg(rgIdx, npc->IsFemale(), false, i);
+    std::string name = base->AddonByIdx(npc->IsFemale(), i, false)->GetName();
     switch (isDed) {
       case Tng::resOkMain:
         break;
@@ -172,7 +174,7 @@ std::vector<std::string> Papyrus::GetActorAddons(RE::StaticFunctionTag*, RE::Act
 RE::TESObjectARMO* Papyrus::GetActorAddon(RE::StaticFunctionTag*, RE::Actor* actor) {
   auto npc = actor ? actor->GetActorBase() : nullptr;
   if (!npc) return nullptr;
-  auto addnPair = Base::GetNPCAddon(npc);
+  auto addnPair = base->GetNPCAddon(npc);
   switch (addnPair.first) {
     case Tng::pgErr:
       return nullptr;
@@ -180,7 +182,7 @@ RE::TESObjectARMO* Papyrus::GetActorAddon(RE::StaticFunctionTag*, RE::Actor* act
       if (npc->IsFemale()) {
         return nullptr;
       } else {
-        auto rgAddon = Base::GetRgAddon(npc->race);
+        auto rgAddon = base->GetRgAddon(npc->race);
         switch (rgAddon) {
           case Tng::pgErr:
             return nullptr;
@@ -189,13 +191,13 @@ RE::TESObjectARMO* Papyrus::GetActorAddon(RE::StaticFunctionTag*, RE::Actor* act
           case Tng::cDef:
             return nullptr;
           default:
-            return Base::AddonByIdx(false, static_cast<size_t>(rgAddon), false);
+            return base->AddonByIdx(false, static_cast<size_t>(rgAddon), false);
         }
       }
     case Tng::cNul:
       return nullptr;
     default:
-      return Base::AddonByIdx(npc->IsFemale(), static_cast<size_t>(addnPair.first), false);
+      return base->AddonByIdx(npc->IsFemale(), static_cast<size_t>(addnPair.first), false);
   }
 }
 
@@ -203,34 +205,34 @@ int Papyrus::SetActorAddon(RE::StaticFunctionTag*, RE::Actor* actor, int choice)
   const auto npc = actor ? actor->GetActorBase() : nullptr;
   if (!npc) return Tng::npcErr;
   if (!npc->race) return Tng::raceErr;
-  auto list = Base::GetRgAddonList(npc->race, npc->IsFemale(), false);
+  auto list = base->GetRgAddonList(npc->race, npc->IsFemale(), false);
   int addnIdx = choice < 0 ? choice : static_cast<int>(list[choice]);
-  if (npc->race->HasKeyword(Tng::Key(Tng::kyPreProcessed)) && !Base::ReevaluateRace(npc->race, actor)) return Tng::raceErr;
-  if (actor->IsPlayerRef()) Base::SetPlayerInfo(actor, choice);
-  auto res = Core::SetNPCAddon(npc, addnIdx, true);
-  if (res >= 0) Events::DoChecks(actor);
+  if (npc->race->HasKeyword(Tng::Key(Tng::kyPreProcessed)) && !base->ReevaluateRace(npc->race, actor)) return Tng::raceErr;
+  if (actor->IsPlayerRef()) base->SetPlayerInfo(actor, choice);
+  auto res = core->SetNPCAddon(npc, addnIdx, true);
+  if (res >= 0) events->DoChecks(actor);
   return res;
 }
 
 int Papyrus::GetActorSize(RE::StaticFunctionTag*, RE::Actor* actor) {
   int sizeCat = Tng::cNA;
-  return Base::GetActorSizeCat(actor, sizeCat) < 0 ? Tng::cNul : sizeCat;
+  return base->GetActorSizeCat(actor, sizeCat) < 0 ? Tng::cNul : sizeCat;
 }
 
-int Papyrus::SetActorSize(RE::StaticFunctionTag*, RE::Actor* actor, int genSize) { return Core::SetActorSize(actor, genSize); }
+int Papyrus::SetActorSize(RE::StaticFunctionTag*, RE::Actor* actor, int genSize) { return core->SetActorSize(actor, genSize); }
 
 std::vector<std::string> Papyrus::ActorItemsInfo(RE::StaticFunctionTag*, RE::Actor* actor) {
   std::vector<std::string> res{};
-  auto wornArmor = Core::GetActorWornArmor(actor);
+  auto wornArmor = core->GetActorWornArmor(actor);
   for (auto& armor : wornArmor) res.push_back(armor->GetName());
   return res;
 }
 
 bool Papyrus::SwapRevealing(RE::StaticFunctionTag*, RE::Actor* actor, int choice) {
-  auto wornArmor = Core::GetActorWornArmor(actor);
+  auto wornArmor = core->GetActorWornArmor(actor);
   if (choice < 0 || choice > wornArmor.size()) return false;
-  auto res = Core::SwapRevealing(actor, wornArmor[choice]);
-  Events::DoChecks(actor);
+  auto res = core->SwapRevealing(actor, wornArmor[choice]);
+  events->DoChecks(actor);
   return res;
 }
 
@@ -244,11 +246,11 @@ std::vector<RE::Actor*> Papyrus::CheckActors(RE::StaticFunctionTag*) {
       tot++;
       auto actor = ref->As<RE::Actor>();
       auto npc = actor ? actor->GetActorBase() : nullptr;
-      if (!npc || Core::CanModifyNPC(npc) != Tng::resOkRaceP) return RE::BSContainer::ForEachResult::kContinue;
+      if (!npc || core->CanModifyNPC(npc) != Tng::resOkRaceP) return RE::BSContainer::ForEachResult::kContinue;
       if (npc->HasKeyword(Tng::Key(Tng::kyProcessed))) return RE::BSContainer::ForEachResult::kContinue;
-      auto addnPair = Events::GetNPCAutoAddon(npc);
-      Core::SetNPCAddon(npc, addnPair.first, addnPair.second, false);
-      Events::DoChecks(actor);
+      auto addnPair = events->GetNPCAutoAddon(npc);
+      core->SetNPCAddon(npc, addnPair.first, addnPair.second, false);
+      events->DoChecks(actor);
       if (actor->GetSkin()->HasKeyword(Tng::Key(Tng::kyTngSkin))) {
         SKSE::log::debug("\tFixed [0x{:x}:{}] with addon [{}].", actor->GetFormID(), npc->GetName(), addnPair.first);
         res.push_back(actor);
@@ -260,18 +262,18 @@ std::vector<RE::Actor*> Papyrus::CheckActors(RE::StaticFunctionTag*) {
   return res;
 }
 
-std::vector<std::string> Papyrus::GetSlot52Mods(RE::StaticFunctionTag*) { return Inis::Slot52Mods(); }
+std::vector<std::string> Papyrus::GetSlot52Mods(RE::StaticFunctionTag*) { return inis->Slot52Mods(); }
 
-bool Papyrus::Slot52ModBehavior(RE::StaticFunctionTag*, std::string modName, int behavior) { return Inis::Slot52ModBehavior(modName, behavior); }
+bool Papyrus::Slot52ModBehavior(RE::StaticFunctionTag*, std::string modName, int behavior) { return inis->Slot52ModBehavior(modName, behavior); }
 
 void Papyrus::UpdateSettings(RE::StaticFunctionTag*) {
-  Inis::SaveGlobals();
-  Core::RevisitRevealingArmor();
+  inis->SaveGlobals();
+  core->RevisitRevealingArmor();
 }
 
 int Papyrus::UpdateLogLvl(RE::StaticFunctionTag*, int logLevel) {
-  Inis::SetLogLvl(logLevel < 0 ? logLevel : logLevel + spdlog::level::debug);
-  return int(Inis::GetLogLvl()) - int(spdlog::level::debug);
+  inis->SetLogLvl(logLevel < 0 ? logLevel : logLevel + spdlog::level::debug);
+  return int(inis->GetLogLvl()) - int(spdlog::level::debug);
 }
 
 std::string Papyrus::ShowLogLocation(RE::StaticFunctionTag*) {
@@ -309,28 +311,28 @@ std::string Papyrus::WhyProblem(RE::StaticFunctionTag* tag, RE::Actor* actor, in
   auto npc = actor ? actor->GetActorBase() : nullptr;
   if (!npc) return "$TNG_PD9";
   auto down = actor->GetWornArmor(Tng::cSlotGenital);
-  auto cover = Events::GetCoveringItem(actor, nullptr);
+  auto cover = events->GetCoveringItem(actor, nullptr);
   switch (issueID) {
     case iidCanSee:
       if (!cover) return "$TNG_PA1";
       if (down) return FormToLocView(down) == Tng::cCover ? "$TNG_PD0" : "$TNG_PA2";
       return WhyProblem(tag, actor, iidCanSeeRep);
     case iidCanSeeRep:
-      Events::DoChecks(actor);
+      events->DoChecks(actor);
       return actor->GetWornArmor(Tng::cSlotGenital) ? "$TNG_PD1" : "$TNG_PD2";
     case iidCannotSee:
       auto skin = npc->skin ? npc->skin : npc->race->skin;
       if (cover) return "$TNG_PA6";
       if (down && FormToLocView(down) != Tng::cCover) return "$TNG_PA2";
       if (!down) {
-        auto res = Core::CanModifyNPC(npc);
+        auto res = core->CanModifyNPC(npc);
         switch (res) {
           case Tng::resOkRaceP:
             break;
           case Tng::resOkRaceR:
             return GetErrDscr(tag, Tng::raceErr).c_str();
           case Tng::resOkRacePP:
-            if (!Base::ReevaluateRace(npc->race, actor)) {
+            if (!base->ReevaluateRace(npc->race, actor)) {
               return GetErrDscr(tag, Tng::raceErr).c_str();
             }
           default:
@@ -339,9 +341,9 @@ std::string Papyrus::WhyProblem(RE::StaticFunctionTag* tag, RE::Actor* actor, in
         if (skin->HasKeyword(Tng::Key(Tng::kyTngSkin))) return "$TNG_PD0";
         if (npc->HasKeyword(Tng::Key(Tng::kyExcluded))) return "$TNG_PA3";
         if (npc->IsFemale() && static_cast<size_t>(std::floor(Tng::WRndGlb()->value + 0.1)) < 100) return "$TNG_PA4";
-        if (Base::GetRgAddon(npc->race) == Tng::cNul) return "$TNG_PA5";
+        if (base->GetRgAddon(npc->race) == Tng::cNul) return "$TNG_PA5";
       }
-      Events::DoChecks(actor);
+      events->DoChecks(actor);
       return !actor->GetWornArmor(Tng::cSlotGenital) && skin->HasKeyword(Tng::Key(Tng::kyTngSkin)) ? "$TNG_PD1" : "$TNG_PD2";
   }
   return "";

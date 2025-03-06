@@ -1,5 +1,7 @@
 #include <Base.h>
 
+Base *base = Base::GetSingleton();
+
 void Base::Init() {
   rgInfoList.emplace_back();
   auto &rg0 = rgInfoList[0];
@@ -580,7 +582,8 @@ void Base::UnsetPlayerInfo() { playerInfo.isInfoSet = false; }
 bool Base::HasPlayerChanged(RE::Actor *actor) {
   const auto npc = actor ? actor->GetActorBase() : nullptr;
   if (!npc) return false;
-  return playerInfo.isInfoSet && npc->skin && npc->skin != npc->race->skin && (playerInfo.race != npc->race || !Tng::PCAddon() || Tng::PCAddon()->value >= Base::GetAddonCount(npc->IsFemale(), false));
+  return playerInfo.isInfoSet && npc->skin && npc->skin != npc->race->skin &&
+         (playerInfo.race != npc->race || !Tng::PCAddon() || Tng::PCAddon()->value >= Base::GetAddonCount(npc->IsFemale(), false));
 }
 
 bool Base::GetBoolSetting(const size_t idx) {

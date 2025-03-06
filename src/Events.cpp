@@ -1,6 +1,9 @@
 #include <Base.h>
 #include <Core.h>
 #include <Events.h>
+#include <Inis.h>
+
+Events* events = Events::GetSingleton();
 
 void Events::RegisterEvents() {
   coverKeys.clear();
@@ -21,10 +24,11 @@ RE::BSEventNotifyControl Events::ProcessEvent(const RE::TESEquipEvent* event, RE
   const auto actor = event->actor ? event->actor->As<RE::Actor>() : nullptr;
   auto npc = actor ? actor->GetActorBase() : nullptr;
   auto armor = RE::TESForm::LookupByID<RE::TESObjectARMO>(event->baseObject);
-  if (Core::CanModifyNPC(npc) < 0 || !armor || !armor->HasKeywordInArray(coverKeys, false)) return RE::BSEventNotifyControl::kContinue;
-  if (npc->race->HasKeyword(Tng::Key(Tng::kyPreProcessed)) && !Base::ReevaluateRace(npc->race, actor)) return RE::BSEventNotifyControl::kContinue;
+  if (core->CanModifyNPC(npc) < 0 || !armor || !armor->HasKeywordInArray(coverKeys, false)) return RE::BSEventNotifyControl::kContinue;
+  if (npc->race->HasKeyword(Tng::Key(Tng::kyPreProcessed)) && !base->ReevaluateRace(npc->race, actor)) return RE::BSEventNotifyControl::kContinue;
   if (FormToLocView(armor) == Tng::cCover) return RE::BSEventNotifyControl::kContinue;
-  if (armor->HasKeyword(Tng::Key(Tng::kyCovering)) || (armor->HasKeyword(Tng::Key(Tng::kyRevealingF)) && !npc->IsFemale()) || (armor->HasKeyword(Tng::Key(Tng::kyRevealingM)) && npc->IsFemale()))
+  if (armor->HasKeyword(Tng::Key(Tng::kyCovering)) || (armor->HasKeyword(Tng::Key(Tng::kyRevealingF)) && !npc->IsFemale()) ||
+      (armor->HasKeyword(Tng::Key(Tng::kyRevealingM)) && npc->IsFemale()))
     DoChecks(actor, armor, event->equipped);
   return RE::BSEventNotifyControl::kContinue;
 }
@@ -34,10 +38,10 @@ RE::BSEventNotifyControl Events::ProcessEvent(const RE::TESObjectLoadedEvent* ev
   const auto actor = RE::TESForm::LookupByID<RE::Actor>(event->formID);
   const auto npc = actor ? actor->GetActorBase() : nullptr;
   if (!npc) return RE::BSEventNotifyControl::kContinue;
-  if (Core::CanModifyNPC(npc) < 0) return RE::BSEventNotifyControl::kContinue;
-  if (npc->race->HasKeyword(Tng::Key(Tng::kyPreProcessed)) && !Base::ReevaluateRace(npc->race, actor)) return RE::BSEventNotifyControl::kContinue;
-  if (actor->IsPlayerRef() && Base::HasPlayerChanged(actor)) {
-    Base::SetPlayerInfo(actor, Tng::cDef);
+  if (core->CanModifyNPC(npc) < 0) return RE::BSEventNotifyControl::kContinue;
+  if (npc->race->HasKeyword(Tng::Key(Tng::kyPreProcessed)) && !base->ReevaluateRace(npc->race, actor)) return RE::BSEventNotifyControl::kContinue;
+  if (actor->IsPlayerRef() && base->HasPlayerChanged(actor)) {
+    base->SetPlayerInfo(actor, Tng::cDef);
   }
   DoChecks(actor);
   return RE::BSEventNotifyControl::kContinue;
@@ -47,7 +51,7 @@ RE::BSEventNotifyControl Events::ProcessEvent(const RE::TESSwitchRaceCompleteEve
   auto actor = event->subject.get()->As<RE::Actor>();
   auto npc = actor ? actor->GetActorBase() : nullptr;
   if (!actor || !npc || !npc->skin) return RE::BSEventNotifyControl::kContinue;
-  if (npc->race->HasKeyword(Tng::Key(Tng::kyPreProcessed)) && !Base::ReevaluateRace(npc->race, actor)) return RE::BSEventNotifyControl::kContinue;
+  if (npc->race->HasKeyword(Tng::Key(Tng::kyPreProcessed)) && !base->ReevaluateRace(npc->race, actor)) return RE::BSEventNotifyControl::kContinue;
   if (npc->skin->HasKeyword(Tng::Key(Tng::kyTngSkin)) && !npc->race->HasKeyword(Tng::Key(Tng::kyProcessed))) {
     oldSkins.insert_or_assign(npc->GetFormID(), npc->skin);
     npc->skin = nullptr;
@@ -103,7 +107,9 @@ RE::TESObjectARMO* Events::GetCoveringItem(RE::Actor* actor, RE::TESObjectARMO* 
     const auto& [count, entry] = invData;
     if (count > 0 && entry && entry->IsWorn() && item != armor) {
       auto res = item->As<RE::TESObjectARMO>();
-      if (res->HasKeyword(Tng::Key(Tng::kyCovering)) || (res->HasKeyword(Tng::Key(Tng::kyRevealingF)) && !npc->IsFemale()) || (res->HasKeyword(Tng::Key(Tng::kyRevealingM)) && npc->IsFemale())) return res;
+      if (res->HasKeyword(Tng::Key(Tng::kyCovering)) || (res->HasKeyword(Tng::Key(Tng::kyRevealingF)) && !npc->IsFemale()) ||
+          (res->HasKeyword(Tng::Key(Tng::kyRevealingM)) && npc->IsFemale()))
+        return res;
     }
   }
   return nullptr;
@@ -111,9 +117,9 @@ RE::TESObjectARMO* Events::GetCoveringItem(RE::Actor* actor, RE::TESObjectARMO* 
 
 bool Events::NeedsCover(RE::Actor* actor) {
   const auto npc = actor ? actor->GetActorBase() : nullptr;
-  if (Base::CanModifyNPC(npc) < 0) return false;
+  if (base->CanModifyNPC(npc) < 0) return false;
   if (npc->IsFemale()) {
-    return npc->HasKeyword(Tng::Key(Tng::kyGentlewoman)) || (Base::GetNPCAddon(npc).first >= 0);
+    return npc->HasKeyword(Tng::Key(Tng::kyGentlewoman)) || (base->GetNPCAddon(npc).first >= 0);
   } else {
     return (!npc->HasKeyword(Tng::Key(Tng::kyExcluded)));
   }
@@ -145,7 +151,7 @@ void Events::CheckForAddons(RE::Actor* actor) {
   const auto npc = actor ? actor->GetActorBase() : nullptr;
   if (!npc) return;
   npc->AddKeyword(Tng::Key(Tng::kyProcessed));
-  if (!npc->IsPlayer() || !Base::GetBoolSetting(Tng::bsExcludePlayerSize)) Core::SetActorSize(actor, Tng::cNul);
+  if (!npc->IsPlayer() || !base->GetBoolSetting(Tng::bsExcludePlayerSize)) core->SetActorSize(actor, Tng::cNul);
   auto addnPair = GetNPCAutoAddon(npc);
   if (addnPair.first == Tng::pgErr) {
     SKSE::log::critical("Faced an issue retrieving information for {}!", npc->GetName());
@@ -162,9 +168,10 @@ void Events::CheckForAddons(RE::Actor* actor) {
       requiresUpdate = true;
       break;
     case Tng::cDef:
-      if (Base::GetRgAddon(npc->race) < 0) break;
+      if (base->GetRgAddon(npc->race) < 0) break;
       if (npc->IsFemale()) {
-        if ((addnPair.first < 0 && npc->skin && npc->skin->HasKeyword(Tng::Key(Tng::kyTngSkin))) || (addnPair.first >= 0 && (!npc->skin || !npc->skin->HasKeyword(Tng::Key(Tng::kyTngSkin)))))
+        if ((addnPair.first < 0 && npc->skin && npc->skin->HasKeyword(Tng::Key(Tng::kyTngSkin))) ||
+            (addnPair.first >= 0 && (!npc->skin || !npc->skin->HasKeyword(Tng::Key(Tng::kyTngSkin)))))
           requiresUpdate = true;
       } else {
         if (addnPair.first < 0 && (!npc->skin || npc->skin->HasKeyword(Tng::Key(Tng::kyTngSkin)))) break;
@@ -177,7 +184,7 @@ void Events::CheckForAddons(RE::Actor* actor) {
       break;
   }
   if (requiresUpdate) {
-    Core::SetNPCAddon(npc, addnPair.first, addnPair.second, false);
+    core->SetNPCAddon(npc, addnPair.first, addnPair.second, false);
   }
   if (npc->IsFemale()) {
     if (npc->HasKeyword(Tng::Key(Tng::kyGentlewoman)) && !Tng::TngFml(Tng::flmGentleWomen)->HasForm(actor)) {
@@ -200,11 +207,11 @@ void Events::CheckForAddons(RE::Actor* actor) {
 }
 
 std::pair<int, bool> Events::GetNPCAutoAddon(RE::TESNPC* npc) {
-  auto res = Base::GetNPCAddon(npc);
+  auto res = base->GetNPCAddon(npc);
   if (res.first != Tng::cDef) return res;
-  auto list = Base::GetRgAddonList(npc->race, npc->IsFemale(), true);
+  auto list = base->GetRgAddonList(npc->race, npc->IsFemale(), true);
   const auto count = list.size();
-  const auto malChance = Base::GetBoolSetting(Tng::bsRandomizeMaleAddon) ? Tng::cMalRandomPriority : 0;
+  const auto malChance = base->GetBoolSetting(Tng::bsRandomizeMaleAddon) ? Tng::cMalRandomPriority : 0;
   const size_t chance = npc->IsFemale() ? static_cast<size_t>(std::floor(Tng::WRndGlb()->value + 0.1)) : malChance;
   if (count == 0 || chance == 0) return {Tng::cDef, false};
   auto addon = npc->GetFormID() % 100 < chance ? static_cast<int>(list[npc->GetFormID() % count]) : Tng::cDef;

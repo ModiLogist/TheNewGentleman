@@ -1,8 +1,11 @@
 #pragma once
 
-class Events : public RE::BSTEventSink<RE::TESObjectLoadedEvent>, public RE::BSTEventSink<RE::TESEquipEvent>, public RE::BSTEventSink<RE::TESSwitchRaceCompleteEvent> {
+class Events : public Singleton<Events>,
+               public RE::BSTEventSink<RE::TESObjectLoadedEvent>,
+               public RE::BSTEventSink<RE::TESEquipEvent>,
+               public RE::BSTEventSink<RE::TESSwitchRaceCompleteEvent> {
   public:
-    static void RegisterEvents();
+    void RegisterEvents();
 
     friend class Papyrus;
 
@@ -12,29 +15,15 @@ class Events : public RE::BSTEventSink<RE::TESObjectLoadedEvent>, public RE::BST
     RE::BSEventNotifyControl ProcessEvent(const RE::TESSwitchRaceCompleteEvent* event, RE::BSTEventSource<RE::TESSwitchRaceCompleteEvent>*) override;
 
   private:
-    static void DoChecks(RE::Actor* actor, RE::TESObjectARMO* armor = nullptr, bool isEquipped = false);
-    static std::pair<int, bool> GetNPCAutoAddon(RE::TESNPC* npc);
-    static void CheckCovering(RE::Actor* actor, RE::TESObjectARMO* armor, bool isEquipped);
-    static RE::TESObjectARMO* GetCoveringItem(RE::Actor* actor, RE::TESObjectARMO* armor);
-    static bool NeedsCover(RE::Actor* actor);
-    static RE::TESBoundObject* ForceTngCover(RE::Actor* actor, bool ifUpdate);
-    static void CheckForAddons(RE::Actor* actor);
+    void DoChecks(RE::Actor* actor, RE::TESObjectARMO* armor = nullptr, bool isEquipped = false);
+    std::pair<int, bool> GetNPCAutoAddon(RE::TESNPC* npc);
+    void CheckCovering(RE::Actor* actor, RE::TESObjectARMO* armor, bool isEquipped);
+    RE::TESObjectARMO* GetCoveringItem(RE::Actor* actor, RE::TESObjectARMO* armor);
+    bool NeedsCover(RE::Actor* actor);
+    RE::TESBoundObject* ForceTngCover(RE::Actor* actor, bool ifUpdate);
+    void CheckForAddons(RE::Actor* actor);
 
-    inline static bool showErrMessage;
-    inline static std::map<RE::FormID, RE::TESObjectARMO*> oldSkins;
-    inline static std::vector<RE::BGSKeyword*> coverKeys;
-
-    Events() = default;
-    Events(const Events&) = delete;
-    Events(Events&&) = delete;
-
-    ~Events() override = default;
-
-    Events& operator=(const Events&) = delete;
-    Events& operator=(Events&&) = delete;
-
-    static Events* GetSingleton() {
-      static Events singleton;
-      return &singleton;
-    }
+    bool showErrMessage;
+    std::map<RE::FormID, RE::TESObjectARMO*> oldSkins;
+    std::vector<RE::BGSKeyword*> coverKeys;
 };

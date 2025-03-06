@@ -1,6 +1,8 @@
 #include <Base.h>
 #include <Inis.h>
 
+Inis *inis = Inis::GetSingleton();
+
 void Inis::LoadTngInis() {
   SKSE::log::info("Loading ini files...");
   if (std::filesystem::exists(cTngInisPath)) {
@@ -117,13 +119,13 @@ void Inis::LoadMainIni() {
   ini.SetUnicode();
   ini.LoadFile(cSettings);
 
-  for (size_t i = 0; i < Base::GetAddonCount(false, false); i++) {
-    auto addon = Base::AddonByIdx(false, i, false);
-    Base::SetAddonStatus(false, i, ini.GetBoolValue(cActiveMalAddons, FormToStr(addon).c_str(), true));
+  for (size_t i = 0; i < base->GetAddonCount(false, false); i++) {
+    auto addon = base->AddonByIdx(false, i, false);
+    base->SetAddonStatus(false, i, ini.GetBoolValue(cActiveMalAddons, FormToStr(addon).c_str(), true));
   }
-  for (size_t i = 0; i < Base::GetAddonCount(true, false); i++) {
-    auto addon = Base::AddonByIdx(true, i, false);
-    Base::SetAddonStatus(true, i, ini.GetBoolValue(cActiveFemAddons, FormToStr(addon).c_str(), false));
+  for (size_t i = 0; i < base->GetAddonCount(true, false); i++) {
+    auto addon = base->AddonByIdx(true, i, false);
+    base->SetAddonStatus(true, i, ini.GetBoolValue(cActiveFemAddons, FormToStr(addon).c_str(), false));
   }
   SKSE::log::debug("\tRestored all addon status to previous selections");
   ini.GetAllKeys(cRacialAddon, values);
@@ -159,7 +161,7 @@ void Inis::LoadMainIni() {
     auto isExcluded = ini.GetBoolValue(cExcludeNPCSection, entry.pItem);
     const std::string npcRecord(entry.pItem);
     if (isExcluded) {
-      Base::ExcludeNPC(npcRecord);
+      base->ExcludeNPC(npcRecord);
       SKSE::log::debug("\tThe npc [{}] was excluded, since it was excluded by user previously.", npcRecord);
     }
   }
@@ -186,21 +188,22 @@ void Inis::LoadMainIni() {
   }
 
   for (size_t i = 0; i < Tng::BoolSettingCount; i++) {
-    Base::SetBoolSetting(i, ini.GetBoolValue(cGeneral, cBoolSettings[i], cDefBoolSettings[i]));
-    SKSE::log::debug("\tThe boolean setting [{}] was restored to [{}({})].", cBoolSettings[i], Base::GetBoolSetting(i), cDefBoolSettings[i] == Base::GetBoolSetting(i) ? "default" : "user");
+    base->SetBoolSetting(i, ini.GetBoolValue(cGeneral, cBoolSettings[i], cDefBoolSettings[i]));
+    SKSE::log::debug("\tThe boolean setting [{}] was restored to [{}({})].", cBoolSettings[i], base->GetBoolSetting(i),
+                     cDefBoolSettings[i] == base->GetBoolSetting(i) ? "default" : "user");
   }
   if (Tng::SEDH()->LookupModByName("Racial Skin Variance - SPID.esp")) {
-    Base::SetBoolSetting(Tng::bsCheckPlayerAddon, true);
-    Base::SetBoolSetting(Tng::bsCheckNPCsAddons, true);
-    Base::SetBoolSetting(Tng::bsForceRechecks, true);
+    base->SetBoolSetting(Tng::bsCheckPlayerAddon, true);
+    base->SetBoolSetting(Tng::bsCheckNPCsAddons, true);
+    base->SetBoolSetting(Tng::bsForceRechecks, true);
     SKSE::log::info("\tTNG detected Racial Skin Variance and would force the player and NPCs to be reloaded");
   }
   if (!Tng::SEDH()->LookupModByName("UIExtensions.esp")) {
-    Base::SetBoolSetting(Tng::bsUIExtensions, false);
+    base->SetBoolSetting(Tng::bsUIExtensions, false);
     SKSE::log::warn("\tTNG could not detected UIExtensions. You may want to check if it is installed.");
   }
 
-  for (size_t i = 0; i < Tng::cSizeCategories; i++) Base::SetGlobalSize(i, static_cast<float>(ini.GetDoubleValue(cGlobalSize, cSizeNames[i], cDefSizes[i])));
+  for (size_t i = 0; i < Tng::cSizeCategories; i++) base->SetGlobalSize(i, static_cast<float>(ini.GetDoubleValue(cGlobalSize, cSizeNames[i], cDefSizes[i])));
   SKSE::log::debug("\tGlobal size settings loaded.");
   if (ini.KeyExists(cGentleWomen, cGentleWomenChance)) {
     if (Tng::WRndGlb()) {
@@ -216,16 +219,18 @@ void Inis::LoadMainIni() {
 
 void Inis::LoadRgInfo() {
   for (auto &rgInfo : racialAddons) {
-    auto rgIdx = Base::GetRaceRgIdx(Tng::SEDH()->LookupForm<RE::TESRace>(rgInfo.first.first, rgInfo.first.second));
-    auto addonIdx = Base::AddonIdxByLoc(false, rgInfo.second);
+    auto rgIdx = base->GetRaceRgIdx(Tng::SEDH()->LookupForm<RE::TESRace>(rgInfo.first.first, rgInfo.first.second));
+    auto addonIdx = base->AddonIdxByLoc(false, rgInfo.second);
     if ((rgIdx < 0) || (addonIdx < 0 && addonIdx != Tng::cNul)) continue;
-    if (Base::SetRgAddon(rgIdx, addonIdx, false))
-      SKSE::log::debug("\tRestored the addon of race [xx{:x}] from file [{}] to addon [xx{:x}] from file [{}]", rgInfo.first.first, rgInfo.first.second, rgInfo.second.first, rgInfo.second.second);
+    if (base->SetRgAddon(rgIdx, addonIdx, false))
+      SKSE::log::debug("\tRestored the addon of race [xx{:x}] from file [{}] to addon [xx{:x}] from file [{}]", rgInfo.first.first, rgInfo.first.second, rgInfo.second.first,
+                       rgInfo.second.second);
   }
   for (auto &rgInfo : racialMults) {
-    auto rgIdx = Base::GetRaceRgIdx(Tng::SEDH()->LookupForm<RE::TESRace>(rgInfo.first.first, rgInfo.first.second));
+    auto rgIdx = base->GetRaceRgIdx(Tng::SEDH()->LookupForm<RE::TESRace>(rgInfo.first.first, rgInfo.first.second));
     if (rgIdx < 0) continue;
-    if (Base::SetRgMult(rgIdx, rgInfo.second, false)) SKSE::log::debug("\tRestored the size multiplier of race [xx{:x}] from file [{}] to [{}]", rgInfo.first.first, rgInfo.first.second, rgInfo.second);
+    if (base->SetRgMult(rgIdx, rgInfo.second, false))
+      SKSE::log::debug("\tRestored the size multiplier of race [xx{:x}] from file [{}] to [{}]", rgInfo.first.first, rgInfo.first.second, rgInfo.second);
   }
   racialAddons.clear();
   racialMults.clear();
@@ -235,10 +240,11 @@ void Inis::LoadNpcInfo() {
   for (auto &npcInfo : npcAddons) {
     auto npc = Tng::SEDH()->LookupForm<RE::TESNPC>(npcInfo.first.first, npcInfo.first.second);
     if (!npc) continue;
-    auto addonIdx = Base::AddonIdxByLoc(npc->IsFemale(), npcInfo.second);
+    auto addonIdx = base->AddonIdxByLoc(npc->IsFemale(), npcInfo.second);
     if (addonIdx < 0 && addonIdx != Tng::cNul) continue;
-    if (Base::SetNPCAddon(npc, addonIdx, true) >= 0)
-      SKSE::log::debug("\tRestored the addon of npc [xx{:x}] from file [{}] to addon [xx{:x}] from file [{}]", npcInfo.first.first, npcInfo.first.second, npcInfo.second.first, npcInfo.second.second);
+    if (base->SetNPCAddon(npc, addonIdx, true) >= 0)
+      SKSE::log::debug("\tRestored the addon of npc [xx{:x}] from file [{}] to addon [xx{:x}] from file [{}]", npcInfo.first.first, npcInfo.first.second, npcInfo.second.first,
+                       npcInfo.second.second);
   }
   for (auto &npcInfo : npcSizeCats) {
     auto npc = Tng::SEDH()->LookupForm<RE::TESNPC>(npcInfo.first.first, npcInfo.first.second);
@@ -291,12 +297,13 @@ void Inis::SetLogLvl(int logLevel) {
 }
 
 void Inis::SetAddonStatus(const bool isFemale, const int addnIdx, const bool status) {
-  auto addonStr = FormToStr(Base::AddonByIdx(isFemale, addnIdx, false));
+  auto addonStr = FormToStr(base->AddonByIdx(isFemale, addnIdx, false));
   if (addonStr.empty()) return;
   CSimpleIniA ini;
   ini.SetUnicode();
   ini.LoadFile(cSettings);
-  status == isFemale ? ini.SetBoolValue(isFemale ? cActiveFemAddons : cActiveMalAddons, addonStr.c_str(), status) : ini.Delete(isFemale ? cActiveFemAddons : cActiveMalAddons, addonStr.c_str(), true);
+  status == isFemale ? ini.SetBoolValue(isFemale ? cActiveFemAddons : cActiveMalAddons, addonStr.c_str(), status)
+                     : ini.Delete(isFemale ? cActiveFemAddons : cActiveMalAddons, addonStr.c_str(), true);
   ini.SaveFile(cSettings);
 }
 
@@ -304,7 +311,7 @@ void Inis::SetRgMult(const size_t rg, const float mult) {
   CSimpleIniA ini;
   ini.SetUnicode();
   ini.LoadFile(cSettings);
-  auto race = Base::GetRgRace0(rg, true);
+  auto race = base->GetRgRace0(rg, true);
   auto raceRecord = FormToStr(race);
   if (raceRecord.empty()) {
     SKSE::log::critical("Failed to save the size multiplier for race [0x{:x}: {}]!", race->GetFormID(), race->GetFormEditorID());
@@ -322,7 +329,7 @@ void Inis::SaveRgAddon(const size_t rg, const int choice) {
   CSimpleIniA ini;
   ini.SetUnicode();
   ini.LoadFile(cSettings);
-  auto race = Base::GetRgRace0(rg, true);
+  auto race = base->GetRgRace0(rg, true);
   auto raceRecord = FormToStr(race);
   if (raceRecord == "") {
     if (race) {
@@ -340,7 +347,7 @@ void Inis::SaveRgAddon(const size_t rg, const int choice) {
       ini.SetValue(cRacialAddon, raceRecord.c_str(), Tng::cNulStr.c_str());
       break;
     default:
-      auto addon = Base::AddonByIdx(false, choice, false);
+      auto addon = base->AddonByIdx(false, choice, false);
       auto addonRecord = FormToStr(addon);
       if (addonRecord == "") {
         if (addon) {
@@ -373,7 +380,7 @@ void Inis::SaveNPCAddon(RE::TESNPC *npc, const int choice) {
       ini.SetBoolValue(cExcludeNPCSection, npcRecord.c_str(), true);
       break;
     default:
-      auto addon = Base::AddonByIdx(npc->IsFemale(), choice, false);
+      auto addon = base->AddonByIdx(npc->IsFemale(), choice, false);
       auto addonRecord = FormToStr(addon);
       ini.Delete(cExcludeNPCSection, npcRecord.c_str(), true);
       ini.SetValue(cNPCAddonSection, npcRecord.c_str(), addonRecord.c_str());
@@ -457,7 +464,7 @@ void Inis::SetBoolSetting(Tng::BoolSetting settingID, bool value) {
   } else {
     ini.SetBoolValue(cGeneral, cBoolSettings[settingID], value);
   }
-  Base::SetBoolSetting(settingID, value);
+  base->SetBoolSetting(settingID, value);
   ini.SaveFile(cSettings);
 }
 
@@ -465,7 +472,7 @@ void Inis::SaveGlobals() {
   CSimpleIniA ini;
   ini.SetUnicode();
   ini.LoadFile(cSettings);
-  for (size_t i = 0; i < Tng::cSizeCategories; i++) ini.SetDoubleValue(cGlobalSize, cSizeNames[i], Base::GetGlobalSize(i));
+  for (size_t i = 0; i < Tng::cSizeCategories; i++) ini.SetDoubleValue(cGlobalSize, cSizeNames[i], base->GetGlobalSize(i));
   ini.SetBoolValue(cControls, cCtrlNames[Tng::ctrlDAK], Tng::UserCtrl(Tng::ctrlDAK)->value > 1.0f);
   for (size_t i = 0; i < Tng::UserCtrlsCount; i++) ini.SetLongValue(cControls, cCtrlNames[i], static_cast<int>(Tng::UserCtrl(i)->value));
   ini.SetDoubleValue(cGentleWomen, cGentleWomenChance, Tng::WRndGlb()->value);

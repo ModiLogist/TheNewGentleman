@@ -1,6 +1,16 @@
 #pragma once
 
-class Tng : public Singleton<Tng> {
+class Base;
+class Inis;
+class Core;
+class Events;
+
+extern Base* base;
+extern Inis* inis;
+extern Core* core;
+extern Events* events;
+
+class Tng {
   public:
     inline static constexpr std::string_view cName{"TheNewGentleman.esp"};
     inline static constexpr std::string_view cSkyrim{"Skyrim.esm"};
@@ -86,15 +96,17 @@ class Tng : public Singleton<Tng> {
 
   private:
     inline static constexpr SEFormLocView cRaceIDs[RacesCount]{{0x19, cSkyrim}, {0x13745, cSkyrim}};
-    inline static constexpr SEFormLocView cTngKeyIDs[KeywordsCount] = {{0xFF0, cName}, {0xFF1, cName},     {0xFF2, cName},     {0xFF3, cName},     {0xFF4, cName},    {0xFF6, cName}, {0xFF7, cName},
-                                                                       {0xFF8, cName}, {0xFF9, cName},     {0xFFA, cName},     {0xFFB, cName},     {0xFFC, cName},    {0xFFD, cName}, {0xFFE, cName},
-                                                                       {0xFFF, cName}, {0x13794, cSkyrim}, {0xD61D1, cSkyrim}, {0x13795, cSkyrim}, {0xA82BB, cSkyrim}};
+    inline static constexpr SEFormLocView cTngKeyIDs[KeywordsCount] = {{0xFF0, cName},     {0xFF1, cName},     {0xFF2, cName},     {0xFF3, cName},    {0xFF4, cName},
+                                                                       {0xFF6, cName},     {0xFF7, cName},     {0xFF8, cName},     {0xFF9, cName},    {0xFFA, cName},
+                                                                       {0xFFB, cName},     {0xFFC, cName},     {0xFFD, cName},     {0xFFE, cName},    {0xFFF, cName},
+                                                                       {0x13794, cSkyrim}, {0xD61D1, cSkyrim}, {0x13795, cSkyrim}, {0xA82BB, cSkyrim}};
 
     inline static constexpr SEFormLocView cPCAddon{0xCFF, cName};
     inline static constexpr SEFormLocView cWomenChanceID{0xCA0, cName};
     inline static constexpr RE::FormID cSizeKeyIDs[cSizeCategories]{0xFE1, 0xFE2, 0xFE3, 0xFE4, 0xFE5};
     inline static constexpr RE::FormID cSizeGlbIDs[cSizeCategories]{0xC01, 0xC02, 0xC03, 0xC04, 0xC05};
-    inline static constexpr SEFormLocView cUserCtrlIDs[UserCtrlsCount] = {{0xC00, Tng::cName}, {0xCB0, Tng::cName}, {0xCB1, Tng::cName}, {0xCB2, Tng::cName}, {0xCB3, Tng::cName}, {0xCB4, Tng::cName}};
+    inline static constexpr SEFormLocView cUserCtrlIDs[UserCtrlsCount] = {{0xC00, Tng::cName}, {0xCB0, Tng::cName}, {0xCB1, Tng::cName},
+                                                                          {0xCB2, Tng::cName}, {0xCB3, Tng::cName}, {0xCB4, Tng::cName}};
 
     inline static constexpr SEFormLocView cTngFormListIds[TngFormListsCount] = {{0xE00, cName}, {0xE01, cName}};
 

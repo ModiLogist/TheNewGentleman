@@ -3,7 +3,7 @@
 class Inis : public Singleton<Inis> {
     // User Inis
   public:
-    static void LoadTngInis();
+    void LoadTngInis();
 
   private:
     inline static constexpr const char* cExcludeSection{"Exclusions"};
@@ -24,30 +24,30 @@ class Inis : public Singleton<Inis> {
     inline static constexpr const char* cFemRevRecord{"FemaleRevealingRecord"};
     inline static constexpr const char* cMalRevRecord{"MaleRevealingRecord"};
 
-    inline static std::set<std::string> excludedRaceMods;
-    inline static std::set<SEFormLoc> excludedRaces;
+    std::set<std::string> excludedRaceMods;
+    std::set<SEFormLoc> excludedRaces;
 
-    inline static std::set<SEFormLoc> excludedNPCs;
+    std::set<SEFormLoc> excludedNPCs;
 
-    inline static std::set<std::string> skinMods;
-    inline static std::set<SEFormLoc> skinRecords;
+    std::set<std::string> skinMods;
+    std::set<SEFormLoc> skinRecords;
 
-    inline static std::set<std::string> revealingMods;
-    inline static std::set<std::string> femRevMods;
-    inline static std::set<std::string> malRevMods;
-    inline static std::set<SEFormLoc> coveringRecords;
-    inline static std::set<SEFormLoc> revealingRecords;
-    inline static std::set<SEFormLoc> femRevRecords;
-    inline static std::set<SEFormLoc> malRevRecords;
+    std::set<std::string> revealingMods;
+    std::set<std::string> femRevMods;
+    std::set<std::string> malRevMods;
+    std::set<SEFormLoc> coveringRecords;
+    std::set<SEFormLoc> revealingRecords;
+    std::set<SEFormLoc> femRevRecords;
+    std::set<SEFormLoc> malRevRecords;
 
-    static void LoadSingleIni(const char* path, const std::string_view fileName);
+    void LoadSingleIni(const char* path, const std::string_view fileName);
 
   public:
-    static void LoadMainIni();
-    static void LoadRgInfo();
-    static void LoadNpcInfo();
+    void LoadMainIni();
+    void LoadRgInfo();
+    void LoadNpcInfo();
 
-    static void CleanIniLists();
+    void CleanIniLists();
 
   private:
     inline static constexpr int cCurrVersion = 4;
@@ -61,8 +61,9 @@ class Inis : public Singleton<Inis> {
 
     inline static constexpr const char* cGeneral{"General"};
     inline static constexpr const char* cLogLvl{"LoggingLevel"};
-    inline static constexpr const char* cBoolSettings[Tng::BoolSettingCount]{"ExcludePlayerSize",  "CheckPlayerRegularly", "CheckNPCsAfterLoad", "ForceChecks", "Slot52ModsAreRevealing",
-                                                                             "Slot52ModsAreMixed", "RandomizeMaleAddons",  "UIExtensions",       "ShowAllRaces"};
+    inline static constexpr const char* cBoolSettings[Tng::BoolSettingCount]{"ExcludePlayerSize",   "CheckPlayerRegularly",   "CheckNPCsAfterLoad",
+                                                                             "ForceChecks",         "Slot52ModsAreRevealing", "Slot52ModsAreMixed",
+                                                                             "RandomizeMaleAddons", "UIExtensions",           "ShowAllRaces"};
     inline static constexpr bool cDefBoolSettings[Tng::BoolSettingCount]{false, false, true, false, false, false, false, true, false};
 
     inline static constexpr const char* cGlobalSize{"GlobalSizes"};
@@ -86,53 +87,53 @@ class Inis : public Singleton<Inis> {
     inline static constexpr const char* cGentleWomen{"GentleWomen"};
     inline static constexpr const char* cGentleWomenChance{"Chance"};
 
-    inline static std::set<std::pair<SEFormLoc, SEFormLoc>> racialAddons;
-    inline static std::set<std::pair<SEFormLoc, float>> racialMults;
+    std::set<std::pair<SEFormLoc, SEFormLoc>> racialAddons;
+    std::set<std::pair<SEFormLoc, float>> racialMults;
 
-    inline static std::set<std::pair<SEFormLoc, SEFormLoc>> npcAddons;
-    inline static std::set<std::pair<SEFormLoc, int>> npcSizeCats;
+    std::set<std::pair<SEFormLoc, SEFormLoc>> npcAddons;
+    std::set<std::pair<SEFormLoc, int>> npcSizeCats;
 
-    inline static std::set<SEFormLoc> runTimeRevealingRecords;
-    inline static std::set<SEFormLoc> runtimeCoveringRecords;
-    inline static std::set<SEFormLoc> runTimeFemRevRecords;
-    inline static std::set<SEFormLoc> runTimeMalRevRecords;
+    std::set<SEFormLoc> runTimeRevealingRecords;
+    std::set<SEFormLoc> runtimeCoveringRecords;
+    std::set<SEFormLoc> runTimeFemRevRecords;
+    std::set<SEFormLoc> runTimeMalRevRecords;
 
   public:
     static spdlog::level::level_enum GetLogLvl();
-    static void SetLogLvl(int logLevel);
-    static void SetAddonStatus(const bool isFemale, const int addnIdx, const bool status);
-    static void SetRgMult(const size_t rg, const float mult);
-    static void SaveRgAddon(const size_t rg, const int choice);
-    static void SaveNPCAddon(RE::TESNPC* npc, const int choice);
-    static void SaveNPCSize(RE::TESNPC* npc, int genSize);
-    static void SaveRevealingArmor(RE::TESObjectARMO* armor, int revMode);
-    static void LoadHotKeys();
-    static void SetBoolSetting(Tng::BoolSetting settingID, bool value);
-    static void SaveGlobals();
-    static std::vector<std::string> Slot52Mods();
-    static bool Slot52ModBehavior(const std::string modName, const int behavior);
+    void SetLogLvl(int logLevel);
+    void SetAddonStatus(const bool isFemale, const int addnIdx, const bool status);
+    void SetRgMult(const size_t rg, const float mult);
+    void SaveRgAddon(const size_t rg, const int choice);
+    void SaveNPCAddon(RE::TESNPC* npc, const int choice);
+    void SaveNPCSize(RE::TESNPC* npc, int genSize);
+    void SaveRevealingArmor(RE::TESObjectARMO* armor, int revMode);
+    void LoadHotKeys();
+    void SetBoolSetting(Tng::BoolSetting settingID, bool value);
+    void SaveGlobals();
+    std::vector<std::string> Slot52Mods();
+    bool Slot52ModBehavior(const std::string modName, const int behavior);
 
   private:
-    static void UpdateIniVersion();
-    static void LoadModRecordPairs(CSimpleIniA::TNamesDepend records, std::set<SEFormLoc>& fieldToFill);
-    static void UpdateRevealing(const std::string armorRecord, const int revealingMode);
+    void UpdateIniVersion();
+    void LoadModRecordPairs(CSimpleIniA::TNamesDepend records, std::set<SEFormLoc>& fieldToFill);
+    void UpdateRevealing(const std::string armorRecord, const int revealingMode);
 
   public:
-    static bool IsRaceExcluded(const RE::TESRace* race);
+    bool IsRaceExcluded(const RE::TESRace* race);
 
-    static bool IsNPCExcluded(const RE::TESNPC* npc);
+    bool IsNPCExcluded(const RE::TESNPC* npc);
 
-    static bool IsSkin(const RE::TESObjectARMO* armor, const std::string modName);
-    static bool IsCovering(const RE::TESObjectARMO* armor, const std::string modName);
-    static int IsRevealing(const RE::TESObjectARMO* armor, const std::string modName);
-    static bool IsRTCovering(const RE::TESObjectARMO* armor, const std::string modName);
-    static int IsRTRevealing(const RE::TESObjectARMO* armor, const std::string modName);
-    static bool IsExtraRevealing(const std::string modName);
+    bool IsSkin(const RE::TESObjectARMO* armor, const std::string modName);
+    bool IsCovering(const RE::TESObjectARMO* armor, const std::string modName);
+    int IsRevealing(const RE::TESObjectARMO* armor, const std::string modName);
+    bool IsRTCovering(const RE::TESObjectARMO* armor, const std::string modName);
+    int IsRTRevealing(const RE::TESObjectARMO* armor, const std::string modName);
+    bool IsExtraRevealing(const std::string modName);
 
-    static bool IsUnhandled(const std::string modName);
-    static void HandleModWithSlot52(const std::string modName, const bool defRevealing);
+    bool IsUnhandled(const std::string modName);
+    void HandleModWithSlot52(const std::string modName, const bool defRevealing);
 
   private:
-    inline static std::set<std::string> slot52Mods;
-    inline static std::set<std::string> extraRevealingMods;
+    std::set<std::string> slot52Mods;
+    std::set<std::string> extraRevealingMods;
 };
