@@ -399,10 +399,8 @@ void Base::UpdateRgAddons(Base::RaceGroupInfo &rg) {
         rg.defAddonIdx = static_cast<int>(i);
         rg.addonIdx = static_cast<int>(i);
       }
-      if (rgAddons[i].first)
-        SKSE::log::debug("\t\tThe addon [0x{:x}] from file [{}] fully supports {} in the race group [{}]!", addon->GetFormID(), addon->GetFile(0)->GetFilename(), gender, rg.name);
-      else
-        SKSE::log::debug("\t\tThe addon [0x{:x}] from file [{}] can be used for {} in the race group [{}]!", addon->GetFormID(), addon->GetFile(0)->GetFilename(), gender, rg.name);
+      SKSE::log::debug("\t\tThe addon [0x{:x}] from file [{}] {} {} in the race group [{}]!", addon->GetFormID(), addon->GetFile(0)->GetFilename(),
+                       rgAddons[i].first ? "fully supports" : "can be used for", gender, rg.name);
     }
   };
 
