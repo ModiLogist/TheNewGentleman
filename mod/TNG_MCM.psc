@@ -1087,7 +1087,7 @@ Function ShowTNGMenu(Actor akActor)
   Bool lbShowSize = True
   If liModifyRes > 0
     String[] lSAddons = TNG_PapyrusUtil.GetActorAddons(akActor)    
-    If lSAddons.Length > 0      
+    If lSAddons.Length > 2
       UIListMenu lkListMenu = UIExtensions.GetMenu("UIListMenu") as UIListMenu
       lkListMenu.ResetMenu()
       lkListMenu.AddEntryItem("$TNG_AST")
@@ -1114,9 +1114,10 @@ Function ShowTNGMenu(Actor akActor)
           akActor.QueueNiNodeUpdate()
         EndIf
       EndIf
+    Else
+      lbShowSize = False
+      Debug.Notification("$TNG_N_4")
     EndIf
-  Else
-    Debug.Notification("$TNG_N_4")
   EndIf    
   If lbShowSize      
     UIListMenu lkSizeMenu = UIExtensions.GetMenu("UIListMenu") as UIListMenu
