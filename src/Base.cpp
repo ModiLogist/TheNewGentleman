@@ -426,7 +426,7 @@ bool Base::AddonHasRace(const RE::TESObjectARMA *addnIdx, const RE::TESRace *rac
 RE::TESObjectARMO *Base::GetSkinWithAddonForRg(RaceGroupInfo *rg, RE::TESObjectARMO *skin, const size_t addonIdx, const bool isFemale) {
   auto &r = rg->isMain ? rgInfoList[0] : *rg;
   auto &skinMap = isFemale ? r.femSkins : r.malSkins;
-  auto &ogSkin = skin->HasKeyword(Tng::Key(Tng::kyTngSkin)) ? ogSkins[skin] : skin;
+  auto ogSkin = GetOgSkin(skin);
   if (!ogSkin->HasKeyword(Tng::Key(Tng::kyTngSkin)) && !ogSkin->HasKeyword(Tng::Key(Tng::kyIgnored))) ogSkin->AddKeyword(Tng::Key(Tng::kyIgnored));
   if (skinMap.find(ogSkin) == skinMap.end()) skinMap.insert({ogSkin, std::map<size_t, RE::TESObjectARMO *>{}});
   RE::TESObjectARMO *resSkin = nullptr;
@@ -436,7 +436,7 @@ RE::TESObjectARMO *Base::GetSkinWithAddonForRg(RaceGroupInfo *rg, RE::TESObjectA
     resSkin->AddKeyword(Tng::Key(Tng::kyTngSkin));
     if (isFemale && femAddons[addonIdx].first->HasKeyword(Tng::Key(Tng::kySkinWP))) resSkin->AddKeyword(Tng::Key(Tng::kySkinWP));
     resSkin->AddSlotToMask(Tng::cSlotGenital);
-    ogSkins.insert({resSkin, ogSkin});
+    ogSkinMap.insert({resSkin, ogSkin});
     skinMap[ogSkin].insert({addonIdx, resSkin});
   } else {
     resSkin = skinMap[ogSkin][addonIdx];
@@ -444,6 +444,21 @@ RE::TESObjectARMO *Base::GetSkinWithAddonForRg(RaceGroupInfo *rg, RE::TESObjectA
   auto &reqAA = isFemale ? rg->femAddons[addonIdx].second : rg->malAddons[addonIdx].second;
   if (std::find(resSkin->armorAddons.begin(), resSkin->armorAddons.end(), reqAA) == resSkin->armorAddons.end()) resSkin->armorAddons.push_back(reqAA);
   return resSkin;
+}
+
+RE::TESObjectARMO *Base::GetOgSkin(RE::TESObjectARMO *skin) {
+  if (!skin) return nullptr;
+  auto &res = skin->HasKeyword(Tng::Key(Tng::kyTngSkin)) ? ogSkinMap[skin] : skin;
+  auto problem = 0;
+  if (!res) {
+    problem = 1;
+  } else {
+    if (res->HasKeyword(Tng::Key(Tng::kyTngSkin))) problem = 2;
+  }
+  if (problem) {
+    SKSE::log::critical("TNG routine to find the original skin failed with flag [{}]! Please report this issue.", problem);
+  }
+  return res;
 }
 
 //  NPC handling and info
@@ -537,17 +552,21 @@ Tng::TNGRes Base::SetNPCAddon(RE::TESNPC *npc, const int addnIdx, const bool isU
   auto res = (npc->IsPlayer() && boolSettings[Tng::bsExcludePlayerSize]) || addnIdx == Tng::cNul ? Tng::resOkFixed : Tng::resOkSizable;
   npc->RemoveKeyword(Tng::Key(Tng::kyExcluded));
   if (addnIdx == Tng::cDef && !npc->skin) return !npc->IsFemale() ? res : Tng::resOkFixed;
-  auto &skin = npc->skin ? npc->skin : npc->race->skin;
+  auto &npcSkin = npc->skin;
+  auto &raceSkin = npc->race->skin;
+  auto &activeSkin = npcSkin ? npcSkin : raceSkin;
   bool skinHasRace = false;
-  for (auto &aa : skin->armorAddons) {
+  for (auto &aa : activeSkin->armorAddons) {
     if (aa->IsValidRace(npc->race) && !aa->HasPartOf(Tng::cSlotGenital)) {
       skinHasRace = true;
       break;
     }
   }
-  if (!skinHasRace) skin = npc->race->skin;
-  auto &ogSkin = skin->HasKeyword(Tng::Key(Tng::kyTngSkin)) ? ogSkins[skin] : skin;
-  if (ogSkin->HasKeyword(Tng::Key(Tng::kyCovering))) {
+  if (!skinHasRace) activeSkin = npc->race->skin;
+  auto ogSkin = GetOgSkin(npc->skin);
+  auto raceOgSkin = GetOgSkin(npc->race->skin);
+  auto &activeOgSkin = !ogSkin ? raceOgSkin : ogSkin;
+  if (ogSkin && ogSkin->HasKeyword(Tng::Key(Tng::kyCovering))) {
     ogSkin->RemoveKeyword(Tng::Key(Tng::kyCovering));
     ogSkin->AddKeyword(Tng::Key(Tng::kyIgnored));
     SKSE::log::info("The skin [{}] was updated accordingly", ogSkin->GetFormEditorID());
@@ -557,13 +576,15 @@ Tng::TNGRes Base::SetNPCAddon(RE::TESNPC *npc, const int addnIdx, const bool isU
   if (!RgHasAddon(*rg, npc->IsFemale(), addnIdx)) return Tng::addonErr;
   if (addnIdx == Tng::cDef && npc->IsFemale()) {
     OrganizeNPCAddonKeywords(npc, addnIdx, false);
-    npc->skin = ogSkin;
+    if (npcSkin && npcSkin->HasKeyword(Tng::Key(Tng::kyTngSkin))) npc->skin = ogSkin == raceOgSkin ? nullptr : ogSkin;
     return Tng::resOkFixed;
   }
   auto addonChoice = addnIdx == Tng::cDef ? rg->addonIdx : addnIdx;
   OrganizeNPCAddonKeywords(npc, addnIdx, isUser);
-  auto resSkin = addonChoice == Tng::cNul ? ogSkin : GetSkinWithAddonForRg(rg, ogSkin, addonChoice, npc->IsFemale());
-  if (resSkin != skin) npc->skin = resSkin == npc->race->skin ? nullptr : resSkin;
+  auto resSkin = addonChoice == Tng::cNul ? (npc->IsFemale() ? raceSkin : activeOgSkin) : GetSkinWithAddonForRg(rg, activeOgSkin, addonChoice, npc->IsFemale());
+  if (resSkin != npcSkin && !(!npcSkin && resSkin == raceSkin)) {
+    npc->skin = resSkin == npc->race->skin ? nullptr : resSkin;
+  }
   return !npc->IsFemale() || npc->HasKeyword(Tng::Key(Tng::kyGentlewoman)) ? res : Tng::resOkFixed;
 }
 

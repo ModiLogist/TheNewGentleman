@@ -84,7 +84,7 @@ class Base : public Singleton<Base> {
     };
     std::vector<RaceGroupInfo> rgInfoList;
     std::map<RE::TESRace*, size_t> raceRgs;
-    std::map<RE::TESObjectARMO*, RE::TESObjectARMO*> ogSkins;
+    std::map<RE::TESObjectARMO*, RE::TESObjectARMO*> ogSkinMap;
     RaceGroupInfo* GetRg(const size_t rgIdx, const bool onlyMCM);
     RaceGroupInfo* GetRg(RE::TESRace* race, const bool allowAdd);
     int GetRgDefAddon(RaceGroupInfo& rg);
@@ -92,6 +92,7 @@ class Base : public Singleton<Base> {
     bool RgHasAddon(RaceGroupInfo& rg, bool isFemale, int addonIdx);
     bool AddonHasRace(const RE::TESObjectARMA* addnIdx, const RE::TESRace* race);
     RE::TESObjectARMO* GetSkinWithAddonForRg(RaceGroupInfo* rg, RE::TESObjectARMO* skin, const size_t addonIdx, const bool isFemale);
+    RE::TESObjectARMO* GetOgSkin(RE::TESObjectARMO* skin);
 
   public:
     Tng::TNGRes CanModifyNPC(RE::TESNPC* npc);
