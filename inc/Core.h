@@ -14,6 +14,7 @@ class Core : public Singleton<Core> {
     Tng::TNGRes CanModifyNPC(RE::TESNPC* npc);
     Tng::TNGRes SetActorSize(RE::Actor* actor, int genSize);
     Tng::TNGRes SetNPCAddon(RE::TESNPC* npc, const int addnIdx, const bool isUser, const bool shouldSave = true);
+    void UpdateFormLists(RE::Actor* actor, RE::TESNPC* npc);
     std::vector<RE::TESObjectARMO*> GetActorWornArmor(RE::Actor* actor);
 
   private:

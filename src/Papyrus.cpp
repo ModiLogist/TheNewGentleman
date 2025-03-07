@@ -248,11 +248,9 @@ std::vector<RE::Actor*> Papyrus::CheckActors(RE::StaticFunctionTag*) {
       auto npc = actor ? actor->GetActorBase() : nullptr;
       if (!npc || core->CanModifyNPC(npc) != Tng::resOkRaceP) return RE::BSContainer::ForEachResult::kContinue;
       if (npc->HasKeyword(Tng::Key(Tng::kyProcessed))) return RE::BSContainer::ForEachResult::kContinue;
-      auto addnPair = events->GetNPCAutoAddon(npc);
-      core->SetNPCAddon(npc, addnPair.first, addnPair.second, false);
       events->DoChecks(actor);
       if (actor->GetSkin()->HasKeyword(Tng::Key(Tng::kyTngSkin))) {
-        SKSE::log::debug("\tFixed [0x{:x}:{}] with addon [{}].", actor->GetFormID(), npc->GetName(), addnPair.first);
+        SKSE::log::debug("\tFixed addon for actor [0x{:x}:{}].", actor->GetFormID(), npc->GetName());
         res.push_back(actor);
       }
     }
