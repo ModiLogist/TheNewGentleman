@@ -71,7 +71,6 @@ Int fi52DefBehaviorHdl
 
 Int fiPCEHdl
 Int fiPCUHdl
-Int fiPCNHdl
 Int fiPCRHdl
 
 Int Function GetVersion()
@@ -159,9 +158,6 @@ Event OnGameReload()
   EndIf
   
   PlayerRef.RemoveSpell(ReloadSpell)
-  If TNG_PapyrusUtil.GetBoolValue(ciCheckNPCsGens)
-    PlayerRef.AddSpell(ReloadSpell,False)
-  EndIf
   
   If Game.GetModByName("Dynamic Activation Key.esp")
     fkDAK = Game.GetFormFromFile(0x801, "Dynamic Activation Key.esp") As GlobalVariable
@@ -330,7 +326,7 @@ Event OnPageReset(String asPage)
     EndIf
     fiPCUHdl = AddToggleOption("$TNG_GPC", TNG_PapyrusUtil.GetBoolValue(ciCheckingPCGen), liFlag)
     fiPCRHdl = AddToggleOption("$TNG_GPR", TNG_PapyrusUtil.GetBoolValue(ciShowEveryRace))
-    fiPCNHdl = AddToggleOption("$TNG_GNP", TNG_PapyrusUtil.GetBoolValue(ciCheckNPCsGens), liFlag)
+    AddEmptyOption()
             
     AddHeaderOption("$TNG_L_H")
     AddHeaderOption("")
@@ -443,10 +439,6 @@ Event OnOptionHighlight(Int aiOption)
   If CurrentPage == Pages[4]
     If aiOption == fiPCUHdl
       SetInfoText("$TNG_HPU")
-      Return
-    EndIf
-    If aiOption == fiPCNHdl
-      SetInfoText("$TNG_HPN")
       Return
     EndIf
     If aiOption == fiPCRHdl
@@ -617,11 +609,6 @@ Event OnOptionDefault(Int aiOption)
       TNG_PapyrusUtil.SetBoolValue(ciCheckingPCGen, False)
       SetToggleOptionValue(fiPCUHdl,False)
     EndIf
-    If (aiOption == fiPCNHdl) && !TNG_PapyrusUtil.GetBoolValue(ciForceTheCheck)
-      TNG_PapyrusUtil.SetBoolValue(ciCheckNPCsGens, True)
-      PlayerRef.RemoveSpell(ReloadSpell)
-      SetToggleOptionValue(fiPCNHdl,True)
-    EndIf    
     If (aiOption == fiPCRHdl)
       TNG_PapyrusUtil.SetBoolValue(ciShowEveryRace, False)
       SetToggleOptionValue(fiPCRHdl,False)
@@ -904,15 +891,6 @@ Event OnOptionSelect(Int aiOption)
           HandleWarnings(res)
         EndIf  
       EndIf    
-      Return
-    EndIf    
-    If aiOption == fiPCNHdl
-      TNG_PapyrusUtil.SetBoolValue(ciCheckNPCsGens, !TNG_PapyrusUtil.GetBoolValue(ciCheckNPCsGens))      
-      SetToggleOptionValue(fiPCNHdl, TNG_PapyrusUtil.GetBoolValue(ciCheckNPCsGens))
-      PlayerRef.RemoveSpell(ReloadSpell)
-      If TNG_PapyrusUtil.GetBoolValue(ciCheckNPCsGens)
-        PlayerRef.AddSpell(ReloadSpell)
-      EndIf
       Return
     EndIf
     If aiOption == fiPCRHdl

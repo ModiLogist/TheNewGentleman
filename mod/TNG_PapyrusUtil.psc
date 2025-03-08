@@ -35,7 +35,6 @@ Int Function GetActorSize(Actor akActor) Global Native ;Returns -1 if there is a
 Int Function SetActorSize(Actor akActor, Int aiSizeCat) Global Native
 String[] Function ActorItemsInfo(Actor akActor) Global Native
 Bool Function SwapRevealing(Actor akActor, Int aiChoice) Global Native
-Actor[] Function CheckActors() Global Native
 
 String[] Function GetSlot52Mods() Global Native
 ;Behavior value: -1 -> Get behavior, 0 -> Set to Normal, 1 -> Set to Revealing

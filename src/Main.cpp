@@ -1,6 +1,7 @@
 #include <Base.h>
 #include <Core.h>
 #include <Events.h>
+#include <Hooks.h>
 #include <Inis.h>
 #include <Papyrus.h>
 
@@ -44,6 +45,7 @@ static void EventListener(SKSE::MessagingInterface::Message* message) {
     core->CheckArmorPieces();
     SKSE::log::info("TheNewGentleman finished initialization.");
     events->RegisterEvents();
+    Hooks::Install();
   }
   if (message->type == SKSE::MessagingInterface::kNewGame || message->type == SKSE::MessagingInterface::kPostLoadGame) {
     inis->LoadHotKeys();

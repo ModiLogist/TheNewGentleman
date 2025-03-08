@@ -30,7 +30,6 @@ bool Papyrus::BindPapyrus(RE::BSScript::IVirtualMachine* vm) {
   vm->RegisterFunction("SetActorSize", "TNG_PapyrusUtil", SetActorSize);
   vm->RegisterFunction("ActorItemsInfo", "TNG_PapyrusUtil", ActorItemsInfo);
   vm->RegisterFunction("SwapRevealing", "TNG_PapyrusUtil", SwapRevealing);
-  vm->RegisterFunction("CheckActors", "TNG_PapyrusUtil", CheckActors);
 
   vm->RegisterFunction("GetSlot52Mods", "TNG_PapyrusUtil", GetSlot52Mods);
   vm->RegisterFunction("Slot52ModBehavior", "TNG_PapyrusUtil", Slot52ModBehavior);
@@ -233,30 +232,6 @@ bool Papyrus::SwapRevealing(RE::StaticFunctionTag*, RE::Actor* actor, int choice
   if (choice < 0 || choice > wornArmor.size()) return false;
   auto res = core->SwapRevealing(actor, wornArmor[choice]);
   events->DoChecks(actor);
-  return res;
-}
-
-std::vector<RE::Actor*> Papyrus::CheckActors(RE::StaticFunctionTag*) {
-  SKSE::log::debug("Started checking actors");
-  std::vector<RE::Actor*> res{};
-  size_t tot = 0;
-  RE::TES::GetSingleton()->ForEachReference([&](RE::TESObjectREFR* ref) {
-    if (ref && ref->Is3DLoaded() && ref->GetBaseObject()) {
-      if (ref->GetBaseObject()->formType != RE::FormType::NPC && ref->GetBaseObject()->formType != RE::FormType::LeveledNPC) return RE::BSContainer::ForEachResult::kContinue;
-      tot++;
-      auto actor = ref->As<RE::Actor>();
-      auto npc = actor ? actor->GetActorBase() : nullptr;
-      if (!npc || core->CanModifyNPC(npc) != Tng::resOkRaceP) return RE::BSContainer::ForEachResult::kContinue;
-      if (npc->HasKeyword(Tng::Key(Tng::kyProcessed))) return RE::BSContainer::ForEachResult::kContinue;
-      events->DoChecks(actor);
-      if (actor->GetSkin()->HasKeyword(Tng::Key(Tng::kyTngSkin))) {
-        SKSE::log::debug("\tFixed addon for actor [0x{:x}:{}].", actor->GetFormID(), npc->GetName());
-        res.push_back(actor);
-      }
-    }
-    return RE::BSContainer::ForEachResult::kContinue;
-  });
-  SKSE::log::debug("Finished checking actors. {} out of {} actors needed update!", res.size(), tot);
   return res;
 }
 
