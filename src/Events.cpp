@@ -50,7 +50,7 @@ RE::BSEventNotifyControl Events::ProcessEvent(const RE::TESObjectLoadedEvent* ev
 RE::BSEventNotifyControl Events::ProcessEvent(const RE::TESSwitchRaceCompleteEvent* event, RE::BSTEventSource<RE::TESSwitchRaceCompleteEvent>*) {
   auto actor = event->subject.get()->As<RE::Actor>();
   auto npc = actor ? actor->GetActorBase() : nullptr;
-  if (!actor || !npc || !npc->skin) return RE::BSEventNotifyControl::kContinue;
+  if (!actor || !npc || !npc->skin || !npc->race || !npc->race->skin) return RE::BSEventNotifyControl::kContinue;
   if (npc->race->HasKeyword(Tng::Key(Tng::kyPreProcessed)) && !base->ReevaluateRace(npc->race, actor)) return RE::BSEventNotifyControl::kContinue;
   if (npc->skin->HasKeyword(Tng::Key(Tng::kyTngSkin)) && !npc->race->HasKeyword(Tng::Key(Tng::kyProcessed))) {
     oldSkins.insert_or_assign(npc->GetFormID(), npc->skin);
@@ -91,7 +91,7 @@ RE::TESObjectARMO* Events::GetCoveringItem(RE::Actor* actor, RE::TESObjectARMO* 
 
 void Events::CheckForAddons(RE::Actor* actor) {
   const auto npc = actor ? actor->GetActorBase() : nullptr;
-  if (!npc) return;
+  if (!npc || !npc->race || !npc->race->HasKeyword(Tng::Key(Tng::kyProcessed))) return;
   if (npc->HasKeyword(Tng::Key(Tng::kyProcessed))) return;
   npc->AddKeyword(Tng::Key(Tng::kyProcessed));
   if (!npc->IsPlayer() || !base->GetBoolSetting(Tng::bsExcludePlayerSize)) core->SetActorSize(actor, Tng::cNul);
