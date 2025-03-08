@@ -10,7 +10,7 @@ extern Inis* inis;
 extern Core* core;
 extern Events* events;
 
-class Tng {
+class Util {
   public:
     inline static constexpr std::string_view cName{"TheNewGentleman.esp"};
     inline static constexpr std::string_view cSkyrim{"Skyrim.esm"};
@@ -105,8 +105,8 @@ class Tng {
     inline static constexpr SEFormLocView cWomenChanceID{0xCA0, cName};
     inline static constexpr RE::FormID cSizeKeyIDs[cSizeCategories]{0xFE1, 0xFE2, 0xFE3, 0xFE4, 0xFE5};
     inline static constexpr RE::FormID cSizeGlbIDs[cSizeCategories]{0xC01, 0xC02, 0xC03, 0xC04, 0xC05};
-    inline static constexpr SEFormLocView cUserCtrlIDs[UserCtrlsCount] = {{0xC00, Tng::cName}, {0xCB0, Tng::cName}, {0xCB1, Tng::cName},
-                                                                          {0xCB2, Tng::cName}, {0xCB3, Tng::cName}, {0xCB4, Tng::cName}};
+    inline static constexpr SEFormLocView cUserCtrlIDs[UserCtrlsCount] = {{0xC00, Util::cName}, {0xCB0, Util::cName}, {0xCB1, Util::cName},
+                                                                          {0xCB2, Util::cName}, {0xCB3, Util::cName}, {0xCB4, Util::cName}};
 
     inline static constexpr SEFormLocView cTngFormListIds[TngFormListsCount] = {{0xE00, cName}, {0xE01, cName}};
 
@@ -183,12 +183,12 @@ class Tng {
     }
 
     static RE::TESObjectARMO* Block() {
-      if (!block) block = Tng::SEDH()->LookupForm<RE::TESObjectARMO>(cCover.first, cCover.second);
+      if (!block) block = Util::SEDH()->LookupForm<RE::TESObjectARMO>(cCover.first, cCover.second);
       return block;
     }
 
     static RE::BGSKeyword* ProduceOrGetKw(const std::string& keyword) {
-      auto& allKeywords = Tng::SEDH()->GetFormArray<RE::BGSKeyword>();
+      auto& allKeywords = Util::SEDH()->GetFormArray<RE::BGSKeyword>();
       auto it = std::find_if(allKeywords.begin(), allKeywords.end(), [&](const auto& kw) { return kw && kw->formEditorID == keyword.c_str(); });
       RE::BGSKeyword* res{nullptr};
       if (it != allKeywords.end()) {
@@ -207,8 +207,8 @@ class Tng {
 static void ShowSkyrimMessage(const char* message) { RE::DebugMessageBox(message); }
 
 static SEFormLoc StrToLoc(const std::string recordStr, bool canBeNone = false) {
-  const size_t sepLoc = recordStr.find(Tng::cDelimChar);
-  if (canBeNone && recordStr == Tng::cNulStr) return {0, Tng::cNulStr};
+  const size_t sepLoc = recordStr.find(Util::cDelimChar);
+  if (canBeNone && recordStr == Util::cNulStr) return {0, Util::cNulStr};
   if (sepLoc == std::string::npos) return {0, ""};
   const RE::FormID formID = std::strtol(recordStr.substr(0, sepLoc).data(), nullptr, 0);
   const std::string modName = recordStr.substr(sepLoc + 1);
@@ -232,5 +232,5 @@ static std::string FormToStr(RE::TESForm* form) {
   std::ostringstream oss;
   auto formID = form->GetFormID() < 0xFF000000 ? form->GetLocalFormID() : form->GetFormID();
   oss << std::hex << formID;
-  return "0x" + oss.str() + Tng::cDelimChar + std::string(form->GetFile(0)->GetFilename());
+  return "0x" + oss.str() + Util::cDelimChar + std::string(form->GetFile(0)->GetFilename());
 }

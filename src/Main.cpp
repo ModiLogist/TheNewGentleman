@@ -32,8 +32,8 @@ static void InitializeLogging() {
 static void EventListener(SKSE::MessagingInterface::Message* message) {
   if (message->type == SKSE::MessagingInterface::kDataLoaded) {
     if (!CheckIncompatibility()) return;
-    if (!Tng::SEDH()->LookupModByName(Tng::cName)) {
-      const char* err = fmt::format("Mod [{}] was not found! Make sure that the mod is active in your plugin load order!", Tng::cName).c_str();
+    if (!Util::SEDH()->LookupModByName(Util::cName)) {
+      const char* err = fmt::format("Mod [{}] was not found! Make sure that the mod is active in your plugin load order!", Util::cName).c_str();
       ShowSkyrimMessage(err);
       return;
     }

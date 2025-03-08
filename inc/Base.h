@@ -75,8 +75,8 @@ class Base : public Singleton<Base> {
         std::vector<RE::TESRace*> races{};
         bool noMCM{false};
         float mult = {1.0f};
-        int defAddonIdx{Tng::cNA};
-        int addonIdx{Tng::cNA};
+        int defAddonIdx{Util::cNA};
+        int addonIdx{Util::cNA};
         std::map<size_t, std::pair<bool, RE::TESObjectARMA*>> malAddons{};
         std::map<size_t, std::pair<bool, RE::TESObjectARMA*>> femAddons{};
         std::map<RE::TESObjectARMO*, std::map<size_t, RE::TESObjectARMO*>> malSkins{};
@@ -95,12 +95,12 @@ class Base : public Singleton<Base> {
     RE::TESObjectARMO* GetOgSkin(RE::TESObjectARMO* skin);
 
   public:
-    Tng::TNGRes CanModifyNPC(RE::TESNPC* npc);
-    Tng::TNGRes GetActorSizeCat(RE::Actor* actor, int& sizeCat);
-    Tng::TNGRes SetActorSize(RE::Actor* actor, const int sizeCat);
+    Util::TNGRes CanModifyNPC(RE::TESNPC* npc);
+    Util::TNGRes GetActorSizeCat(RE::Actor* actor, int& sizeCat);
+    Util::TNGRes SetActorSize(RE::Actor* actor, const int sizeCat);
     void ExcludeNPC(const std::string npcRecordStr);
     std::pair<int, bool> GetNPCAddon(RE::TESNPC* npc);
-    Tng::TNGRes SetNPCAddon(RE::TESNPC* npc, const int addnIdx, const bool isUser);
+    Util::TNGRes SetNPCAddon(RE::TESNPC* npc, const int addnIdx, const bool isUser);
     void SetPlayerInfo(RE::Actor* actor, const int addnIdx);
     void UnsetPlayerInfo();
     bool HasPlayerChanged(RE::Actor* actor);
@@ -108,7 +108,7 @@ class Base : public Singleton<Base> {
     void SetBoolSetting(const size_t idx, const bool value);
 
   private:
-    bool boolSettings[Tng::BoolSettingCount];
+    bool boolSettings[Util::BoolSettingCount];
 
     void OrganizeNPCAddonKeywords(RE::TESNPC* npc, int addnIdx, bool isUser);
     struct PlayerInfo {

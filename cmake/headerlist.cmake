@@ -5,6 +5,6 @@ set(headers ${headers}
   inc/Core.h
   inc/Base.h
   inc/Inis.h
-  inc/Tng.h
+  inc/Util.h
   inc/PCH.h
 )

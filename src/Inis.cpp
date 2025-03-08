@@ -45,7 +45,7 @@ void Inis::LoadSingleIni(const char *path, const std::string_view fileName) {
       SKSE::log::info("\t- Found [{}] skin mods in [{}].", values.size(), fileName);
       for (const auto &entry : values) {
         const std::string modName(entry.pItem);
-        if (Tng::SEDH()->LookupModByName(modName)) {
+        if (Util::SEDH()->LookupModByName(modName)) {
           SKSE::log::info("\t\tTheNewGentleman keeps an eye for [{}] as a skin mod.", modName);
           skinMods.insert(modName);
         }
@@ -61,7 +61,7 @@ void Inis::LoadSingleIni(const char *path, const std::string_view fileName) {
       SKSE::log::info("\t- Found [{}] revealing mods in [{}].", values.size(), fileName);
       for (const auto &entry : values) {
         const std::string modName(entry.pItem);
-        if (Tng::SEDH()->LookupModByName(modName)) {
+        if (Util::SEDH()->LookupModByName(modName)) {
           revealingMods.insert(modName);
           SKSE::log::info("\t\tTheNewGentleman keeps an eye for [{}] as a revealing armor mod.", modName);
         }
@@ -71,7 +71,7 @@ void Inis::LoadSingleIni(const char *path, const std::string_view fileName) {
       SKSE::log::info("\t- Found [{}] female revealing mods in [{}].", values.size(), fileName);
       for (const auto &entry : values) {
         const std::string modName(entry.pItem);
-        if (Tng::SEDH()->LookupModByName(modName)) {
+        if (Util::SEDH()->LookupModByName(modName)) {
           femRevMods.insert(modName);
           SKSE::log::info("\t\tTheNewGentleman keeps an eye for [{}] as a female revealing armor mod.", modName);
         }
@@ -81,7 +81,7 @@ void Inis::LoadSingleIni(const char *path, const std::string_view fileName) {
       SKSE::log::info("\t- Found [{}] male revealing mods in [{}].", values.size(), fileName);
       for (const auto &entry : values) {
         const std::string modName(entry.pItem);
-        if (Tng::SEDH()->LookupModByName(modName)) {
+        if (Util::SEDH()->LookupModByName(modName)) {
           malRevMods.insert(modName);
           SKSE::log::info("\t\tTheNewGentleman keeps an eye for [{}] as a male revealing armor mod.", modName);
         }
@@ -169,47 +169,47 @@ void Inis::LoadMainIni() {
   for (const auto &entry : values) {
     auto isRevealing = ini.GetBoolValue(cRevealingSection, entry.pItem);
     const std::string armorRecord(entry.pItem);
-    UpdateRevealing(armorRecord, isRevealing ? Tng::kyRevealing : Tng::kyCovering);
+    UpdateRevealing(armorRecord, isRevealing ? Util::kyRevealing : Util::kyCovering);
     SKSE::log::debug("\tThe amor [{}] was marked revealing, due to user choice in the past.", armorRecord);
   }
   ini.GetAllKeys(cFemRevRecordSection, values);
   for (const auto &entry : values) {
     auto isRevealing = ini.GetBoolValue(cFemRevRecordSection, entry.pItem);
     const std::string armorRecord(entry.pItem);
-    UpdateRevealing(armorRecord, isRevealing ? Tng::kyRevealingF : Tng::cNA);
+    UpdateRevealing(armorRecord, isRevealing ? Util::kyRevealingF : Util::cNA);
     SKSE::log::debug("\tThe amor [{}] was marked revealing for women, due to user choice in the past.", armorRecord);
   }
   ini.GetAllKeys(cMalRevRecordSection, values);
   for (const auto &entry : values) {
     auto isRevealing = ini.GetBoolValue(cMalRevRecordSection, entry.pItem);
     const std::string armorRecord(entry.pItem);
-    UpdateRevealing(armorRecord, isRevealing ? Tng::kyRevealingM : Tng::cNA);
+    UpdateRevealing(armorRecord, isRevealing ? Util::kyRevealingM : Util::cNA);
     SKSE::log::debug("\tThe amor [{}] was marked revealing for men, due to user choice in the past.", armorRecord);
   }
 
-  for (size_t i = 0; i < Tng::BoolSettingCount; i++) {
+  for (size_t i = 0; i < Util::BoolSettingCount; i++) {
     base->SetBoolSetting(i, ini.GetBoolValue(cGeneral, cBoolSettings[i], cDefBoolSettings[i]));
     SKSE::log::debug("\tThe boolean setting [{}] was restored to [{}({})].", cBoolSettings[i], base->GetBoolSetting(i),
                      cDefBoolSettings[i] == base->GetBoolSetting(i) ? "default" : "user");
   }
-  if (Tng::SEDH()->LookupModByName("Racial Skin Variance - SPID.esp")) {
-    base->SetBoolSetting(Tng::bsCheckPlayerAddon, true);
-    base->SetBoolSetting(Tng::bsCheckNPCsAddons, true);
-    base->SetBoolSetting(Tng::bsForceRechecks, true);
+  if (Util::SEDH()->LookupModByName("Racial Skin Variance - SPID.esp")) {
+    base->SetBoolSetting(Util::bsCheckPlayerAddon, true);
+    base->SetBoolSetting(Util::bsCheckNPCsAddons, true);
+    base->SetBoolSetting(Util::bsForceRechecks, true);
     SKSE::log::info("\tTNG detected Racial Skin Variance and would force the player and NPCs to be reloaded");
   }
-  if (!Tng::SEDH()->LookupModByName("UIExtensions.esp")) {
-    base->SetBoolSetting(Tng::bsUIExtensions, false);
+  if (!Util::SEDH()->LookupModByName("UIExtensions.esp")) {
+    base->SetBoolSetting(Util::bsUIExtensions, false);
     SKSE::log::warn("\tTNG could not detected UIExtensions. You may want to check if it is installed.");
   }
 
-  for (size_t i = 0; i < Tng::cSizeCategories; i++) base->SetGlobalSize(i, static_cast<float>(ini.GetDoubleValue(cGlobalSize, cSizeNames[i], cDefSizes[i])));
+  for (size_t i = 0; i < Util::cSizeCategories; i++) base->SetGlobalSize(i, static_cast<float>(ini.GetDoubleValue(cGlobalSize, cSizeNames[i], cDefSizes[i])));
   SKSE::log::debug("\tGlobal size settings loaded.");
   if (ini.KeyExists(cGentleWomen, cGentleWomenChance)) {
-    if (Tng::WRndGlb()) {
-      Tng::WRndGlb()->value = static_cast<float>(ini.GetDoubleValue(cGentleWomen, cGentleWomenChance));
+    if (Util::WRndGlb()) {
+      Util::WRndGlb()->value = static_cast<float>(ini.GetDoubleValue(cGentleWomen, cGentleWomenChance));
     } else {
-      SKSE::log::error("The [{}] record for [{} {}] cannot be loaded!", Tng::cName, cGentleWomen, cGentleWomenChance);
+      SKSE::log::error("The [{}] record for [{} {}] cannot be loaded!", Util::cName, cGentleWomen, cGentleWomenChance);
     }
   }
   SKSE::log::debug("\tGentlewomen chance value loaded.");
@@ -219,15 +219,15 @@ void Inis::LoadMainIni() {
 
 void Inis::LoadRgInfo() {
   for (auto &rgInfo : racialAddons) {
-    auto rgIdx = base->GetRaceRgIdx(Tng::SEDH()->LookupForm<RE::TESRace>(rgInfo.first.first, rgInfo.first.second));
+    auto rgIdx = base->GetRaceRgIdx(Util::SEDH()->LookupForm<RE::TESRace>(rgInfo.first.first, rgInfo.first.second));
     auto addonIdx = base->AddonIdxByLoc(false, rgInfo.second);
-    if ((rgIdx < 0) || (addonIdx < 0 && addonIdx != Tng::cNul)) continue;
+    if ((rgIdx < 0) || (addonIdx < 0 && addonIdx != Util::cNul)) continue;
     if (base->SetRgAddon(rgIdx, addonIdx, false))
       SKSE::log::debug("\tRestored the addon of race [xx{:x}] from file [{}] to addon [xx{:x}] from file [{}]", rgInfo.first.first, rgInfo.first.second, rgInfo.second.first,
                        rgInfo.second.second);
   }
   for (auto &rgInfo : racialMults) {
-    auto rgIdx = base->GetRaceRgIdx(Tng::SEDH()->LookupForm<RE::TESRace>(rgInfo.first.first, rgInfo.first.second));
+    auto rgIdx = base->GetRaceRgIdx(Util::SEDH()->LookupForm<RE::TESRace>(rgInfo.first.first, rgInfo.first.second));
     if (rgIdx < 0) continue;
     if (base->SetRgMult(rgIdx, rgInfo.second, false))
       SKSE::log::debug("\tRestored the size multiplier of race [xx{:x}] from file [{}] to [{}]", rgInfo.first.first, rgInfo.first.second, rgInfo.second);
@@ -238,20 +238,20 @@ void Inis::LoadRgInfo() {
 
 void Inis::LoadNpcInfo() {
   for (auto &npcInfo : npcAddons) {
-    auto npc = Tng::SEDH()->LookupForm<RE::TESNPC>(npcInfo.first.first, npcInfo.first.second);
+    auto npc = Util::SEDH()->LookupForm<RE::TESNPC>(npcInfo.first.first, npcInfo.first.second);
     if (!npc) continue;
     auto addonIdx = base->AddonIdxByLoc(npc->IsFemale(), npcInfo.second);
-    if (addonIdx < 0 && addonIdx != Tng::cNul) continue;
+    if (addonIdx < 0 && addonIdx != Util::cNul) continue;
     if (base->SetNPCAddon(npc, addonIdx, true) >= 0)
       SKSE::log::debug("\tRestored the addon of npc [xx{:x}] from file [{}] to addon [xx{:x}] from file [{}]", npcInfo.first.first, npcInfo.first.second, npcInfo.second.first,
                        npcInfo.second.second);
   }
   for (auto &npcInfo : npcSizeCats) {
-    auto npc = Tng::SEDH()->LookupForm<RE::TESNPC>(npcInfo.first.first, npcInfo.first.second);
+    auto npc = Util::SEDH()->LookupForm<RE::TESNPC>(npcInfo.first.first, npcInfo.first.second);
     auto sizeCat = npcInfo.second;
-    if (!npc || sizeCat < 0 || sizeCat >= Tng::cSizeCategories) continue;
-    npc->RemoveKeywords(Tng::SizeKeys());
-    npc->AddKeyword(Tng::SizeKey(sizeCat));
+    if (!npc || sizeCat < 0 || sizeCat >= Util::cSizeCategories) continue;
+    npc->RemoveKeywords(Util::SizeKeys());
+    npc->AddKeyword(Util::SizeKey(sizeCat));
     SKSE::log::debug("\tRestored the size category of npc [xx{:x}] from file [{}] to [{}]", npcInfo.first.first, npcInfo.first.second, npcInfo.second);
   }
   npcAddons.clear();
@@ -340,11 +340,11 @@ void Inis::SaveRgAddon(const size_t rg, const int choice) {
     return;
   }
   switch (choice) {
-    case Tng::cDef:
+    case Util::cDef:
       ini.Delete(cRacialAddon, raceRecord.c_str(), true);
       break;
-    case Tng::cNul:
-      ini.SetValue(cRacialAddon, raceRecord.c_str(), Tng::cNulStr.c_str());
+    case Util::cNul:
+      ini.SetValue(cRacialAddon, raceRecord.c_str(), Util::cNulStr.c_str());
       break;
     default:
       auto addon = base->AddonByIdx(false, choice, false);
@@ -372,10 +372,10 @@ void Inis::SaveNPCAddon(RE::TESNPC *npc, const int choice) {
   ini.SetUnicode();
   ini.LoadFile(cSettings);
   switch (choice) {
-    case Tng::cDef:
+    case Util::cDef:
       ini.Delete(cNPCAddonSection, npcRecord.c_str(), true);
       break;
-    case Tng::cNul:
+    case Util::cNul:
       ini.Delete(cNPCAddonSection, npcRecord.c_str(), true);
       ini.SetBoolValue(cExcludeNPCSection, npcRecord.c_str(), true);
       break;
@@ -390,13 +390,13 @@ void Inis::SaveNPCAddon(RE::TESNPC *npc, const int choice) {
 }
 
 void Inis::SaveNPCSize(RE::TESNPC *npc, int genSize) {
-  if (genSize == Tng::cNul) return;
+  if (genSize == Util::cNul) return;
   auto npcRecord = FormToStr(npc);
   if (npcRecord.empty()) return;
   CSimpleIniA ini;
   ini.SetUnicode();
   ini.LoadFile(cSettings);
-  if (genSize == Tng::cDef) {
+  if (genSize == Util::cDef) {
     ini.Delete(cNPCSizeSection, npcRecord.c_str(), true);
   } else {
     ini.SetLongValue(cNPCSizeSection, npcRecord.c_str(), genSize);
@@ -414,16 +414,16 @@ void Inis::SaveRevealingArmor(RE::TESObjectARMO *armor, int revMode) {
   ini.Delete(cFemRevRecordSection, armoRecord.c_str(), true);
   ini.Delete(cMalRevRecordSection, armoRecord.c_str(), true);
   switch (revMode) {
-    case Tng::kyCovering:
+    case Util::kyCovering:
       ini.SetBoolValue(cRevealingSection, armoRecord.c_str(), false);
       break;
-    case Tng::kyRevealing:
+    case Util::kyRevealing:
       ini.SetBoolValue(cRevealingSection, armoRecord.c_str(), true);
       break;
-    case Tng::kyRevealingF:
+    case Util::kyRevealingF:
       ini.SetBoolValue(cFemRevRecordSection, armoRecord.c_str(), true);
       break;
-    case Tng::kyRevealingM:
+    case Util::kyRevealingM:
       ini.SetBoolValue(cMalRevRecordSection, armoRecord.c_str(), true);
       break;
     default:
@@ -437,25 +437,25 @@ void Inis::LoadHotKeys() {
   CSimpleIniA ini;
   ini.SetUnicode();
   ini.LoadFile(cSettings);
-  if (ini.KeyExists(cControls, cCtrlNames[Tng::ctrlDAK])) {
-    if (Tng::UserCtrl(Tng::ctrlDAK)) {
-      Tng::UserCtrl(Tng::ctrlDAK)->value = static_cast<float>(ini.GetLongValue(cControls, cCtrlNames[Tng::ctrlDAK]));
+  if (ini.KeyExists(cControls, cCtrlNames[Util::ctrlDAK])) {
+    if (Util::UserCtrl(Util::ctrlDAK)) {
+      Util::UserCtrl(Util::ctrlDAK)->value = static_cast<float>(ini.GetLongValue(cControls, cCtrlNames[Util::ctrlDAK]));
     } else {
-      SKSE::log::error("The [{}] record for [{}] cannot be loaded!", Tng::cName, cCtrlNames[Tng::ctrlDAK]);
+      SKSE::log::error("The [{}] record for [{}] cannot be loaded!", Util::cName, cCtrlNames[Util::ctrlDAK]);
     }
   }
-  for (size_t i = 0; i < Tng::UserCtrlsCount; i++) {
+  for (size_t i = 0; i < Util::UserCtrlsCount; i++) {
     if (ini.KeyExists(cControls, cCtrlNames[i])) {
-      if (Tng::UserCtrl(i)) {
-        Tng::UserCtrl(i)->value = static_cast<float>(ini.GetLongValue(cControls, cCtrlNames[i]));
+      if (Util::UserCtrl(i)) {
+        Util::UserCtrl(i)->value = static_cast<float>(ini.GetLongValue(cControls, cCtrlNames[i]));
       } else {
-        SKSE::log::error("The [{}] record for [{}] cannot be loaded!", Tng::cName, cCtrlNames[i]);
+        SKSE::log::error("The [{}] record for [{}] cannot be loaded!", Util::cName, cCtrlNames[i]);
       }
     }
   }
 }
 
-void Inis::SetBoolSetting(Tng::BoolSetting settingID, bool value) {
+void Inis::SetBoolSetting(Util::BoolSetting settingID, bool value) {
   CSimpleIniA ini;
   ini.SetUnicode();
   ini.LoadFile(cSettings);
@@ -472,10 +472,10 @@ void Inis::SaveGlobals() {
   CSimpleIniA ini;
   ini.SetUnicode();
   ini.LoadFile(cSettings);
-  for (size_t i = 0; i < Tng::cSizeCategories; i++) ini.SetDoubleValue(cGlobalSize, cSizeNames[i], base->GetGlobalSize(i));
-  ini.SetBoolValue(cControls, cCtrlNames[Tng::ctrlDAK], Tng::UserCtrl(Tng::ctrlDAK)->value > 1.0f);
-  for (size_t i = 0; i < Tng::UserCtrlsCount; i++) ini.SetLongValue(cControls, cCtrlNames[i], static_cast<int>(Tng::UserCtrl(i)->value));
-  ini.SetDoubleValue(cGentleWomen, cGentleWomenChance, Tng::WRndGlb()->value);
+  for (size_t i = 0; i < Util::cSizeCategories; i++) ini.SetDoubleValue(cGlobalSize, cSizeNames[i], base->GetGlobalSize(i));
+  ini.SetBoolValue(cControls, cCtrlNames[Util::ctrlDAK], Util::UserCtrl(Util::ctrlDAK)->value > 1.0f);
+  for (size_t i = 0; i < Util::UserCtrlsCount; i++) ini.SetLongValue(cControls, cCtrlNames[i], static_cast<int>(Util::UserCtrl(i)->value));
+  ini.SetDoubleValue(cGentleWomen, cGentleWomenChance, Util::WRndGlb()->value);
   ini.SaveFile(cSettings);
 }
 
@@ -537,7 +537,7 @@ void Inis::LoadModRecordPairs(CSimpleIniA::TNamesDepend records, std::set<SEForm
 }
 
 void Inis::UpdateRevealing(const std::string armorRecord, const int revealingMode) {
-  auto armor = Tng::SEDH()->LookupForm<RE::TESObjectARMO>(StrToLoc(armorRecord).first, StrToLoc(armorRecord).second);
+  auto armor = Util::SEDH()->LookupForm<RE::TESObjectARMO>(StrToLoc(armorRecord).first, StrToLoc(armorRecord).second);
   if (!armor) {
     SKSE::log::info("Previously save armor from mod {} does not exist anymore!", StrToLoc(armorRecord).first);
     return;
@@ -545,13 +545,13 @@ void Inis::UpdateRevealing(const std::string armorRecord, const int revealingMod
   if (revealingMode < 0) return;
   auto &list = [&]() -> std::set<SEFormLoc> & {
     switch (revealingMode) {
-      case Tng::kyCovering:
+      case Util::kyCovering:
         return runtimeCoveringRecords;
-      case Tng::kyRevealing:
+      case Util::kyRevealing:
         return runTimeRevealingRecords;
-      case Tng::kyRevealingF:
+      case Util::kyRevealingF:
         return runTimeFemRevRecords;
-      case Tng::kyRevealingM:
+      case Util::kyRevealingM:
         return runTimeMalRevRecords;
       default:
         return runtimeCoveringRecords;
@@ -588,15 +588,15 @@ bool Inis::IsCovering(const RE::TESObjectARMO *armor, const std::string modName)
 }
 
 int Inis::IsRevealing(const RE::TESObjectARMO *armor, const std::string modName) {
-  if (modName == "") return Tng::cNA;
-  if (revealingMods.find(modName) != revealingMods.end()) return Tng::kyRevealing;
-  if (femRevMods.find(modName) != femRevMods.end()) return Tng::kyRevealingF;
-  if (malRevMods.find(modName) != malRevMods.end()) return Tng::kyRevealingM;
-  if (revealingRecords.find({armor->GetLocalFormID(), modName}) != revealingRecords.end()) return Tng::kyRevealing;
-  if (femRevRecords.find({armor->GetLocalFormID(), modName}) != femRevRecords.end()) return Tng::kyRevealingF;
-  if (malRevRecords.find({armor->GetLocalFormID(), modName}) != malRevRecords.end()) return Tng::kyRevealingM;
-  if (armor->HasKeywordString(Tng::cSOSR)) return Tng::kyRevealing;
-  return Tng::cNA;
+  if (modName == "") return Util::cNA;
+  if (revealingMods.find(modName) != revealingMods.end()) return Util::kyRevealing;
+  if (femRevMods.find(modName) != femRevMods.end()) return Util::kyRevealingF;
+  if (malRevMods.find(modName) != malRevMods.end()) return Util::kyRevealingM;
+  if (revealingRecords.find({armor->GetLocalFormID(), modName}) != revealingRecords.end()) return Util::kyRevealing;
+  if (femRevRecords.find({armor->GetLocalFormID(), modName}) != femRevRecords.end()) return Util::kyRevealingF;
+  if (malRevRecords.find({armor->GetLocalFormID(), modName}) != malRevRecords.end()) return Util::kyRevealingM;
+  if (armor->HasKeywordString(Util::cSOSR)) return Util::kyRevealing;
+  return Util::cNA;
 }
 
 bool Inis::IsRTCovering(const RE::TESObjectARMO *armor, const std::string modName) {
@@ -606,11 +606,11 @@ bool Inis::IsRTCovering(const RE::TESObjectARMO *armor, const std::string modNam
 }
 
 int Inis::IsRTRevealing(const RE::TESObjectARMO *armor, const std::string modName) {
-  if (modName == "") return Tng::cNA;
-  if (runTimeRevealingRecords.find({armor->GetLocalFormID(), modName}) != runTimeRevealingRecords.end()) return Tng::kyRevealing;
-  if (runTimeFemRevRecords.find({armor->GetLocalFormID(), modName}) != runTimeFemRevRecords.end()) return Tng::kyRevealingF;
-  if (runTimeMalRevRecords.find({armor->GetLocalFormID(), modName}) != runTimeMalRevRecords.end()) return Tng::kyRevealingM;
-  return Tng::cNA;
+  if (modName == "") return Util::cNA;
+  if (runTimeRevealingRecords.find({armor->GetLocalFormID(), modName}) != runTimeRevealingRecords.end()) return Util::kyRevealing;
+  if (runTimeFemRevRecords.find({armor->GetLocalFormID(), modName}) != runTimeFemRevRecords.end()) return Util::kyRevealingF;
+  if (runTimeMalRevRecords.find({armor->GetLocalFormID(), modName}) != runTimeMalRevRecords.end()) return Util::kyRevealingM;
+  return Util::cNA;
 }
 
 bool Inis::IsExtraRevealing(const std::string modName) {

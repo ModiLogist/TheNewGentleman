@@ -7,13 +7,13 @@ class Core : public Singleton<Core> {
 
   private:
     void IgnoreRace(RE::TESRace* race, bool ready);
-    Tng::TNGRes AddPotentialRace(RE::TESRace* race, const std::set<std::string>& validSkeletons);
+    Util::TNGRes AddPotentialRace(RE::TESRace* race, const std::set<std::string>& validSkeletons);
 
   public:
     void GenitalizeNPCSkins();
-    Tng::TNGRes CanModifyNPC(RE::TESNPC* npc);
-    Tng::TNGRes SetActorSize(RE::Actor* actor, int genSize);
-    Tng::TNGRes SetNPCAddon(RE::TESNPC* npc, const int addnIdx, const bool isUser, const bool shouldSave = true);
+    Util::TNGRes CanModifyNPC(RE::TESNPC* npc);
+    Util::TNGRes SetActorSize(RE::Actor* actor, int genSize);
+    Util::TNGRes SetNPCAddon(RE::TESNPC* npc, const int addnIdx, const bool isUser, const bool shouldSave = true);
     void UpdateFormLists(RE::Actor* actor, RE::TESNPC* npc);
     std::vector<RE::TESObjectARMO*> GetActorWornArmor(RE::Actor* actor);
 
@@ -32,7 +32,7 @@ class Core : public Singleton<Core> {
     inline static constexpr SEFormLocView hardCodedRaces[hardCodedRacesCount]{{0x3CA97, "Dragonborn.esm"}};
 
   public:
-    void SetBoolSetting(Tng::BoolSetting settingID, bool value);
+    void SetBoolSetting(Util::BoolSetting settingID, bool value);
     void SetAddonStatus(const bool isFemale, const int addnIdx, const bool status);
     void SetRgMult(const size_t rgChoice, const float mult, bool onlyMCM);
 };

@@ -61,17 +61,17 @@ class Inis : public Singleton<Inis> {
 
     inline static constexpr const char* cGeneral{"General"};
     inline static constexpr const char* cLogLvl{"LoggingLevel"};
-    inline static constexpr const char* cBoolSettings[Tng::BoolSettingCount]{"ExcludePlayerSize",   "CheckPlayerRegularly",   "CheckNPCsAfterLoad",
-                                                                             "ForceChecks",         "Slot52ModsAreRevealing", "Slot52ModsAreMixed",
-                                                                             "RandomizeMaleAddons", "UIExtensions",           "ShowAllRaces"};
-    inline static constexpr bool cDefBoolSettings[Tng::BoolSettingCount]{false, false, true, false, false, false, false, true, false};
+    inline static constexpr const char* cBoolSettings[Util::BoolSettingCount]{"ExcludePlayerSize",   "CheckPlayerRegularly",   "CheckNPCsAfterLoad",
+                                                                              "ForceChecks",         "Slot52ModsAreRevealing", "Slot52ModsAreMixed",
+                                                                              "RandomizeMaleAddons", "UIExtensions",           "ShowAllRaces"};
+    inline static constexpr bool cDefBoolSettings[Util::BoolSettingCount]{false, false, true, false, false, false, false, true, false};
 
     inline static constexpr const char* cGlobalSize{"GlobalSizes"};
-    inline static constexpr const char* cSizeNames[Tng::cSizeCategories]{"Size_XS", "Size__S", "Size__M", "Size__L", "Size_XL"};
-    inline static constexpr double cDefSizes[Tng::cSizeCategories]{0.8, 0.9, 1.0, 1.2, 1.4};
+    inline static constexpr const char* cSizeNames[Util::cSizeCategories]{"Size_XS", "Size__S", "Size__M", "Size__L", "Size_XL"};
+    inline static constexpr double cDefSizes[Util::cSizeCategories]{0.8, 0.9, 1.0, 1.2, 1.4};
 
     inline static constexpr const char* cControls{"Controls"};
-    inline static constexpr const char* cCtrlNames[Tng::UserCtrlsCount]{"DAK_Integration", "NPCEdit", "GenitalUp", "GenitalDown", "Revealing", "WhyProblem"};
+    inline static constexpr const char* cCtrlNames[Util::UserCtrlsCount]{"DAK_Integration", "NPCEdit", "GenitalUp", "GenitalDown", "Revealing", "WhyProblem"};
 
     inline static constexpr const char* cRacialAddon{"RaceGenital"};
     inline static constexpr const char* cRacialSize{"RaceSizeMultplier"};
@@ -108,7 +108,7 @@ class Inis : public Singleton<Inis> {
     void SaveNPCSize(RE::TESNPC* npc, int genSize);
     void SaveRevealingArmor(RE::TESObjectARMO* armor, int revMode);
     void LoadHotKeys();
-    void SetBoolSetting(Tng::BoolSetting settingID, bool value);
+    void SetBoolSetting(Util::BoolSetting settingID, bool value);
     void SaveGlobals();
     std::vector<std::string> Slot52Mods();
     bool Slot52ModBehavior(const std::string modName, const int behavior);
