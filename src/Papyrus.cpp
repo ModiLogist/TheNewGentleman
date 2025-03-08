@@ -134,7 +134,7 @@ int Papyrus::CanModifyActor(RE::StaticFunctionTag*, RE::Actor* actor) {
     case Tng::resOkRaceP:
       return Tng::resOkSizable;
     case Tng::resOkRacePP:
-      return Tng::resOkSizable;
+      return base->ReevaluateRace(actor->GetRace(), actor) ? Tng::resOkSizable : Tng::npcErr;
     case Tng::resOkRaceR:
       return Tng::resOkFixed;
     default:
