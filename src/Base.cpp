@@ -483,7 +483,7 @@ Tng::TNGRes Base::GetActorSizeCat(RE::Actor *actor, int &sizeCat) {
   return Tng::resOkSizable;
 }
 
-Tng::TNGRes Base::SetActorSizeCat(RE::Actor *actor, const int sizeCat) {
+Tng::TNGRes Base::SetActorSize(RE::Actor *actor, const int sizeCat) {
   int currCat = Tng::cNA;
   const auto npc = actor ? actor->GetActorBase() : nullptr;
   if (!npc) return Tng::npcErr;

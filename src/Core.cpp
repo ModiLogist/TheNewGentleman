@@ -183,7 +183,7 @@ Tng::TNGRes Core::CanModifyNPC(RE::TESNPC* npc) {
 }
 
 Tng::TNGRes Core::SetActorSize(RE::Actor* actor, int genSize) {
-  auto res = base->SetActorSizeCat(actor, genSize);
+  auto res = base->SetActorSize(actor, genSize);
   if (res == Tng::resOkSizable && !actor->GetActorBase()->IsPlayer()) inis->SaveNPCSize(actor->GetActorBase(), genSize);
   return res;
 }

@@ -97,7 +97,7 @@ class Base : public Singleton<Base> {
   public:
     Tng::TNGRes CanModifyNPC(RE::TESNPC* npc);
     Tng::TNGRes GetActorSizeCat(RE::Actor* actor, int& sizeCat);
-    Tng::TNGRes SetActorSizeCat(RE::Actor* actor, const int sizeCat);
+    Tng::TNGRes SetActorSize(RE::Actor* actor, const int sizeCat);
     void ExcludeNPC(const std::string npcRecordStr);
     std::pair<int, bool> GetNPCAddon(RE::TESNPC* npc);
     Tng::TNGRes SetNPCAddon(RE::TESNPC* npc, const int addnIdx, const bool isUser);
