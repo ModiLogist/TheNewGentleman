@@ -567,7 +567,7 @@ Tng::TNGRes Base::SetNPCAddon(RE::TESNPC *npc, const int addnIdx, const bool isU
   if (ogSkin && ogSkin->HasKeyword(Tng::Key(Tng::kyCovering))) {
     ogSkin->RemoveKeyword(Tng::Key(Tng::kyCovering));
     ogSkin->AddKeyword(Tng::Key(Tng::kyIgnored));
-    SKSE::log::info("The skin [{}] was updated accordingly", ogSkin->GetFormEditorID());
+    SKSE::log::info("The skin [0x{:x}] was updated accordingly", ogSkin->formID);
   }
   auto rg = GetRg(npc->race, false);
   if (!rg) return Tng::rgErr;
