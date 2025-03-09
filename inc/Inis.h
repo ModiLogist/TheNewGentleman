@@ -50,7 +50,7 @@ class Inis : public Singleton<Inis> {
     void CleanIniLists();
 
   private:
-    inline static constexpr int cCurrVersion = 4;
+    inline static constexpr int cCurrVersion = 5;
     inline static constexpr const char* cSettings{R"(.\Data\SKSE\Plugins\TheNewGentleman.ini)"};
     inline static constexpr const char* cTngIniEnding{"TNG.ini"};
     inline static constexpr const char* cTngInisPath{R"(.\Data\SKSE\Plugins\TNG)"};
@@ -74,7 +74,7 @@ class Inis : public Singleton<Inis> {
     inline static constexpr const char* cCtrlNames[Util::UserCtrlsCount]{"DAK_Integration", "NPCEdit", "GenitalUp", "GenitalDown", "Revealing", "WhyProblem"};
 
     inline static constexpr const char* cRacialAddon{"RaceGenital"};
-    inline static constexpr const char* cRacialSize{"RaceSizeMultplier"};
+    inline static constexpr const char* cRacialSize{"RaceSizeMultiplier"};
     inline static constexpr const char* cNPCSizeSection{"NPCGenitalSize"};
     inline static constexpr const char* cNPCAddonSection{"NPCGenitalAddon"};
     inline static constexpr const char* cActiveMalAddons{"ActiveMaleAddons"};
@@ -88,7 +88,7 @@ class Inis : public Singleton<Inis> {
     inline static constexpr const char* cGentleWomenChance{"Chance"};
 
     std::set<std::pair<SEFormLoc, SEFormLoc>> racialAddons;
-    std::set<std::pair<SEFormLoc, float>> racialMults;
+    std::set<std::pair<SEFormLoc, float>> racialSizes;
 
     std::set<std::pair<SEFormLoc, SEFormLoc>> npcAddons;
     std::set<std::pair<SEFormLoc, int>> npcSizeCats;

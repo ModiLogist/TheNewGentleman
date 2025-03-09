@@ -140,7 +140,7 @@ void Inis::LoadMainIni() {
     auto mult = ini.GetDoubleValue(cRacialSize, entry.pItem);
     auto raceRecord = StrToLoc(std::string((entry.pItem)));
     if (!raceRecord.second.empty()) {
-      racialMults.insert({raceRecord, static_cast<float>(mult)});
+      racialSizes.insert({raceRecord, static_cast<float>(mult)});
     }
   }
   ini.GetAllKeys(cNPCAddonSection, values);
@@ -226,14 +226,14 @@ void Inis::LoadRgInfo() {
       SKSE::log::debug("\tRestored the addon of race [xx{:x}] from file [{}] to addon [xx{:x}] from file [{}]", rgInfo.first.first, rgInfo.first.second, rgInfo.second.first,
                        rgInfo.second.second);
   }
-  for (auto &rgInfo : racialMults) {
+  for (auto &rgInfo : racialSizes) {
     auto rgIdx = base->GetRaceRgIdx(Util::SEDH()->LookupForm<RE::TESRace>(rgInfo.first.first, rgInfo.first.second));
     if (rgIdx < 0) continue;
     if (base->SetRgMult(rgIdx, rgInfo.second, false))
       SKSE::log::debug("\tRestored the size multiplier of race [xx{:x}] from file [{}] to [{}]", rgInfo.first.first, rgInfo.first.second, rgInfo.second);
   }
   racialAddons.clear();
-  racialMults.clear();
+  racialSizes.clear();
 }
 
 void Inis::LoadNpcInfo() {
@@ -511,19 +511,34 @@ void Inis::UpdateIniVersion() {
   ini.SetUnicode();
   ini.LoadFile(cSettings);
   int lIniVersion = ini.GetLongValue(cIniVersion, cVersion, 1);
-  switch (lIniVersion) {
-    case 1:
-      ini.GetAllSections(sections);
-      for (CSimpleIniA::TNamesDepend::const_iterator section = sections.begin(); section != sections.end(); section++) ini.Delete(section->pItem, NULL);
-      break;
-    case 2:
-      ini.Delete("AutoReveal", NULL);
-      if (ini.SectionExists(cNPCAddonSection)) ini.Delete(cNPCAddonSection, NULL);
-      break;
-    case 3:
-      if (std::filesystem::remove(R"(.\Data\SKSE\Plugins\Defaults_TNG.ini)")) SKSE::log::info("Removed the [Defaults_TNG.ini] file since it is not used anymore");
-    default:
-      break;
+  if (lIniVersion > cCurrVersion) {
+    ShowSkyrimMessage("You downgraded TNG after upgrading! This can cause issues in your game. Check mod description for more info.");
+  }
+  if (lIniVersion < 2) {
+    ini.GetAllSections(sections);
+    for (const auto &section : sections) ini.Delete(section.pItem, nullptr);
+  }
+  if (lIniVersion < 3) {
+    ini.Delete("AutoReveal", nullptr);
+    if (ini.SectionExists(cNPCAddonSection)) ini.Delete(cNPCAddonSection, nullptr);
+  }
+  if (lIniVersion < 4) {
+    if (std::filesystem::exists(R"(.\Data\SKSE\Plugins\Defaults_TNG.ini)")) SKSE::log::warn("The [Defaults_TNG.ini] file is not used anymore by TNG, feel free to delete it.");
+  }
+  if (lIniVersion < 5) {
+    ini.GetAllSections(sections);
+    for (const auto &section : sections) {
+      auto sectionName = std::string(section.pItem);
+      if (sectionName.contains("RaceSize")) {
+        CSimpleIniA::TNamesDepend keys;
+        ini.GetAllKeys(section.pItem, keys);
+        for (auto &key : keys) {
+          auto mult = ini.GetDoubleValue(section.pItem, key.pItem);
+          ini.SetDoubleValue(cRacialSize, key.pItem, mult);
+        }
+        ini.Delete(section.pItem, nullptr);
+      }
+    }
   }
   ini.SetLongValue(cIniVersion, cVersion, cCurrVersion);
   ini.SaveFile(cSettings);
