@@ -5,7 +5,7 @@ class Base : public Singleton<Base> {
     void Init();
 
   private:
-    enum eGenBones { egbBase, egbScrt, egbScrtL, egbScrtR, egbGen01, egbGen02, egbGen03, egbGen04, egbGen05, egbGen06, GenBonesCount };
+    enum eGenBones { egbBase, egbScrot, egbScrotL, egbScrotR, egbGen01, egbGen02, egbGen03, egbGen04, egbGen05, egbGen06, GenBonesCount };
     inline static const char* genBoneNames[GenBonesCount]{"NPC GenitalsBase [GenBase]",
                                                           "NPC GenitalsScrotum [GenScrot]",
                                                           "NPC L GenitalsScrotum [LGenScrot]",
@@ -95,12 +95,12 @@ class Base : public Singleton<Base> {
     RE::TESObjectARMO* GetOgSkin(RE::TESObjectARMO* skin);
 
   public:
-    Util::TNGRes CanModifyNPC(RE::TESNPC* npc);
-    Util::TNGRes GetActorSizeCat(RE::Actor* actor, int& sizeCat);
-    Util::TNGRes SetActorSize(RE::Actor* actor, const int sizeCat);
+    Util::eRes CanModifyNPC(RE::TESNPC* npc);
+    Util::eRes GetActorSizeCat(RE::Actor* actor, int& sizeCat);
+    Util::eRes SetActorSize(RE::Actor* actor, const int sizeCat);
     void ExcludeNPC(const std::string npcRecordStr);
     std::pair<int, bool> GetNPCAddon(RE::TESNPC* npc);
-    Util::TNGRes SetNPCAddon(RE::TESNPC* npc, const int addnIdx, const bool isUser);
+    Util::eRes SetNPCAddon(RE::TESNPC* npc, const int addnIdx, const bool isUser);
     void SetPlayerInfo(RE::Actor* actor, const int addnIdx);
     void UnsetPlayerInfo();
     bool HasPlayerChanged(RE::Actor* actor);

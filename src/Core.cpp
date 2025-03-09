@@ -4,7 +4,7 @@
 
 Core* core = Core::GetSingleton();
 
-void Core::GenitalizeRaces() {
+void Core::ProcessRaces() {
   SKSE::log::info("Finding the genitals for relevant races...");
   const auto& allRaces = Util::SEDH()->GetFormArray<RE::TESRace>();
   int preprocessed = 0;
@@ -77,7 +77,7 @@ void Core::IgnoreRace(RE::TESRace* race, bool ready) {
   race->AddKeyword(Util::Key(ready ? Util::kyReady : Util::kyIgnored));
 }
 
-Util::TNGRes Core::AddPotentialRace(RE::TESRace* race, const std::set<std::string>& validSkeletons) {
+Util::eRes Core::AddPotentialRace(RE::TESRace* race, const std::set<std::string>& validSkeletons) {
   try {
     for (auto raceInfo : hardCodedRaces)
       if (FormToLocView(race) == raceInfo) return Util::resOkRaceP;
@@ -122,7 +122,7 @@ Util::TNGRes Core::AddPotentialRace(RE::TESRace* race, const std::set<std::strin
   return isValidSk ? Util::resOkRaceP : Util::resOkRacePP;
 }
 
-void Core::GenitalizeNPCSkins() {
+void Core::ProcessSkins() {
   SKSE::log::info("Checking NPCs for custom skins.");
   std::map<std::pair<RE::TESObjectARMO*, RE::TESRace*>, std::set<RE::TESNPC*>> skinsToPatch{};
   std::map<std::string_view, size_t> customSkinMods{};
@@ -176,19 +176,19 @@ void Core::GenitalizeNPCSkins() {
   base->ReportHiddenRgs();
 }
 
-Util::TNGRes Core::CanModifyNPC(RE::TESNPC* npc) {
+Util::eRes Core::CanModifyNPC(RE::TESNPC* npc) {
   auto res = base->CanModifyNPC(npc);
   if (res < 0) return res;
   return (inis->IsNPCExcluded(npc)) ? Util::npcErr : res;
 }
 
-Util::TNGRes Core::SetActorSize(RE::Actor* actor, int genSize) {
+Util::eRes Core::SetActorSize(RE::Actor* actor, int genSize) {
   auto res = base->SetActorSize(actor, genSize);
   if (res == Util::resOkSizable && !actor->GetActorBase()->IsPlayer()) inis->SaveNPCSize(actor->GetActorBase(), genSize);
   return res;
 }
 
-Util::TNGRes Core::SetNPCAddon(RE::TESNPC* npc, const int addnIdx, const bool isUser, const bool shouldSave) {
+Util::eRes Core::SetNPCAddon(RE::TESNPC* npc, const int addnIdx, const bool isUser, const bool shouldSave) {
   if (!npc->race || !npc->race->HasKeyword(Util::Key(Util::kyProcessed))) return Util::raceErr;
   if (inis->IsNPCExcluded(npc)) return Util::npcErr;
   auto res = base->SetNPCAddon(npc, addnIdx, isUser);

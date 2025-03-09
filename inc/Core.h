@@ -2,18 +2,18 @@
 
 class Core : public Singleton<Core> {
   public:
-    void GenitalizeRaces();
+    void ProcessRaces();
     bool SetRgAddon(const size_t rgChoice, const int addnIdx, const bool onlyMCM);
 
   private:
     void IgnoreRace(RE::TESRace* race, bool ready);
-    Util::TNGRes AddPotentialRace(RE::TESRace* race, const std::set<std::string>& validSkeletons);
+    Util::eRes AddPotentialRace(RE::TESRace* race, const std::set<std::string>& validSkeletons);
 
   public:
-    void GenitalizeNPCSkins();
-    Util::TNGRes CanModifyNPC(RE::TESNPC* npc);
-    Util::TNGRes SetActorSize(RE::Actor* actor, int genSize);
-    Util::TNGRes SetNPCAddon(RE::TESNPC* npc, const int addnIdx, const bool isUser, const bool shouldSave = true);
+    void ProcessSkins();
+    Util::eRes CanModifyNPC(RE::TESNPC* npc);
+    Util::eRes SetActorSize(RE::Actor* actor, int genSize);
+    Util::eRes SetNPCAddon(RE::TESNPC* npc, const int addnIdx, const bool isUser, const bool shouldSave = true);
     void UpdateFormLists(RE::Actor* actor, RE::TESNPC* npc);
     std::vector<RE::TESObjectARMO*> GetActorWornArmor(RE::Actor* actor);
 

@@ -461,7 +461,7 @@ RE::TESObjectARMO *Base::GetOgSkin(RE::TESObjectARMO *skin) {
 
 //  NPC handling and info
 
-Util::TNGRes Base::CanModifyNPC(RE::TESNPC *npc) {
+Util::eRes Base::CanModifyNPC(RE::TESNPC *npc) {
   if (!npc) return Util::npcErr;
   if (!npc->race) return Util::raceErr;
   if (npc->race->HasKeyword(Util::Key(Util::kyReady))) return Util::resOkRaceR;
@@ -471,7 +471,7 @@ Util::TNGRes Base::CanModifyNPC(RE::TESNPC *npc) {
   return Util::raceErr;
 }
 
-Util::TNGRes Base::GetActorSizeCat(RE::Actor *actor, int &sizeCat) {
+Util::eRes Base::GetActorSizeCat(RE::Actor *actor, int &sizeCat) {
   sizeCat = Util::cNA;
   const auto npc = actor ? actor->GetActorBase() : nullptr;
   if (auto res = CanModifyNPC(npc); res < 0) return res;
@@ -483,7 +483,7 @@ Util::TNGRes Base::GetActorSizeCat(RE::Actor *actor, int &sizeCat) {
   return Util::resOkSizable;
 }
 
-Util::TNGRes Base::SetActorSize(RE::Actor *actor, const int sizeCat) {
+Util::eRes Base::SetActorSize(RE::Actor *actor, const int sizeCat) {
   int currCat = Util::cNA;
   const auto npc = actor ? actor->GetActorBase() : nullptr;
   if (!npc) return Util::npcErr;
@@ -502,10 +502,10 @@ Util::TNGRes Base::SetActorSize(RE::Actor *actor, const int sizeCat) {
   auto scale = mult * (catGlb ? catGlb->value : 1.0f);
   if (scale < 0.1) scale = 1;
   RE::NiAVObject *baseNode = actor->GetNodeByName(genBoneNames[egbBase]);
-  RE::NiAVObject *scrtNode = actor->GetNodeByName(genBoneNames[egbScrt]);
-  if (!baseNode || !scrtNode) return Util::skeletonErr;
+  RE::NiAVObject *scrotNode = actor->GetNodeByName(genBoneNames[egbScrot]);
+  if (!baseNode || !scrotNode) return Util::skeletonErr;
   baseNode->local.scale = scale;
-  scrtNode->local.scale = 1.0f / sqrt(scale);
+  scrotNode->local.scale = 1.0f / sqrt(scale);
   return Util::resOkSizable;
 }
 
@@ -541,7 +541,7 @@ std::pair<int, bool> Base::GetNPCAddon(RE::TESNPC *npc) {
   return std::make_pair(Util::cDef, false);
 }
 
-Util::TNGRes Base::SetNPCAddon(RE::TESNPC *npc, const int addnIdx, const bool isUser) {
+Util::eRes Base::SetNPCAddon(RE::TESNPC *npc, const int addnIdx, const bool isUser) {
   if (addnIdx < Util::cDef) return Util::addonErr;
   if (!npc) {
     SKSE::log::critical("Failure in setting a NPC genital!");

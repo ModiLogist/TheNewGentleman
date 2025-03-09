@@ -595,7 +595,7 @@ int Inis::IsRevealing(const RE::TESObjectARMO *armor, const std::string modName)
   if (revealingRecords.find({armor->GetLocalFormID(), modName}) != revealingRecords.end()) return Util::kyRevealing;
   if (femRevRecords.find({armor->GetLocalFormID(), modName}) != femRevRecords.end()) return Util::kyRevealingF;
   if (malRevRecords.find({armor->GetLocalFormID(), modName}) != malRevRecords.end()) return Util::kyRevealingM;
-  if (armor->HasKeywordString(Util::cSOSR)) return Util::kyRevealing;
+  if (armor->HasKeywordString(Util::cSOSRevealing)) return Util::kyRevealing;
   return Util::cNA;
 }
 

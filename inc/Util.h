@@ -16,7 +16,7 @@ class Util {
     inline static constexpr std::string_view cSkyrim{"Skyrim.esm"};
     inline static constexpr const char cDelimChar{'~'};
     inline static constexpr const char cColonChar{':'};
-    inline static constexpr std::string_view cSOSR{"SOS_Revealing"};
+    inline static constexpr std::string_view cSOSRevealing{"SOS_Revealing"};
     inline static constexpr size_t cSizeCategories{5};
 
     inline static constexpr RE::BGSBipedObjectForm::BipedObjectSlot cSlotBody{RE::BGSBipedObjectForm::BipedObjectSlot::kBody};
@@ -32,7 +32,7 @@ class Util {
     inline static constexpr std::string cDefStr{"Default"};
     inline static constexpr std::string cNulStr{"None"};
 
-    enum TNGRes {
+    enum eRes {
       pgErr = cNA,
       rgErr = -8,
       skeletonErr = -7,

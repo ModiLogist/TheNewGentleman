@@ -40,8 +40,8 @@ static void EventListener(SKSE::MessagingInterface::Message* message) {
     base->Init();
     inis->LoadMainIni();
     inis->LoadTngInis();
-    core->GenitalizeRaces();
-    core->GenitalizeNPCSkins();
+    core->ProcessRaces();
+    core->ProcessSkins();
     core->CheckArmorPieces();
     SKSE::log::info("TheNewGentleman finished initialization.");
     events->RegisterEvents();
