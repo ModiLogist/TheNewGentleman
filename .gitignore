@@ -1,3 +1,5 @@
+*.code-workspace
+
 .idea
 .vs
 .vscode
