@@ -1,5 +1,7 @@
 #pragma once
 
+#include <Util.h>
+
 class Core : public Singleton<Core> {
   public:
     void ProcessRaces();

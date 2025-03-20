@@ -1,7 +1,6 @@
 #include <Base.h>
 #include <Core.h>
 #include <Inis.h>
-#include <Util.h>
 
 Core* core = Core::GetSingleton();
 

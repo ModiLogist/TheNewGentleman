@@ -1,5 +1,7 @@
 #pragma once
 
+#include <Util.h>
+
 class Base : public Singleton<Base> {
   public:
     void Init();

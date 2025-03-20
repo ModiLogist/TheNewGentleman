@@ -1,5 +1,7 @@
 #pragma once
 
+#include <Util.h>
+
 class Inis : public Singleton<Inis> {
     // User Inis
   public:
