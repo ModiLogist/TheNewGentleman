@@ -4,10 +4,11 @@
 #include <Hooks.h>
 #include <Inis.h>
 #include <Papyrus.h>
+#include <Util.h>
 
 static bool CheckIncompatibility() {
   if (GetModuleHandle(L"Data\\SKSE\\Plugins\\acon.dll")) {
-    ShowSkyrimMessage("Warning: TNG is not compatible with acon.dll. Please don't use TNG with mods from that website!");
+    ut->ShowSkyrimMessage("Warning: TNG is not compatible with acon.dll. Please don't use TNG with mods from that website!");
     return false;
   }
   return true;
@@ -23,7 +24,7 @@ static void InitializeLogging() {
 
   std::shared_ptr<spdlog::logger> log;
   log = std::make_shared<spdlog::logger>("Global", std::make_shared<spdlog::sinks::basic_file_sink_mt>(path->string(), true));
-  log->set_level(Inis::GetLogLvl());
+  log->set_level(inis->GetLogLvl());
   log->flush_on(spdlog::level::trace);
   spdlog::set_default_logger(std::move(log));
   spdlog::set_pattern("[%H:%M:%S.%e] [%l] %v");
@@ -32,9 +33,9 @@ static void InitializeLogging() {
 static void EventListener(SKSE::MessagingInterface::Message* message) {
   if (message->type == SKSE::MessagingInterface::kDataLoaded) {
     if (!CheckIncompatibility()) return;
-    if (!Util::SEDH()->LookupModByName(Util::cName)) {
-      const char* err = fmt::format("Mod [{}] was not found! Make sure that the mod is active in your plugin load order!", Util::cName).c_str();
-      ShowSkyrimMessage(err);
+    if (!ut->SEDH()->LookupModByName(Util::mainFile)) {
+      const char* err = fmt::format("Mod [{}] was not found! Make sure that the mod is active in your plugin load order!", Util::mainFile).c_str();
+      ut->ShowSkyrimMessage(err);
       return;
     }
     base->Init();
@@ -48,7 +49,6 @@ static void EventListener(SKSE::MessagingInterface::Message* message) {
     Hooks::Install();
   }
   if (message->type == SKSE::MessagingInterface::kNewGame || message->type == SKSE::MessagingInterface::kPostLoadGame) {
-    inis->LoadHotKeys();
     base->UnsetPlayerInfo();
   }
 }

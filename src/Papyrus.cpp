@@ -3,6 +3,7 @@
 #include <Events.h>
 #include <Inis.h>
 #include <Papyrus.h>
+#include <Util.h>
 
 Papyrus* papyrus = Papyrus::GetSingleton();
 
@@ -103,17 +104,17 @@ std::vector<std::string> Papyrus::GetRgAddons(RE::StaticFunctionTag*, int rgIdx)
 }
 
 int Papyrus::GetRgAddon(RE::StaticFunctionTag*, int rgIdx) {
-  if (rgIdx < 0) return Util::pgErr;
+  if (rgIdx < 0) return Util::err40;
   auto rgAddon = base->GetRgAddon(static_cast<size_t>(rgIdx), true);
-  if (rgAddon < 0) return rgAddon == Util::cDef ? 0 : rgAddon;
+  if (rgAddon < 0) return rgAddon == Util::def ? 0 : rgAddon;
   auto list = base->GetRgAddonList(static_cast<size_t>(rgIdx), false, true, false);
   auto it = std::find(list.begin(), list.end(), rgAddon);
-  return static_cast<int>(it != list.end() ? std::distance(list.begin(), it) : Util::rgErr);
+  return static_cast<int>(it != list.end() ? std::distance(list.begin(), it) : Util::errRg);
 }
 
 void Papyrus::SetRgAddon(RE::StaticFunctionTag*, int rgIdx, int choice) {
   if (rgIdx < 0) return;
-  if (choice < Util::cDef) return;
+  if (choice < Util::def) return;
   auto list = base->GetRgAddonList(static_cast<size_t>(rgIdx), false, true, false);
   int addnIdx = choice < 0 ? choice : static_cast<int>(list[choice]);
   core->SetRgAddon(static_cast<size_t>(rgIdx), addnIdx, true);
@@ -133,7 +134,7 @@ int Papyrus::CanModifyActor(RE::StaticFunctionTag*, RE::Actor* actor) {
     case Util::resOkRaceP:
       return Util::resOkSizable;
     case Util::resOkRacePP:
-      return base->ReevaluateRace(actor->GetRace(), actor) ? Util::resOkSizable : Util::npcErr;
+      return base->ReevaluateRace(actor->GetRace(), actor) ? Util::resOkSizable : Util::errNPC;
     case Util::resOkRaceR:
       return Util::resOkFixed;
     default:
@@ -175,25 +176,25 @@ RE::TESObjectARMO* Papyrus::GetActorAddon(RE::StaticFunctionTag*, RE::Actor* act
   if (!npc) return nullptr;
   auto addnPair = base->GetNPCAddon(npc);
   switch (addnPair.first) {
-    case Util::pgErr:
+    case Util::err40:
       return nullptr;
-    case Util::cDef:
+    case Util::def:
       if (npc->IsFemale()) {
         return nullptr;
       } else {
         auto rgAddon = base->GetRgAddon(npc->race);
         switch (rgAddon) {
-          case Util::pgErr:
+          case Util::err40:
             return nullptr;
-          case Util::cNul:
+          case Util::nul:
             return nullptr;
-          case Util::cDef:
+          case Util::def:
             return nullptr;
           default:
             return base->AddonByIdx(false, static_cast<size_t>(rgAddon), false);
         }
       }
-    case Util::cNul:
+    case Util::nul:
       return nullptr;
     default:
       return base->AddonByIdx(npc->IsFemale(), static_cast<size_t>(addnPair.first), false);
@@ -202,11 +203,11 @@ RE::TESObjectARMO* Papyrus::GetActorAddon(RE::StaticFunctionTag*, RE::Actor* act
 
 int Papyrus::SetActorAddon(RE::StaticFunctionTag*, RE::Actor* actor, int choice) {
   const auto npc = actor ? actor->GetActorBase() : nullptr;
-  if (!npc) return Util::npcErr;
-  if (!npc->race) return Util::raceErr;
+  if (!npc) return Util::errNPC;
+  if (!npc->race) return Util::errRace;
   auto list = base->GetRgAddonList(npc->race, npc->IsFemale(), false);
   int addnIdx = choice < 0 ? choice : static_cast<int>(list[choice]);
-  if (npc->race->HasKeyword(Util::Key(Util::kyPreProcessed)) && !base->ReevaluateRace(npc->race, actor)) return Util::raceErr;
+  if (npc->race->HasKeyword(ut->Key(Util::kyPreProcessed)) && !base->ReevaluateRace(npc->race, actor)) return Util::errRace;
   if (actor->IsPlayerRef()) base->SetPlayerInfo(actor, choice);
   auto res = core->SetNPCAddon(npc, addnIdx, true);
   if (res >= 0) events->DoChecks(actor);
@@ -214,8 +215,8 @@ int Papyrus::SetActorAddon(RE::StaticFunctionTag*, RE::Actor* actor, int choice)
 }
 
 int Papyrus::GetActorSize(RE::StaticFunctionTag*, RE::Actor* actor) {
-  int sizeCat = Util::cNA;
-  return base->GetActorSizeCat(actor, sizeCat) < 0 ? Util::cNul : sizeCat;
+  int sizeCat = Util::nan;
+  return base->GetActorSizeCat(actor, sizeCat) < 0 ? Util::nul : sizeCat;
 }
 
 int Papyrus::SetActorSize(RE::StaticFunctionTag*, RE::Actor* actor, int genSize) { return core->SetActorSize(actor, genSize); }
@@ -257,23 +258,23 @@ std::string Papyrus::ShowLogLocation(RE::StaticFunctionTag*) {
 
 std::string Papyrus::GetErrDscr(RE::StaticFunctionTag*, int errCode) {
   switch (errCode) {
-    case Util::pgErr:
+    case Util::err40:
       return "$TNG_WN9";
-    case Util::rgErr:
+    case Util::errRg:
       return "$TNG_WN8";
-    case Util::skeletonErr:
+    case Util::errSkeleton:
       return "$TNG_WN7";
-    case Util::playerErr:
+    case Util::errPlayer:
       return "$TNG_WN6";
-    case Util::skinErr:
+    case Util::errSkin:
       return "$TNG_WN5";
-    case Util::armoErr:
+    case Util::errArmo:
       return "$TNG_WN4";
-    case Util::addonErr:
+    case Util::errAddon:
       return "$TNG_WN3";
-    case Util::npcErr:
+    case Util::errNPC:
       return "$TNG_WN2";
-    case Util::raceErr:
+    case Util::errRace:
       return "$TNG_WN1";
     default:
       return "$TNG_WN9";
@@ -283,41 +284,41 @@ std::string Papyrus::GetErrDscr(RE::StaticFunctionTag*, int errCode) {
 std::string Papyrus::WhyProblem(RE::StaticFunctionTag* tag, RE::Actor* actor, int issueID) {
   auto npc = actor ? actor->GetActorBase() : nullptr;
   if (!npc) return "$TNG_PD9";
-  auto down = actor->GetWornArmor(Util::cSlotGenital);
+  auto down = actor->GetWornArmor(Util::genitalSlot);
   auto cover = events->GetCoveringItem(actor, nullptr);
   switch (issueID) {
     case iidCanSee:
       if (!cover) return "$TNG_PA1";
-      if (down) return FormToLocView(down) == Util::cCover ? "$TNG_PD0" : "$TNG_PA2";
+      if (down) return ut->FormToLocView(down) == Util::coverID ? "$TNG_PD0" : "$TNG_PA2";
       return WhyProblem(tag, actor, iidCanSeeRep);
     case iidCanSeeRep:
       events->DoChecks(actor);
-      return actor->GetWornArmor(Util::cSlotGenital) ? "$TNG_PD1" : "$TNG_PD2";
+      return actor->GetWornArmor(Util::genitalSlot) ? "$TNG_PD1" : "$TNG_PD2";
     case iidCannotSee:
       auto skin = npc->skin ? npc->skin : npc->race->skin;
       if (cover) return "$TNG_PA6";
-      if (down && FormToLocView(down) != Util::cCover) return "$TNG_PA2";
+      if (down && ut->FormToLocView(down) != Util::coverID) return "$TNG_PA2";
       if (!down) {
         auto res = core->CanModifyNPC(npc);
         switch (res) {
           case Util::resOkRaceP:
             break;
           case Util::resOkRaceR:
-            return GetErrDscr(tag, Util::raceErr).c_str();
+            return GetErrDscr(tag, Util::errRace).c_str();
           case Util::resOkRacePP:
             if (!base->ReevaluateRace(npc->race, actor)) {
-              return GetErrDscr(tag, Util::raceErr).c_str();
+              return GetErrDscr(tag, Util::errRace).c_str();
             }
           default:
             return GetErrDscr(tag, res).c_str();
         }
-        if (skin->HasKeyword(Util::Key(Util::kyTngSkin))) return "$TNG_PD0";
-        if (npc->HasKeyword(Util::Key(Util::kyExcluded))) return "$TNG_PA3";
-        if (npc->IsFemale() && static_cast<size_t>(std::floor(Util::WRndGlb()->value + 0.1)) < 100) return "$TNG_PA4";
-        if (base->GetRgAddon(npc->race) == Util::cNul) return "$TNG_PA5";
+        if (skin->HasKeyword(ut->Key(Util::kyTngSkin))) return "$TNG_PD0";
+        if (npc->HasKeyword(ut->Key(Util::kyExcluded))) return "$TNG_PA3";
+        if (npc->IsFemale() && static_cast<size_t>(std::floor(base->GetFloatSetting(Util::ssWomenChance) + 0.1f)) < 100) return "$TNG_PA4";
+        if (base->GetRgAddon(npc->race) == Util::nul) return "$TNG_PA5";
       }
       events->DoChecks(actor);
-      return !actor->GetWornArmor(Util::cSlotGenital) && skin->HasKeyword(Util::Key(Util::kyTngSkin)) ? "$TNG_PD1" : "$TNG_PD2";
+      return !actor->GetWornArmor(Util::genitalSlot) && skin->HasKeyword(ut->Key(Util::kyTngSkin)) ? "$TNG_PD1" : "$TNG_PD2";
   }
   return "";
 }

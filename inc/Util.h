@@ -1,47 +1,48 @@
 #pragma once
 
+class Util;
 class Base;
 class Inis;
 class Core;
 class Events;
 
+extern Util* ut;
 extern Base* base;
 extern Inis* inis;
 extern Core* core;
 extern Events* events;
 
-class Util {
+class Util : public Singleton<Util> {
   public:
-    inline static constexpr std::string_view cName{"TheNewGentleman.esp"};
-    inline static constexpr std::string_view cSkyrim{"Skyrim.esm"};
-    inline static constexpr const char cDelimChar{'~'};
-    inline static constexpr const char cColonChar{':'};
-    inline static constexpr std::string_view cSOSRevealing{"SOS_Revealing"};
-    inline static constexpr size_t cSizeCategories{5};
+    inline static constexpr std::string_view mainFile{"TheNewGentleman.esp"};
+    inline static constexpr std::string_view skyrimFile{"Skyrim.esm"};
+    inline static constexpr char delim{'~'};
+    inline static constexpr char colon{':'};
+    inline static constexpr std::string_view sosRevealing{"SOS_Revealing"};
 
-    inline static constexpr RE::BGSBipedObjectForm::BipedObjectSlot cSlotBody{RE::BGSBipedObjectForm::BipedObjectSlot::kBody};
-    inline static constexpr RE::BGSBipedObjectForm::BipedObjectSlot cSlotGenital{RE::BGSBipedObjectForm::BipedObjectSlot::kModPelvisSecondary};
+    inline static constexpr RE::BGSBipedObjectForm::BipedObjectSlot bodySlot{RE::BGSBipedObjectForm::BipedObjectSlot::kBody};
+    inline static constexpr RE::BGSBipedObjectForm::BipedObjectSlot genitalSlot{RE::BGSBipedObjectForm::BipedObjectSlot::kModPelvisSecondary};
 
-    inline static constexpr SEFormLocView cCover{0xAFF, cName};
+    inline static constexpr SEFormLocView coverID{0xAFF, mainFile};
 
-    inline static constexpr size_t cMalRandomPriority{100};
-    inline static constexpr int cNA{-99};
-    inline static constexpr int cDef{-2};
-    inline static constexpr int cNul{-1};
-    inline static constexpr std::string cNAStr{"NA"};
-    inline static constexpr std::string cDefStr{"Default"};
-    inline static constexpr std::string cNulStr{"None"};
+    inline static constexpr size_t malRndChance{100};
+    inline static constexpr int nan{-99};
+    inline static constexpr int def{-2};
+    inline static constexpr int nul{-1};
+    inline static constexpr std::string nanStr{"NA"};
+    inline static constexpr std::string defStr{"Default"};
+    inline static constexpr std::string nulStr{"None"};
 
     enum eRes {
-      pgErr = cNA,
-      rgErr = -8,
-      skeletonErr = -7,
-      playerErr = -6,
-      skinErr = -5,
-      armoErr = -4,
-      addonErr = -3,
-      npcErr = -2,
-      raceErr = -1,
+      err40 = nan,
+      errRg = -8,
+      errSkeleton = -7,
+      errPlayer = -6,
+      errSkin = -5,
+      errArmo = -4,
+      errAddon = -3,
+      errNPC = -2,
+      errRace = -1,
       resOkFixed = 0,
       resOkSizable = 1,
       resOkRaceP = 10,
@@ -62,12 +63,17 @@ class Util {
       bsRandomizeMaleAddon,
       bsUIExtensions,
       bsShowAllRaces,
-      BoolSettingCount
+      boolSettingCount
     };
 
-    enum Races { raceDefault, raceDefBeast, RacesCount };
+    enum eCtrlSetting { ctrlDAK, ctrlSetupNPC, ctrlRiseGen, ctrlFallGen, ctrlSwapRevealing, ctrlWhyProblem, ctrlCount };
 
-    enum eKeywords {
+    enum eFloatSetting { ssXS, ssS, ssM, ssL, ssXL, ssWomenChance, floatSettingCount };
+    inline static constexpr int sizeKeyCount{floatSettingCount - 1};
+
+    enum eRace { raceDefault, raceDefBeast, racesCount };
+
+    enum eKeyword {
       kyProcessed,
       kyReady,
       kyPreProcessed,
@@ -87,150 +93,47 @@ class Util {
       kyBeast,
       kyCreature,
       kyVampire,
-      KeywordsCount
+      keywordsCount
     };
 
-    enum eTngFormLists { flmGentleWomen, flmNonGentleMen, TngFormListsCount };
-    inline static constexpr eKeywords RevKeys[3]{kyRevealing, kyRevealingF, kyRevealingM};
-    enum UserCtrls { ctrlDAK, ctrlSetupNPC, ctrlRiseGen, ctrlFallGen, ctrlSwapRevealing, ctrWhyProblem, UserCtrlsCount };
+    enum eTngFormLists { flmGentleWomen, flmNonGentleMen, flCount };
+    inline static constexpr eKeyword RevKeys[3]{kyRevealing, kyRevealingF, kyRevealingM};
 
   private:
-    inline static constexpr SEFormLocView cRaceIDs[RacesCount]{{0x19, cSkyrim}, {0x13745, cSkyrim}};
-    inline static constexpr SEFormLocView cTngKeyIDs[KeywordsCount] = {{0xFF0, cName},     {0xFF1, cName},     {0xFF2, cName},     {0xFF3, cName},    {0xFF4, cName},
-                                                                       {0xFF6, cName},     {0xFF7, cName},     {0xFF8, cName},     {0xFF9, cName},    {0xFFA, cName},
-                                                                       {0xFFB, cName},     {0xFFC, cName},     {0xFFD, cName},     {0xFFE, cName},    {0xFFF, cName},
-                                                                       {0x13794, cSkyrim}, {0xD61D1, cSkyrim}, {0x13795, cSkyrim}, {0xA82BB, cSkyrim}};
+    inline static constexpr SEFormLocView raceIDs[racesCount]{{0x19, skyrimFile}, {0x13745, skyrimFile}};
+    inline static constexpr SEFormLocView keyIDs[keywordsCount] = {{0xFF0, mainFile},     {0xFF1, mainFile},     {0xFF2, mainFile},     {0xFF3, mainFile},    {0xFF4, mainFile},
+                                                                   {0xFF6, mainFile},     {0xFF7, mainFile},     {0xFF8, mainFile},     {0xFF9, mainFile},    {0xFFA, mainFile},
+                                                                   {0xFFB, mainFile},     {0xFFC, mainFile},     {0xFFD, mainFile},     {0xFFE, mainFile},    {0xFFF, mainFile},
+                                                                   {0x13794, skyrimFile}, {0xD61D1, skyrimFile}, {0x13795, skyrimFile}, {0xA82BB, skyrimFile}};
 
-    inline static constexpr SEFormLocView cPCAddon{0xCFF, cName};
-    inline static constexpr SEFormLocView cWomenChanceID{0xCA0, cName};
-    inline static constexpr RE::FormID cSizeKeyIDs[cSizeCategories]{0xFE1, 0xFE2, 0xFE3, 0xFE4, 0xFE5};
-    inline static constexpr RE::FormID cSizeGlbIDs[cSizeCategories]{0xC01, 0xC02, 0xC03, 0xC04, 0xC05};
-    inline static constexpr SEFormLocView cUserCtrlIDs[UserCtrlsCount] = {{0xC00, Util::cName}, {0xCB0, Util::cName}, {0xCB1, Util::cName},
-                                                                          {0xCB2, Util::cName}, {0xCB3, Util::cName}, {0xCB4, Util::cName}};
+    inline static constexpr SEFormLocView pcAddonID{0xCFF, mainFile};
+    inline static constexpr RE::FormID sizeKeyIDs[sizeKeyCount]{0xFE1, 0xFE2, 0xFE3, 0xFE4, 0xFE5};
 
-    inline static constexpr SEFormLocView cTngFormListIds[TngFormListsCount] = {{0xE00, cName}, {0xE01, cName}};
-
-    inline static RE::TESDataHandler* fSEDH;
-    inline static RE::TESRace* races[RacesCount];
-    inline static RE::BGSKeyword* keywords[KeywordsCount];
-    inline static RE::BGSKeyword* sizeKey[cSizeCategories];
-    inline static RE::TESGlobal* pcAddon;
-    inline static RE::TESGlobal* gwChance;
-    inline static RE::TESGlobal* sizeGlbs[cSizeCategories];
-    inline static RE::TESGlobal* ctrlGlbs[UserCtrlsCount];
-    inline static RE::BGSListForm* tngFormLists[TngFormListsCount];
-    inline static RE::TESObjectARMO* block;
+    inline static constexpr SEFormLocView formListIDs[flCount] = {{0xE00, mainFile}, {0xE01, mainFile}};
 
   public:
-    static RE::TESDataHandler* SEDH() {
-      if (!fSEDH) fSEDH = RE::TESDataHandler::GetSingleton();
-      return fSEDH;
-    }
+    RE::TESDataHandler* SEDH();
+    RE::TESRace* Race(const size_t idx);
+    RE::BGSKeyword* Key(const size_t idx);
+    std::vector<RE::BGSKeyword*> Keys(const size_t first, const size_t last);
+    RE::BGSKeyword* SizeKey(const size_t idx);
+    std::vector<RE::BGSKeyword*> SizeKeys(const size_t last = sizeKeyCount);
+    RE::TESGlobal* PCAddon();
+    RE::BGSListForm* TngFml(const size_t idx);
+    RE::TESObjectARMO* Block();
+    RE::BGSKeyword* ProduceOrGetKw(const std::string& keyword);
+    void ShowSkyrimMessage(const char* message);
+    SEFormLoc StrToLoc(const std::string recordStr, bool canBeNone = false);
+    SEFormLoc FormToLoc(const RE::TESForm* form);
+    SEFormLocView FormToLocView(RE::TESForm* form);
+    std::string FormToStr(RE::TESForm* form);
 
-    static RE::TESRace* Race(const size_t idx) {
-      if (idx >= RacesCount) return nullptr;
-      if (!races[idx]) races[idx] = SEDH()->LookupForm<RE::TESRace>(cRaceIDs[idx].first, cRaceIDs[idx].second);
-      return races[idx];
-    }
-
-    static RE::BGSKeyword* Key(const size_t idx) {
-      if (idx >= KeywordsCount) return nullptr;
-      if (!keywords[idx]) keywords[idx] = SEDH()->LookupForm<RE::BGSKeyword>(cTngKeyIDs[idx].first, cTngKeyIDs[idx].second);
-      return keywords[idx];
-    }
-
-    static std::vector<RE::BGSKeyword*> Keys(const size_t first, const size_t last) {
-      std::vector<RE::BGSKeyword*> res = {};
-      if (last >= KeywordsCount) return res;
-      for (auto i = first; i <= last; i++) res.push_back(Key(i));
-      return res;
-    }
-
-    static RE::BGSKeyword* SizeKey(const size_t idx) {
-      if (!sizeKey[idx]) sizeKey[idx] = SEDH()->LookupForm<RE::BGSKeyword>(cSizeKeyIDs[idx], cName);
-      return sizeKey[idx];
-    }
-
-    static std::vector<RE::BGSKeyword*> SizeKeys(const size_t last = cSizeCategories) {
-      std::vector<RE::BGSKeyword*> res{};
-      for (size_t i = 0; i < (last > cSizeCategories ? cSizeCategories : last); i++) res.push_back(SizeKey(i));
-      return res;
-    }
-
-    static RE::TESGlobal* SizeGlb(const size_t idx) {
-      if (!sizeGlbs[idx]) sizeGlbs[idx] = SEDH()->LookupForm<RE::TESGlobal>(cSizeGlbIDs[idx], cName);
-      return sizeGlbs[idx];
-    }
-
-    static RE::TESGlobal* UserCtrl(const size_t idx) {
-      if (!ctrlGlbs[idx]) ctrlGlbs[idx] = SEDH()->LookupForm<RE::TESGlobal>(cUserCtrlIDs[idx].first, cUserCtrlIDs[idx].second);
-      return ctrlGlbs[idx];
-    }
-
-    static RE::TESGlobal* PCAddon() {
-      if (!pcAddon) pcAddon = SEDH()->LookupForm<RE::TESGlobal>(cPCAddon.first, cPCAddon.second);
-      return pcAddon;
-    }
-
-    static RE::TESGlobal* WRndGlb() {
-      if (!gwChance) gwChance = SEDH()->LookupForm<RE::TESGlobal>(cWomenChanceID.first, cWomenChanceID.second);
-      return gwChance;
-    }
-
-    static RE::BGSListForm* TngFml(const size_t idx) {
-      if (!tngFormLists[idx]) tngFormLists[idx] = SEDH()->LookupForm<RE::BGSListForm>(cTngFormListIds[idx].first, cTngFormListIds[idx].second);
-      return tngFormLists[idx];
-    }
-
-    static RE::TESObjectARMO* Block() {
-      if (!block) block = Util::SEDH()->LookupForm<RE::TESObjectARMO>(cCover.first, cCover.second);
-      return block;
-    }
-
-    static RE::BGSKeyword* ProduceOrGetKw(const std::string& keyword) {
-      auto& allKeywords = Util::SEDH()->GetFormArray<RE::BGSKeyword>();
-      auto it = std::find_if(allKeywords.begin(), allKeywords.end(), [&](const auto& kw) { return kw && kw->formEditorID == keyword.c_str(); });
-      RE::BGSKeyword* res{nullptr};
-      if (it != allKeywords.end()) {
-        res = *it;
-      } else {
-        const auto factory = RE::IFormFactory::GetConcreteFormFactoryByType<RE::BGSKeyword>();
-        if (res = factory ? factory->Create() : nullptr; res) {
-          res->formEditorID = keyword;
-          allKeywords.push_back(res);
-        }
-      }
-      return res;
-    }
+  private:
+    RE::TESDataHandler* sedh = nullptr;
+    RE::TESRace* races[racesCount] = {};
+    RE::BGSKeyword* keywords[keywordsCount] = {};
+    RE::BGSKeyword* sizeKey[sizeKeyCount] = {};
+    RE::TESGlobal* pcAddon = nullptr;
+    RE::BGSListForm* tngFormLists[flCount] = {};
+    RE::TESObjectARMO* block = nullptr;
 };
-
-static void ShowSkyrimMessage(const char* message) { RE::DebugMessageBox(message); }
-
-static SEFormLoc StrToLoc(const std::string recordStr, bool canBeNone = false) {
-  const size_t sepLoc = recordStr.find(Util::cDelimChar);
-  if (canBeNone && recordStr == Util::cNulStr) return {0, Util::cNulStr};
-  if (sepLoc == std::string::npos) return {0, ""};
-  const RE::FormID formID = std::strtol(recordStr.substr(0, sepLoc).data(), nullptr, 0);
-  const std::string modName = recordStr.substr(sepLoc + 1);
-  return std::make_pair(formID, modName);
-}
-
-static SEFormLoc FormToLoc(const RE::TESForm* form) {
-  std::string filename = form->GetFile(0) ? std::string(form->GetFile(0)->GetFilename()) : "NoFile";
-  auto formID = form->GetFormID() < 0xFF000000 ? form->GetLocalFormID() : form->GetFormID();
-  return {formID, filename};
-}
-
-static SEFormLocView FormToLocView(RE::TESForm* form) {
-  auto filename = form->GetFile(0) ? form->GetFile(0)->GetFilename() : "NoFile";
-  auto formID = form->GetFormID() < 0xFF000000 ? form->GetLocalFormID() : form->GetFormID();
-  return {formID, filename};
-}
-
-static std::string FormToStr(RE::TESForm* form) {
-  if (!form || !form->GetFile(0)) return "";
-  std::ostringstream oss;
-  auto formID = form->GetFormID() < 0xFF000000 ? form->GetLocalFormID() : form->GetFormID();
-  oss << std::hex << formID;
-  return "0x" + oss.str() + Util::cDelimChar + std::string(form->GetFile(0)->GetFilename());
-}

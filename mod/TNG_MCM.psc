@@ -21,12 +21,12 @@ GlobalVariable Property WomenChance auto
 ;Constants
 Int ciExcludePlayer
 Int ciCheckingPCGen
-Int ciCheckNPCsGens
+;Int ciCheckNPCsGens
 Int ciForceTheCheck
 Int ciRevealSlot52s
 Int ciLetMixSlot52s    
 Int ciRandomizeMale
-Int ciUI_Extensions
+;Int ciUI_Extensions
 Int ciShowEveryRace
 
 Int ciLockKey
@@ -121,12 +121,12 @@ Event OnConfigInit()
   
   ciExcludePlayer = 0
   ciCheckingPCGen = 1
-  ciCheckNPCsGens = 2
+  ;ciCheckNPCsGens = 2
   ciForceTheCheck = 3
   ciRevealSlot52s = 4
   ciLetMixSlot52s = 5
   ciRandomizeMale = 6
-  ciUI_Extensions = 7
+  ;ciUI_Extensions = 7
   ciShowEveryRace = 8
 
   ciLockKey = 56 ; Left Alt Key

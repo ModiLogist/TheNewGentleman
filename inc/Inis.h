@@ -51,7 +51,7 @@ class Inis : public Singleton<Inis> {
 
   private:
     inline static constexpr int cCurrVersion = 5;
-    inline static constexpr const char* cSettings{R"(.\Data\SKSE\Plugins\TheNewGentleman.ini)"};
+    inline static constexpr const char* cSettings{R"(.\Data\SKSE\Plugins\TheNewGentleman{}.ini)"};
     inline static constexpr const char* cTngIniEnding{"TNG.ini"};
     inline static constexpr const char* cTngInisPath{R"(.\Data\SKSE\Plugins\TNG)"};
 
@@ -61,17 +61,19 @@ class Inis : public Singleton<Inis> {
 
     inline static constexpr const char* cGeneral{"General"};
     inline static constexpr const char* cLogLvl{"LoggingLevel"};
-    inline static constexpr const char* cBoolSettings[Util::BoolSettingCount]{"ExcludePlayerSize",   "CheckPlayerRegularly",   "CheckNPCsAfterLoad",
+    inline static constexpr const char* cBoolSettings[Util::boolSettingCount]{"ExcludePlayerSize",   "CheckPlayerRegularly",   "CheckNPCsAfterLoad",
                                                                               "ForceChecks",         "Slot52ModsAreRevealing", "Slot52ModsAreMixed",
                                                                               "RandomizeMaleAddons", "UIExtensions",           "ShowAllRaces"};
-    inline static constexpr bool cDefBoolSettings[Util::BoolSettingCount]{false, false, true, false, false, false, false, true, false};
+    inline static constexpr bool cDefBoolSettings[Util::boolSettingCount]{false, false, true, false, false, false, false, true, false};
 
-    inline static constexpr const char* cGlobalSize{"GlobalSizes"};
-    inline static constexpr const char* cSizeNames[Util::cSizeCategories]{"Size_XS", "Size__S", "Size__M", "Size__L", "Size_XL"};
-    inline static constexpr double cDefSizes[Util::cSizeCategories]{0.8, 0.9, 1.0, 1.2, 1.4};
+    inline static constexpr const char* cFLoatSections[Util::floatSettingCount]{"GlobalSizes", "GlobalSizes", "GlobalSizes", "GlobalSizes", "GlobalSizes", "GentleWomen"};
+    inline static constexpr const char* cFloatNames[Util::floatSettingCount]{"Size_XS", "Size__S", "Size__M", "Size__L", "Size_XL", "Chance"};
+    inline static constexpr double cDefFloatSettings[Util::floatSettingCount]{
+        0.8, 0.9, 1.0, 1.2, 1.4, 20.0,
+    };
 
     inline static constexpr const char* cControls{"Controls"};
-    inline static constexpr const char* cCtrlNames[Util::UserCtrlsCount]{"DAK_Integration", "NPCEdit", "GenitalUp", "GenitalDown", "Revealing", "WhyProblem"};
+    inline static constexpr const char* cCtrlNames[Util::ctrlCount]{"DAK_Integration", "NPCEdit", "GenitalUp", "GenitalDown", "Revealing", "WhyProblem"};
 
     inline static constexpr const char* cRacialAddon{"RaceGenital"};
     inline static constexpr const char* cRacialSize{"RaceSizeMultiplier"};
@@ -84,8 +86,6 @@ class Inis : public Singleton<Inis> {
     inline static constexpr const char* cRevealingSection{"RevealingRecord"};
     inline static constexpr const char* cFemRevRecordSection{"FemaleRevealingRecord"};
     inline static constexpr const char* cMalRevRecordSection{"MaleRevealingRecord"};
-    inline static constexpr const char* cGentleWomen{"GentleWomen"};
-    inline static constexpr const char* cGentleWomenChance{"Chance"};
 
     std::set<std::pair<SEFormLoc, SEFormLoc>> racialAddons;
     std::set<std::pair<SEFormLoc, float>> racialSizes;
@@ -98,8 +98,10 @@ class Inis : public Singleton<Inis> {
     std::set<SEFormLoc> runTimeFemRevRecords;
     std::set<SEFormLoc> runTimeMalRevRecords;
 
+    const char* SettingFile(const int version = cCurrVersion) const;
+
   public:
-    static spdlog::level::level_enum GetLogLvl();
+    spdlog::level::level_enum GetLogLvl();
     void SetLogLvl(int logLevel);
     void SetAddonStatus(const bool isFemale, const int addnIdx, const bool status);
     void SetRgMult(const size_t rg, const float mult);
@@ -107,8 +109,9 @@ class Inis : public Singleton<Inis> {
     void SaveNPCAddon(RE::TESNPC* npc, const int choice);
     void SaveNPCSize(RE::TESNPC* npc, int genSize);
     void SaveRevealingArmor(RE::TESObjectARMO* armor, int revMode);
-    void LoadHotKeys();
     void SetBoolSetting(Util::eBoolSetting settingID, bool value);
+    void SetIntSetting(Util::eCtrlSetting ctrl, int value);
+    void SetFloatSetting(Util::eFloatSetting settingID, const float value);
     void SaveGlobals();
     std::vector<std::string> Slot52Mods();
     bool Slot52ModBehavior(const std::string modName, const int behavior);

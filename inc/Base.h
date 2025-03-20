@@ -40,9 +40,6 @@ class Base : public Singleton<Base> {
     void LoadAddons();
 
   public:
-    float GetGlobalSize(const size_t idx);
-    void SetGlobalSize(const size_t idx, float size);
-
   public:
     void AddRace(RE::TESRace* race, bool isProcessed);
     bool ReevaluateRace(RE::TESRace* race, RE::Actor* actor);
@@ -75,8 +72,8 @@ class Base : public Singleton<Base> {
         std::vector<RE::TESRace*> races{};
         bool noMCM{false};
         float mult = {1.0f};
-        int defAddonIdx{Util::cNA};
-        int addonIdx{Util::cNA};
+        int defAddonIdx{Util::nan};
+        int addonIdx{Util::nan};
         std::map<size_t, std::pair<bool, RE::TESObjectARMA*>> malAddons{};
         std::map<size_t, std::pair<bool, RE::TESObjectARMA*>> femAddons{};
         std::map<RE::TESObjectARMO*, std::map<size_t, RE::TESObjectARMO*>> malSkins{};
@@ -106,9 +103,15 @@ class Base : public Singleton<Base> {
     bool HasPlayerChanged(RE::Actor* actor);
     bool GetBoolSetting(const size_t idx);
     void SetBoolSetting(const size_t idx, const bool value);
+    int GetIntSetting(const size_t idx);
+    void SetIntSetting(const size_t idx, const int value);
+    float GetFloatSetting(const size_t idx);
+    void SetFloatSetting(const size_t idx, float value);
 
   private:
-    bool boolSettings[Util::BoolSettingCount];
+    bool boolSettings[Util::boolSettingCount];
+    int intSettings[Util::ctrlCount];
+    float floatSettings[Util::floatSettingCount];
 
     void OrganizeNPCAddonKeywords(RE::TESNPC* npc, int addnIdx, bool isUser);
     struct PlayerInfo {
