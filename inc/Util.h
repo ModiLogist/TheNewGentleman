@@ -52,7 +52,7 @@ class Util {
       resOkSupported = 22,
     };
 
-    enum BoolSetting {
+    enum eBoolSetting {
       bsExcludePlayerSize,
       bsCheckPlayerAddon,
       bsCheckNPCsAddons,

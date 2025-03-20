@@ -32,7 +32,7 @@ class Core : public Singleton<Core> {
     inline static constexpr SEFormLocView hardCodedRaces[hardCodedRacesCount]{{0x3CA97, "Dragonborn.esm"}};
 
   public:
-    void SetBoolSetting(Util::BoolSetting settingID, bool value);
+    void SetBoolSetting(Util::eBoolSetting settingID, bool value);
     void SetAddonStatus(const bool isFemale, const int addnIdx, const bool status);
     void SetRgMult(const size_t rgChoice, const float mult, bool onlyMCM);
 };

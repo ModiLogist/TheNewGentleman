@@ -108,7 +108,7 @@ class Inis : public Singleton<Inis> {
     void SaveNPCSize(RE::TESNPC* npc, int genSize);
     void SaveRevealingArmor(RE::TESObjectARMO* armor, int revMode);
     void LoadHotKeys();
-    void SetBoolSetting(Util::BoolSetting settingID, bool value);
+    void SetBoolSetting(Util::eBoolSetting settingID, bool value);
     void SaveGlobals();
     std::vector<std::string> Slot52Mods();
     bool Slot52ModBehavior(const std::string modName, const int behavior);

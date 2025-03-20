@@ -433,7 +433,7 @@ void Inis::SaveRevealingArmor(RE::TESObjectARMO *armor, int revMode) {
   ini.SaveFile(cSettings);
 }
 
-void Inis::LoadHotKeys() {
+void Inis::SetBoolSetting(Util::eBoolSetting settingID, bool value) {
   CSimpleIniA ini;
   ini.SetUnicode();
   ini.LoadFile(cSettings);

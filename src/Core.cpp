@@ -480,7 +480,7 @@ bool Core::SwapRevealing(RE::Actor* actor, RE::TESObjectARMO* armor) {
   return false;
 }
 
-void Core::SetBoolSetting(Util::BoolSetting settingID, bool value) {
+void Core::SetBoolSetting(Util::eBoolSetting settingID, bool value) {
   base->SetBoolSetting(settingID, value);
   inis->SetBoolSetting(settingID, value);
 }

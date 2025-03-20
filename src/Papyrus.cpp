@@ -46,12 +46,12 @@ bool Papyrus::BindPapyrus(RE::BSScript::IVirtualMachine* vm) {
 }
 
 bool Papyrus::GetBoolValue(RE::StaticFunctionTag*, int settingID) {
-  if (0 <= settingID && settingID < Util::BoolSettingCount) return base->GetBoolSetting(static_cast<Util::BoolSetting>(settingID));
+  if (0 <= settingID && settingID < Util::boolSettingCount) return base->GetBoolSetting(static_cast<Util::eBoolSetting>(settingID));
   return false;
 }
 
 void Papyrus::SetBoolValue(RE::StaticFunctionTag*, int settingID, bool value) {
-  if (0 <= settingID && settingID < Util::BoolSettingCount) core->SetBoolSetting(static_cast<Util::BoolSetting>(settingID), value);
+  if (0 <= settingID && settingID < Util::boolSettingCount) core->SetBoolSetting(static_cast<Util::eBoolSetting>(settingID), value);
 }
 
 std::vector<std::string> Papyrus::GetAllPossibleAddons(RE::StaticFunctionTag*, bool isFemale) {
