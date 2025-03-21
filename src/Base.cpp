@@ -156,6 +156,7 @@ std::string Base::GetRgInfo(size_t rgChoice, bool onlyMCM) {
   std::string res{""};
   auto rg = GetRg(rgChoice, onlyMCM);
   if (!rg) return res;
+  if (rg == &rgInfoList[0]) return "Internal group for TNG to handle main race groups with same skin.";
   auto &list = rg->races;
   res = "Main race: [" + rg->file + " : " + rg->name + "]; ";
   res = res + "Armor race: [" + rg->armorRace->GetFormEditorID() + "]; ";
