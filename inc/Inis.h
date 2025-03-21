@@ -70,9 +70,7 @@ class Inis : public Singleton<Inis> {
 
     inline static constexpr const char* cFLoatSections[Util::floatSettingCount]{"GlobalSizes", "GlobalSizes", "GlobalSizes", "GlobalSizes", "GlobalSizes", "GentleWomen"};
     inline static constexpr const char* cFloatNames[Util::floatSettingCount]{"Size_XS", "Size__S", "Size__M", "Size__L", "Size_XL", "Chance"};
-    inline static constexpr double cDefFloatSettings[Util::floatSettingCount]{
-        0.8, 0.9, 1.0, 1.2, 1.4, 20.0,
-    };
+    inline static constexpr double cDefFloatSettings[Util::floatSettingCount]{0.8, 0.9, 1.0, 1.2, 1.4, 20.0};
 
     inline static constexpr const char* cControls{"Controls"};
     inline static constexpr const char* cCtrlNames[Util::intSettingCount]{"DAK_Integration", "NPCEdit", "GenitalUp", "GenitalDown", "Revealing", "WhyProblem"};

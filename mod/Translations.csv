@@ -13,17 +13,17 @@ $TNG_TM2,Muscular-Style 2,Esp
 $TNG_TRT,Regular-Style 1,Esp
 $TNG_TR2,Regular-Style 2,Esp
 ,,
-$TNG_TCT (d),Circumcised (d), C++
-$TNG_TMT (d),Muscular-Style 1 (d), C++
-$TNG_TM2 (d),Muscular-Style 2 (d), C++
-$TNG_TRT (d),Regular-Style 1 (d), C++
-$TNG_TR2 (d),Regular-Style 2 (d), C++
+$TNG_TCT (d),Circumcised (d),C++
+$TNG_TMT (d),Muscular-Style 1 (d),C++
+$TNG_TM2 (d),Muscular-Style 2 (d),C++
+$TNG_TRT (d),Regular-Style 1 (d),C++
+$TNG_TR2 (d),Regular-Style 2 (d),C++
 ,,
-$TNG_TCT (s),Circumcised (s), C++
-$TNG_TMT (s),Muscular-Style 1 (s), C++
-$TNG_TM2 (s),Muscular-Style 2 (s), C++
-$TNG_TRT (s),Regular-Style 1 (s), C++
-$TNG_TR2 (s),Regular-Style 2 (s), C++
+$TNG_TCT (s),Circumcised (s),C++
+$TNG_TMT (s),Muscular-Style 1 (s),C++
+$TNG_TM2 (s),Muscular-Style 2 (s),C++
+$TNG_TRT (s),Regular-Style 1 (s),C++
+$TNG_TR2 (s),Regular-Style 2 (s),C++
 ,,
 $TNG_SOH,Default Sizes,
 $TNG_SRS,Reset Size,
@@ -102,7 +102,7 @@ $TNG_HKN,"Customize player or NPCs addon and size. If there is an NPC under curs
 $TNG_HKS,Swap revealing/covering,
 $TNG_H_S,Changes the size category multiplier. Each actor gets a size category randomly and can be customized using the customization key. Their final genital size would be: (their race multiplier) * (their size category),
 $TNG_HOA,Set the default addon for the race. You can further customize NPCs using the customization keyword. (For race group info hold Left Alt),
-$TNG_HOS,Changes the race multiplier on top of NPCs size category. The final multiplier for each NPC: [race multiplier] * [size category multiplier9.  (For race group info hold Left Alt),
+$TNG_HOS,Changes the race multiplier on top of NPCs size category. The final multiplier for each NPC: [race multiplier] * [size category multiplier].  (For race group info hold Left Alt),
 $TNG_HAC,The chance that women receive any of the selected addons below.,
 $TNG_HAD,Whether to distribute this addon to NPCs. All addons are always available in customization menu.,
 $TNG_HLF,"If you click, a message the local folder on your device where the TNG log (and other SKSE logs) are saved.",

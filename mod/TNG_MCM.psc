@@ -254,7 +254,7 @@ Event OnPageReset(String asPage)
     AddHeaderOption("$TNG_OGS")
     AddHeaderOption("$TNG_OGT")
     Int liRg = 0
-    String[] lSRgNames = TNG_PapyrusUtil.GetRGNames()
+    String[] lSRgNames = TNG_PapyrusUtil.GetRgNames()
     While liRg < lSRgNames.Length      
       fIRaceSizeHdls[liRg] = AddSliderOption(lSRgNames[liRg], TNG_PapyrusUtil.GetRGMult(liRg), "{2}")
       String[] lSOptions = TNG_PapyrusUtil.GetRgAddons(liRg)
@@ -390,7 +390,7 @@ Event OnOptionHighlight(Int aiOption)
   EndIf  
   
   If CurrentPage == Pages[1]
-    Int liCurr = TNG_PapyrusUtil.GetRGNames().Length
+    Int liCurr = TNG_PapyrusUtil.GetRgNames().Length
     While liCurr > 0
       liCurr -= 1
       If aiOption == fIRaceTypeHdls[liCurr]    
@@ -557,7 +557,7 @@ Event OnOptionDefault(Int aiOption)
 
   
   If CurrentPage == Pages[1]
-    Int liOpLoop = TNG_PapyrusUtil.GetRGNames().Length
+    Int liOpLoop = TNG_PapyrusUtil.GetRgNames().Length
     While liOpLoop > 0
       liOpLoop -= 1
       If aiOption == fIRaceSizeHdls[liOpLoop]
@@ -644,7 +644,7 @@ EndEvent
 Event OnOptionMenuOpen(Int aiOption)
   
   If CurrentPage == Pages[1]
-    Int liRg = TNG_PapyrusUtil.GetRGNames().Length
+    Int liRg = TNG_PapyrusUtil.GetRgNames().Length
     While liRg
       liRg -= 1
       If aiOption == fIRaceTypeHdls[liRg]
@@ -691,7 +691,7 @@ EndEvent
 Event OnOptionMenuAccept(Int aiOption, Int aiChoice)  
 
   If CurrentPage == Pages[1]
-    Int liRg = TNG_PapyrusUtil.GetRGNames().Length
+    Int liRg = TNG_PapyrusUtil.GetRgNames().Length
     While liRg
       liRg -= 1
       If aiOption == fIRaceTypeHdls[liRg]
@@ -742,7 +742,7 @@ Event OnOptionSliderOpen(Int aiOption)
   EndIf
 
   If CurrentPage == Pages[1]
-    Int liRg = TNG_PapyrusUtil.GetRGNames().Length
+    Int liRg = TNG_PapyrusUtil.GetRgNames().Length
     While liRg > 0
       liRg -= 1
       If aiOption == fIRaceSizeHdls[liRg]
@@ -786,7 +786,7 @@ Event OnOptionSliderAccept(Int aiOption, Float afValue)
   EndIf
 
   If CurrentPage == Pages[1]
-    Int liRg = TNG_PapyrusUtil.GetRGNames().Length
+    Int liRg = TNG_PapyrusUtil.GetRgNames().Length
     While liRg > 0
       liRg -= 1
       If aiOption == fIRaceSizeHdls[liRg]

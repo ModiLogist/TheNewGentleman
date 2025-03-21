@@ -466,7 +466,7 @@ void Inis::SetFloatSetting(Util::eFloatSetting settingID, const float value) {
     CSimpleIniA ini;
     ini.SetUnicode();
     ini.LoadFile(SettingFile());
-    if (cDefFloatSettings[settingID] == value) {
+    if (std::abs(cDefFloatSettings[settingID] - value) < Util::fEpsilon) {
       ini.Delete(cFLoatSections[settingID], cFloatNames[settingID], true);
     } else {
       ini.SetDoubleValue(cFLoatSections[settingID], cFloatNames[settingID], value);

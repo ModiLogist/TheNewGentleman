@@ -25,6 +25,7 @@ class Util : public Singleton<Util> {
 
     inline static constexpr SEFormLocView coverID{0xAFF, mainFile};
 
+    inline static constexpr float fEpsilon{0.0001f};
     inline static constexpr size_t malRndChance{100};
     inline static constexpr int nan{-99};
     inline static constexpr int def{-2};
