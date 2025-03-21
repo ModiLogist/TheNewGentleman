@@ -52,14 +52,14 @@ class Inis : public Singleton<Inis> {
     void CleanIniLists();
 
   private:
-    inline static constexpr int cCurrVersion = 5;
     inline static constexpr const char* cSettings{R"(.\Data\SKSE\Plugins\TheNewGentleman{}.ini)"};
     inline static constexpr const char* cTngIniEnding{"TNG.ini"};
     inline static constexpr const char* cTngInisPath{R"(.\Data\SKSE\Plugins\TNG)"};
 
     // Setting Ini
-    inline static constexpr const char* cIniVersion{"IniVersion"};
-    inline static constexpr const char* cVersion{"Version"};
+    inline static constexpr int iniVersion = 5;
+    inline static constexpr const char* versionKey{"IniVersion"};
+    inline static constexpr const char* versionSection{"Version"};
 
     inline static constexpr const char* cGeneral{"General"};
     inline static constexpr const char* cLogLvl{"LoggingLevel"};
@@ -75,7 +75,7 @@ class Inis : public Singleton<Inis> {
     };
 
     inline static constexpr const char* cControls{"Controls"};
-    inline static constexpr const char* cCtrlNames[Util::ctrlCount]{"DAK_Integration", "NPCEdit", "GenitalUp", "GenitalDown", "Revealing", "WhyProblem"};
+    inline static constexpr const char* cCtrlNames[Util::intSettingCount]{"DAK_Integration", "NPCEdit", "GenitalUp", "GenitalDown", "Revealing", "WhyProblem"};
 
     inline static constexpr const char* cRacialAddon{"RaceGenital"};
     inline static constexpr const char* cRacialSize{"RaceSizeMultiplier"};
@@ -100,7 +100,7 @@ class Inis : public Singleton<Inis> {
     std::set<SEFormLoc> runTimeFemRevRecords;
     std::set<SEFormLoc> runTimeMalRevRecords;
 
-    const char* SettingFile(const int version = cCurrVersion) const;
+    const char* SettingFile(const int version = iniVersion) const;
 
   public:
     spdlog::level::level_enum GetLogLvl();
@@ -112,14 +112,14 @@ class Inis : public Singleton<Inis> {
     void SaveNPCSize(RE::TESNPC* npc, int genSize);
     void SaveRevealingArmor(RE::TESObjectARMO* armor, int revMode);
     void SetBoolSetting(Util::eBoolSetting settingID, bool value);
-    void SetIntSetting(Util::eCtrlSetting ctrl, int value);
+    void SetIntSetting(Util::eIntSetting is, int value);
     void SetFloatSetting(Util::eFloatSetting settingID, const float value);
     void SaveGlobals();
     std::vector<std::string> Slot52Mods();
     bool Slot52ModBehavior(const std::string modName, const int behavior);
 
   private:
-    void UpdateIniVersion();
+    void TransferOldIni();
     void LoadModRecordPairs(CSimpleIniA::TNamesDepend records, std::set<SEFormLoc>& fieldToFill);
     void UpdateRevealing(const std::string armorRecord, const int revealingMode);
 

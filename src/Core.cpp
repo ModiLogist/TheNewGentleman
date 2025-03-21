@@ -485,6 +485,16 @@ void Core::SetBoolSetting(Util::eBoolSetting settingID, bool value) {
   inis->SetBoolSetting(settingID, value);
 }
 
+void Core::SetIntSetting(Util::eIntSetting settingID, int value) {
+  base->SetIntSetting(settingID, value);
+  inis->SetIntSetting(settingID, value);
+}
+
+void Core::SetFloatSetting(Util::eFloatSetting settingID, float value) {
+  base->SetFloatSetting(settingID, value);
+  inis->SetFloatSetting(settingID, value);
+}
+
 void Core::SetAddonStatus(const bool isFemale, const int addnIdx, const bool status) {
   base->SetAddonStatus(isFemale, addnIdx, status);
   inis->SetAddonStatus(isFemale, addnIdx, status);

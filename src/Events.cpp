@@ -165,7 +165,7 @@ std::pair<int, bool> Events::GetNPCAutoAddon(RE::TESNPC* npc) {
   auto list = base->GetRgAddonList(npc->race, npc->IsFemale(), true);
   const auto count = list.size();
   const auto malChance = base->GetBoolSetting(Util::bsRandomizeMaleAddon) ? ut->malRndChance : 0;
-  const size_t chance = npc->IsFemale() ? static_cast<size_t>(std::floor(base->GetFloatSetting(ut->ssWomenChance) + 0.1f)) : malChance;
+  const size_t chance = npc->IsFemale() ? static_cast<size_t>(std::floor(base->GetFloatSetting(ut->fsWomenChance) + 0.1f)) : malChance;
   if (count == 0 || chance == 0) return {Util::def, false};
   auto addon = npc->GetFormID() % 100 < chance ? static_cast<int>(list[npc->GetFormID() % count]) : Util::def;
   return {addon, false};

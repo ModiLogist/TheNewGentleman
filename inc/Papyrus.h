@@ -7,6 +7,10 @@ class Papyrus : public Singleton<Papyrus> {
   private:
     static bool GetBoolValue(RE::StaticFunctionTag*, int settingID);
     static void SetBoolValue(RE::StaticFunctionTag*, int settingID, bool value);
+    static int GetIntValue(RE::StaticFunctionTag*, int settingID);
+    static void SetIntValue(RE::StaticFunctionTag*, int settingID, int value);
+    static float GetFloatValue(RE::StaticFunctionTag*, int settingID);
+    static void SetFloatValue(RE::StaticFunctionTag*, int settingID, float value);
 
     static std::vector<std::string> GetAllPossibleAddons(RE::StaticFunctionTag*, bool isFemale);
     static bool GetAddonStatus(RE::StaticFunctionTag*, bool isFemale, int addonIdx);

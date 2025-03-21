@@ -66,9 +66,9 @@ class Util : public Singleton<Util> {
       boolSettingCount
     };
 
-    enum eCtrlSetting { ctrlDAK, ctrlSetupNPC, ctrlRiseGen, ctrlFallGen, ctrlSwapRevealing, ctrlWhyProblem, ctrlCount };
+    enum eIntSetting { isDAK, isSetupNPC, isRiseGen, isFallGen, isSwapRevealing, isWhyProblem, intSettingCount };
 
-    enum eFloatSetting { ssXS, ssS, ssM, ssL, ssXL, ssWomenChance, floatSettingCount };
+    enum eFloatSetting { fsXS, fsS, fsM, fsL, fsXL, fsWomenChance, floatSettingCount };
     inline static constexpr int sizeKeyCount{floatSettingCount - 1};
 
     enum eRace { raceDefault, raceDefBeast, racesCount };

@@ -598,12 +598,12 @@ void Base::SetBoolSetting(const size_t idx, const bool value) {
 }
 
 int Base::GetIntSetting(const size_t idx) {
-  if (idx >= Util::ctrlCount) return -1;
+  if (idx >= Util::intSettingCount) return -1;
   return intSettings[idx];
 }
 
 void Base::SetIntSetting(const size_t idx, const int value) {
-  if (idx < Util::ctrlCount) intSettings[idx] = value;
+  if (idx < Util::intSettingCount) intSettings[idx] = value;
 }
 
 float Base::GetFloatSetting(const size_t idx) {

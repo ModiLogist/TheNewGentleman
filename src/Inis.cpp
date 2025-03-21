@@ -107,13 +107,13 @@ void Inis::LoadSingleIni(const char *path, const std::string_view fileName) {
 }
 
 void Inis::LoadMainIni() {
+  SKSE::log::info("Loading TNG settings...");
   if (!std::filesystem::exists(SettingFile())) {
     std::ofstream newSetting(SettingFile());
     newSetting << ";TNG Settings File" << std::endl;
     newSetting.close();
+    TransferOldIni();
   }
-  SKSE::log::info("Loading TNG settings...");
-  UpdateIniVersion();
   CSimpleIniA ini;
   CSimpleIniA::TNamesDepend values;
   ini.SetUnicode();
@@ -194,7 +194,6 @@ void Inis::LoadMainIni() {
   }
   if (ut->SEDH()->LookupModByName("Racial Skin Variance - SPID.esp")) {
     base->SetBoolSetting(Util::bsCheckPlayerAddon, true);
-    base->SetBoolSetting(Util::bsCheckNPCsAddons, true);
     base->SetBoolSetting(Util::bsForceRechecks, true);
     SKSE::log::info("\tTNG detected Racial Skin Variance and would force the player and NPCs to be reloaded");
   }
@@ -205,12 +204,12 @@ void Inis::LoadMainIni() {
   for (size_t i = 0; i < Util::floatSettingCount; i++) base->SetFloatSetting(i, static_cast<float>(ini.GetDoubleValue(cFLoatSections[i], cFloatNames[i], cDefFloatSettings[i])));
   SKSE::log::debug("\tGlobal size settings loaded.");
   SKSE::log::debug("\tGentlewomen chance value loaded.");
-  if (ini.KeyExists(cControls, cCtrlNames[Util::ctrlDAK])) {
-    base->SetIntSetting(Util::ctrlDAK, ini.GetBoolValue(cControls, cCtrlNames[Util::ctrlDAK]) ? 1 : 0);
+  if (ini.KeyExists(cControls, cCtrlNames[Util::isDAK])) {
+    base->SetIntSetting(Util::isDAK, ini.GetBoolValue(cControls, cCtrlNames[Util::isDAK]) ? 1 : -1);
   }
-  for (size_t i = Util::ctrlSetupNPC; i < Util::ctrlCount; i++) {
+  for (size_t i = Util::isSetupNPC; i < Util::intSettingCount; i++) {
     if (ini.KeyExists(cControls, cCtrlNames[i])) {
-      base->SetIntSetting(i, ini.GetLongValue(cControls, cCtrlNames[i]));
+      base->SetIntSetting(i, ini.GetLongValue(cControls, cCtrlNames[i], -1));
     }
   }
   SKSE::log::debug("\tInput settings loaded.");
@@ -278,7 +277,7 @@ void Inis::CleanIniLists() {
   runTimeMalRevRecords.clear();
 }
 
-const char *Inis::SettingFile(const int version) const { return fmt::format(cSettings, version).c_str(); }
+const char *Inis::SettingFile(const int version) const { return fmt::format(cSettings, version < 0 ? "" : std::to_string(version)).c_str(); }
 
 spdlog::level::level_enum Inis::GetLogLvl() {
   CSimpleIniA ini;
@@ -447,18 +446,18 @@ void Inis::SetBoolSetting(Util::eBoolSetting settingID, bool value) {
   ini.SaveFile(SettingFile());
 }
 
-void Inis::SetIntSetting(Util::eCtrlSetting ctrl, int value) {
+void Inis::SetIntSetting(Util::eIntSetting settingID, int value) {
   CSimpleIniA ini;
   ini.SetUnicode();
   ini.LoadFile(SettingFile());
   if (value == -1) {
-    ini.Delete(cControls, cCtrlNames[ctrl], true);
-  } else if (ctrl == Util::ctrlDAK) {
-    ini.SetBoolValue(cControls, cCtrlNames[ctrl], value > 0);
+    ini.Delete(cControls, cCtrlNames[settingID], true);
+  } else if (settingID == Util::isDAK) {
+    ini.SetBoolValue(cControls, cCtrlNames[settingID], value > 0);
   } else {
-    ini.SetLongValue(cControls, cCtrlNames[ctrl], value);
+    ini.SetLongValue(cControls, cCtrlNames[settingID], value);
   }
-  base->SetIntSetting(ctrl, value);
+  base->SetIntSetting(settingID, value);
   ini.SaveFile(SettingFile());
 }
 
@@ -505,15 +504,28 @@ bool Inis::Slot52ModBehavior(const std::string modName, const int behavior) {
   }
 }
 
-void Inis::UpdateIniVersion() {
+void Inis::TransferOldIni() {
+  auto oldV = iniVersion > 5 ? iniVersion - 1 : -1;
+  while (!std::filesystem::exists(SettingFile(oldV))) {
+    oldV--;
+    if (oldV < 0) return;
+  }
+  std::ifstream oldFile(SettingFile(oldV), std::ios::binary);
+  std::ofstream newFile(SettingFile(), std::ios::binary);
+
+  if (!oldFile.is_open() || !newFile.is_open()) {
+    SKSE::log::critical("\tFound an old ini file but failed transfering its content");
+    return;
+  }
+  newFile << oldFile.rdbuf();
+  oldFile.close();
+  newFile.close();
   CSimpleIniA ini;
   CSimpleIniA::TNamesDepend sections;
   ini.SetUnicode();
   ini.LoadFile(SettingFile());
-  int lIniVersion = ini.GetLongValue(cIniVersion, cVersion, 1);
-  if (lIniVersion > cCurrVersion) {
-    ut->ShowSkyrimMessage("You downgraded TNG after upgrading! This can cause issues in your game. Check mod description for more info.");
-  }
+  int lIniVersion = ini.GetLongValue(versionKey, versionSection, 1);
+  SKSE::log::info("\tFound old ini file [{}:ini-ver:{}]. Transferring the settings to [{}]. Some settings might have changed!", SettingFile(oldV), lIniVersion, SettingFile());
   if (lIniVersion < 2) {
     ini.GetAllSections(sections);
     for (const auto &section : sections) ini.Delete(section.pItem, nullptr);
@@ -526,6 +538,7 @@ void Inis::UpdateIniVersion() {
     if (std::filesystem::exists(R"(.\Data\SKSE\Plugins\Defaults_TNG.ini)")) SKSE::log::warn("The [Defaults_TNG.ini] file is not used anymore by TNG, feel free to delete it.");
   }
   if (lIniVersion < 5) {
+    ini.Delete(cGeneral, cBoolSettings[Util::bsCheckNPCsAddons], true);
     ini.GetAllSections(sections);
     for (const auto &section : sections) {
       auto sectionName = std::string(section.pItem);
@@ -539,9 +552,13 @@ void Inis::UpdateIniVersion() {
         ini.Delete(section.pItem, nullptr);
       }
     }
+    if (ini.KeyExists(cControls, cCtrlNames[Util::isDAK])) {
+      ini.SetBoolValue(cControls, cCtrlNames[Util::isDAK], ini.GetLongValue(cControls, cCtrlNames[Util::isDAK]) > 1);
+    }
   }
-  ini.SetLongValue(cIniVersion, cVersion, cCurrVersion);
+  ini.SetLongValue(versionKey, versionSection, iniVersion);
   ini.SaveFile(SettingFile());
+  SKSE::log::info("\tThe settings were transferred.");
 }
 
 void Inis::LoadModRecordPairs(CSimpleIniA::TNamesDepend records, std::set<SEFormLoc> &fieldToFill) {

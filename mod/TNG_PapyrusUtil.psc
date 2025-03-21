@@ -14,6 +14,22 @@ ScriptName TNG_PapyrusUtil hidden
 Bool Function GetBoolValue(Int aiID) Global Native
 Function SetBoolValue(Int aiID, Bool abValue) Global Native
 
+;For int functions IDs:
+; 0: Dynamic Activation Key Integration 
+; 1: Setup NPCs
+; 2: Raise Genitals
+; 3: Lower Genitals
+; 4: Swap Revealing/Covering
+; 5: Why Problem
+Int Function GetIntValue(Int aiID) Global Native
+Function SetIntValue(Int aiID, Int aiValue) Global Native
+
+;For float functions IDs:
+; 0-4: Genitals scales for XS, S, M, L, XL
+; 5: Chance of women to have an addon
+Float Function GetFloatValue(Int aiID) Global Native
+Function SetFloatValue(Int aiID, Float afValue) Global Native
+
 Int Function GetAllAddonsCount(Bool abIsFemale) Global Native
 String[] Function GetAllPossibleAddons(Bool abIsFemale) Global Native
 Bool Function GetAddonStatus(Bool abIsFemale, Int aiAddon) Global Native

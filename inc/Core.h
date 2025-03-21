@@ -35,6 +35,8 @@ class Core : public Singleton<Core> {
 
   public:
     void SetBoolSetting(Util::eBoolSetting settingID, bool value);
+    void SetIntSetting(Util::eIntSetting settingID, int value);
+    void SetFloatSetting(Util::eFloatSetting settingID, float value);
     void SetAddonStatus(const bool isFemale, const int addnIdx, const bool status);
     void SetRgMult(const size_t rgChoice, const float mult, bool onlyMCM);
 };

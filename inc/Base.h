@@ -112,7 +112,7 @@ class Base : public Singleton<Base> {
 
   private:
     bool boolSettings[Util::boolSettingCount];
-    int intSettings[Util::ctrlCount];
+    int intSettings[Util::intSettingCount];
     float floatSettings[Util::floatSettingCount];
 
     void OrganizeNPCAddonKeywords(RE::TESNPC* npc, int addnIdx, bool isUser);

@@ -10,6 +10,10 @@ Papyrus* papyrus = Papyrus::GetSingleton();
 bool Papyrus::BindPapyrus(RE::BSScript::IVirtualMachine* vm) {
   vm->RegisterFunction("GetBoolValue", "TNG_PapyrusUtil", GetBoolValue);
   vm->RegisterFunction("SetBoolValue", "TNG_PapyrusUtil", SetBoolValue);
+  vm->RegisterFunction("GetIntValue", "TNG_PapyrusUtil", GetIntValue);
+  vm->RegisterFunction("SetIntValue", "TNG_PapyrusUtil", SetIntValue);
+  vm->RegisterFunction("GetFloatValue", "TNG_PapyrusUtil", GetFloatValue);
+  vm->RegisterFunction("SetFloatValue", "TNG_PapyrusUtil", SetFloatValue);
 
   vm->RegisterFunction("GetAllPossibleAddons", "TNG_PapyrusUtil", GetAllPossibleAddons);
   vm->RegisterFunction("GetAddonStatus", "TNG_PapyrusUtil", GetAddonStatus);
@@ -53,6 +57,24 @@ bool Papyrus::GetBoolValue(RE::StaticFunctionTag*, int settingID) {
 
 void Papyrus::SetBoolValue(RE::StaticFunctionTag*, int settingID, bool value) {
   if (0 <= settingID && settingID < Util::boolSettingCount) core->SetBoolSetting(static_cast<Util::eBoolSetting>(settingID), value);
+}
+
+int Papyrus::GetIntValue(RE::StaticFunctionTag*, int settingID) {
+  if (0 <= settingID && settingID < Util::intSettingCount) return base->GetIntSetting(static_cast<Util::eIntSetting>(settingID));
+  return Util::nan;
+}
+
+void Papyrus::SetIntValue(RE::StaticFunctionTag*, int settingID, int value) {
+  if (0 <= settingID && settingID < Util::intSettingCount) core->SetIntSetting(static_cast<Util::eIntSetting>(settingID), value);
+}
+
+float Papyrus::GetFloatValue(RE::StaticFunctionTag*, int settingID) {
+  if (0 <= settingID && settingID < Util::floatSettingCount) return base->GetFloatSetting(static_cast<Util::eFloatSetting>(settingID));
+  return 1.0f;
+}
+
+void Papyrus::SetFloatValue(RE::StaticFunctionTag*, int settingID, float value) {
+  if (0 <= settingID && settingID < Util::floatSettingCount) core->SetFloatSetting(static_cast<Util::eFloatSetting>(settingID), value);
 }
 
 std::vector<std::string> Papyrus::GetAllPossibleAddons(RE::StaticFunctionTag*, bool isFemale) {
@@ -314,7 +336,7 @@ std::string Papyrus::WhyProblem(RE::StaticFunctionTag* tag, RE::Actor* actor, in
         }
         if (skin->HasKeyword(ut->Key(Util::kyTngSkin))) return "$TNG_PD0";
         if (npc->HasKeyword(ut->Key(Util::kyExcluded))) return "$TNG_PA3";
-        if (npc->IsFemale() && static_cast<size_t>(std::floor(base->GetFloatSetting(Util::ssWomenChance) + 0.1f)) < 100) return "$TNG_PA4";
+        if (npc->IsFemale() && static_cast<size_t>(std::floor(base->GetFloatSetting(Util::fsWomenChance) + 0.1f)) < 100) return "$TNG_PA4";
         if (base->GetRgAddon(npc->race) == Util::nul) return "$TNG_PA5";
       }
       events->DoChecks(actor);

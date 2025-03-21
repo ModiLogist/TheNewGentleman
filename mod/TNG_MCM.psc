@@ -1,33 +1,33 @@
 ScriptName TNG_MCM extends SKI_ConfigBase
 
 ;Property
-
-GlobalVariable Property DAKIntegration auto
-GlobalVariable Property DebugKey auto
-GlobalVariable Property GenDownKey auto
 FormList Property Gentified auto
-GlobalVariable Property GenUpKey auto
-GlobalVariable[] Property GlobalSizes auto
 Bool Property Notifs auto
-GlobalVariable Property NPCKey auto
 Actor Property PlayerRef auto
 Int Property PlayerSize auto
 GlobalVariable Property PlayerSkin auto
 Spell Property ReloadSpell auto
-GlobalVariable Property RevealKey auto
-GlobalVariable Property WomenChance auto
-
 
 ;Constants
-Int ciExcludePlayer
-Int ciCheckingPCGen
-;Int ciCheckNPCsGens
-Int ciForceTheCheck
-Int ciRevealSlot52s
-Int ciLetMixSlot52s    
-Int ciRandomizeMale
-;Int ciUI_Extensions
-Int ciShowEveryRace
+Int cbExcludePlayer
+Int cbCheckingPCGen
+;Int cbCheckNPCsGens
+Int cbForceTheCheck
+Int cbRevealSlot52s
+Int cbLetMixSlot52s    
+Int cbRandomizeMale
+;Int cbUI_Extensions
+Int cbShowEveryRace
+
+Int ciDAK
+Int ciSetupNPC 
+Int ciRiseGen
+Int ciFallGen
+Int ciSwapRevealing
+Int ciWhyProblem
+
+Int[] cFSizes
+Int cfWomenChance
 
 Int ciLockKey
 
@@ -74,7 +74,7 @@ Int fiPCUHdl
 Int fiPCRHdl
 
 Int Function GetVersion()
-  Return 9
+  Return 10
 EndFunction
 
 Event OnConfigInit()
@@ -119,21 +119,36 @@ Event OnConfigInit()
   cS52Options[1] = "$TNG_52R"
   cS52Options[2] = "$TNG_52U"
   
-  ciExcludePlayer = 0
-  ciCheckingPCGen = 1
-  ;ciCheckNPCsGens = 2
-  ciForceTheCheck = 3
-  ciRevealSlot52s = 4
-  ciLetMixSlot52s = 5
-  ciRandomizeMale = 6
-  ;ciUI_Extensions = 7
-  ciShowEveryRace = 8
+  cbExcludePlayer = 0
+  cbCheckingPCGen = 1
+  ;cbCheckNPCsGens = 2
+  cbForceTheCheck = 3
+  cbRevealSlot52s = 4
+  cbLetMixSlot52s = 5
+  cbRandomizeMale = 6
+  ;cbUI_Extensions = 7
+  cbShowEveryRace = 8
+
+  ciDAK = 0
+  ciSetupNPC = 1
+  ciRiseGen = 2
+  ciFallGen = 3
+  ciSwapRevealing = 4
+  ciWhyProblem = 5
+
+  cFSizes = new Int[5]
+  cFSizes[0] = 0
+  cFSizes[1] = 1
+  cFSizes[2] = 2
+  cFSizes[3] = 3
+  cFSizes[4] = 4
+  cfWomenChance = 5
 
   ciLockKey = 56 ; Left Alt Key
 EndEvent
 
 Event OnVersionUpdate(Int aiVersion)
-  If (aiVersion > CurrentVersion)
+  If (aiVersion != CurrentVersion)
     OnConfigInit()
   EndIf
   If (CurrentVersion < 7)
@@ -153,7 +168,7 @@ Event OnGameReload()
   
   Gentified.Revert()
   
-  If TNG_PapyrusUtil.GetBoolValue(ciCheckingPCGen) 
+  If TNG_PapyrusUtil.GetBoolValue(cbCheckingPCGen) 
     RegisterForSingleUpdate(1)
   EndIf
   
@@ -162,20 +177,20 @@ Event OnGameReload()
   If Game.GetModByName("Dynamic Activation Key.esp")
     fkDAK = Game.GetFormFromFile(0x801, "Dynamic Activation Key.esp") As GlobalVariable
   EndIf
-  If NPCKey.GetValueInt() > 0
-    RegisterForKey(NPCKey.GetValueInt())
+  If TNG_PapyrusUtil.GetIntValue(ciSetupNPC) > 0
+    RegisterForKey(TNG_PapyrusUtil.GetIntValue(ciSetupNPC))
   EndIf
-  If RevealKey.GetValueInt() > 0
-    RegisterForKey(RevealKey.GetValueInt())
+  If TNG_PapyrusUtil.GetIntValue(ciSwapRevealing) > 0
+    RegisterForKey(TNG_PapyrusUtil.GetIntValue(ciSwapRevealing))
   EndIf
-  If GenUpKey.GetValueInt() > 0
-    RegisterForKey(GenUpKey.GetValueInt())
+  If TNG_PapyrusUtil.GetIntValue(ciRiseGen) > 0
+    RegisterForKey(TNG_PapyrusUtil.GetIntValue(ciRiseGen))
   EndIf
-  If GenDownKey.GetValueInt() > 0
-    RegisterForKey(GenDownKey.GetValueInt())
+  If TNG_PapyrusUtil.GetIntValue(ciFallGen) > 0
+    RegisterForKey(TNG_PapyrusUtil.GetIntValue(ciFallGen))
   EndIf
-  If DebugKey.GetValueInt() > 0
-    RegisterForKey(DebugKey.GetValueInt())
+  If TNG_PapyrusUtil.GetIntValue(ciWhyProblem) > 0
+    RegisterForKey(TNG_PapyrusUtil.GetIntValue(ciWhyProblem))
   EndIf
   If TNG_PapyrusUtil.CanModifyActor(PlayerRef) <= 0
     Return
@@ -184,17 +199,17 @@ Event OnGameReload()
   If (res >= 0) && !PlayerRef.IsOnMount()
     PlayerRef.QueueNiNodeUpdate()
   Else
-    Debug.Notification("$TNG_WPT")
+    ShowNotification("$TNG_WPT")    
     PlayerSkin.SetValueInt(-2)
     TNGSetAddon(PlayerRef, PlayerSkin.GetValueInt())
     HandleWarnings(res)
   EndIf
   res = 0
-  If !TNG_PapyrusUtil.GetBoolValue(ciExcludePlayer)
+  If !TNG_PapyrusUtil.GetBoolValue(cbExcludePlayer)
     res = TNG_PapyrusUtil.SetActorSize(PlayerRef, PlayerSize)
   EndIf  
   If res < 0     
-    Debug.Notification("$TNG_WPS")
+    ShowNotification("$TNG_WPS")
     PlayerSize = -2
     TNG_PapyrusUtil.SetActorSize(PlayerRef, PlayerSize)
     HandleWarnings(res)
@@ -212,23 +227,23 @@ Event OnPageReset(String asPage)
     If Game.GetModByName("Dynamic Activation Key.esp")
       fkDAK = Game.GetFormFromFile(0x801, "Dynamic Activation Key.esp") As GlobalVariable
       If fkDAK
-        fiDAKHdl = AddToggleOption("$TNG_DAK", DAKIntegration.GetValue()>1)
+        fiDAKHdl = AddToggleOption("$TNG_DAK", TNG_PapyrusUtil.GetIntValue(ciDAK)>0)
         AddEmptyOption()
       EndIf
     EndIf
     If !fkDAK
-      DAKIntegration.SetValue(0)
+      TNG_PapyrusUtil.SetIntValue(ciDAK, -1)
     EndIf
     Int liOption = OPTION_FLAG_WITH_UNMAP
-    fiNPCKeyHdl = AddKeyMapOption("$TNG_K_N", NPCKey.GetValueInt(), liOption)
-    fiRevealKeyHdl = AddKeyMapOption("$TNG_K_R", RevealKey.GetValueInt(), liOption)
-    fiUpKeyHdl = AddKeyMapOption("$TNG_K_U", GenUpKey.GetValueInt(), OPTION_FLAG_WITH_UNMAP)
-    fiDownKeyHdl = AddKeyMapOption("$TNG_K_D", GenDownKey.GetValueInt(), OPTION_FLAG_WITH_UNMAP)
+    fiNPCKeyHdl = AddKeyMapOption("$TNG_K_N", TNG_PapyrusUtil.GetIntValue(ciSetupNPC), liOption)
+    fiRevealKeyHdl = AddKeyMapOption("$TNG_K_R", TNG_PapyrusUtil.GetIntValue(ciSwapRevealing), liOption)
+    fiUpKeyHdl = AddKeyMapOption("$TNG_K_U", TNG_PapyrusUtil.GetIntValue(ciRiseGen), OPTION_FLAG_WITH_UNMAP)
+    fiDownKeyHdl = AddKeyMapOption("$TNG_K_D", TNG_PapyrusUtil.GetIntValue(ciFallGen), OPTION_FLAG_WITH_UNMAP)
     AddHeaderOption("$TNG_SOH")
     AddHeaderOption("")
     Int liGlbSize = 0
     While liGlbSize < cSSizeGlobals.Length
-      fIGlblSizeHdls[liGlbSize] = AddSliderOption(cSSizeGlobals[liGlbSize], GlobalSizes[liGlbSize].GetValue(), "{2}")
+      fIGlblSizeHdls[liGlbSize] = AddSliderOption(cSSizeGlobals[liGlbSize], TNG_PapyrusUtil.GetFloatValue(cFSizes[liGlbSize]), "{2}")
       liGlbSize += 1
     EndWhile
     AddEmptyOption()
@@ -261,12 +276,12 @@ Event OnPageReset(String asPage)
     If lSFemOptions.Length == 0
       AddTextOption("$TNG_ANW", "")
     Else
-      fiWomenChanceHdl = AddSliderOption("$TNG_AWC", WomenChance.GetValue(), "{0}%");
+      fiWomenChanceHdl = AddSliderOption("$TNG_AWC", Tng_PapyrusUtil.GetFloatValue(cfWomenChance), "{0}%")
     EndIf
     If lSMalOptions.Length == 0
       AddTextOption("$TNG_ANM", "")
     Else
-      fiRandMalAddonHdl = AddToggleOption("$TNG_AMR", TNG_PapyrusUtil.GetBoolValue(ciRandomizeMale))
+      fiRandMalAddonHdl = AddToggleOption("$TNG_AMR", TNG_PapyrusUtil.GetBoolValue(cbRandomizeMale))
     EndIf
     If (lSFemOptions.Length == 0) && (lSMalOptions.Length == 0)
       Return
@@ -294,8 +309,8 @@ Event OnPageReset(String asPage)
       AddTextOption("$TNG_52N","")
       Return
     EndIf
-    bool lb52DefR = TNG_PapyrusUtil.GetBoolValue(ciRevealSlot52s)
-    bool lb52Cust = TNG_PapyrusUtil.GetBoolValue(ciLetMixSlot52s)
+    bool lb52DefR = TNG_PapyrusUtil.GetBoolValue(cbRevealSlot52s)
+    bool lb52Cust = TNG_PapyrusUtil.GetBoolValue(cbLetMixSlot52s)
     Int li52Option = 0
     If lb52Cust
       li52Option = 2
@@ -319,13 +334,13 @@ Event OnPageReset(String asPage)
   If asPage == Pages[4]
     AddHeaderOption("$TNG_GPH")
     AddHeaderOption("")
-    fiPCEHdl = AddToggleOption("$TNG_GEP", TNG_PapyrusUtil.GetBoolValue(ciExcludePlayer))
+    fiPCEHdl = AddToggleOption("$TNG_GEP", TNG_PapyrusUtil.GetBoolValue(cbExcludePlayer))
     Int liFlag = OPTION_FLAG_NONE
-    If TNG_PapyrusUtil.GetBoolValue(ciForceTheCheck)
+    If TNG_PapyrusUtil.GetBoolValue(cbForceTheCheck)
       liFlag = OPTION_FLAG_DISABLED
     EndIf
-    fiPCUHdl = AddToggleOption("$TNG_GPC", TNG_PapyrusUtil.GetBoolValue(ciCheckingPCGen), liFlag)
-    fiPCRHdl = AddToggleOption("$TNG_GPR", TNG_PapyrusUtil.GetBoolValue(ciShowEveryRace))
+    fiPCUHdl = AddToggleOption("$TNG_GPC", TNG_PapyrusUtil.GetBoolValue(cbCheckingPCGen), liFlag)
+    fiPCRHdl = AddToggleOption("$TNG_GPR", TNG_PapyrusUtil.GetBoolValue(cbShowEveryRace))
     AddEmptyOption()
             
     AddHeaderOption("$TNG_L_H")
@@ -334,7 +349,7 @@ Event OnPageReset(String asPage)
     fiLogLvlHdl = AddMenuOption("$TNG_L_T", cSLogOptions[liLvl])
     fiLogDirHdl = AddToggleOption("$TNG_L_D", False)
     Int liOption = OPTION_FLAG_WITH_UNMAP
-    fiDebugKeyHdl = AddKeyMapOption("$TNG_P_K", DebugKey.GetValueInt(), liOption)
+    fiDebugKeyHdl = AddKeyMapOption("$TNG_P_K", TNG_PapyrusUtil.GetIntValue(ciWhyProblem), liOption)
   EndIf
 
   
@@ -475,7 +490,7 @@ Event OnOptionDefault(Int aiOption)
       Return
     EndIf
     If aiOption == fiDAKHdl
-      DAKIntegration.SetValue(0)
+      TNG_PapyrusUtil.SetIntValue(ciDAK, -1)
       SetToggleOptionValue(fiDAKHdl, False)
       Bool lbResetAll = ShowMessage("$TNG_DKN", true, "$TNG_Yes", "$TNG__No")
       If lbResetAll
@@ -488,41 +503,41 @@ Event OnOptionDefault(Int aiOption)
       Return
     EndIf
     If aiOption == fiNPCKeyHdl
-      If NPCKey.GetValueInt() > 0
-        UnregisterForKey(NPCKey.GetValueInt())
-        NPCKey.SetValueInt(-1)
+      If TNG_PapyrusUtil.GetIntValue(ciSetupNPC) > 0
+        UnregisterForKey(TNG_PapyrusUtil.GetIntValue(ciSetupNPC))
+        TNG_PapyrusUtil.SetIntValue(ciSetupNPC,-1)
         SetKeymapOptionValue(fiNPCKeyHdl, -1)
       EndIf
       Return
     EndIf
     If aiOption == fiRevealKeyHdl
-      If RevealKey.GetValueInt() > 0
-        UnregisterForKey(RevealKey.GetValueInt())
-        RevealKey.SetValueInt(-1)
+      If TNG_PapyrusUtil.GetIntValue(ciSwapRevealing) > 0
+        UnregisterForKey(TNG_PapyrusUtil.GetIntValue(ciSwapRevealing))
+        TNG_PapyrusUtil.SetIntValue(ciSwapRevealing,-1)
         SetKeymapOptionValue(fiRevealKeyHdl, -1)
       EndIf
       Return
     EndIf
     If aiOption == fiUpKeyHdl
-      If GenUpKey.GetValueInt() > 0
-        UnregisterForKey(GenUpKey.GetValueInt())
-        GenUpKey.SetValueInt(-1)
+      If TNG_PapyrusUtil.GetIntValue(ciRiseGen) > 0
+        UnregisterForKey(TNG_PapyrusUtil.GetIntValue(ciRiseGen))
+        TNG_PapyrusUtil.SetIntValue(ciRiseGen,-1)
         SetKeymapOptionValue(fiUpKeyHdl, -1)
       EndIf
       Return
     EndIf
     If aiOption == fiDownKeyHdl
-      If GenDownKey.GetValueInt() > 0
-        UnregisterForKey(GenDownKey.GetValueInt())
-        GenDownKey.SetValueInt(-1)
+      If TNG_PapyrusUtil.GetIntValue(ciFallGen) > 0
+        UnregisterForKey(TNG_PapyrusUtil.GetIntValue(ciFallGen))
+        TNG_PapyrusUtil.SetIntValue(ciFallGen,-1)
         SetKeymapOptionValue(fiDownKeyHdl, -1)
       EndIf
       Return
     EndIf
     If aiOption == fiDebugKeyHdl
-      If DebugKey.GetValueInt() > 0
-        UnregisterForKey(DebugKey.GetValueInt())
-        DebugKey.SetValueInt(-1)
+      If TNG_PapyrusUtil.GetIntValue(ciWhyProblem) > 0
+        UnregisterForKey(TNG_PapyrusUtil.GetIntValue(ciWhyProblem))
+        TNG_PapyrusUtil.SetIntValue(ciWhyProblem,-1)
         SetKeymapOptionValue(fiDebugKeyHdl, -1)
       EndIf
       Return
@@ -531,8 +546,8 @@ Event OnOptionDefault(Int aiOption)
     While liOpLoop > 0
       liOpLoop -= 1
       If aiOption == fIGlblSizeHdls[liOpLoop]      
-        GlobalSizes[liOpLoop].SetValue(cFSizeDefaults[liOpLoop])
-        SetSliderOptionValue(fIGlblSizeHdls[liOpLoop], GlobalSizes[liOpLoop].GetValue(), "{2}")
+        TNG_PapyrusUtil.SetFloatValue(cFSizes[liOpLoop], cFSizeDefaults[liOpLoop])
+        SetSliderOptionValue(fIGlblSizeHdls[liOpLoop], TNG_PapyrusUtil.GetFloatValue(cFSizes[liOpLoop]), "{2}")
         TNG_PapyrusUtil.SetActorSize(PlayerRef, -1)
         Return
       EndIf
@@ -564,12 +579,12 @@ Event OnOptionDefault(Int aiOption)
 
   If CurrentPage == Pages[2]  
     If aiOption == fiWomenChanceHdl    
-      WomenChance.SetValue(20)
-      SetSliderOptionValue(fiWomenChanceHdl, WomenChance.GetValue(), "{0}%")
+      TNG_PapyrusUtil.SetFloatValue(cfWomenChance, 20.0)
+      SetSliderOptionValue(fiWomenChanceHdl, TNG_PapyrusUtil.GetFloatValue(cfWomenChance), "{0}%")
       Return
     EndIf
     If aiOption == fiRandMalAddonHdl
-      TNG_PapyrusUtil.SetBoolValue(ciRandomizeMale,False)
+      TNG_PapyrusUtil.SetBoolValue(cbRandomizeMale,False)
       SetToggleOptionValue(fiRandMalAddonHdl,False)
       Return
     EndIf
@@ -596,8 +611,8 @@ Event OnOptionDefault(Int aiOption)
   
   If CurrentPage == Pages[3]
     If aiOption == fi52DefBehaviorHdl
-      TNG_PapyrusUtil.SetBoolValue(ciRevealSlot52s, False)
-      TNG_PapyrusUtil.SetBoolValue(ciLetMixSlot52s, False)    
+      TNG_PapyrusUtil.SetBoolValue(cbRevealSlot52s, False)
+      TNG_PapyrusUtil.SetBoolValue(cbLetMixSlot52s, False)    
       SetMenuOptionValue(fi52DefBehaviorHdl, cS52Options[0])
       Update52Behaviors(0)
     EndIf
@@ -605,16 +620,16 @@ Event OnOptionDefault(Int aiOption)
   EndIf
 
   If CurrentPage == Pages[4]
-    If (aiOption == fiPCUHdl) && !TNG_PapyrusUtil.GetBoolValue(ciForceTheCheck)
-      TNG_PapyrusUtil.SetBoolValue(ciCheckingPCGen, False)
+    If (aiOption == fiPCUHdl) && !TNG_PapyrusUtil.GetBoolValue(cbForceTheCheck)
+      TNG_PapyrusUtil.SetBoolValue(cbCheckingPCGen, False)
       SetToggleOptionValue(fiPCUHdl,False)
     EndIf
     If (aiOption == fiPCRHdl)
-      TNG_PapyrusUtil.SetBoolValue(ciShowEveryRace, False)
+      TNG_PapyrusUtil.SetBoolValue(cbShowEveryRace, False)
       SetToggleOptionValue(fiPCRHdl,False)
     EndIf
     If aiOption == fiPCEHdl
-      TNG_PapyrusUtil.SetBoolValue(ciExcludePlayer, False)
+      TNG_PapyrusUtil.SetBoolValue(cbExcludePlayer, False)
       SetToggleOptionValue(fiPCEHdl, False)
       Return
     EndIf
@@ -645,8 +660,8 @@ Event OnOptionMenuOpen(Int aiOption)
   
   If CurrentPage == Pages[3]
     If aiOption == fi52DefBehaviorHdl
-      bool lb52DefR = TNG_PapyrusUtil.GetBoolValue(ciRevealSlot52s)
-      bool lb52Cust = TNG_PapyrusUtil.GetBoolValue(ciLetMixSlot52s)
+      bool lb52DefR = TNG_PapyrusUtil.GetBoolValue(cbRevealSlot52s)
+      bool lb52Cust = TNG_PapyrusUtil.GetBoolValue(cbLetMixSlot52s)
       Int li52Option = 0
       If lb52Cust
         li52Option = 2
@@ -716,7 +731,7 @@ Event OnOptionSliderOpen(Int aiOption)
     While liSize > 0
       liSize -= 1
       If aiOption == fIGlblSizeHdls[liSize]
-        SetSliderDialogStartValue(GlobalSizes[liSize].GetValue())
+        SetSliderDialogStartValue(TNG_PapyrusUtil.GetFloatValue(cFSizes[liSize]))
         SetSliderDialogDefaultValue(cFSizeDefaults[liSize])
         SetSliderDialogRange(0.1, 4.0)
         SetSliderDialogInterval(0.01)
@@ -743,7 +758,7 @@ Event OnOptionSliderOpen(Int aiOption)
 
   If CurrentPage == Pages[2]
     If aiOption == fiWomenChanceHdl
-      SetSliderDialogStartValue(WomenChance.GetValue())
+      SetSliderDialogStartValue(Tng_PapyrusUtil.GetFloatValue(cfWomenChance))
       SetSliderDialogDefaultValue(20)
       SetSliderDialogRange(0, 100)
       SetSliderDialogInterval(1)
@@ -761,8 +776,8 @@ Event OnOptionSliderAccept(Int aiOption, Float afValue)
     While liSize > 0
       liSize -= 1
       If aiOption == fIGlblSizeHdls[liSize]
-        GlobalSizes[liSize].SetValue(afValue)
-        SetSliderOptionValue(fIGlblSizeHdls[liSize], GlobalSizes[liSize].GetValue(), "{2}")
+        TNG_PapyrusUtil.SetFloatValue(cFSizes[liSize], afValue)
+        SetSliderOptionValue(fIGlblSizeHdls[liSize], TNG_PapyrusUtil.GetFloatValue(cFSizes[liSize]), "{2}")
         TNG_PapyrusUtil.SetActorSize(PlayerRef, -1)
         Return
       EndIf
@@ -786,8 +801,8 @@ Event OnOptionSliderAccept(Int aiOption, Float afValue)
 
   If CurrentPage == Pages[2]
     If aiOption == fiWomenChanceHdl
-      WomenChance.SetValue(afValue)
-      SetSliderOptionValue(fiWomenChanceHdl, WomenChance.GetValue(), "{0}%")
+      Tng_PapyrusUtil.SetFloatValue(cfWomenChance, afValue)
+      SetSliderOptionValue(fiWomenChanceHdl, Tng_PapyrusUtil.GetFloatValue(cfWomenChance), "{0}%")
       Return
     EndIf
     Return
@@ -804,9 +819,9 @@ Event OnOptionSelect(Int aiOption)
       Return
     EndIf
     If aiOption == fiDAKHdl
-      DAKIntegration.SetValue(2.0 - DAKIntegration.GetValue())
-      SetToggleOptionValue(fiDAKHdl, DAKIntegration.GetValue() > 1)
-      If DAKIntegration.GetValue() < 1
+      TNG_PapyrusUtil.SetIntValue(ciDAK, 0 - TNG_PapyrusUtil.GetIntValue(ciDAK))
+      SetToggleOptionValue(fiDAKHdl, TNG_PapyrusUtil.GetIntValue(ciDAK) > 0)
+      If TNG_PapyrusUtil.GetIntValue(ciDAK) < 0
         Bool lbResetAll = ShowMessage("$TNG_DKN", true, "$TNG_Yes", "$TNG__No")
         If lbResetAll
           OnOptionDefault(fiNPCKeyHdl)
@@ -823,8 +838,8 @@ Event OnOptionSelect(Int aiOption)
 
   If CurrentPage == Pages[2]
     If aiOption == fiRandMalAddonHdl
-      TNG_PapyrusUtil.SetBoolValue(ciRandomizeMale, !TNG_PapyrusUtil.GetBoolValue(ciRandomizeMale))
-      SetToggleOptionValue(fiRandMalAddonHdl, TNG_PapyrusUtil.GetBoolValue(ciRandomizeMale))
+      TNG_PapyrusUtil.SetBoolValue(cbRandomizeMale, !TNG_PapyrusUtil.GetBoolValue(cbRandomizeMale))
+      SetToggleOptionValue(fiRandMalAddonHdl, TNG_PapyrusUtil.GetBoolValue(cbRandomizeMale))
       Return
     EndIf
     Int liCurr = TNG_PapyrusUtil.GetAllPossibleAddons(True).Length
@@ -870,22 +885,22 @@ Event OnOptionSelect(Int aiOption)
 
   If CurrentPage == Pages[4]    
     If aiOption == fiPCEHdl
-      TNG_PapyrusUtil.SetBoolValue(ciExcludePlayer, !TNG_PapyrusUtil.GetBoolValue(ciExcludePlayer))    
-      SetToggleOptionValue(fiPCEHdl, TNG_PapyrusUtil.GetBoolValue(ciExcludePlayer))
-      If TNG_PapyrusUtil.GetBoolValue(ciExcludePlayer) 
+      TNG_PapyrusUtil.SetBoolValue(cbExcludePlayer, !TNG_PapyrusUtil.GetBoolValue(cbExcludePlayer))    
+      SetToggleOptionValue(fiPCEHdl, TNG_PapyrusUtil.GetBoolValue(cbExcludePlayer))
+      If TNG_PapyrusUtil.GetBoolValue(cbExcludePlayer) 
         PlayerSize = -1
       EndIf
       Return
     EndIf
     If aiOption == fiPCUHdl
-      TNG_PapyrusUtil.SetBoolValue(ciCheckingPCGen, !TNG_PapyrusUtil.GetBoolValue(ciCheckingPCGen))      
-      SetToggleOptionValue(fiPCUHdl, TNG_PapyrusUtil.GetBoolValue(ciCheckingPCGen))
-      If TNG_PapyrusUtil.GetBoolValue(ciCheckingPCGen) && (TNG_PapyrusUtil.CanModifyActor(PlayerRef) > 0)
+      TNG_PapyrusUtil.SetBoolValue(cbCheckingPCGen, !TNG_PapyrusUtil.GetBoolValue(cbCheckingPCGen))      
+      SetToggleOptionValue(fiPCUHdl, TNG_PapyrusUtil.GetBoolValue(cbCheckingPCGen))
+      If TNG_PapyrusUtil.GetBoolValue(cbCheckingPCGen) && (TNG_PapyrusUtil.CanModifyActor(PlayerRef) > 0)
         Int res = TNGSetAddon(PlayerRef, PlayerSkin.GetValueInt()) 
         If (res >= 0) && !PlayerRef.IsOnMount()
           PlayerRef.QueueNiNodeUpdate()
         Else
-          Debug.Notification("$TNG_WPT")
+          ShowNotification("$TNG_WPT")
           PlayerSkin.SetValueInt(-2)
           TNGSetAddon(PlayerRef, PlayerSkin.GetValueInt())
           HandleWarnings(res)
@@ -894,8 +909,8 @@ Event OnOptionSelect(Int aiOption)
       Return
     EndIf
     If aiOption == fiPCRHdl
-      TNG_PapyrusUtil.SetBoolValue(ciShowEveryRace, !TNG_PapyrusUtil.GetBoolValue(ciShowEveryRace))      
-      SetToggleOptionValue(fiPCRHdl, TNG_PapyrusUtil.GetBoolValue(ciShowEveryRace))
+      TNG_PapyrusUtil.SetBoolValue(cbShowEveryRace, !TNG_PapyrusUtil.GetBoolValue(cbShowEveryRace))      
+      SetToggleOptionValue(fiPCRHdl, TNG_PapyrusUtil.GetBoolValue(cbShowEveryRace))
       Return
     EndIf
     If aiOption == fiLogDirHdl
@@ -908,7 +923,7 @@ Event OnOptionSelect(Int aiOption)
 EndEvent
 
 Event OnOptionKeyMapChange(Int aiOption, Int aiKeyCode, String asConflictControl, String asConflictName)
-  If !fkDAK || (DAKIntegration.GetValue() < 1)
+  If !fkDAK || (TNG_PapyrusUtil.GetIntValue(ciDAK) < 0)
     Bool lbContinue = True
     String lsNotif
     If (asConflictControl != "") && (aiKeyCode != -1)
@@ -930,23 +945,23 @@ Event OnOptionKeyMapChange(Int aiOption, Int aiKeyCode, String asConflictControl
 EndEvent
 
 Event OnKeyDown(Int aiKey)
-  If (DAKIntegration.GetValue() > 1) && !fkDAK
-    Debug.Notification("$TNG_W_3")
+  If (TNG_PapyrusUtil.GetIntValue(ciDAK) > 0) && !fkDAK
+    ShowNotification("$TNG_W_3", true)
     Return
   EndIf
-  If (DAKIntegration.GetValue() > 1)
+  If (TNG_PapyrusUtil.GetIntValue(ciDAK) > 0)
     If fkDAK.GetValueInt() != 1
       Return
     EndIf
   EndIf
-  If aiKey == NPCKey.GetValueInt()
+  If aiKey == TNG_PapyrusUtil.GetIntValue(ciSetupNPC)
     If Utility.IsInMenuMode()
       Return
     EndIf
     ShowTNGMenu(TargetOrPlayer(False))
     Return
   EndIf
-  If aiKey  == GenUpKey.GetValueInt()
+  If aiKey  == TNG_PapyrusUtil.GetIntValue(ciRiseGen)
     If Input.IsKeyPressed(ciLockKey)
       LockOnNext()
     Else
@@ -954,7 +969,7 @@ Event OnKeyDown(Int aiKey)
     EndIf
     Return
   EndIf
-  If aiKey == GenDownKey.GetValueInt()
+  If aiKey == TNG_PapyrusUtil.GetIntValue(ciFallGen)
     If Input.IsKeyPressed(ciLockKey)
       LockOnNext()
     Else
@@ -962,7 +977,7 @@ Event OnKeyDown(Int aiKey)
     EndIf
     Return
   EndIf
-  If aiKey == RevealKey.GetValueInt()
+  If aiKey == TNG_PapyrusUtil.GetIntValue(ciSwapRevealing)
     If Utility.IsInMenuMode()
       Return
     EndIf
@@ -971,10 +986,8 @@ Event OnKeyDown(Int aiKey)
       Return
     EndIf
     String[] lSItems = TNG_PapyrusUtil.ActorItemsInfo(lkActor)
-    If (lSItems.Length == 0)
-      If Notifs
-        Debug.Notification("$TNG_N_1")
-      EndIf
+    If (lSItems.Length == 0)      
+      ShowNotification("$TNG_N_1")
       Return
     EndIf
     UIListMenu lkListMenu = UIExtensions.GetMenu("UIListMenu") as UIListMenu
@@ -992,16 +1005,14 @@ Event OnKeyDown(Int aiKey)
       Return
     EndIf
     Bool lbSuccess = TNG_PapyrusUtil.SwapRevealing(lkActor, liArmor - 1)
-    If Notifs
       If lbSuccess
-        Debug.Notification("$TNG_N_2")
+        ShowNotification("$TNG_N_2")
       Else
-        Debug.Notification("$TNG_N_3")
+        ShowNotification("$TNG_N_3")
       EndIf
-    EndIf
     Return
   EndIf
-  If aiKey == DebugKey.GetValueInt()
+  If aiKey == TNG_PapyrusUtil.GetIntValue(ciWhyProblem)
     If Utility.IsInMenuMode()
       Return
     EndIf
@@ -1011,7 +1022,7 @@ Event OnKeyDown(Int aiKey)
 EndEvent
 
 Event OnUpdate()
-  If TNG_PapyrusUtil.GetBoolValue(ciCheckingPCGen) && (TNG_PapyrusUtil.CanModifyActor(PlayerRef) > 0)
+  If TNG_PapyrusUtil.GetBoolValue(cbCheckingPCGen) && (TNG_PapyrusUtil.CanModifyActor(PlayerRef) > 0)
     Int res = TNGSetAddon(PlayerRef, PlayerSkin.GetValueInt())
     If (res >= 0) && !PlayerRef.IsOnMount()
       PlayerRef.QueueNiNodeUpdate()
@@ -1020,31 +1031,29 @@ Event OnUpdate()
 
   If fiLastActor > 0
     fiLastActor = -1
-    If Notifs
-      Debug.Notification("$TNG_KAR")
-    EndIf
+    ShowNotification("$TNG_KAR")
   EndIf
 EndEvent
 
 Function UpdateKey(Int aHdl, Int aiNewKey)
   Int liCurrKey = -1
   If (aHdl == fiNPCKeyHdl)
-    liCurrKey = NPCKey.GetValueInt()
-    NPCKey.SetValueInt(aiNewKey)
+    liCurrKey = TNG_PapyrusUtil.GetIntValue(ciSetupNPC)
+    TNG_PapyrusUtil.SetIntValue(ciSetupNPC,aiNewKey)
   ElseIf (aHdl == fiRevealKeyHdl)
-    liCurrKey = RevealKey.GetValueInt()
-    RevealKey.SetValueInt(aiNewKey)  
+    liCurrKey = TNG_PapyrusUtil.GetIntValue(ciSwapRevealing)
+    TNG_PapyrusUtil.SetIntValue(ciSwapRevealing,aiNewKey)  
   ElseIf (aHdl == fiUpKeyHdl)
-    liCurrKey = GenUpKey.GetValueInt()
-    GenUpKey.SetValueInt(aiNewKey)    
+    liCurrKey = TNG_PapyrusUtil.GetIntValue(ciRiseGen)
+    TNG_PapyrusUtil.SetIntValue(ciRiseGen,aiNewKey)    
   ElseIf (aHdl == fiDownKeyHdl)
-    liCurrKey = GenDownKey.GetValueInt()
-    GenDownKey.SetValueInt(aiNewKey)
+    liCurrKey = TNG_PapyrusUtil.GetIntValue(ciFallGen)
+    TNG_PapyrusUtil.SetIntValue(ciFallGen,aiNewKey)
   ElseIf (aHdl == fiDebugKeyHdl)
-    liCurrKey = DebugKey.GetValueInt()
-    DebugKey.SetValueInt(aiNewKey)
+    liCurrKey = TNG_PapyrusUtil.GetIntValue(ciWhyProblem)
+    TNG_PapyrusUtil.SetIntValue(ciWhyProblem,aiNewKey)
   EndIf
-  If liCurrKey > 0
+  If (liCurrKey > 0) && (liCurrKey != aiNewKey)
     UnregisterForKey(liCurrKey)
   EndIf
   RegisterForKey(aiNewKey)
@@ -1052,7 +1061,7 @@ EndFunction
 
 Function ShowTNGMenu(Actor akActor)
   If !akActor
-    Debug.Notification("$TNG_W_1")
+    ShowNotification("$TNG_W_1")
     Return
   EndIf
   Int liShape = -1
@@ -1094,7 +1103,7 @@ Function ShowTNGMenu(Actor akActor)
       EndIf
     Else
       lbShowSize = False
-      Debug.Notification("$TNG_N_4")
+      ShowNotification("$TNG_N_4")
     EndIf
   EndIf    
   If lbShowSize      
@@ -1158,7 +1167,7 @@ Function HandleWarnings(Int aiRes)
   If aiRes > 0
     Return
   EndIf
-  Debug.Notification(TNG_PapyrusUtil.GetErrDscr(aiRes))
+  ShowNotification(TNG_PapyrusUtil.GetErrDscr(aiRes))
 EndFunction
 
 
@@ -1170,10 +1179,10 @@ Function Update52Behaviors(Int aiChoice)
       liModCount -= 1
       TNG_PapyrusUtil.Slot52ModBehavior(lSAllS52Mods[liModCount], aiChoice)        
     EndWhile    
-    TNG_PapyrusUtil.SetBoolValue(ciRevealSlot52s, aiChoice==1)
-    TNG_PapyrusUtil.SetBoolValue(ciLetMixSlot52s, False)
+    TNG_PapyrusUtil.SetBoolValue(cbRevealSlot52s, aiChoice==1)
+    TNG_PapyrusUtil.SetBoolValue(cbLetMixSlot52s, False)
   Else
-    TNG_PapyrusUtil.SetBoolValue(ciLetMixSlot52s, True)  
+    TNG_PapyrusUtil.SetBoolValue(cbLetMixSlot52s, True)  
   EndIf  
   ForcePageReset()
 EndFunction
@@ -1196,12 +1205,10 @@ EndFunction
 Actor Function LockOnNext()
   fiLastActor += 1
   Actor lkActor = TargetOrPlayer(True)  
-  If Notifs
-    If fiLastActor == 0
-      Debug.Notification("$TNG_KAL")
-    EndIf
-    Debug.Notification(lkActor.GetLeveledActorBase().GetName())
+  If fiLastActor == 0
+    ShowNotification("$TNG_KAL", true)
   EndIf
+  ShowNotification(lkActor.GetLeveledActorBase().GetName(), true)
   RegisterForSingleUpdate(60.0)
 EndFunction
 
@@ -1242,11 +1249,16 @@ Function ShowDebugMenu(Actor akActor)
   lkDebugMenu.AddEntryItem("$TNG_P_2")  
   lkDebugMenu.OpenMenu(akActor)
   Int liIssueID = lkDebugMenu.GetResultInt()  
-  Debug.Notification(TNG_PapyrusUtil.WhyProblem(akActor,liIssueID))
+  ShowNotification(TNG_PapyrusUtil.WhyProblem(akActor,liIssueID), true)
 EndFunction
 
 Int Function TNGSetAddon(Actor akActor, Int aiAddon)
   akActor.SendModEvent("TNGSetMyAddon", akActor.GetName(), aiAddon as Float + 0.1)
   Return TNG_PapyrusUtil.SetActorAddon(akActor, aiAddon)  
 EndFunction
-  
+
+Function ShowNotification(String asNotif, Bool abForce = False)
+  If Notifs || abForce
+    Debug.Notification(asNotif)
+  EndIf
+EndFunction
