@@ -19,6 +19,7 @@ class Events : public Singleton<Events>,
   private:
     void CheckForAddons(RE::Actor* actor);
     void CheckCovering(RE::Actor* actor, RE::TESObjectARMO* armor, bool isEquipped);
+    void CheckDF(RE::Actor* actor);
     std::pair<int, bool> GetNPCAutoAddon(RE::TESNPC* npc);
     bool NeedsCover(RE::Actor* actor);
     RE::TESBoundObject* ForceTngCover(RE::Actor* actor, bool ifUpdate);

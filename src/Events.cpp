@@ -28,8 +28,7 @@ RE::BSEventNotifyControl Events::ProcessEvent(const RE::TESEquipEvent* event, RE
   if (core->CanModifyNPC(npc) < 0 || !armor || !armor->HasKeywordInArray(coverKeys, false)) return RE::BSEventNotifyControl::kContinue;
   if (npc->race->HasKeyword(ut->Key(Util::kyPreProcessed)) && !base->ReevaluateRace(npc->race, actor)) return RE::BSEventNotifyControl::kContinue;
   if (ut->FormToLocView(armor) == Util::coverID) return RE::BSEventNotifyControl::kContinue;
-  if (armor->HasKeyword(ut->Key(Util::kyCovering)) || (armor->HasKeyword(ut->Key(Util::kyRevealingF)) && !npc->IsFemale()) ||
-      (armor->HasKeyword(ut->Key(Util::kyRevealingM)) && npc->IsFemale()))
+  if (armor->HasKeyword(ut->Key(Util::kyCovering)) || (armor->HasKeyword(ut->Key(Util::kyRevealingF)) && !npc->IsFemale()) || (armor->HasKeyword(ut->Key(Util::kyRevealingM)) && npc->IsFemale()))
     DoChecks(actor, armor, event->equipped);
   return RE::BSEventNotifyControl::kContinue;
 }
@@ -72,6 +71,7 @@ RE::BSEventNotifyControl Events::ProcessEvent(const RE::TESSwitchRaceCompleteEve
 void Events::DoChecks(RE::Actor* actor, RE::TESObjectARMO* armor, bool isEquipped) {
   CheckForAddons(actor);
   CheckCovering(actor, armor, isEquipped);
+  CheckDF(actor);
 }
 
 RE::TESObjectARMO* Events::GetCoveringItem(RE::Actor* actor, RE::TESObjectARMO* armor) {
@@ -82,8 +82,7 @@ RE::TESObjectARMO* Events::GetCoveringItem(RE::Actor* actor, RE::TESObjectARMO* 
     const auto& [count, entry] = invData;
     if (count > 0 && entry && entry->IsWorn() && item != armor) {
       auto res = item->As<RE::TESObjectARMO>();
-      if (res->HasKeyword(ut->Key(Util::kyCovering)) || (res->HasKeyword(ut->Key(Util::kyRevealingF)) && !npc->IsFemale()) ||
-          (res->HasKeyword(ut->Key(Util::kyRevealingM)) && npc->IsFemale()))
+      if (res->HasKeyword(ut->Key(Util::kyCovering)) || (res->HasKeyword(ut->Key(Util::kyRevealingF)) && !npc->IsFemale()) || (res->HasKeyword(ut->Key(Util::kyRevealingM)) && npc->IsFemale()))
         return res;
     }
   }
@@ -114,8 +113,7 @@ void Events::CheckForAddons(RE::Actor* actor) {
     case Util::def:
       if (base->GetRgAddon(npc->race) < 0) break;
       if (npc->IsFemale()) {
-        if ((addnPair.first < 0 && npc->skin && npc->skin->HasKeyword(ut->Key(Util::kyTngSkin))) ||
-            (addnPair.first >= 0 && (!npc->skin || !npc->skin->HasKeyword(ut->Key(Util::kyTngSkin)))))
+        if ((addnPair.first < 0 && npc->skin && npc->skin->HasKeyword(ut->Key(Util::kyTngSkin))) || (addnPair.first >= 0 && (!npc->skin || !npc->skin->HasKeyword(ut->Key(Util::kyTngSkin)))))
           requiresUpdate = true;
       } else {
         if (addnPair.first < 0 && (!npc->skin || npc->skin->HasKeyword(ut->Key(Util::kyTngSkin)))) break;
@@ -159,6 +157,10 @@ void Events::CheckCovering(RE::Actor* actor, RE::TESObjectARMO* armor, bool isEq
   }
 }
 
+void Events::CheckDF(RE::Actor* actor) {
+  // TODO: Implement!
+}
+
 std::pair<int, bool> Events::GetNPCAutoAddon(RE::TESNPC* npc) {
   auto res = base->GetNPCAddon(npc);
   if (res.first != Util::def) return res;
@@ -182,8 +184,7 @@ bool Events::NeedsCover(RE::Actor* actor) {
 }
 
 RE::TESBoundObject* Events::ForceTngCover(RE::Actor* actor, bool ifUpdate) {
-  auto inv =
-      actor->GetInventory([=](RE::TESBoundObject& a_object) { return a_object.IsArmor() && ut->FormToLocView(a_object.As<RE::TESObjectARMO>()) == Util::coverID; }, ifUpdate);
+  auto inv = actor->GetInventory([=](RE::TESBoundObject& a_object) { return a_object.IsArmor() && ut->FormToLocView(a_object.As<RE::TESObjectARMO>()) == Util::coverID; }, ifUpdate);
   if (!ut->Block()) return nullptr;
   for (const auto& [item, invData] : inv) {
     const auto& [count, entry] = invData;

@@ -4,7 +4,7 @@ TabWidth: "2"
 IndentWidth: "2"
 AccessModifierOffset: 0
 IndentAccessModifiers: true
-ColumnLimit: 180
+ColumnLimit: 200
 NamespaceIndentation: All
 IndentPPDirectives: BeforeHash
 FixNamespaceComments: false

@@ -6,7 +6,6 @@ Bool Property Notifs auto
 Actor Property PlayerRef auto
 Int Property PlayerSize auto
 GlobalVariable Property PlayerSkin auto
-Spell Property ReloadSpell auto
 
 ;Constants
 Int cbExcludePlayer
@@ -171,8 +170,6 @@ Event OnGameReload()
   If TNG_PapyrusUtil.GetBoolValue(cbCheckingPCGen) 
     RegisterForSingleUpdate(1)
   EndIf
-  
-  PlayerRef.RemoveSpell(ReloadSpell)
   
   If Game.GetModByName("Dynamic Activation Key.esp")
     fkDAK = Game.GetFormFromFile(0x801, "Dynamic Activation Key.esp") As GlobalVariable
