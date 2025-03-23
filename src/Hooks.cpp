@@ -8,7 +8,7 @@ void Hooks::Install() {
   InstallHook<Load3D>();
 }
 
-RE::NiAVObject* Hooks::Load3D::thunk(RE::Character* actor, bool backgroundLoading) {
+RE::NiAVObject* Hooks::Load3D::thunk(Target* actor, bool backgroundLoading) {
   auto res = Load3D::func(actor, backgroundLoading);
   auto npc = actor ? actor->GetActorBase() : nullptr;
   auto canModify = core->CanModifyNPC(npc);

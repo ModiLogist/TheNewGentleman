@@ -6,19 +6,19 @@ class Hooks {
 
   private:
     struct Load3D {
-        static constexpr auto Target = RE::VTABLE_Character[0];
-        inline static constexpr size_t index{0x6A};
+        using Target = RE::Character;
+        inline static constexpr size_t tableIdx{0};
+        static constexpr std::string_view name{"Load3D"};
+        inline static constexpr size_t index{0x6a};
 
-        static RE::NiAVObject* thunk(RE::Character* actor, bool backgroundLoading);
+        static RE::NiAVObject* thunk(Target* actor, bool backgroundLoading);
 
         inline static REL::Relocation<decltype(thunk)> func;
-
-        static constexpr std::string_view name{"Load3D"};
     };
 
     template <class T>
     static constexpr auto InstallHook() {
-      REL::Relocation<std::uintptr_t> vt{T::Target};
+      REL::Relocation<std::uintptr_t> vt{T::Target::VTABLE[T::tableIdx]};
       T::func = vt.write_vfunc(T::index, T::thunk);
       SKSE::log::info("Installed {} hook.", T::name);
     }
