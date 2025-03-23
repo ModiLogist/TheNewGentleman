@@ -225,7 +225,7 @@ std::vector<RE::TESObjectARMO*> Core::GetActorWornArmor(RE::Actor* actor) {
   auto inv = actor->GetInventory([=](RE::TESBoundObject& obj) { return obj.IsArmor(); });
   for (const auto& [item, invData] : inv) {
     const auto& [count, entry] = invData;
-    if (count > 0 && entry && entry->IsWorn() && ut->FormToLocView(item) != Util::coverID) {
+    if (count > 0 && entry && entry->IsWorn() && !ut->IsBlock(item)) {
       res.push_back(item->As<RE::TESObjectARMO>());
     }
   }
@@ -346,14 +346,14 @@ void Core::CheckArmorPieces() {
         }
         continue;
       }
-      if (inis->IsCovering(armor, modName)) {
+      if (inis->ShouldCover(armor, modName)) {
         armor->AddKeyword(ut->Key(Util::kyCovering));
         SKSE::log::info("\t\tThe armor [0x{:x}: {}] was marked covering.", armor->GetFormID(), armorID);
         cc++;
         continue;
       }
       keyPair = [&]() -> std::pair<RE::BGSKeyword*, std::string> {
-        switch (inis->IsRevealing(armor, modName)) {
+        switch (inis->ShouldReveal(armor, modName)) {
           case Util::kyRevealing:
             return {ut->Key(Util::kyRevealing), "all"};
           case Util::kyRevealingF:

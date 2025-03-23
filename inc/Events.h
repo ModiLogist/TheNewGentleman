@@ -14,7 +14,7 @@ class Events : public Singleton<Events>,
 
   public:
     void DoChecks(RE::Actor* actor, RE::TESObjectARMO* armor = nullptr, bool isEquipped = false);
-    RE::TESObjectARMO* GetCoveringItem(RE::Actor* actor, RE::TESObjectARMO* armor);
+    RE::TESObjectARMO* GetCoveringItem(RE::Actor* actor, RE::TESObjectARMO* exception);
 
   private:
     void CheckForAddons(RE::Actor* actor);
@@ -22,9 +22,7 @@ class Events : public Singleton<Events>,
     void CheckDF(RE::Actor* actor);
     std::pair<int, bool> GetNPCAutoAddon(RE::TESNPC* npc);
     bool NeedsCover(RE::Actor* actor);
-    RE::TESBoundObject* ForceTngCover(RE::Actor* actor, bool ifUpdate);
 
     bool showErrMessage;
     std::map<RE::FormID, RE::TESObjectARMO*> oldSkins;
-    std::vector<RE::BGSKeyword*> coverKeys;
 };

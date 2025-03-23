@@ -7,7 +7,7 @@
 #include <Util.h>
 
 static bool CheckIncompatibility() {
-  if (GetModuleHandle(L"Data\\SKSE\\Plugins\\acon.dll")) {
+  if (GetModuleHandleW(L"Data\\SKSE\\Plugins\\acon.dll")) {
     ut->ShowSkyrimMessage("Warning: TNG is not compatible with acon.dll. Please don't use TNG with mods from that website!");
     return false;
   }

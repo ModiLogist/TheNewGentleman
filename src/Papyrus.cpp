@@ -311,7 +311,7 @@ std::string Papyrus::WhyProblem(RE::StaticFunctionTag* tag, RE::Actor* actor, in
   switch (issueID) {
     case iidCanSee:
       if (!cover) return "$TNG_PA1";
-      if (down) return ut->FormToLocView(down) == Util::coverID ? "$TNG_PD0" : "$TNG_PA2";
+      if (down) return ut->IsBlock(down) ? "$TNG_PD0" : "$TNG_PA2";
       return WhyProblem(tag, actor, iidCanSeeRep);
     case iidCanSeeRep:
       events->DoChecks(actor);

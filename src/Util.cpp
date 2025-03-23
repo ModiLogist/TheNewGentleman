@@ -98,3 +98,12 @@ std::string Util::FormToStr(RE::TESForm* form) {
   oss << std::hex << formID;
   return "0x" + oss.str() + delim + std::string(form->GetFile(0)->GetFilename());
 }
+
+bool Util::IsBlock(RE::TESForm* form) { return form && (FormToLocView(form) == Util::coverID); }
+
+bool Util::IsCovering(RE::TESNPC* npc, RE::TESObjectARMO* armor) {
+  if (armor->HasKeyword(Key(Util::kyCovering))) return true;
+  if (armor->HasKeyword(ut->Key(Util::kyRevealingF)) && !npc->IsFemale()) return true;
+  if (armor->HasKeyword(ut->Key(Util::kyRevealingM)) && npc->IsFemale()) return true;
+  return false;
+}

@@ -128,6 +128,8 @@ class Util : public Singleton<Util> {
     SEFormLoc FormToLoc(const RE::TESForm* form);
     SEFormLocView FormToLocView(RE::TESForm* form);
     std::string FormToStr(RE::TESForm* form);
+    bool IsBlock(RE::TESForm* form);
+    bool IsCovering(RE::TESNPC* npc, RE::TESObjectARMO* armor);
 
   private:
     RE::TESDataHandler* sedh = nullptr;

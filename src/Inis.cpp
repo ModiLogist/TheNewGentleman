@@ -613,13 +613,13 @@ bool Inis::IsSkin(const RE::TESObjectARMO *armor, const std::string modName) {
   return false;
 }
 
-bool Inis::IsCovering(const RE::TESObjectARMO *armor, const std::string modName) {
+bool Inis::ShouldCover(const RE::TESObjectARMO *armor, const std::string modName) {
   if (modName == "") return false;
   if (coveringRecords.find({armor->GetLocalFormID(), modName}) != coveringRecords.end()) return true;
   return false;
 }
 
-int Inis::IsRevealing(const RE::TESObjectARMO *armor, const std::string modName) {
+int Inis::ShouldReveal(const RE::TESObjectARMO *armor, const std::string modName) {
   if (modName == "") return Util::nan;
   if (revealingMods.find(modName) != revealingMods.end()) return Util::kyRevealing;
   if (femRevMods.find(modName) != femRevMods.end()) return Util::kyRevealingF;

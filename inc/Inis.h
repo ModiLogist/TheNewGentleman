@@ -127,8 +127,8 @@ class Inis : public Singleton<Inis> {
     bool IsNPCExcluded(const RE::TESNPC* npc);
 
     bool IsSkin(const RE::TESObjectARMO* armor, const std::string modName);
-    bool IsCovering(const RE::TESObjectARMO* armor, const std::string modName);
-    int IsRevealing(const RE::TESObjectARMO* armor, const std::string modName);
+    bool ShouldCover(const RE::TESObjectARMO* armor, const std::string modName);
+    int ShouldReveal(const RE::TESObjectARMO* armor, const std::string modName);
     bool IsRTCovering(const RE::TESObjectARMO* armor, const std::string modName);
     int IsRTRevealing(const RE::TESObjectARMO* armor, const std::string modName);
     bool IsExtraRevealing(const std::string modName);

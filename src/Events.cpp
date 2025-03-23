@@ -7,10 +7,6 @@
 Events* events = Events::GetSingleton();
 
 void Events::RegisterEvents() {
-  coverKeys.clear();
-  coverKeys.push_back(ut->Key(Util::kyCovering));
-  coverKeys.push_back(ut->Key(Util::kyRevealingF));
-  coverKeys.push_back(ut->Key(Util::kyRevealingM));
   showErrMessage = true;
   const auto sesh = RE::ScriptEventSourceHolder::GetSingleton();
   sesh->AddEventSink<RE::TESEquipEvent>(GetSingleton());
@@ -25,11 +21,10 @@ RE::BSEventNotifyControl Events::ProcessEvent(const RE::TESEquipEvent* event, RE
   const auto actor = event->actor ? event->actor->As<RE::Actor>() : nullptr;
   auto npc = actor ? actor->GetActorBase() : nullptr;
   auto armor = RE::TESForm::LookupByID<RE::TESObjectARMO>(event->baseObject);
-  if (core->CanModifyNPC(npc) < 0 || !armor || !armor->HasKeywordInArray(coverKeys, false)) return RE::BSEventNotifyControl::kContinue;
+  if (core->CanModifyNPC(npc) < 0 || !armor || !ut->IsCovering(npc, armor) || !armor->HasPartOf(Util::genitalSlot)) return RE::BSEventNotifyControl::kContinue;
   if (npc->race->HasKeyword(ut->Key(Util::kyPreProcessed)) && !base->ReevaluateRace(npc->race, actor)) return RE::BSEventNotifyControl::kContinue;
-  if (ut->FormToLocView(armor) == Util::coverID) return RE::BSEventNotifyControl::kContinue;
-  if (armor->HasKeyword(ut->Key(Util::kyCovering)) || (armor->HasKeyword(ut->Key(Util::kyRevealingF)) && !npc->IsFemale()) || (armor->HasKeyword(ut->Key(Util::kyRevealingM)) && npc->IsFemale()))
-    DoChecks(actor, armor, event->equipped);
+  if (ut->IsBlock(armor)) return RE::BSEventNotifyControl::kContinue;
+  DoChecks(actor, armor, event->equipped);
   return RE::BSEventNotifyControl::kContinue;
 }
 
@@ -74,16 +69,13 @@ void Events::DoChecks(RE::Actor* actor, RE::TESObjectARMO* armor, bool isEquippe
   CheckDF(actor);
 }
 
-RE::TESObjectARMO* Events::GetCoveringItem(RE::Actor* actor, RE::TESObjectARMO* armor) {
+RE::TESObjectARMO* Events::GetCoveringItem(RE::Actor* actor, RE::TESObjectARMO* exception) {
   auto npc = actor ? actor->GetActorBase() : nullptr;
   if (!npc) return nullptr;
-  auto inv = actor->GetInventory([=](RE::TESBoundObject& a_object) { return a_object.IsArmor() && a_object.HasKeywordInArray(coverKeys, false); }, true);
+  auto inv = actor->GetInventory([=](RE::TESBoundObject& a_object) { return a_object.IsArmor() && ut->IsCovering(npc, a_object.As<RE::TESObjectARMO>()); }, true);
   for (const auto& [item, invData] : inv) {
-    const auto& [count, entry] = invData;
-    if (count > 0 && entry && entry->IsWorn() && item != armor) {
-      auto res = item->As<RE::TESObjectARMO>();
-      if (res->HasKeyword(ut->Key(Util::kyCovering)) || (res->HasKeyword(ut->Key(Util::kyRevealingF)) && !npc->IsFemale()) || (res->HasKeyword(ut->Key(Util::kyRevealingM)) && npc->IsFemale()))
-        return res;
+    if (item && invData.first && invData.second && invData.second->IsWorn() && item != exception) {
+      return item->As<RE::TESObjectARMO>();
     }
   }
   return nullptr;
@@ -113,7 +105,8 @@ void Events::CheckForAddons(RE::Actor* actor) {
     case Util::def:
       if (base->GetRgAddon(npc->race) < 0) break;
       if (npc->IsFemale()) {
-        if ((addnPair.first < 0 && npc->skin && npc->skin->HasKeyword(ut->Key(Util::kyTngSkin))) || (addnPair.first >= 0 && (!npc->skin || !npc->skin->HasKeyword(ut->Key(Util::kyTngSkin)))))
+        if ((addnPair.first < 0 && npc->skin && npc->skin->HasKeyword(ut->Key(Util::kyTngSkin))) ||
+            (addnPair.first >= 0 && (!npc->skin || !npc->skin->HasKeyword(ut->Key(Util::kyTngSkin)))))
           requiresUpdate = true;
       } else {
         if (addnPair.first < 0 && (!npc->skin || npc->skin->HasKeyword(ut->Key(Util::kyTngSkin)))) break;
@@ -133,28 +126,25 @@ void Events::CheckForAddons(RE::Actor* actor) {
 
 void Events::CheckCovering(RE::Actor* actor, RE::TESObjectARMO* armor, bool isEquipped) {
   if (!actor) return;
-  auto down = actor->GetWornArmor(Util::genitalSlot);
-  auto cover = armor && isEquipped ? armor : GetCoveringItem(actor, isEquipped ? nullptr : armor);
+  auto down = armor && isEquipped && armor->HasPartOf(Util::genitalSlot) ? armor : actor->GetWornArmor(Util::genitalSlot);
+  if (down && down == armor && !isEquipped) down = nullptr;
+  auto cover = armor && isEquipped && !armor->HasPartOf(Util::genitalSlot) ? armor : GetCoveringItem(actor, isEquipped ? nullptr : armor);
   bool needsCover = NeedsCover(actor);
-  if (!needsCover || (down && ut->FormToLocView(down) != Util::coverID) || (!cover && down && ut->FormToLocView(down) == Util::coverID)) {
-    if (down && ut->FormToLocView(down) == Util::coverID) {
-      RE::ActorEquipManager::GetSingleton()->UnequipObject(actor, down, nullptr, 1, nullptr, false, true, false, true);
-    }
+  if (!needsCover || (down && (!ut->IsBlock(down) || !cover))) {
     actor->RemoveItem(ut->Block(), 10, RE::ITEM_REMOVE_REASON::kRemove, nullptr, nullptr);
     return;
   }
-  auto tngCover = ForceTngCover(actor, false);
   if ((cover && down) || (!cover && !down)) return;
-  if (!tngCover && showErrMessage) {
-    showErrMessage = false;
-    ut->ShowSkyrimMessage("TNG faced an error when trying to cover genitalia. The New Gentleman won't function properly!");
+  auto tngBlock = ut->Block();
+  if (!tngBlock) {
+    if (showErrMessage) {
+      showErrMessage = false;
+      ut->ShowSkyrimMessage("TNG faced an error when trying to cover genitalia. The New Gentleman won't function properly!");
+    }
+    return;
   }
-  if (down && ut->FormToLocView(down) == Util::coverID) {
-    RE::ActorEquipManager::GetSingleton()->UnequipObject(actor, down, nullptr, 1, nullptr, false, true, false, true);
-  }
-  if (cover && !down) {
-    RE::ActorEquipManager::GetSingleton()->EquipObject(actor, tngCover);
-  }
+  actor->AddObjectToContainer(tngBlock, nullptr, 1, nullptr);
+  RE::ActorEquipManager::GetSingleton()->EquipObject(actor, tngBlock);
 }
 
 void Events::CheckDF(RE::Actor* actor) {
@@ -181,22 +171,4 @@ bool Events::NeedsCover(RE::Actor* actor) {
   } else {
     return (!npc->HasKeyword(ut->Key(Util::kyExcluded)));
   }
-}
-
-RE::TESBoundObject* Events::ForceTngCover(RE::Actor* actor, bool ifUpdate) {
-  auto inv = actor->GetInventory([=](RE::TESBoundObject& a_object) { return a_object.IsArmor() && ut->FormToLocView(a_object.As<RE::TESObjectARMO>()) == Util::coverID; }, ifUpdate);
-  if (!ut->Block()) return nullptr;
-  for (const auto& [item, invData] : inv) {
-    const auto& [count, entry] = invData;
-    if (count == 1 && entry && item) {
-      return item;
-    }
-    if (count > 1 && entry && item) {
-      actor->RemoveItem(ut->Block(), count - 1, RE::ITEM_REMOVE_REASON::kRemove, nullptr, nullptr);
-      return item;
-    }
-  }
-  if (ifUpdate) return nullptr;
-  actor->AddObjectToContainer(ut->Block(), nullptr, 1, nullptr);
-  return ForceTngCover(actor, true);
 }
