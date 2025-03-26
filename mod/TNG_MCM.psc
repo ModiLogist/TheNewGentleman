@@ -253,9 +253,9 @@ Event OnPageReset(String asPage)
     Int liRg = 0
     String[] lSRgNames = TNG_PapyrusUtil.GetRgNames()
     While liRg < lSRgNames.Length      
-      fIRaceSizeHdls[liRg] = AddSliderOption(lSRgNames[liRg], TNG_PapyrusUtil.GetRGMult(liRg), "{2}")
+      fIRaceSizeHdls[liRg] = AddSliderOption(lSRgNames[liRg], TNG_PapyrusUtil.GetRgMult(liRg), "{2}")
       String[] lSOptions = TNG_PapyrusUtil.GetRgAddons(liRg)
-      Int liAddonIdx = TNG_PapyrusUtil.GetRGAddon(liRg) + 2
+      Int liAddonIdx = TNG_PapyrusUtil.GetRgAddon(liRg) + 2
       If (lSOptions.Length == 2) || (liAddonIdx < 0)
         liAddonIdx = 1
       EndIf
@@ -559,14 +559,14 @@ Event OnOptionDefault(Int aiOption)
       liOpLoop -= 1
       If aiOption == fIRaceSizeHdls[liOpLoop]
         TNG_PapyrusUtil.SetRGMult(liOpLoop, 1.0)
-        SetSliderOptionValue(fIRaceSizeHdls[liOpLoop], TNG_PapyrusUtil.GetRGMult(liOpLoop), "{2}")
+        SetSliderOptionValue(fIRaceSizeHdls[liOpLoop], TNG_PapyrusUtil.GetRgMult(liOpLoop), "{2}")
         TNG_PapyrusUtil.SetActorSize(PlayerRef, -1)
         Return
       EndIf
       If aiOption == fIRaceTypeHdls[liOpLoop]
         TNG_PapyrusUtil.SetRGAddon(liOpLoop, -2)
         String[] lSOptions = TNG_PapyrusUtil.GetRgAddons(liOpLoop)
-        Int liChoiceRes = TNG_PapyrusUtil.GetRGAddon(liOpLoop) + 2
+        Int liChoiceRes = TNG_PapyrusUtil.GetRgAddon(liOpLoop) + 2
         SetMenuOptionValue(fIRaceTypeHdls[liOpLoop], lSOptions[liChoiceRes])
         Return
       EndIf
@@ -647,7 +647,7 @@ Event OnOptionMenuOpen(Int aiOption)
       If aiOption == fIRaceTypeHdls[liRg]
         String[] lSOptions = TNG_PapyrusUtil.GetRgAddons(liRg)
         SetMenuDialogOptions(lSOptions)
-        SetMenuDialogStartIndex(TNG_PapyrusUtil.GetRGAddon(liRg) + 2)
+        SetMenuDialogStartIndex(TNG_PapyrusUtil.GetRgAddon(liRg) + 2)
         SetMenuDialogDefaultIndex(0)
         Return
       EndIf
@@ -694,7 +694,7 @@ Event OnOptionMenuAccept(Int aiOption, Int aiChoice)
       If aiOption == fIRaceTypeHdls[liRg]
         TNG_PapyrusUtil.SetRGAddon(liRg, aiChoice - 2)
         String[] lSOptions = TNG_PapyrusUtil.GetRgAddons(liRg)
-        Int liChoiceRes = TNG_PapyrusUtil.GetRGAddon(liRg) + 2
+        Int liChoiceRes = TNG_PapyrusUtil.GetRgAddon(liRg) + 2
         SetMenuOptionValue(fIRaceTypeHdls[liRg], lSOptions[liChoiceRes])
         Return
       EndIf
@@ -743,7 +743,7 @@ Event OnOptionSliderOpen(Int aiOption)
     While liRg > 0
       liRg -= 1
       If aiOption == fIRaceSizeHdls[liRg]
-        SetSliderDialogStartValue(TNG_PapyrusUtil.GetRGMult(liRg))
+        SetSliderDialogStartValue(TNG_PapyrusUtil.GetRgMult(liRg))
         SetSliderDialogDefaultValue(1.0)
         SetSliderDialogRange(0.1, 2.0)
         SetSliderDialogInterval(0.01)
@@ -788,7 +788,7 @@ Event OnOptionSliderAccept(Int aiOption, Float afValue)
       liRg -= 1
       If aiOption == fIRaceSizeHdls[liRg]
         TNG_PapyrusUtil.SetRGMult(liRg, afValue)
-        SetSliderOptionValue(fIRaceSizeHdls[liRg], TNG_PapyrusUtil.GetRGMult(liRg), "{2}")
+        SetSliderOptionValue(fIRaceSizeHdls[liRg], TNG_PapyrusUtil.GetRgMult(liRg), "{2}")
         TNG_PapyrusUtil.SetActorSize(PlayerRef, -1)
         Return
       EndIf

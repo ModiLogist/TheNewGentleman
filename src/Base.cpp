@@ -21,6 +21,7 @@ void Base::LoadAddons() {
   for (const auto &armor : armorList) {
     if (armor->HasKeyword(ut->Key(Util::kyAddonM))) malAddons.emplace_back(armor, true);
     if (armor->HasKeyword(ut->Key(Util::kyAddonF))) femAddons.emplace_back(armor, false);
+    if (armor->HasKeyword(ut->Key(Util::kyPreSkin))) preSkins.insert(armor);
   }
   for (auto &armorPair : malAddons)
     if (!armorPair.first->HasKeyword(ut->Key(Util::kyIgnored))) armorPair.first->AddKeyword(ut->Key(Util::kyIgnored));
@@ -415,7 +416,12 @@ RE::TESObjectARMO *Base::GetSkinWithAddonForRg(RaceGroupInfo *rg, RE::TESObjectA
   if (skinMap.find(ogSkin) == skinMap.end()) skinMap.insert({ogSkin, std::map<size_t, RE::TESObjectARMO *>{}});
   RE::TESObjectARMO *resSkin = nullptr;
   if (skinMap[ogSkin].find(addonIdx) == skinMap[ogSkin].end()) {
-    resSkin = ogSkin->CreateDuplicateForm(true, (void *)resSkin)->As<RE::TESObjectARMO>();
+    if (preSkins.size() > 0) {
+      resSkin = *preSkins.begin();
+      preSkins.erase(preSkins.begin());
+    } else {
+      resSkin = ogSkin->CreateDuplicateForm(true, (void *)resSkin)->As<RE::TESObjectARMO>();
+    }
     resSkin->Copy(ogSkin);
     resSkin->AddKeyword(ut->Key(Util::kyTngSkin));
     if (isFemale && femAddons[addonIdx].first->HasKeyword(ut->Key(Util::kySkinWP))) resSkin->AddKeyword(ut->Key(Util::kySkinWP));

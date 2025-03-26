@@ -90,6 +90,7 @@ class Util : public Singleton<Util> {
       kyCovering,
       kyUnderwear,
       kyRevealing,
+      kyPreSkin,
       kyManMer,
       kyBeast,
       kyCreature,
@@ -98,14 +99,13 @@ class Util : public Singleton<Util> {
     };
 
     enum eTngFormLists { flmGentleWomen, flmNonGentleMen, flCount };
-    inline static constexpr eKeyword RevKeys[3]{kyRevealing, kyRevealingF, kyRevealingM};
 
   private:
     inline static constexpr SEFormLocView raceIDs[racesCount]{{0x19, skyrimFile}, {0x13745, skyrimFile}};
-    inline static constexpr SEFormLocView keyIDs[keywordsCount] = {{0xFF0, mainFile},     {0xFF1, mainFile},     {0xFF2, mainFile},     {0xFF3, mainFile},    {0xFF4, mainFile},
-                                                                   {0xFF6, mainFile},     {0xFF7, mainFile},     {0xFF8, mainFile},     {0xFF9, mainFile},    {0xFFA, mainFile},
-                                                                   {0xFFB, mainFile},     {0xFFC, mainFile},     {0xFFD, mainFile},     {0xFFE, mainFile},    {0xFFF, mainFile},
-                                                                   {0x13794, skyrimFile}, {0xD61D1, skyrimFile}, {0x13795, skyrimFile}, {0xA82BB, skyrimFile}};
+    inline static constexpr SEFormLocView keyIDs[keywordsCount] = {{0xFF0, mainFile}, {0xFF1, mainFile},     {0xFF2, mainFile},     {0xFF3, mainFile},     {0xFF4, mainFile},
+                                                                   {0xFF6, mainFile}, {0xFF7, mainFile},     {0xFF8, mainFile},     {0xFF9, mainFile},     {0xFFA, mainFile},
+                                                                   {0xFFB, mainFile}, {0xFFC, mainFile},     {0xFFD, mainFile},     {0xFFE, mainFile},     {0xFFF, mainFile},
+                                                                   {0xFE0, mainFile}, {0x13794, skyrimFile}, {0xD61D1, skyrimFile}, {0x13795, skyrimFile}, {0xA82BB, skyrimFile}};
 
     inline static constexpr SEFormLocView pcAddonID{0xCFF, mainFile};
     inline static constexpr RE::FormID sizeKeyIDs[sizeKeyCount]{0xFE1, 0xFE2, 0xFE3, 0xFE4, 0xFE5};

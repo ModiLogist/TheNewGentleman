@@ -37,11 +37,14 @@ class Base : public Singleton<Base> {
     void SetAddonStatus(const bool isFemale, const size_t addnIdx, const bool aIsActive);
 
   private:
+    struct FormComparator {
+        bool operator()(const RE::TESForm* lhs, const RE::TESForm* rhs) const { return lhs->formID < rhs->formID; }
+    };
     std::vector<std::pair<RE::TESObjectARMO*, bool>> malAddons;
     std::vector<std::pair<RE::TESObjectARMO*, bool>> femAddons;
+    std::set<RE::TESObjectARMO*, FormComparator> preSkins;
     void LoadAddons();
 
-  public:
   public:
     void AddRace(RE::TESRace* race, bool isProcessed);
     bool ReevaluateRace(RE::TESRace* race, RE::Actor* actor);
