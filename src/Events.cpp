@@ -119,7 +119,7 @@ void Events::CheckForAddons(RE::Actor* actor) {
       break;
   }
   if (requiresUpdate) {
-    core->SetNPCAddon(npc, addnPair.first, addnPair.second, false);
+    core->SetActorAddon(actor, addnPair.first, addnPair.second, false);
   }
   core->UpdateFormLists(actor, npc);
 }
@@ -146,11 +146,6 @@ void Events::CheckCovering(RE::Actor* actor, RE::TESObjectARMO* armor, bool isEq
   actor->AddObjectToContainer(tngBlock, nullptr, 1, nullptr);
   RE::ActorEquipManager::GetSingleton()->EquipObject(actor, tngBlock);
 }
-
-void Events::CheckDF(RE::Actor* actor) {
-  // TODO: Implement!
-}
-
 std::pair<int, bool> Events::GetNPCAutoAddon(RE::TESNPC* npc) {
   auto res = base->GetNPCAddon(npc);
   if (res.first != Util::def) return res;

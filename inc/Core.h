@@ -14,8 +14,8 @@ class Core : public Singleton<Core> {
   public:
     void ProcessSkins();
     Util::eRes CanModifyNPC(RE::TESNPC* npc);
-    Util::eRes SetActorSize(RE::Actor* actor, int genSize);
-    Util::eRes SetNPCAddon(RE::TESNPC* npc, const int addnIdx, const bool isUser, const bool shouldSave = true);
+    Util::eRes SetActorAddon(RE::Actor* actor, const int choice, const bool isUser, const bool shouldSave = true);
+    Util::eRes SetActorSize(RE::Actor* actor, int genSize, bool shouldSave = true);
     void UpdateFormLists(RE::Actor* actor, RE::TESNPC* npc);
     std::vector<RE::TESObjectARMO*> GetActorWornArmor(RE::Actor* actor);
 

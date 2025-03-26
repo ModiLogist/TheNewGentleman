@@ -422,6 +422,10 @@ RE::TESObjectARMO *Base::GetSkinWithAddonForRg(RaceGroupInfo *rg, RE::TESObjectA
     } else {
       resSkin = ogSkin->CreateDuplicateForm(true, (void *)resSkin)->As<RE::TESObjectARMO>();
     }
+    if (!resSkin) {
+      SKSE::log::critical("Failed to create a new skin");
+      return nullptr;
+    }
     resSkin->Copy(ogSkin);
     resSkin->AddKeyword(ut->Key(Util::kyTngSkin));
     if (isFemale && femAddons[addonIdx].first->HasKeyword(ut->Key(Util::kySkinWP))) resSkin->AddKeyword(ut->Key(Util::kySkinWP));

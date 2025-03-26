@@ -188,9 +188,21 @@ Util::eRes Core::SetActorSize(RE::Actor* actor, int genSize) {
   return res;
 }
 
-Util::eRes Core::SetNPCAddon(RE::TESNPC* npc, const int addnIdx, const bool isUser, const bool shouldSave) {
-  if (!npc->race || !npc->race->HasKeyword(ut->Key(Util::kyProcessed))) return Util::errRace;
+Util::eRes Core::SetActorAddon(RE::Actor* actor, const int choice, const bool isUser, const bool shouldSave) {
+  const auto npc = actor ? actor->GetActorBase() : nullptr;
+  if (!npc) return Util::errNPC;
+  if (!npc->race) return Util::errRace;
+  if (npc->race->HasKeyword(ut->Key(Util::kyPreProcessed)) && !base->ReevaluateRace(npc->race, actor)) return Util::errRace;
   if (inis->IsNPCExcluded(npc)) return Util::errNPC;
+  auto list = base->GetRgAddonList(npc->race, npc->IsFemale(), !isUser);
+  if (shouldSave) {
+    if (choice >= static_cast<int>(list.size())) return Util::errAddon;
+    SKSE::log::debug("Setting addon [{}] for actor [0x{:x}:{}].", choice, actor->GetFormID(), npc->GetName());
+  } else {
+    if (choice >= 0 && std::ranges::find(list, static_cast<size_t>(choice)) == list.end()) return Util::errAddon;
+  }
+  int addnIdx = choice < 0 ? choice : static_cast<int>(shouldSave ? list[choice] : choice);
+  if (actor->IsPlayerRef()) base->SetPlayerInfo(actor, choice);
   auto res = base->SetNPCAddon(npc, addnIdx, isUser);
   if (res < 0) return res;
   if (!npc->IsPlayer() && shouldSave) inis->SaveNPCAddon(npc, addnIdx);

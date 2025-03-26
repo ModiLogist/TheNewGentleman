@@ -224,14 +224,7 @@ RE::TESObjectARMO* Papyrus::GetActorAddon(RE::StaticFunctionTag*, RE::Actor* act
 }
 
 int Papyrus::SetActorAddon(RE::StaticFunctionTag*, RE::Actor* actor, int choice) {
-  const auto npc = actor ? actor->GetActorBase() : nullptr;
-  if (!npc) return Util::errNPC;
-  if (!npc->race) return Util::errRace;
-  auto list = base->GetRgAddonList(npc->race, npc->IsFemale(), false);
-  int addnIdx = choice < 0 ? choice : static_cast<int>(list[choice]);
-  if (npc->race->HasKeyword(ut->Key(Util::kyPreProcessed)) && !base->ReevaluateRace(npc->race, actor)) return Util::errRace;
-  if (actor->IsPlayerRef()) base->SetPlayerInfo(actor, choice);
-  auto res = core->SetNPCAddon(npc, addnIdx, true);
+  auto res = core->SetActorAddon(actor, choice, true);
   if (res >= 0) events->DoChecks(actor);
   return res;
 }
