@@ -34,7 +34,7 @@ int Base::AddonIdxByLoc(bool isFemale, SEFormLocView addonLoc) {
   const auto &list = isFemale ? femAddons : malAddons;
   for (int i = 0; i < list.size(); i++)
     if (ut->FormToLocView(list[i].first) == addonLoc) return i;
-  return -1;
+  return Util::def;
 }
 
 RE::TESObjectARMO *Base::AddonByIdx(bool isFemale, size_t choice, bool onlyActive) {
@@ -427,6 +427,7 @@ RE::TESObjectARMO *Base::GetSkinWithAddonForRg(RaceGroupInfo *rg, RE::TESObjectA
       return nullptr;
     }
     resSkin->Copy(ogSkin);
+    resSkin->SetFullName(ogSkin->GetFullName());
     resSkin->AddKeyword(ut->Key(Util::kyTngSkin));
     if (isFemale && femAddons[addonIdx].first->HasKeyword(ut->Key(Util::kySkinWP))) resSkin->AddKeyword(ut->Key(Util::kySkinWP));
     resSkin->AddSlotToMask(Util::genitalSlot);

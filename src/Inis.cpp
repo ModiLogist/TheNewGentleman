@@ -156,6 +156,19 @@ void Inis::LoadMainIni() {
     auto npcRecord = ut->StrToLoc(entry.pItem);
     if (!npcRecord.second.empty()) npcSizeCats.insert({npcRecord, sizeCat});
   }
+  ini.GetAllKeys(cActorAddonSection, values);
+  for (const auto &entry : values) {
+    auto addonStr = ini.GetValue(cActorAddonSection, entry.pItem);
+    auto actorRecord = ut->StrToLoc(entry.pItem);
+    auto addonRecord = ut->StrToLoc(addonStr, true);
+    if (!actorRecord.second.empty() && !addonRecord.second.empty()) actorAddons.insert({actorRecord, addonRecord});
+  }
+  ini.GetAllKeys(cActorSizeSection, values);
+  for (const auto &entry : values) {
+    auto sizeCat = ini.GetLongValue(cActorSizeSection, entry.pItem);
+    auto actorRecord = ut->StrToLoc(entry.pItem);
+    if (!actorRecord.second.empty()) actorSizeCats.insert({actorRecord, sizeCat});
+  }
   ini.GetAllKeys(cExcludeNPCSection, values);
   for (const auto &entry : values) {
     auto isExcluded = ini.GetBoolValue(cExcludeNPCSection, entry.pItem);
@@ -254,6 +267,21 @@ void Inis::LoadNpcInfo() {
   }
   npcAddons.clear();
   npcSizeCats.clear();
+}
+
+int Inis::GetActorAddon(const RE::Actor *actor) {
+  if (!actor || actor->IsPlayerRef()) return Util::def;
+  auto npc = actor ? actor->GetActorBase() : nullptr;
+  if (!npc) return Util::def;
+  auto actorInfo = ut->FormToLoc(actor);
+  if (actorInfo.second.empty() || actorAddons.find(actorInfo) == actorAddons.end()) return Util::def;
+  return base->AddonIdxByLoc(npc->IsFemale(), actorAddons[actorInfo]);
+}
+
+int Inis::GetActorSize(const RE::Actor *actor) {
+  auto actorInfo = ut->FormToLoc(actor);
+  if (actorInfo.second.empty() || actorSizeCats.find(actorInfo) == actorSizeCats.end()) return Util::nul;
+  return actorSizeCats[actorInfo];
 }
 
 void Inis::CleanIniLists() {
@@ -363,11 +391,9 @@ void Inis::SaveRgAddon(const size_t rg, const int choice) {
   ini.SaveFile(SettingFile());
 }
 
-void Inis::SaveNPCAddon(RE::TESNPC *npc, const int choice) {
+bool Inis::SaveNPCAddon(RE::TESNPC *npc, const int choice) {
   auto npcRecord = ut->FormToStr(npc);
-  if (npcRecord.empty()) {
-    return;
-  }
+  if (npcRecord.empty()) return false;
   CSimpleIniA ini;
   ini.SetUnicode();
   ini.LoadFile(SettingFile());
@@ -382,17 +408,19 @@ void Inis::SaveNPCAddon(RE::TESNPC *npc, const int choice) {
     default:
       auto addon = base->AddonByIdx(npc->IsFemale(), choice, false);
       auto addonRecord = ut->FormToStr(addon);
+      if (addonRecord.empty()) return true;
       ini.Delete(cExcludeNPCSection, npcRecord.c_str(), true);
       ini.SetValue(cNPCAddonSection, npcRecord.c_str(), addonRecord.c_str());
       break;
   }
   ini.SaveFile(SettingFile());
+  return true;
 }
 
-void Inis::SaveNPCSize(RE::TESNPC *npc, int genSize) {
-  if (genSize == Util::nul) return;
+bool Inis::SaveNPCSize(RE::TESNPC *npc, int genSize) {
+  if (genSize == Util::nul) return true;
   auto npcRecord = ut->FormToStr(npc);
-  if (npcRecord.empty()) return;
+  if (npcRecord.empty()) return false;
   CSimpleIniA ini;
   ini.SetUnicode();
   ini.LoadFile(SettingFile());
@@ -400,6 +428,48 @@ void Inis::SaveNPCSize(RE::TESNPC *npc, int genSize) {
     ini.Delete(cNPCSizeSection, npcRecord.c_str(), true);
   } else {
     ini.SetLongValue(cNPCSizeSection, npcRecord.c_str(), genSize);
+  }
+  ini.SaveFile(SettingFile());
+  return true;
+}
+
+void Inis::SaveActorAddon(RE::Actor *actor, const int choice) {
+  auto actorRecord = ut->FormToStr(actor);
+  if (actorRecord.empty()) {
+    if (actor) SKSE::log::debug("Failed to save the selected addon for actor [0x{:x}].", actor->GetFormID());
+    return;
+  }
+  CSimpleIniA ini;
+  ini.SetUnicode();
+  ini.LoadFile(SettingFile());
+  switch (choice) {
+    case Util::def:
+      ini.Delete(cActorAddonSection, actorRecord.c_str(), true);
+      break;
+    case Util::nul:
+      ini.SetValue(cActorAddonSection, actorRecord.c_str(), Util::nulStr.c_str());
+      break;
+    default:
+      auto addon = base->AddonByIdx(actor->GetActorBase()->IsFemale(), choice, false);
+      auto addonRecord = ut->FormToStr(addon);
+      if (addonRecord.empty()) return;
+      ini.SetValue(cActorAddonSection, actorRecord.c_str(), addonRecord.c_str());
+      break;
+  }
+  ini.SaveFile(SettingFile());
+}
+
+void Inis::SaveActorSize(RE::Actor *actor, const int genSize) {
+  if (genSize == Util::nul) return;
+  auto actorRecord = ut->FormToStr(actor);
+  if (actorRecord.empty()) return;
+  CSimpleIniA ini;
+  ini.SetUnicode();
+  ini.LoadFile(SettingFile());
+  if (genSize == Util::def) {
+    ini.Delete(cActorSizeSection, actorRecord.c_str(), true);
+  } else {
+    ini.SetLongValue(cActorSizeSection, actorRecord.c_str(), genSize);
   }
   ini.SaveFile(SettingFile());
 }

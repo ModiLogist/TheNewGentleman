@@ -48,6 +48,8 @@ class Inis : public Singleton<Inis> {
     void LoadMainIni();
     void LoadRgInfo();
     void LoadNpcInfo();
+    int GetActorAddon(const RE::Actor* actor);
+    int GetActorSize(const RE::Actor* actor);
 
     void CleanIniLists();
 
@@ -77,8 +79,11 @@ class Inis : public Singleton<Inis> {
 
     inline static constexpr const char* cRacialAddon{"RaceGenital"};
     inline static constexpr const char* cRacialSize{"RaceSizeMultiplier"};
-    inline static constexpr const char* cNPCSizeSection{"NPCGenitalSize"};
     inline static constexpr const char* cNPCAddonSection{"NPCGenitalAddon"};
+    inline static constexpr const char* cNPCSizeSection{"NPCGenitalSize"};
+    inline static constexpr const char* cActorAddonSection{"ActorGenitalAddon"};
+    inline static constexpr const char* cActorSizeSection{"ActorGenitalSize"};
+
     inline static constexpr const char* cActiveMalAddons{"ActiveMaleAddons"};
     inline static constexpr const char* cActiveFemAddons{"ActiveFemaleAddons"};
     inline static constexpr const char* cExcludeNPCSection{"ExcludedNPCs"};
@@ -90,8 +95,10 @@ class Inis : public Singleton<Inis> {
     std::set<std::pair<SEFormLoc, SEFormLoc>> racialAddons;
     std::set<std::pair<SEFormLoc, float>> racialSizes;
 
-    std::set<std::pair<SEFormLoc, SEFormLoc>> npcAddons;
-    std::set<std::pair<SEFormLoc, int>> npcSizeCats;
+    std::map<SEFormLoc, SEFormLoc> npcAddons;
+    std::map<SEFormLoc, int> npcSizeCats;
+    std::map<SEFormLoc, SEFormLoc> actorAddons;
+    std::map<SEFormLoc, int> actorSizeCats;
 
     std::set<SEFormLoc> runTimeRevealingRecords;
     std::set<SEFormLoc> runtimeCoveringRecords;
@@ -106,8 +113,10 @@ class Inis : public Singleton<Inis> {
     void SetAddonStatus(const bool isFemale, const int addnIdx, const bool status);
     void SetRgMult(const size_t rg, const float mult);
     void SaveRgAddon(const size_t rg, const int choice);
-    void SaveNPCAddon(RE::TESNPC* npc, const int choice);
-    void SaveNPCSize(RE::TESNPC* npc, int genSize);
+    bool SaveNPCAddon(RE::TESNPC* npc, const int choice);
+    bool SaveNPCSize(RE::TESNPC* npc, int genSize);
+    void SaveActorAddon(RE::Actor* actor, const int choice);
+    void SaveActorSize(RE::Actor* actor, const int genSize);
     void SaveRevealingArmor(RE::TESObjectARMO* armor, int revMode);
     void SetBoolSetting(Util::eBoolSetting settingID, bool value);
     void SetIntSetting(Util::eIntSetting is, int value);

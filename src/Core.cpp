@@ -182,9 +182,12 @@ Util::eRes Core::CanModifyNPC(RE::TESNPC* npc) {
   return (inis->IsNPCExcluded(npc)) ? Util::errNPC : res;
 }
 
-Util::eRes Core::SetActorSize(RE::Actor* actor, int genSize) {
+Util::eRes Core::SetActorSize(RE::Actor* actor, int genSize, bool shouldSave) {
   auto res = base->SetActorSize(actor, genSize);
-  if (res == Util::resOkSizable && !actor->GetActorBase()->IsPlayer()) inis->SaveNPCSize(actor->GetActorBase(), genSize);
+  if (res == Util::resOkSizable && !actor->GetActorBase()->IsPlayer() && shouldSave) {
+    auto saved = inis->SaveNPCSize(actor->GetActorBase(), genSize);
+    if (!saved) inis->SaveActorSize(actor, genSize);
+  }
   return res;
 }
 
@@ -205,7 +208,10 @@ Util::eRes Core::SetActorAddon(RE::Actor* actor, const int choice, const bool is
   if (actor->IsPlayerRef()) base->SetPlayerInfo(actor, choice);
   auto res = base->SetNPCAddon(npc, addnIdx, isUser);
   if (res < 0) return res;
-  if (!npc->IsPlayer() && shouldSave) inis->SaveNPCAddon(npc, addnIdx);
+  if (!npc->IsPlayer() && shouldSave) {
+    auto saved = inis->SaveNPCAddon(npc, addnIdx);
+    if (!saved) inis->SaveActorAddon(actor, addnIdx);
+  }
   return res;
 }
 
