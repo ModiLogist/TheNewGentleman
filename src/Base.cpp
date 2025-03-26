@@ -497,11 +497,23 @@ Util::eRes Base::SetActorSize(RE::Actor *actor, const int sizeCat) {
   if (mult < 0.0f) return Util::errRg;
   auto scale = mult * floatSettings[cat];
   if (scale < 0.1) scale = 1;
-  RE::NiAVObject *baseNode = actor->GetNodeByName(genBoneNames[egbBase]);
-  RE::NiAVObject *scrotNode = actor->GetNodeByName(genBoneNames[egbScrot]);
-  if (!baseNode || !scrotNode) return Util::errSkeleton;
-  baseNode->local.scale = scale;
-  scrotNode->local.scale = 1.0f / sqrt(scale);
+  std::thread([actor, scale]() {
+    int ms = 500;
+    int count = 0;
+    while (!actor->Is3DLoaded() && count < 10) {
+      count++;
+      std::this_thread::sleep_for(std::chrono::milliseconds(ms));
+    }
+    RE::NiAVObject *baseNode = actor->GetNodeByName(genBoneNames[egbBase]);
+    RE::NiAVObject *scrotNode = actor->GetNodeByName(genBoneNames[egbScrot]);
+    if (baseNode && scrotNode) {
+      baseNode->local.scale = scale;
+      scrotNode->local.scale = 1.0f / sqrt(scale);
+    } else {
+      SKSE::log::error("Failed to scale actor [0x{:x}] genitalia to [{}] since their skeleton was not loaded after {} seconds.", actor->GetFormID(), scale, count * ms / 1000);
+    }
+  }).detach();
+  if (sizeCat >= 0) SKSE::log::debug("Reloaded actor [0x{:x}] genitalia scale to [{}] to be a size category [{}].", actor->GetFormID(), scale, sizeCat);
   return Util::resOkSizable;
 }
 
