@@ -12,13 +12,12 @@ RE::NiAVObject* Hooks::Load3D::thunk(Target* actor, bool backgroundLoading) {
   auto res = Load3D::func(actor, backgroundLoading);
   auto npc = actor ? actor->GetActorBase() : nullptr;
   auto canModify = core->CanModifyNPC(npc);
-  if (canModify == Util::resOkRacePP) return res;
-  if (canModify < 0) return res;
+  if (canModify == Util::resOkRacePP || canModify < 0) return res;
   if (npc->HasKeyword(ut->Key(Util::kyProcessed))) return res;
   auto curSkin = actor->GetSkin();
   events->DoChecks(actor);
   if (actor->GetSkin() != curSkin) {
-    SKSE::log::debug("\tHook fixed addon for actor [0x{:x}:{}].", actor->GetFormID(), npc->GetName());
+    SKSE::log::debug("\t{} hook fixed addon for actor [0x{:x}:{}].", Load3D::name, actor->GetFormID(), npc->GetName());
   }
   return res;
 }
