@@ -35,14 +35,14 @@ You should follow these instructions (taken from the SOS page) to uninstall it:[
 [*]Save the game in a new slot.
 [/quote][/list]
 In addition to this, we recommend cleaning your save with [url=https://www.nexusmods.com/skyrimspecialedition/mods/5031]Fallrim Tools[/url], and although even this does not guarantee a fully safe uninstallation of SOS, it should leave your game free of SOS and ready for the switch. We recommend keeping a backup save pre-SOS removal just in case you should run into any issues.[/spoiler]
-[size=3][b]Load Order: Deployment and Plugin Index[/b][/size]
-For the plugin index (found on the right side of MO2, and in the Plugins tab in Vortex) you can use LOOT.
+[size=3][b]Mod Priority (Deployment Order) and Plugin Load Order(Plugin Index)[/b][/size]
+For the plugin load order (found on the right side of MO2, and in the Plugins tab in Vortex) you can use LOOT. TNG goes to a low index (close to the top of the list) and that is fine.
 
-For deployment order, this mod should be overwritten by all skin textures and by body meshes, such as [b]HIMBO[/b].
+For mod priority (also called deployment order), this mod should be overwritten by all skin textures and by body meshes, such as [b]HIMBO[/b], [b]BNP[/b], [b]Tempered Skins for Males (SOS FUll version)[/b].
 
 [b]LOOT does not take care of this! You do it by dragging mods up and down in MO2, or choosing the conflict winners in Vortex. LOOT or your mod manager cannot know which mesh or textures you prefer![/b]
 
-Some popular mods require a special deployment order (right side of MO2, MODS tab on Vortex):
+Some popular mods require a more special mod priority (right side of MO2, MODS tab on Vortex):
 
 [url=https://www.nexusmods.com/skyrimspecialedition/mods/27405#]COtR - HQ Characters creation addon for RM[/url][spoiler]
 You would need a skin that the head textures are compatible with. [url=https://www.nexusmods.com/skyrimspecialedition/mods/7902]Tempered Skins for Males - Vanilla and SOS [/url]offers a good solution. The order:
@@ -184,6 +184,10 @@ None of them applies?
 Is it a mesh/texture bug? Explain the bug, and add links to images that can show it well.
 
 Is it a functionality bug? Check the log(↑) from TNG, does it say anything that gives you an idea about the issue? Try resolving it. None of this worked? Create a new bug report, and explain the problem in detail. If it is a CTD, we need a crash-log. Without it we cannot have any idea. If you can also share your TNG log, it would be great. [b]And do not copy-paste crash log/TNG log![/b] Share it with pastebin.com or another sharing system. 
+
+If you don't know how to get the crash log, [[url=https://www.nexusmods.com/skyrimspecialedition/mods/59818]crash logger[/url] is your friend. It produces a file with date and time in your [b]SKSE log output[/b] folder. It doesn't take a slot in your esp list and has no harm whatsoever to your load order.
+If you don't know what is the log folder for SKSE, it is usually [i]Documents\My Games\Skyrim Special Edition\SKSE\[/i]. If your game loads, you can also go to TNG advanced tab in MCM and check the log location for TNG, that is your SKSE output location. The crash log would be a file with name "crash-Date-Time". Something like this: crash-2025-03-26-08-01-02.
+There might be many files there, and many crash files as well. We want the last one. To find the right one, remember that the crash would be the last modified file in that folder, so if you sort the files based on date, you should see it on top.
 
 [b]If you don't follow these for bug reports, we won't be able to help you![/b][/spoiler]
 [b]My Gentleman falls to the ground![/b]
