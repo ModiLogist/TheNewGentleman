@@ -1,30 +1,35 @@
 Male body solutions like SAM or SOS have existed for a long time, and are integral to many load orders. Although they are generally stable and offer many features for users and other mods, they have not been maintained and do not take full advantage of the game engine's potential. On top of that, because of their permissions, it is not possible to improve them here on Nexus. There were ways in which we could improve SOS, but to do that we would have to recreate almost everything from scratch. So we did!
 
-We would like to solve all issues that might arise with TNG, so feel free to ask your questions. However, please read the description before doing so.
+We would like to solve all issues that might arise with TNG, so feel free to ask your questions. But please read the description before doing that.
 
-[size=4][b]Features[/b][/size]
+[color=#f6b26b][size=5]Features[/size][/color]
+The complete feature list grew since 1st release of TNG, but among them:
 [list]
-[*]SKSE plugin developed supporting every version of the game.
+[*]One SKSE plugin for every version of the game. No scripts (except for MCM).
 [*]All-in-one solution for the male body including textures and meshes.
-[*]The implementation of Genitalia as part of NPCs' skin, instead of a continually equipped and unequipped armor.
-[*]Compatible with all re-textures for SOS Full.
-[*]No refitting requirements for vanilla or vanilla-compatible armor/clothes meshes.
-[*]No scripts (except for MCM). Almost everything happens in a few nano/milliseconds when you open the game.
-[*]No modification in vanilla armor slots, to keep the vanilla behavior of armor equipping as well as NPCs AI intact.(After version 4.0.0) 
-[*]Support for revealing and covering armor (from first version) and additionally, it is possible to have an armor piece set to revealing for one and covering for another gender.(After version 4.0.0) 
-[*]INI file support for other mods, so they don't need TNG as a master.
 [*]Compatibility with every adult animation framework/mod [b](OStim (any)/SL/FG/…)[/b].
+[*]Compatible with all re-textures for [b]SOS Full[/b].
+[*]No refitting requirements for vanilla or vanilla-compatible armor/clothes meshes.
+[*]Support for revealing and covering armor, for both genders (since beginning) and even only for one gender (after version 4.0.0).
+[*]INI file support for convenience and compatibility resolution without TheNewGentleman.esp as a master.
 [*]Uncircumcised and circumcised genitalia, as well as MCM options for their customization on a per-race basis.
-[*]Support for custom races which use the default skeleton.
+[*]The implementation of genitalia as part of NPCs' skin, instead of a continually equipped and unequipped armor.
+[*]Support for custom races. Including auto detection of skeleton bones, to ensure compatibility (after version 4.0.0.).
+[*]Size distribution of the genitalia for NPCs and size multiplier for each race group.
 [*]Exclusion of children and creatures to make sure they don't receive genitalia from this mod.
 [*]ESL-flagged plugin.
-[*]Size distribution of the genitalia for NPCs and also size multiplier for races.
-[*]Hotkeys to customize addons and size for NPCs, swap between revealing and covering armor, and move the genitalia up and down.
 [/list]
-[size=4][b]Installation/Uninstallation/Updating[/b][/size]
+[color=#f6b26b][size=5]Installation/Uninstallation/Updating[/size][/color]
 Install with your preferred mod manager. Safe to install/uninstall/update at any point during gameplay.
 
-[size=3][b]Switching From Schlongs of Skyrim on an Existing Save[/b][/size]
+[color=#f6b26b][size=3]Mod Priority (Deployment Order) and Plugin Load Order(Plugin Index)[/size][/color]
+For the plugin load order (found on the right side of MO2, and in the Plugins tab in Vortex) you can use LOOT. TNG goes to a low index (close to the top of the list) and that is fine.
+
+For mod priority (also called deployment order), compatible mods [color=#ffff00]should overwrite TNG[/color]. Check compatibility section for more details.
+
+[color=#ffff00]LOOT does not take care of this! You do it by dragging mods up and down in MO2, or choosing the conflict winners in Vortex. LOOT or your mod manager cannot know which mesh or textures you prefer![/color]
+
+[color=#f6b26b][size=3]Switching From Schlongs of Skyrim on an Existing Save[/size][/color]
 You should follow these instructions (taken from the SOS page) to uninstall it:[spoiler][list=1]
 [quote][*]Get the player to an interior cell (player houses are ideal for this, as there are no re-spawns).
 [*]In the mod configuration menu click [b]Remove SOS[/b], exit the MCM, and wait for completion.
@@ -35,37 +40,68 @@ You should follow these instructions (taken from the SOS page) to uninstall it:[
 [*]Save the game in a new slot.
 [/quote][/list]
 In addition to this, we recommend cleaning your save with [url=https://www.nexusmods.com/skyrimspecialedition/mods/5031]Fallrim Tools[/url], and although even this does not guarantee a fully safe uninstallation of SOS, it should leave your game free of SOS and ready for the switch. We recommend keeping a backup save pre-SOS removal just in case you should run into any issues.[/spoiler]
-[size=3][b]Mod Priority (Deployment Order) and Plugin Load Order(Plugin Index)[/b][/size]
-For the plugin load order (found on the right side of MO2, and in the Plugins tab in Vortex) you can use LOOT. TNG goes to a low index (close to the top of the list) and that is fine.
+[color=#f6b26b][size=5]Compatibility[/size][/color]
+TNG is designed with maximum compatibility in mind. This means in most cases you won't have to do any additional work to get everything in your game fully functional, although the more complicated your mod list the more likely that you will have to make adjustments for some of your mods.
 
-For mod priority (also called deployment order), this mod should be overwritten by all skin textures and by body meshes, such as [b]HIMBO[/b], [b]BNP[/b], [b]Tempered Skins for Males (SOS FUll version)[/b].
+[color=#f6b26b][size=4]Textures[/size][/color]
+Before trying other textures, try the default textures of TNG. 
+If you like to try other textures, remember you need the [color=#ffff00]SOS Full[/color] version of the texture mod.
 
-[b]LOOT does not take care of this! You do it by dragging mods up and down in MO2, or choosing the conflict winners in Vortex. LOOT or your mod manager cannot know which mesh or textures you prefer![/b]
+[color=#f6b26b][size=3]Compatible[/size][/color]
+There are many SOS full texture mods available, here is some examples:
+[url=https://voblascreatures.blogspot.com/search/label/skyrim]Vobla's Sakhr and Svein skin[/url] Off nexus content!
+[url=https://www.ddsworkshop.net/alt1_men]ALT1: Men[/url] Off nexus content! [color=#f6b26b]Dedicated TNG support![/color]
+[url=https://www.nexusmods.com/skyrimspecialedition/mods/7902]Tempered Skins for Males (SOS Full Version)[/url]
+[url=https://www.nexusmods.com/skyrimspecialedition/mods/65402]BNP - Male Skin[/url]
+[url=https://www.nexusmods.com/skyrimspecialedition/mods/48586]Flawn's Argonian Textures LITE[/url] Both default and redux.
 
-Some popular mods require a more special mod priority (right side of MO2, MODS tab on Vortex):
+[color=#f6b26b][size=3]Compatible with notes[/size][/color]
+[url=https://www.nexusmods.com/skyrimspecialedition/mods/6580]SkySight Skins[/url][spoiler]
+During the installation, of SkySight, choose the option "No Changes" in the first page for meshes.
+Mod priority:
+TNG
+[url=https://www.nexusmods.com/skyrimspecialedition/mods/6580]SkySight Skins[/url]
+[url=https://www.nexusmods.com/skyrimspecialedition/mods/63445?tab=description]SkySight Skins - Schlongs of Skyrim - Patch[/url][/spoiler][url=https://www.nexusmods.com/skyrimspecialedition/mods/18052]Better Khajiit male Texture for SOS body[/url] Only supports [color=#ffff00]uncircumcised[/color] genitalia. 
+Masculine [url=https://www.nexusmods.com/skyrimspecialedition/mods/186]Khajiit[/url][color=#f6b26b] and [/color][url=https://www.nexusmods.com/skyrimspecialedition/mods/185?tab=files]Argonian[/url][color=#f6b26b] Textures[/color]. Only supports [color=#ffff00]circumcised[/color] genitalia.
 
+[color=#f6b26b][size=3]Incompatible[/size][/color]
+Any skin that is made for SOS Light, Better Males, SAM, or Vanilla is not compatible with TNG.
+
+[color=#f6b26b][size=4]Mesh[/size][/color]
+TNG comes with its own meshes, but if you would like more flexibility and BodySlide options, it was designed to work perfectly with HIMBO Full. Except for HIMBO, any mod that changes the MaleBody_0.nif/MaleBody_1.nif would be not compatible with TNG. For COtR you can make it compatible, by overwriting its meshes with TNG meshes and then use a texture mod that is compatible with both TNG and COtR.
+
+[color=#f6b26b][size=3]Compatible[/size][/color]
+[url=https://www.nexusmods.com/skyrimspecialedition/mods/46311]Highly Improved Male Body Overhaul -HIMBO-[/url]
+ 
+[color=#f6b26b][size=3]Compatible with notes[/size][/color]
 [url=https://www.nexusmods.com/skyrimspecialedition/mods/27405#]COtR - HQ Characters creation addon for RM[/url][spoiler]
-You would need a skin that the head textures are compatible with. [url=https://www.nexusmods.com/skyrimspecialedition/mods/7902]Tempered Skins for Males - Vanilla and SOS [/url]offers a good solution. The order:
+COtR comes with its own head diffuse and normal maps. So you need a mod that is compatible with those, as well as TNG. 
+Mod priority:
 [url=https://www.nexusmods.com/skyrimspecialedition/mods/27405#]COtR - HQ Characters creation add-on for RM[/url]
 TNG
-Tempered or another skin mod compatible with CotR[/spoiler]
-[url=https://www.nexusmods.com/skyrimspecialedition/mods/6580]SkySight Skins [/url][spoiler]
-[url=https://www.nexusmods.com/skyrimspecialedition/mods/6580]SkySight Skins - Ultra HD 4K 2K Male Textures and Real Feet Meshes[/url]
-TNG
-[url=https://www.nexusmods.com/skyrimspecialedition/mods/63445?tab=description]SkySight Skins - Schlongs of Skyrim - Patch[/url][/spoiler]
-[size=4][b]Compatibility[/b][/size]
-The mod has been designed with maximum compatibility in mind. This means in most cases you won't have to do any additional work to get everything in your game fully functional, although the more complicated your mod list the more likely that you will have to make adjustments for some of your mods.
+Tempered Skin or another skin mod compatible with CotR head textures
 
-TNG is compatible with textures made for SOS Full. You cannot use textures for SOS Light, Better Males, SAM, vanilla, et cetera with TNG.
+Note: CotR races would all be merged into one category in TNG, since they all use the default race as their armor race and they share skin. If you want to adjust them separately, you'd need a patch that adjusts the RNAM (armor race) of every CotR race to their respective vanilla race.[/spoiler]
+[color=#f6b26b][size=3]Incompatible[/size][/color]
+Any mod that does the same thing: 
+SOS Full
+SAM
+SOSAM 
+SOS Light*
+SAM Light*
+Better Males*
+HIMBO Lite*
 
-The mod is not compatible with other mods that do the same thing, namely [b]SOS Full[/b], [b]SAM[/b], and [b]SOSAM[/b] nor with mods that integrate the genitalia into the base body mesh, namely [b]SOS Light[/b], [b]SAM Light[/b], [b]Better Males[/b],  and [b]HIMBO Lite[/b]. Not only are these mods' textures incompatible, TNG would distribute genitalia to meshes which already had them attached, resulting in two attached to the same body.
+*With these mods TNG would distribute genitalia to meshes which already had them attached, resulting in two attached to the same body.
 
-Unlike with some versions of SOS, with TNG an item can always be equipped to slot 52. As of version 4.0.0, TNG allows even items with slot 52 to be visible together with the main body armor without any issue. This allows you to have modular armor for men and women without worrying about their armor slot. You should however be mindful about armor pieces that might end up being visible together with the genitalia. If an armor piece should be visible at the same time with the genitalia, it [b]cannot[/b] use slot 52. For example, [url=https://www.nexusmods.com/skyrimspecialedition/mods/69469]Bandolier - Bags and Pouches[/url] uses that slot, and there is a patch available [url=https://www.nexusmods.com/skyrimspecialedition/mods/38538]here for SOS[/url] that also works with TNG.
+[color=#f6b26b][size=4]Slot 52[/size][/color]
+Unlike with some versions of SOS, with TNG an item can always be equipped to slot 52. After version 4.0.0, TNG even allows items with slot 52 to be visible together with the main body armor without any issue. So you can have your favorite modular armor for men and women without worrying about their armor slot conflicts. However, any item on slot 52 would hide the genitalia. If an armor piece should be visible at the same time with the genitalia, it [b]cannot[/b] use slot 52. For example, [url=https://www.nexusmods.com/skyrimspecialedition/mods/69469]Bandolier - Bags and Pouches[/url] uses that slot, and there is a patch available [url=https://www.nexusmods.com/skyrimspecialedition/mods/38538]here for SOS[/url] that also works with TNG.
 
+[color=#f6b26b][size=4]Other mods[/size][/color]
+[url=https://www.nexusmods.com/skyrimspecialedition/mods/52313]EasyNPC[/url] seem to cause conflicts. Some users report no issues, although others do. For things to function properly, it is necessary that NPCs not use slot 52 in the patch generated by EasyNPC and TNG cannot control that.
+[url=https://www.nexusmods.com/skyrimspecialedition/mods/9358]Joy of Perspective[/url] adds slot 52 to all vanilla races from Skyrim.esm. TNG uses this mechanism as a tool for other mod authors that can simply exclude TNG from their races, without creating an ini or a patch for TNG. We are working on a solution to include vanilla races, even if they have slot 52.
 
-Besides that [url=https://www.nexusmods.com/skyrimspecialedition/mods/52313]EasyNPC[/url] seem to cause conflicts. Some users report no issues, although others do. For things to function properly, it is necessary that NPCs not use slot 52 in the patch generated by EasyNPC and TNG cannot control that.
-
-[size=4][b]Add-Ons[/b][/size]
+[color=#f6b26b][size=5]Add-Ons[/size][/color]
 [list]
 [*][url=https://www.nexusmods.com/skyrimspecialedition/mods/105649]The New Gentlewoman[/url], made by [url=https://www.nexusmods.com/skyrimspecialedition/users/91759958]MissCorruption[/url], integrates some of the most popular mods offering add-ons for women.
 [*][url=https://www.nexusmods.com/skyrimspecialedition/users/45931387]JuzyJuzz[/url] offers [url=https://www.nexusmods.com/skyrimspecialedition/mods/114091]pubic hair for men and women[/url].
@@ -74,19 +110,16 @@ Besides that [url=https://www.nexusmods.com/skyrimspecialedition/mods/52313]Easy
 [/list]
 For a complete list of compatible add-ons, please check the requirements tab of TNG, under “Mods requiring this file”. 
 
-[i]Note: Some add-ons use their own textures, which may or may not be compatible with TNG default textures. Refer to each add-on's page for texture compatibility. There are more add-ons available, this list provides just a few examples. A good place to find add-ons is to look at the mods requiring TNG.[/i]
+[color=#ffff00]Note: Some add-ons use their own textures, which may or may not be compatible with TNG default textures. Refer to each add-on's page for texture compatibility. There are more add-ons available, this list provides just a few examples. A good place to find add-ons is to look at the mods requiring TNG.[/color]
 
-[size=3][b]Patching SOS Add-Ons/Creating New Add-Ons[/b][/size]
-Since genitalia were armor in SOS, you would constantly run into issues if you wanted to equip an item using slot 52. However, TNGs' genitalia is part of the skin. This makes slot 52 available for any armor piece that is supposed to cover genitalia.
-
+[color=#f6b26b][size=4]Patching SOS Add-Ons/Creating New Add-Ons[/size][/color]
 Converting existing add-ons or creating new ones for TNG is very simple. Just take a look here: [url=https://www.nexusmods.com/skyrimspecialedition/articles/6503]Creating new addons or Patching SOS addons for TNG[/url].
 
-[size=4][b]Patching and Troubleshooting[/b][/size]
-[size=3][b]INI files[/b][/size]
-[spoiler]With TNG you can use INI files so that you don't need to change ESPs for patches. In most cases you won't need any of this.
-If you are a mod author you can simply ship the TNG ini with your mod, and if the user has TNG installed it just works™ and if they don't, there is no harm. To create an INI file for TNG you should create an empty text file (.txt) in SKSE/Plugins/TNG/<ModName>_TNG.ini in the folder of the mod that you want to patch or directly in your installation data folder. Then inside that file you need to specify the section that specifies the INI file action, and the key that specifies the details. 
+[color=#f6b26b][size=5]Patching and Troubleshooting[/size][/color]
+[color=#f6b26b][size=4]INI files[/size][/color]
+With TNG you can use INI files so that you don't need to change ESPs for patches. In most cases you shouldn't need them unless you are a mod author or you have a very extensive mod list. See spoiler for more details.[spoiler]If you are a mod author you can simply ship the TNG ini with your mod, and if the user has TNG installed it just works™ and if they don't, there is no harm. To create an INI file for TNG you should create an empty text file (.txt) in SKSE/Plugins/TNG/<ModName>_TNG.ini in the folder of the mod that you want to patch or directly in your installation data folder. Then inside that file you need to specify the section that specifies the INI file action, and the key that specifies the details. 
 Look at the following examples for the details of each INI type:
-;[b]Exclusions:[/b]
+;[color=#f6b26b]Exclusions:[/color]
 ;To tell TNG to skip every race in a file since they are not relevant:
 
 [Exclusions]
@@ -99,12 +132,7 @@ ExcludeRace = 0x?..?~TheModName.esp
 [Exclusions]
 ExcludeNPC = 0x?..?~TheModName.esp
 
-;[b]Race compatibility:[/b]
-;To tell TNG that a skeleton is compatible:
-[Skeleton]
-ValidModel = relative path to skeleton as it is used in race record of a race that uses the custom skeleton
-
-;[b]Skin:[/b] (In most cases not necessary after version 4.0.0)
+;[color=#f6b26b]Skin:[/color] (In most cases not necessary after version 4.0.0)
 ;To tell TNG that a mod only contains skin:
 [Skin]
 SkinMod = TheModName.esp
@@ -113,116 +141,156 @@ SkinMod = TheModName.esp
 [Skin]
 SkinRecord = 0x[b]?..?[/b]~TheModName.esp
 
-;[b]Armor:[/b]
-;To tell TNG that all of the armor/clothing in a mod is revealing or should be ignored:
-[Armor]
-RevealingMod = TheModName.esp
-
-;To tell TNG that a record is revealing armor/clothing or should be ignored:
-[Armor]
-RevealingRecord = 0x[b]?..?[/b]~TheModName.esp
-
-;To tell TNG that an armor that is not using slot 32, should cover genitalia:
+;[color=#f6b26b]Armor:[/color]
+;To tell TNG that a single armor/clothing record that is not using slot 32, should cover genitalia:
 [Armor]
 CoveringRecord = 0x[b]?..?[/b]~TheModName.esp
 
-;To tell TNG that an armor using slot 32 is revealing only for women:
+;To tell TNG that all of the armor/clothing using slot 32 in a mod are revealing:
+[Armor]
+RevealingMod = TheModName.esp
+
+;To tell TNG that a single armor/clothing record using slot 32 is revealing:
+[Armor]
+RevealingRecord = 0x[b]?..?[/b]~TheModName.esp
+
+;To tell TNG that all of the armor/clothing using slot 32 in a mod are revealing, only for women:
+[Armor]
+FemaleRevealingMod = TheModName.esp
+
+;To tell TNG that a single armor/clothing record using slot 32 is revealing, only for women:
 [Armor]
 FemaleRevealingRecord = 0x[b]?..?[/b]~TheModName.esp
 
-;To tell TNG that an armor using slot 32 is revealing only for men:
+;To tell TNG that all of the armor/clothing using slot 32 in a mod are revealing, only for men:
+[Armor]
+MaleRevealingMod = TheModName.esp
+
+;To tell TNG that a single armor/clothing record using slot 32 is revealing, only for men:
 [Armor]
 MaleRevealingRecord = 0x[b]?..?[/b]~TheModName.esp
 
-[b]Notes[/b]
+;[color=#ffff00]Notes:[/color]
 [list]
 [*]The ?..? should be replaced by the record ID. For normal ESP files that is the last 6 digits of the record ID in xEdit where you can omit the zeros at the beginning and for ESL-flagged ESP files that is the last three digits.
+[*]All items with the same section name can have one section title.
 [*]An INI file can have all the sections and as many lines in each section as you want.
 [*]You can modify, remove or add INI files at any point during your play-through without any problems. 
 [/list][/spoiler]
-[size=3][b]Custom Races[/b][/size]
-[spoiler]There are three articles now to patch custom races:
+[color=#f6b26b][size=4]Custom Races[/size][/color]
+If you are playing with custom races in your mod-list, first try them out and see if they work. If they do, you don't need the following information. Otherwise check the spoiler for the details.
+[spoiler]
+First there are some notes about custom races and how TNG works with them:
+[list]
+[*]If a custom race can have genitalia (it has the right bones in the skeleton), TNG would automatically recognize it.
+[*]If they have a vanilla parent armor race, addons available for their parent race would be also available to them.
+[*]If they don't have a vanilla parent armor race, or if they have meshes/textures that current addons would not fit them, you would need to patch the custom race.
+[/list]   
+There are three articles now to patch custom races:
 [list][*] [url=https://www.nexusmods.com/skyrimspecialedition/articles/9647]Exclude a custom race[/url]
 [*][url=https://www.nexusmods.com/skyrimspecialedition/articles/6049]Patching Custom Races for TNG with fixed genitalia[/url]
 [*][url=https://www.nexusmods.com/skyrimspecialedition/articles/9650]Patching a custom race to have customization menu with multiple genitalia[/url]
-[/list]Please use the one according to what you want to do. The last one requires a bit higher experience with modding.
+[/list]Choose one according to what you want to do. The last one requires a bit higher experience with modding.
 [/spoiler]
-[size=3][b]Revealing Armor Mods[/b][/size]
-[spoiler] TNG recognizes any armor using the SOS_Revealing, or any of its own revealing keywords to ensure compatibility with existing armor sets. However, if you see that the genitalia are hidden under a certain armor, you can:
+[color=#f6b26b][size=4]Revealing Armor Mods[/size][/color]
+TNG recognizes any armor using the SOS_Revealing, or any of its own revealing keywords to ensure compatibility with existing armor sets. However, if you see that the genitalia are hidden under a certain armor, or if there is a piece of armor that does not use slot 32, but it should cover genitalia, you can use one of the options in spoiler below.
+[spoiler]
 [list]
 [*]Use an INI file as it was mentioned before,
 [*]Use the key for swapping the revealing/covering items. (It might need re-equipping of the armor to apply the effect).
 [*]Add the keyword "TNG_Revealing" to the armor record (in the ESP  or a patch).
 [/list][/spoiler]
-[size=3][b]Covering Armor[/b][/size]
-[spoiler]If a mod has a piece of clothing or armor that is not using slot 32, but it should cover the genitalia, then there are three solutions:
+[color=#f6b26b][size=4]Adjusting Penis Size[/size][/color]
+If you want to change the size of genitalia, you can use the MCM. If you are confused, see the notes in spoiler.
+[spoiler]
+Each NPC in TNG get's a size category by random (you can change this using the hotkey for customizing actors if you want a specific actor to be larger/smaller). They also get a size multiplier from their race which is in the races tab. Their final size would be the combination of the two. So let's say Faendal has a size category of large and you set 1.2 for large. He is a Bosmer (WoodElf) and you set the size multiplier of Bosmer to be 1.1. As a result of that Faendal's final size would be 1.2 * 1.1= 1.32.
+You can always try them very quickly on your player character by changing the size using the hotkey when there is no-one under the cursor, and adjust them the way you like.
 [list]
-[*]Use an INI file, look below how to create the INI file.
-[*]Use the key for swapping the revealing/covering items. (It might need re-equipping of the armor to apply the effect).
-[*]Add the keyword "TNG_Covering" to the armor piece(in the original ESP or a patch).
-[/list][/spoiler]
-[size=3][b]Adjusting Penis Size[/b][/size]
-[spoiler][list]
-[*]If you don't like the size of genitalia in general, try changing the options for size categories in the general tab of the MCM. They are the base value used for each size category.
+[*]If you don't like the size of genitalia globally, try changing the options for size categories in the general tab of the MCM. They are the base value used for each size category.
 [*]Each compatible race would have their own size and shape selection, as long as they have a unique skin or a unique ArmorRace. You can find this in the Races tab of MCM.
 [*]If you press the customization key on each compatible NPC you would get a menu to select their specific size among the five categories available.
 [*]There are body slide files included that offer some simple sliders and you can adjust them and build the meshes to your liking.
+[/list][/spoiler]
+[color=#f6b26b][size=4]Logging[/size][/color]
+TNG has a detailed logging system which shows different steps in mod operations and potential warnings/information that might be relevant to solve issues. The log is located in the SKSE log folder. If you don't know where that is, go to the MCM in the advanced tab, there is a checkbox that shows you the location. The log also offers a quick way to see if your INI files are working properly. If you see problems that should be the first place to look. 
+You can also adjust the logging level in advanced tab of the MCM. 
+The [color=#ffff00]critical[/color] level shows the issues that you can report to us, since they should not happen normally.
+The [color=#ffff00]debug[/color] level is great for finding issues. It shows details that are normally hidden but can help finding problems very easily.
+
+[color=#f6b26b][size=5]FAQ[/size][/color]
+[color=#ffff00]Is it safe to update?[/color]
+[spoiler]We make every TNG version backward compatible, and make sure it is safe to update.[/spoiler]
+[color=#ffff00]Is it safe to downgrade?[/color]
+[spoiler]Generally speaking yes, but you might loose your settings. This is because when we make a change in how settings are stored, we make sure to transfer old settings to the new enviornment. However, older versions cannot read those settings. 
+If you want to be safe, remove [i]data\SKSE\Plugins\TheNewGentleman.ini[/i] and any file ending with [i]_TNG.ini[/i].
+Reset your player character's genitalia and size to default and then downgrade.
+However, we do not suggest downgrading as we constantly try to improve the mod.[/spoiler]
+[color=#ffff00]I have a CTD!/There is a bug![/color]
+[spoiler]Are you using the latest version? If not, update it. We are constantly improving the mod. And it is always safe to update. 
+Then here is an step by step guide to help you with your issue (This might even apply to other mods):
+[list=1]
+[*][b]Read the description[/b]. It answers most of your questions.
+[*]Check the log(↑) from TNG, does it say anything that gives you an idea about the issue? Try resolving it.
+[*]Check the existing bug reports, does any of them apply? Then reply to that report.
+[*]For your crashes please share them with a file sharing system or even better pastebin.com website or similar services. [b]Do not share a crash report text in your comments, bug report, or DMs[/b].
+[*]Include [b]TNG log[/b] for generic bug reports (something does not work kinda bug),
+[*]Include [b]TNG log[/b] and [b]crash log[/b] (if it is a crash kinda bug), 
+[*]Include [b]link to a picture[/b] (if it is a mesh/texture issue with TNG mesh/textures kinda bug),
+[*]Generally include the information that we can see why you have an issue!
 [/list]
-
-[b]Note:[/b] CotR races would all be merged into one category, since they all used the default race as their armor race and they share skin. If you want to adjust them separately, you'd need a patch that adjusts the RNAM (armor race) of every CotR race to their respective vanilla race.[/spoiler]
-[size=4][b]Logging[/b][/size]
-TNG has a detailed logging system which shows different steps in mod operations and potential warnings/information that might be relevant to solve issues. The log is located in the SKSE log folder. If you don't know where that is, go to the MCM in the advanced tab, there is a checkbox that shows you the location. The log also offers a quick way to see if your INI files are working properly. If you see problems with INI files that you create, that should be the first place to look. 
-You can also adjust the logging level. The critical level shows the issues that you can report to us, since they should not happen normally.
-
-[size=4][b]FAQ[/b][/size]
-[b]I have a CTD!/There is a bug![/b]
-[spoiler]Are you using the latest version? If not, update it, we are constantly improving the mod. And it is always safe to update.
-
-Is the CTD/bug still there? Check the existing bug reports, does any of them apply? Then reply to that report. 
-None of them applies?
-
-Is it a mesh/texture bug? Explain the bug, and add links to images that can show it well.
-
-Is it a functionality bug? Check the log(↑) from TNG, does it say anything that gives you an idea about the issue? Try resolving it. None of this worked? Create a new bug report, and explain the problem in detail. If it is a CTD, we need a crash-log. Without it we cannot have any idea. If you can also share your TNG log, it would be great. [b]And do not copy-paste crash log/TNG log![/b] Share it with pastebin.com or another sharing system. 
+[color=#ffff00]If you don't follow these for bug reports, we won't be able to help you![/color]
 
 If you don't know how to get the crash log, [[url=https://www.nexusmods.com/skyrimspecialedition/mods/59818]crash logger[/url] is your friend. It produces a file with date and time in your [b]SKSE log output[/b] folder. It doesn't take a slot in your esp list and has no harm whatsoever to your load order.
 If you don't know what is the log folder for SKSE, it is usually [i]Documents\My Games\Skyrim Special Edition\SKSE\[/i]. If your game loads, you can also go to TNG advanced tab in MCM and check the log location for TNG, that is your SKSE output location. The crash log would be a file with name "crash-Date-Time". Something like this: crash-2025-03-26-08-01-02.
-There might be many files there, and many crash files as well. We want the last one. To find the right one, remember that the crash would be the last modified file in that folder, so if you sort the files based on date, you should see it on top.
-
-[b]If you don't follow these for bug reports, we won't be able to help you![/b][/spoiler]
-[b]My Gentleman falls to the ground![/b]
+There might be many files there, and many crash files as well. We want the last one. To find the right one, remember that the crash would be the last modified file in that folder, so if you sort the files based on date, you should see it on top.[/spoiler]
+[color=#ffff00]My Gentleman falls to the ground![/color]
 [spoiler]First of all, SOS is a male body overhaul, as in Men of Skyrim, but if they decided to reduce men to schlongs, it's their call and we respect it. But the gentleman in the TNG is not a replacement for schlong, it actually means gentleman! You can also look at the other alternatives like Better Males or Shape Atlas for Men.
 Now about the issue itself, your problem is with skeleton and gravity physics (during installation of CBPC or your female body overhaul) which makes the genitalia fall. It has nothing to do with TNG or HIMBO. 
 Make sure you have XP32 installed(it's in the requirements for a reason) and that you are consistent in your choices when you install CBPC and a female body overhaul.[/spoiler]
-[b]My thingy is aligned to the side![/b]
-[spoiler]This is an issue related to your physics setup. TNG cannot control that.[/spoiler]
-[b]During animations, or with physics setup, my character's pride turns to right or left[/b]
-[spoiler]I sincerely hope that your character has more depth than that!
-This issue is caused by the physics combination that comes with your setup and specially gravity settings. It is also the reason that TNG does not provide physics and collision info anymore.
-CBPC, as well as most 3 body bones female bodies, come with their own physics setup for genitalia. This is designed to match the counterpart physics and collision ideal, i.e. anus, vagina, breasts ... However, it affects both male and female characters as their bone names are the same. When we included physics and collision in TNG, there were many more conflicts with those mods which is why we stopped doing that.
-The fix however, is not very complicated. Full credits to [url=https://next.nexusmods.com/profile/MoJoJx?gameId=1704]MoJoJx[/url] who could explain it better than I do (with slight modifications):
+[color=#ffff00]Does TNG comes with CBPC/HDTSMP physics?[/color]
+[spoiler]TNG does not provide the config file for your physics setup, neither for CBPC nor for HDTSMP. The reason behind this is that currently many other mods, which you probably use alongside TNG do that:
+[list]
+[*]CBPC comes with a CBPC config file for genitalia
+[*]3BA and BHUNP come with their own CBPC and HDTSMP config files for genitalia,
+[*]There are quite a few 3rd party mods for this purpose.
+[/list]
+Adding TNG to this mix simply causes confusion and complicated load order issues. So instead, TNG uses what you already have installed:
+For CBPC these files are in [i]data/skse/plugins[/i] and they are [b]CBPConfig_SOS.txt[/b] and [b]CBPConfig_SOSScroum.text[/b].
+For HDTSMP the config file is in [i]data/skse/plugins/hdtSkinnedMeshConfigs[/i] and it is called [b]MaleGenitals.xml[/b]
 
-I was able to fix it by editing the CBPConfig_SOS.txt file. I don't know what female replacer mod that you might be using, but go to the SKSE folder, Plugins, then then find that file. Open the file in a text editor (I use notepad++), and then look at the following lines at the top:
+If you have issues with the physics or the alignment, that is where you can look for it. In general be aware of the gravity setup, as it can cause alignment issues.
+[/spoiler]
+[color=#ffff00]My character's pride is aligned to right or left[/color]
+[spoiler]I sincerely hope that your character has more depth than that!
+You need to understand physics combination that comes with your setup. Make sure to read the question above regarding CBPC and HDTSMP.
+CBPC, as well as most 3 body bones female bodies, come with their own physics setup for genitalia. This is designed to match the counterpart physics and collision ideal, i.e. anus, vagina, breasts, and the rest. 
+The fix is not very complicated. Credits to [url=https://next.nexusmods.com/profile/MoJoJx?gameId=1704]MoJoJx[/url] for the original explanation:
+
+Fix it by editing the CBPConfig_SOS.txt file in [i]data/skse/plugins[/i]. Open the file in a text editor (e.g. notepad++), and then look at the following lines at:
 SOS01.gravityBias 
 SOS02.gravityBias 
 SOS03.gravityBias 
 SOS04.gravityBias 
 SOS05.gravityBias 
 SOS06.gravityBias
-Each of the values next those lines should be "0.000". Change them to -0.001. Save the file, then check your character's Gentleman. If it's still curved to the left, then do the same thing, but add another -0.001. Keep doing this until things are straightened out down there. Adding negative values to those numbers will move the Gentleman to the right, and positive values will move things to the left. I ended up using -0.005 in my case. I hope this helps.[/spoiler]
-[b]I installed the mod but there is no MCM to customize the dongs![/b]
+
+Negative values will move the genitalia to the right, and positive values to the left. Change them by -0.001. Save the file, then check your character's addon. If it's still curved to one side, continue adjusting until you are happy.[/spoiler]
+[color=#ffff00]The manmeat has no collision![/color]
+[spoiler]Really? That's terrible, I mean, out of all the options, you chose [i]man[/i]meat? Get some taste!
+And about the collision, the collision is controlled by other mods, TNG option in FOMOD with collision, just provides a surface for them to collide with. So you gotta take a look at physics and female body setup to solve your issue. Check the question regarding CBPC and HDTSMP for more info.[/spoiler]
+[color=#ffff00]I installed the mod but there is no MCM to customize the dongs![/color]
 [spoiler]Dongs? What is wrong with penis or genitalia? Anyway, either you are at the limit of your MCM menus (google is your friend to solve that) or you are not patient enough for the MCM to load. Try waiting a bit, start a new game, or run TNG with only the requirements and it will load.[/spoiler]
-[b]How can I customize my character's coke can?[/b]
-[spoiler]Coke can? That paints a new image of half naked sweaty construction guys opening a can in Coke adds that I would have a hard time erasing it...
-Well, to the question, there is a customization key that you can customize in the MCM. And TNG follows same logic for all keys. The key would be applied to the actor under the cursor. If there is no actor under the cursor, it reverts back to player character. So simply press the customization key with no actors around. Note that you need UIExtensions for the customization functionality.[/spoiler]
-[b]During scenes raise/lower controls don't work[/b]
+[color=#ffff00]How can I customize my character's coke can?[/color]
+[spoiler]Coke can? That paints a new image of half naked sweaty construction guys opening a can in ads that I would have a hard time erasing it...
+Well, to the question, there is a customization key that you can customize in the MCM. And TNG follows same logic for all keys. The key would be applied to the actor under the cursor. If there is no actor under the cursor, it applies to player character. So simply press the customization key with no actors around. Note that you need UIExtensions for the customization functionality. The actor that you can talk to is the actor under the cursor.[/spoiler]
+[color=#ffff00]During scenes raise/lower controls don't work[/color]
 [spoiler]TNG uses the rise and lower controls for the actor under cursor. If there is no actor under cursor or they don't have a genitalia, it reverts back to player.
-However, during scenes the cursor behavior is not reliable, so I added a new functionality: if you hold the Left Alt Key while pressing raise/lower keys, TNG would try to lock on actors around you. So, if you want to control genitalia during scenes:
+However, during scenes cursor would be hidden and the behavior is not reliable, so we added a new functionality: if you hold the Left Alt Key while pressing raise/lower keys, TNG would try to lock on actors around you. So, if you want to control genitalia during scenes:
 - Hold Left Alt Key and press the raise/lower key until TNG locks on the actor that you want. You get a notification with actor's name.
 - Release Left Alt Key and use raise/lower normally.[/spoiler]
-[b]My manhood is too small![/b]
+[color=#ffff00]My manhood is too small![/color]
 [spoiler]Oh come on, yet another one! For changing the size read the section about changing the size![/spoiler]
-[b]My tool is missing![/b]
+[color=#ffff00]My tool is missing![/color]
 [spoiler]We are certainly creative, aren't we? Never too many words for genitalia. It's kinda like Skyrim itself, we are happy with one mesh for all different races, but for genitalia we want add-ons!
 So possible causes:
 [list]
@@ -230,7 +298,7 @@ So possible causes:
 [*]A unique skin for the player: Check unique player.
 [*]A bug in TNG before 2.3.0 that could happen if stars aligned: It is fixed in 2.3.0.
 [/list][/spoiler]
-[b]I can see the umm…thing through the armor![/b]
+[color=#ffff00]I can see the umm…thing through the armor![/color]
 [spoiler]Ok this one is cute.
 For an armor to become revealing:
 - You should mark it as revealing in a previous play-through,
@@ -240,30 +308,24 @@ Solutions in order:
 - Find TheNewGentleman.ini in your data folder and adjust it.
 - Search for _TNG.ini files in your data folder and adjust them.
 - Go to MCM and adjust the mods that you marked as revealing.[/spoiler]
-[b]The manmeat has no collision![/b]
-[spoiler]Really? That's terrible, I mean, out of all the options, you chose [i]man[/i]meat? Get some taste!
-And about the collision, the collision is controlled by other mods, TNG option in FOMOD with collision, just provides a surface for them to collide with. So you gotta take a look at physics and female body setup to solve your issue.[/spoiler]
-[b]Where are the racemenu options to adjust my sausage?[/b]
+[color=#ffff00]Where are the racemenu options to adjust my sausage?[/color]
 [spoiler]Those options are provided by XP32. You don't need to install the SOS patch from XP32, you just need the racemenu options in the FOMOD of XP32. The option enables genitalia sliders besides some extra options to adjust details for the player. TNG doesn't offer the option since there is no point in creating something that already comes with one of the requirements!
 
 Make sure to enable the [b]Don't change player size[/b] in MCM if you want to adjust the player genital dimensions in the racemenu; otherwise TNG and XP32 would fight to set the size![/spoiler]
-[b]I get $TNG_E_0![/b]
+[color=#ffff00]I get $TNG_E_0![/color]
 [spoiler]Update the mod![/spoiler]
-[b]I get TNG Error 1 after installing SSE Engine Fixes![/b]
-[spoiler]This is not a problem with TNG, do not report it as a bug! Thanks to Vaas59 (the first one who made the report and also very well explained the issue together with their log from TNG) the issue has to do with SSE Engine Fixes and the latest release of Skyrim on Steam. Make sure to update SSE Engine Fixes for your game version.[/spoiler]
-[b]I'm having texture troubles![/b]
+[color=#ffff00]I'm having texture troubles![/color]
 [spoiler]TNG does of course come with its own, fully compatible textures, and thus far we've had no complaints about those. This suggests that your issue must come from using a texture mod, for which we can only offer you limited solutions.
 
 Many texture mods have been made with original SOS in mind, and that mod only offered [i]circumcised[/i] penis options. Some of your issues may come from our provision of uncircumcised penises—in such a case, it is the skin texture author's responsibility to patch for TNG which, as has been stated below, we are willing to offer support, guidance, and our own resources for. Alternatively, you could use the MCM to make all races use circumcised penises—as in the original SOS. Just as authors had to patch for SOS textures in the first place, they will have to patch for uncircumcised genitalia. It is impossible for us to make the uncircumcised meshes truly compatible with the normal maps of circumcised genitalia.
 
 As for the usage of add-ons with different UVs, such as Trixter's, you may be running into the issue of a race-based texture distributing mod giving a mesh a texture which was not made for it, a common issue with race-based texture distributors. You should probably decide between your custom penis mod and whatever is forcing texture overrides.[/spoiler]
-[b]How many different things have the genitalia been called so far?[/b]
+[color=#ffff00]How many different things have the genitalia been called so far?[/color]
 [spoiler]Well at some point we started to create a glossary. This is not the complete list but we've seen:
-cock, coke cans, dick, dong, equipment, futa(!), gentleman, hotdog, junk, longDon, manhood, manmeat, sausage, shaft, schlong, tool, umm…thing, pp, and you know what.
-
+cock, coke cans, dick, ding dong, dong, equipment, futa(!), gentleman, hotdog, johnson, junk, longDon, manhood, manmeat, pp, pride, sausage, shaft, schlong, thingy, tool, umm…thing, weenie, and you know what.
 
 But can we keep it to genitalia or penis?[/spoiler]
-[size=4][b]Information for Modders and Enthusiasts[/b][/size]
+[color=#f6b26b][size=5]Information for Modders and Enthusiasts[/size][/color]
 The SKSE plugin includes features which couldn't have been provided with papyrus scripting. The code uses CommonLib-NG and is compatible with every version of Skyrim. Here is the [url=https://github.com/ModiLogist/TheNewGentleman/tree/master]source code[/url].
 
 TNG is already compatible with SOS Full textures, but some skin modders may wish to go a step beyond and adapt their penis textures for the uncircumcised meshes included in this mod. The textures here should already offer a good point of reference, but those looking for more information, resources, and help may also contact @novelyst on Discord.
@@ -278,13 +340,13 @@ The behavior and animations were made with extensive care to ensure compatibilit
 
 The plugin doesn't overwrite anything and is designed to make integration as easy as possible.
 
-[size=4][b]Permissions[/b][/size]
+[color=#f6b26b][size=5]Permissions[/size][/color]
 Check the permissions section on top.
 
-[size=4][b]Credits[/b][/size]
+[color=#f6b26b][size=5]Credits[/size][/color]
 The credits for the mod is a long list. Check the files credits section on the top for details.
 
-[size=4][b]Special Thanks[/b][/size]
+[color=#f6b26b][size=5]Special Thanks[/size][/color]
 Many members of the Skyrim modding community helped us at different stages of developing this mod and without their support this wouldn't have been possible. This is a list of those who helped us most in chronological order:
 
 [url=https://www.nexusmods.com/skyrimspecialedition/users/16623?tab=user+files]Fuzzlesz[/url] for saying no and later on saying yes (they know) and being supportive,
