@@ -81,7 +81,7 @@ Mod priority:
 TNG
 Tempered Skin or another skin mod compatible with CotR head textures
 
-Note: CotR races would all be merged into one category in TNG, since they all use the default race as their armor race and they share skin. If you want to adjust them separately, you'd need a patch that adjusts the RNAM (armor race) of every CotR race to their respective vanilla race.[/spoiler]
+[color=#ffff00]CotR races would all be merged into one category in TNG, since they all use the default race as their armor race and they share skin. If you want to adjust them separately, you'd need a patch that adjusts the RNAM (armor race) of every CotR race to their respective vanilla race.[/color][/spoiler]
 [color=#f6b26b][size=3]Incompatible[/size][/color]
 Any mod that does the same thing: 
 SOS Full
@@ -108,14 +108,15 @@ Unlike with some versions of SOS, with TNG an item can always be equipped to slo
 [*][url=https://www.nexusmods.com/skyrimspecialedition/users/31693360]Trixter/TRX/m4mk203[/url] was also kind to offer a TNG version for their add-ons: There is an add-on for women [url=https://www.nexusmods.com/skyrimspecialedition/mods/113455]here[/url], and one for men [url=https://www.nexusmods.com/skyrimspecialedition/mods/113321]here[/url].
 [*][url=https://www.nexusmods.com/skyrimspecialedition/mods/143062]LevisageDeDior[/url] has also worked on some add-ons. Like this one [url=https://www.nexusmods.com/skyrimspecialedition/mods/143062]offering high poly TRX add-ons plus racial skin[/url]. You can check their profile for other add-ons as well.
 [/list]
-For a complete list of compatible add-ons, please check the requirements tab of TNG, under “Mods requiring this file”. 
+For a complete list of compatible add-ons, please check the requirements tab of TNG, under “Mods requiring this file”.
 
-[color=#ffff00]Note: Some add-ons use their own textures, which may or may not be compatible with TNG default textures. Refer to each add-on's page for texture compatibility. There are more add-ons available, this list provides just a few examples. A good place to find add-ons is to look at the mods requiring TNG.[/color]
+[color=#ffff00]Some add-ons use their own textures, which may or may not be compatible with TNG default textures. Refer to each add-on's page for texture compatibility.[/color]
 
 [color=#f6b26b][size=4]Patching SOS Add-Ons/Creating New Add-Ons[/size][/color]
 Converting existing add-ons or creating new ones for TNG is very simple. Just take a look here: [url=https://www.nexusmods.com/skyrimspecialedition/articles/6503]Creating new addons or Patching SOS addons for TNG[/url].
 
 [color=#f6b26b][size=5]Patching and Troubleshooting[/size][/color]
+
 [color=#f6b26b][size=4]INI files[/size][/color]
 With TNG you can use INI files so that you don't need to change ESPs for patches. In most cases you shouldn't need them unless you are a mod author or you have a very extensive mod list. See spoiler for more details.[spoiler]If you are a mod author you can simply ship the TNG ini with your mod, and if the user has TNG installed it just works™ and if they don't, there is no harm. To create an INI file for TNG you should create an empty text file (.txt) in SKSE/Plugins/TNG/<ModName>_TNG.ini in the folder of the mod that you want to patch or directly in your installation data folder. Then inside that file you need to specify the section that specifies the INI file action, and the key that specifies the details. 
 Look at the following examples for the details of each INI type:
@@ -282,7 +283,7 @@ And about the collision, the collision is controlled by other mods, TNG option i
 [spoiler]Dongs? What is wrong with penis or genitalia? Anyway, either you are at the limit of your MCM menus (google is your friend to solve that) or you are not patient enough for the MCM to load. Try waiting a bit, start a new game, or run TNG with only the requirements and it will load.[/spoiler]
 [color=#ffff00]How can I customize my character's coke can?[/color]
 [spoiler]Coke can? That paints a new image of half naked sweaty construction guys opening a can in ads that I would have a hard time erasing it...
-Well, to the question, there is a customization key that you can customize in the MCM. And TNG follows same logic for all keys. The key would be applied to the actor under the cursor. If there is no actor under the cursor, it applies to player character. So simply press the customization key with no actors around. Note that you need UIExtensions for the customization functionality. The actor that you can talk to is the actor under the cursor.[/spoiler]
+Well, to the question, there is a customization key that you can customize in the MCM. And TNG follows same logic for all keys. The key would be applied to the actor under the cursor. If there is no actor under the cursor, it applies to player character. So simply press the customization key with no actors around. You need [color=#ffff00]UIExtensions[/color] for the customization functionality. The actor that you can talk to is the actor under the cursor.[/spoiler]
 [color=#ffff00]During scenes raise/lower controls don't work[/color]
 [spoiler]TNG uses the rise and lower controls for the actor under cursor. If there is no actor under cursor or they don't have a genitalia, it reverts back to player.
 However, during scenes cursor would be hidden and the behavior is not reliable, so we added a new functionality: if you hold the Left Alt Key while pressing raise/lower keys, TNG would try to lock on actors around you. So, if you want to control genitalia during scenes:
