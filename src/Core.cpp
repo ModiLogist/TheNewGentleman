@@ -101,7 +101,8 @@ Util::eRes Core::AddPotentialRace(RE::TESRace* race, const std::set<std::string>
       IgnoreRace(race, false);
       return Util::errRace;
     }
-    if (race->HasPartOf(Util::genitalSlot)) {
+    bool isVanilla = race->GetFile(0) && race->GetFile(0)->GetFilename() == Util::skyrimFile;
+    if (race->HasPartOf(Util::genitalSlot) && !isVanilla) {
       auto ready = race->skin->HasPartOf(Util::genitalSlot);
       SKSE::log::info("\tThe race [{}] is designed to be {} TNG. It was not modified.", race->GetFormEditorID(), ready ? "ready for" : "ignored by");
       IgnoreRace(race, ready);
