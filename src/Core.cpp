@@ -432,30 +432,7 @@ void Core::CheckArmorPieces() {
     }
   }
   SKSE::log::info("\tProcessed [{}] armor pieces:", armorList.size());
-  if (pa > 0) SKSE::log::warn("\t\t[{}]: were problematic!", pa);
-  if (hk > 0) SKSE::log::info("\t\t[{}]: were already marked with TNG keywords.", hk);
-  if (cc > 0) SKSE::log::info("\t\t[{}]: are covering due to ini-files or having slot 52.", cc);
-  if (rr > 0) SKSE::log::info("\t\t[{}]: are marked revealing.", rr);
-  if (ac > 0) SKSE::log::info("\t\t[{}]: were recognized to be covering.", ac);
-  if (ar > 0) SKSE::log::info("\t\t[{}]: were recognized to be revealing.", ar);
-  if (ia > 0) SKSE::log::info("\t\tThe rest [{}] are not relevant and are ignored!", ia);
-  inis->CleanIniLists();
-}
-
-void Core::RevisitRevealingArmor() {
-  auto& armorList = ut->SEDH()->GetFormArray<RE::TESObjectARMO>();
-  std::set<std::pair<std::string, RE::TESObjectARMO*>> potentialArmor = {};
-  std::vector<RE::BGSKeyword*> armorKeys = ut->Keys(Util::kyRevealingF, Util::kyRevealing);
-  armorKeys.push_back(ut->Key(Util::kyIgnored));
-  for (const auto& armor : armorList) {
-    if (!armor) continue;
-    auto modName = armor->GetFile(0) ? std::string(armor->GetFile(0)->GetFilename()) : "";
-    if (modName != "" && (armor->HasKeyword(ut->Key(Util::kyCovering)) || armor->HasKeyword(ut->Key(Util::kyRevealing)))) {
-      armor->RemoveKeywords(armorKeys);
-      potentialArmor.insert({modName, armor});
-    }
-  }
-  for (const auto& armorPair : potentialArmor) armorPair.second->AddKeyword(ut->Key(inis->IsExtraRevealing(armorPair.first) ? Util::kyRevealing : Util::kyCovering));
+  boolSettings.SetEvent(Common::bsRevealSlot52Mods, [this]() { RevisitRevealingArmor(); });
 }
 
 bool Core::SwapRevealing(RE::Actor* actor, RE::TESObjectARMO* armor) {
@@ -499,9 +476,20 @@ bool Core::SwapRevealing(RE::Actor* actor, RE::TESObjectARMO* armor) {
   return false;
 }
 
-void Core::SetBoolSetting(Util::eBoolSetting settingID, bool value) {
-  base->SetBoolSetting(settingID, value);
-  inis->SetBoolSetting(settingID, value);
+void Core::RevisitRevealingArmor() {
+  std::set<std::string> potentialMods = {Slot52Mods().begin(), Slot52Mods().end()};
+  if (potentialMods.size() == 0) return;
+  auto& armorList = ut->SEDH()->GetFormArray<RE::TESObjectARMO>();
+  std::set<std::pair<std::string, RE::TESObjectARMO*>> potentialArmor = {};
+  std::vector<RE::BGSKeyword*> rc = {ut->Key(Common::kyCovering), ut->Key(Common::kyRevealing)};
+  for (const auto& armor : armorList) {
+    if (!armor || !armor->HasPartOf(Common::bodySlot) || !armor->HasKeywordInArray(rc, false)) continue;
+    auto modName = armor->GetFile(0) ? std::string(armor->GetFile(0)->GetFilename()) : "";
+    if (modName.empty() || potentialMods.find(modName) == potentialMods.end()) continue;
+    if (IsExtraRevealing(modName) == armor->HasKeyword(ut->Key(Common::kyRevealing))) continue;
+    armor->RemoveKeywords(rc);
+    armor->AddKeyword(ut->Key(IsExtraRevealing(modName) ? Common::kyRevealing : Common::kyCovering));
+  }
 }
 
 void Core::SetIntSetting(Util::eIntSetting settingID, int value) {
