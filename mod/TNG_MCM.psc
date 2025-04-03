@@ -193,8 +193,10 @@ Event OnGameReload()
     Return
   EndIf
   Int res = TNGSetAddon(PlayerRef, PlayerSkin.GetValueInt())
-  If (res >= 0) && !PlayerRef.IsOnMount()
-    PlayerRef.QueueNiNodeUpdate()
+  If res >= 0
+    If !PlayerRef.IsOnMount()
+      PlayerRef.QueueNiNodeUpdate()
+    EndIf
   Else
     ShowNotification("$TNG_WPT")    
     PlayerSkin.SetValueInt(-2)
@@ -894,8 +896,10 @@ Event OnOptionSelect(Int aiOption)
       SetToggleOptionValue(fiPCUHdl, TNG_PapyrusUtil.GetBoolValue(cbCheckingPCGen))
       If TNG_PapyrusUtil.GetBoolValue(cbCheckingPCGen) && (TNG_PapyrusUtil.CanModifyActor(PlayerRef) > 0)
         Int res = TNGSetAddon(PlayerRef, PlayerSkin.GetValueInt()) 
-        If (res >= 0) && !PlayerRef.IsOnMount()
-          PlayerRef.QueueNiNodeUpdate()
+        If res >= 0 
+          If !PlayerRef.IsOnMount()
+            PlayerRef.QueueNiNodeUpdate()
+          EndIf
         Else
           ShowNotification("$TNG_WPT")
           PlayerSkin.SetValueInt(-2)
