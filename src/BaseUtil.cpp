@@ -30,13 +30,6 @@ SEFormLoc Common::BaseUtil::FormToLoc(const RE::TESForm* form) const {
   return {formID, filename};
 }
 
-SEFormLocView Common::BaseUtil::FormToLocView(const RE::TESForm* form) const {
-  if (!form || !form->GetFile(0)) return {0, ""};
-  auto filename = form->GetFile(0)->GetFilename();
-  auto formID = form->GetFormID() < 0xFF000000 ? form->GetLocalFormID() : form->GetFormID();
-  return {formID, filename};
-}
-
 std::string Common::BaseUtil::LocToStr(const SEFormLoc& loc) const {
   if (loc.first == 0 && loc.second == nulStr) return nulStr;
   if (loc.first == 0 && loc.second == defStr) return defStr;

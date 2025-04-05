@@ -81,7 +81,6 @@ namespace Common {
       RE::BGSKeyword* ProduceOrGetKw(const std::string& keyword);
       int HasKeywordInList(const RE::BGSKeywordForm* form, const std::vector<RE::BGSKeyword*>& keywords) const;
       SEFormLoc FormToLoc(const RE::TESForm* form) const;
-      SEFormLocView FormToLocView(const RE::TESForm* form) const;
       std::string LocToStr(const SEFormLoc& loc) const;
       SEFormLoc StrToLoc(const std::string& locStr) const;
       std::string FormToStr(const RE::TESForm* form) const { return LocToStr(FormToLoc(form)); }
