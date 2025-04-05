@@ -7,4 +7,5 @@ set(sources ${sources}
   src/Base.cpp
   src/Inis.cpp
   src/Util.cpp
+  src/BaseUtil.cpp
 )
