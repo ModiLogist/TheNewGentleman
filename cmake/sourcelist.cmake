@@ -4,7 +4,6 @@ set(sources ${sources}
   src/Papyrus.cpp
   src/Events.cpp
   src/Core.cpp
-  src/Base.cpp
   src/Inis.cpp
   src/Util.cpp
   src/BaseUtil.cpp
