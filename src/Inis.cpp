@@ -463,85 +463,22 @@ void Inis::LoadSingleIni(const char *path, const std::string_view fileName) {
   ini.SetMultiKey();
   ini.LoadFile(path);
   if (ini.SectionExists(cExcludeSection)) {
-    if (ini.GetAllValues(cExcludeSection, cExcModRaces, values)) {
-      SKSE::log::info("\t- Found [{}] excluded mods for their races in [{}].", values.size(), fileName);
-      for (const auto &entry : values) {
-        const std::string modName(ut->StrToName(entry.pItem));
-        excludedRaceMods.insert(modName);
-      }
-    }
-    if (ini.GetAllValues(cExcludeSection, cExcRace, values)) {
-      SKSE::log::info("\t- Found [{}] excluded races in [{}].", values.size(), fileName);
-      LoadModRecordPairs(values, excludedRaces);
-    }
-    if (ini.GetAllValues(cExcludeSection, cExcludeNPC, values)) {
-      SKSE::log::info("\t- Found [{}] excluded NPCs in [{}].", values.size(), fileName);
-      LoadModRecordPairs(values, excludedNPCs);
-    }
+    if (ini.GetAllValues(cExcludeSection, cExcModRaces, values)) LoadModNames(values, excludedRaceMods, cExcModRaces, fileName);
+    if (ini.GetAllValues(cExcludeSection, cExcRace, values)) LoadModRecordPairs(values, excludedRaces, cExcRace, fileName);
+    if (ini.GetAllValues(cExcludeSection, cExcludeNPC, values)) LoadModRecordPairs(values, excludedNPCs, cExcludeNPC, fileName);
   }
   if (ini.SectionExists(cSkinSection)) {
-    if (ini.GetAllValues(cSkinSection, cSkinMod, values)) {
-      SKSE::log::info("\t- Found [{}] skin mods in [{}].", values.size(), fileName);
-      for (const auto &entry : values) {
-        const std::string modName(ut->StrToName(entry.pItem));
-        if (ut->SEDH()->LookupModByName(modName)) {
-          SKSE::log::info("\t\tTheNewGentleman keeps an eye for [{}] as a skin mod.", modName);
-          skinMods.insert(modName);
-        }
-      }
-    }
-    if (ini.GetAllValues(cSkinSection, cSkinRecord, values)) {
-      SKSE::log::info("\t- Found [{}] skin records in [{}].", values.size(), fileName);
-      LoadModRecordPairs(values, skinRecords);
-    }
+    if (ini.GetAllValues(cSkinSection, cSkinMod, values)) LoadModNames(values, skinMods, cSkinMod, fileName);
+    if (ini.GetAllValues(cSkinSection, cSkinRecord, values)) LoadModRecordPairs(values, skinRecords, cSkinRecord, fileName);
   }
   if (ini.SectionExists(cArmorSection)) {
-    if (ini.GetAllValues(cArmorSection, cRevealingMod, values)) {
-      SKSE::log::info("\t- Found [{}] revealing mods in [{}].", values.size(), fileName);
-      for (const auto &entry : values) {
-        const std::string modName(ut->StrToName(entry.pItem));
-        if (ut->SEDH()->LookupModByName(modName)) {
-          revealingMods.insert(modName);
-          SKSE::log::info("\t\tTheNewGentleman keeps an eye for [{}] as a revealing armor mod.", modName);
-        }
-      }
-    }
-    if (ini.GetAllValues(cArmorSection, cFemRevMod, values)) {
-      SKSE::log::info("\t- Found [{}] female revealing mods in [{}].", values.size(), fileName);
-      for (const auto &entry : values) {
-        const std::string modName(ut->StrToName(entry.pItem));
-        if (ut->SEDH()->LookupModByName(modName)) {
-          femRevMods.insert(modName);
-          SKSE::log::info("\t\tTheNewGentleman keeps an eye for [{}] as a female revealing armor mod.", modName);
-        }
-      }
-    }
-    if (ini.GetAllValues(cArmorSection, cMalRevMod, values)) {
-      SKSE::log::info("\t- Found [{}] male revealing mods in [{}].", values.size(), fileName);
-      for (const auto &entry : values) {
-        const std::string modName(ut->StrToName(entry.pItem));
-        if (ut->SEDH()->LookupModByName(modName)) {
-          malRevMods.insert(modName);
-          SKSE::log::info("\t\tTheNewGentleman keeps an eye for [{}] as a male revealing armor mod.", modName);
-        }
-      }
-    }
-    if (ini.GetAllValues(cArmorSection, cCoveringRecord, values)) {
-      SKSE::log::info("\t- Found [{}] covering records in ini file [{}].", values.size(), fileName);
-      LoadModRecordPairs(values, coveringRecords);
-    }
-    if (ini.GetAllValues(cArmorSection, cRevealingRecord, values)) {
-      SKSE::log::info("\t- Found [{}] revealing records in ini file [{}].", values.size(), fileName);
-      LoadModRecordPairs(values, revealingRecords);
-    }
-    if (ini.GetAllValues(cArmorSection, cFemRevRecord, values)) {
-      SKSE::log::info("\t- Found [{}] revealing records for women in ini file [{}].", values.size(), fileName);
-      LoadModRecordPairs(values, femRevRecords);
-    }
-    if (ini.GetAllValues(cArmorSection, cMalRevRecord, values)) {
-      SKSE::log::info("\t- Found [{}] revealing records for men in ini file [{}].", values.size(), fileName);
-      LoadModRecordPairs(values, malRevRecords);
-    }
+    if (ini.GetAllValues(cArmorSection, cRevealingMod, values)) LoadModNames(values, revealingMods, cRevealingMod, fileName);
+    if (ini.GetAllValues(cArmorSection, cFemRevMod, values)) LoadModNames(values, femRevMods, cFemRevMod, fileName);
+    if (ini.GetAllValues(cArmorSection, cMalRevMod, values)) LoadModNames(values, malRevMods, cMalRevMod, fileName);
+    if (ini.GetAllValues(cArmorSection, cCoveringRecord, values)) LoadModRecordPairs(values, coveringRecords, cCoveringRecord, fileName);
+    if (ini.GetAllValues(cArmorSection, cRevealingRecord, values)) LoadModRecordPairs(values, revealingRecords, cRevealingRecord, fileName);
+    if (ini.GetAllValues(cArmorSection, cFemRevRecord, values)) LoadModRecordPairs(values, femRevRecords, cFemRevRecord, fileName);
+    if (ini.GetAllValues(cArmorSection, cMalRevRecord, values)) LoadModRecordPairs(values, malRevRecords, cMalRevRecord, fileName);
   }
 }
 
@@ -612,7 +549,16 @@ void Inis::ClearInis() {
   // excludedNPCs should not be cleared during lifetime of the game
 }
 
-void Inis::LoadModRecordPairs(CSimpleIniA::TNamesDepend records, std::set<SEFormLoc> &fieldToFill) {
+void Inis::LoadModNames(const CSimpleIniA::TNamesDepend &records, std::set<std::string> &fieldToFill, std::string_view entryType, std::string_view fileName) {
+  SKSE::log::info("\t- Found [{}] [{}] entries in [{}].", records.size(), entryType, fileName);
+  for (const auto &entry : records) {
+    const std::string modName(ut->StrToName(entry.pItem));
+    fieldToFill.insert(modName);
+  }
+}
+
+void Inis::LoadModRecordPairs(const CSimpleIniA::TNamesDepend &records, std::set<SEFormLoc> &fieldToFill, std::string_view entryType, std::string_view fileName) {
+  SKSE::log::info("\t- Found [{}] [{}] entries in [{}].", records.size(), entryType, fileName);
   for (const auto &entry : records) {
     const std::string modRecord(entry.pItem);
     fieldToFill.insert(ut->StrToLoc(modRecord));

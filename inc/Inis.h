@@ -173,7 +173,8 @@ class Inis {
     void ClearInis();
 
   private:
-    void LoadModRecordPairs(CSimpleIniA::TNamesDepend records, std::set<SEFormLoc>& fieldToFill);
+    void LoadModNames(const CSimpleIniA::TNamesDepend& records, std::set<std::string>& fieldToFill, std::string_view entryType, std::string_view fileName);
+    void LoadModRecordPairs(const CSimpleIniA::TNamesDepend& records, std::set<SEFormLoc>& fieldToFill, std::string_view entryType, std::string_view fileName);
 
     template <typename T>
     void LoadIniPairs(const char* section, std::map<SEFormLoc, T>& fieldToFill, const T defaultValue, const bool canBeNone = false) {
