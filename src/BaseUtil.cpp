@@ -71,6 +71,19 @@ std::vector<std::string> Common::BaseUtil::Split(const std::string& str, const s
   return tokens;
 }
 
+std::string Common::BaseUtil::NameToStr(std::string name) const {
+  if (name.empty()) return name;
+  if (name.length() > 2 && name.front() == '\"' && name.back() == '\"') return name;
+  if (name.find_first_of(iniChars) != std::string::npos) return "\"" + name + "\"";
+}
+
+std::string Common::BaseUtil::StrToName(std::string name) const {
+  auto res = name;
+  if (name.length() < 2) return res;
+  if (name.front() == '\"' && name.back() == '\"') res = name.substr(1, name.length() - 2);
+  return res;
+}
+
 bool Common::BaseUtil::try_strtoul(const std::string& str, std::uint32_t& result, int base) const {
   char* end;
   errno = 0;

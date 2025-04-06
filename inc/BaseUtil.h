@@ -86,17 +86,8 @@ namespace Common {
       std::string FormToStr(const RE::TESForm* form) const { return LocToStr(FormToLoc(form)); }
       std::string Join(const std::vector<std::string>& strings, const std::string_view delimiter) const;
       std::vector<std::string> Split(const std::string& str, const std::string_view delimiter) const;
-      std::string NameToStr(std::string name) const {
-        if (name.empty()) return name;
-        if (name.length() > 2 && name.front() == '\"' && name.back() == '\"') return name;
-        if (name.find_first_of(iniChars) != std::string::npos) return "\"" + name + "\"";
-      }
-      std::string StrToName(std::string name) const {
-        auto res = name;
-        if (name.length() < 2) return res;
-        if (name.front() == '\"' && name.back() == '\"') res = name.substr(1, name.length() - 2);
-        return res;
-      }
+      std::string NameToStr(std::string name) const;
+      std::string StrToName(std::string name) const;
 
     private:
       bool try_strtoul(const std::string& str, std::uint32_t& result, int base = 0) const;
