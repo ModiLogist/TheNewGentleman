@@ -31,7 +31,7 @@ void Inis::LoadSingleIni(const char *path, const std::string_view fileName) {
     if (ini.GetAllValues(cExcludeSection, cExcModRaces, values)) {
       SKSE::log::info("\t- Found [{}] excluded mods for their races in [{}].", values.size(), fileName);
       for (const auto &entry : values) {
-        const std::string modName(entry.pItem);
+        const std::string modName(ut->StrToName(entry.pItem));
         excludedRaceMods.insert(modName);
       }
     }
@@ -44,7 +44,7 @@ void Inis::LoadSingleIni(const char *path, const std::string_view fileName) {
     if (ini.GetAllValues(cSkinSection, cSkinMod, values)) {
       SKSE::log::info("\t- Found [{}] skin mods in [{}].", values.size(), fileName);
       for (const auto &entry : values) {
-        const std::string modName(entry.pItem);
+        const std::string modName(ut->StrToName(entry.pItem));
         if (ut->SEDH()->LookupModByName(modName)) {
           SKSE::log::info("\t\tTheNewGentleman keeps an eye for [{}] as a skin mod.", modName);
           skinMods.insert(modName);
@@ -60,7 +60,7 @@ void Inis::LoadSingleIni(const char *path, const std::string_view fileName) {
     if (ini.GetAllValues(cArmorSection, cRevealingMod, values)) {
       SKSE::log::info("\t- Found [{}] revealing mods in [{}].", values.size(), fileName);
       for (const auto &entry : values) {
-        const std::string modName(entry.pItem);
+        const std::string modName(ut->StrToName(entry.pItem));
         if (ut->SEDH()->LookupModByName(modName)) {
           revealingMods.insert(modName);
           SKSE::log::info("\t\tTheNewGentleman keeps an eye for [{}] as a revealing armor mod.", modName);
@@ -70,7 +70,7 @@ void Inis::LoadSingleIni(const char *path, const std::string_view fileName) {
     if (ini.GetAllValues(cArmorSection, cFemRevMod, values)) {
       SKSE::log::info("\t- Found [{}] female revealing mods in [{}].", values.size(), fileName);
       for (const auto &entry : values) {
-        const std::string modName(entry.pItem);
+        const std::string modName(ut->StrToName(entry.pItem));
         if (ut->SEDH()->LookupModByName(modName)) {
           femRevMods.insert(modName);
           SKSE::log::info("\t\tTheNewGentleman keeps an eye for [{}] as a female revealing armor mod.", modName);
@@ -80,7 +80,7 @@ void Inis::LoadSingleIni(const char *path, const std::string_view fileName) {
     if (ini.GetAllValues(cArmorSection, cMalRevMod, values)) {
       SKSE::log::info("\t- Found [{}] male revealing mods in [{}].", values.size(), fileName);
       for (const auto &entry : values) {
-        const std::string modName(entry.pItem);
+        const std::string modName(ut->StrToName(entry.pItem));
         if (ut->SEDH()->LookupModByName(modName)) {
           malRevMods.insert(modName);
           SKSE::log::info("\t\tTheNewGentleman keeps an eye for [{}] as a male revealing armor mod.", modName);

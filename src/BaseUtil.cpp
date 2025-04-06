@@ -36,7 +36,7 @@ std::string Common::BaseUtil::LocToStr(const SEFormLoc& loc) const {
   if (loc.first == 0 || loc.second.empty()) return "";
   std::ostringstream oss;
   oss << std::hex << loc.first;
-  return "0x" + oss.str() + delim + loc.second;
+  return "0x" + oss.str() + delim + NameToStr(loc.second);
 }
 
 SEFormLoc Common::BaseUtil::StrToLoc(const std::string& locStr) const {
@@ -53,7 +53,7 @@ SEFormLoc Common::BaseUtil::StrToLoc(const std::string& locStr) const {
     }
   }
   if (try_strtoul(locStr.substr(0, sepLoc).data(), formID)) {
-    const std::string modName = locStr.substr(sepLoc + 1);
+    const std::string modName = StrToName(locStr.substr(sepLoc + 1));
     return {formID, modName};
   } else {
     return {0, ""};
