@@ -10,15 +10,14 @@ GlobalVariable Property PlayerSkin auto
 ;Constants
 Int cbExcludePlayer
 Int cbCheckingPCGen
-;Int cbCheckNPCsGens
 Int cbForceTheCheck
 Int cbRevealSlot52s
 Int cbLetMixSlot52s    
 Int cbRandomizeMale
-;Int cbUI_Extensions
+Int cbUI_Extensions
 Int cbShowEveryRace
+Int cbDAK
 
-Int ciDAK
 Int ciSetupNPC 
 Int ciRiseGen
 Int ciFallGen
@@ -120,20 +119,19 @@ Event OnConfigInit()
   
   cbExcludePlayer = 0
   cbCheckingPCGen = 1
-  ;cbCheckNPCsGens = 2
-  cbForceTheCheck = 3
-  cbRevealSlot52s = 4
-  cbLetMixSlot52s = 5
-  cbRandomizeMale = 6
-  ;cbUI_Extensions = 7
-  cbShowEveryRace = 8
+  cbForceTheCheck = 2
+  cbRevealSlot52s = 3
+  cbLetMixSlot52s = 4
+  cbRandomizeMale = 5
+  cbUI_Extensions = 6
+  cbShowEveryRace = 7
+  cbDAK = 8
 
-  ciDAK = 0
-  ciSetupNPC = 1
-  ciRiseGen = 2
-  ciFallGen = 3
-  ciSwapRevealing = 4
-  ciWhyProblem = 5
+  ciSetupNPC = 0
+  ciRiseGen = 1
+  ciFallGen = 2
+  ciSwapRevealing = 3
+  ciWhyProblem = 4
 
   cFSizes = new Int[5]
   cFSizes[0] = 0
@@ -226,12 +224,12 @@ Event OnPageReset(String asPage)
     If Game.GetModByName("Dynamic Activation Key.esp")
       fkDAK = Game.GetFormFromFile(0x801, "Dynamic Activation Key.esp") As GlobalVariable
       If fkDAK
-        fiDAKHdl = AddToggleOption("$TNG_DAK", TNG_PapyrusUtil.GetIntValue(ciDAK)>0)
+        fiDAKHdl = AddToggleOption("$TNG_DAK", TNG_PapyrusUtil.GetBoolValue(cbDAK))
         AddEmptyOption()
       EndIf
     EndIf
     If !fkDAK
-      TNG_PapyrusUtil.SetIntValue(ciDAK, -1)
+      TNG_PapyrusUtil.SetBoolValue(cbDAK, False)
     EndIf
     Int liOption = OPTION_FLAG_WITH_UNMAP
     fiNPCKeyHdl = AddKeyMapOption("$TNG_K_N", TNG_PapyrusUtil.GetIntValue(ciSetupNPC), liOption)
@@ -489,7 +487,7 @@ Event OnOptionDefault(Int aiOption)
       Return
     EndIf
     If aiOption == fiDAKHdl
-      TNG_PapyrusUtil.SetIntValue(ciDAK, -1)
+      TNG_PapyrusUtil.SetBoolValue(cbDAK, False)
       SetToggleOptionValue(fiDAKHdl, False)
       Bool lbResetAll = ShowMessage("$TNG_DKN", true, "$TNG_Yes", "$TNG__No")
       If lbResetAll
@@ -818,9 +816,9 @@ Event OnOptionSelect(Int aiOption)
       Return
     EndIf
     If aiOption == fiDAKHdl
-      TNG_PapyrusUtil.SetIntValue(ciDAK, 0 - TNG_PapyrusUtil.GetIntValue(ciDAK))
-      SetToggleOptionValue(fiDAKHdl, TNG_PapyrusUtil.GetIntValue(ciDAK) > 0)
-      If TNG_PapyrusUtil.GetIntValue(ciDAK) < 0
+      TNG_PapyrusUtil.SetIntValue(cbDAK, !TNG_PapyrusUtil.GetIntValue(cbDAK))
+      SetToggleOptionValue(fiDAKHdl, TNG_PapyrusUtil.GetBoolValue(cbDAK) )
+      If !TNG_PapyrusUtil.GetBoolValue(cbDAK)
         Bool lbResetAll = ShowMessage("$TNG_DKN", true, "$TNG_Yes", "$TNG__No")
         If lbResetAll
           OnOptionDefault(fiNPCKeyHdl)
@@ -863,6 +861,9 @@ Event OnOptionSelect(Int aiOption)
   EndIf
 
   If CurrentPage == Pages[3]
+    If !TNG_PapyrusUtil.GetBoolValue(cbLetMixSlot52s)
+      Return
+    EndIf
     String[] lSAllS52Mods = TNG_PapyrusUtil.GetSlot52Mods()
     Int liModCount = lSAllS52Mods.Length   
     While liModCount > 0
@@ -875,6 +876,7 @@ Event OnOptionSelect(Int aiOption)
           liNew = 1
         EndIf
         TNG_PapyrusUtil.Slot52ModBehavior(lSAllS52Mods[liModCount], liNew)
+        TNG_PapyrusUtil.SetBoolValue(cbLetMixSlot52s, True)
         SetToggleOptionValue(fI52ModHdls[liModCount], TNG_PapyrusUtil.Slot52ModBehavior(lSAllS52Mods[liModCount], -1))
         Return
       EndIf
@@ -924,7 +926,7 @@ Event OnOptionSelect(Int aiOption)
 EndEvent
 
 Event OnOptionKeyMapChange(Int aiOption, Int aiKeyCode, String asConflictControl, String asConflictName)
-  If !fkDAK || (TNG_PapyrusUtil.GetIntValue(ciDAK) < 0)
+  If !fkDAK || !TNG_PapyrusUtil.GetBoolValue(cbDAK)
     Bool lbContinue = True
     String lsNotif
     If (asConflictControl != "") && (aiKeyCode != -1)
@@ -946,11 +948,11 @@ Event OnOptionKeyMapChange(Int aiOption, Int aiKeyCode, String asConflictControl
 EndEvent
 
 Event OnKeyDown(Int aiKey)
-  If (TNG_PapyrusUtil.GetIntValue(ciDAK) > 0) && !fkDAK
+  If TNG_PapyrusUtil.GetBoolValue(cbDAK) && !fkDAK
     ShowNotification("$TNG_W_3", true)
     Return
   EndIf
-  If (TNG_PapyrusUtil.GetIntValue(ciDAK) > 0)
+  If TNG_PapyrusUtil.GetBoolValue(cbDAK)
     If fkDAK.GetValueInt() != 1
       Return
     EndIf
@@ -1172,19 +1174,17 @@ Function HandleWarnings(Int aiRes)
 EndFunction
 
 
-Function Update52Behaviors(Int aiChoice)  
+Function Update52Behaviors(Int aiChoice)    
   If aiChoice < 2
     String[] lSAllS52Mods = TNG_PapyrusUtil.GetSlot52Mods()
     Int liModCount = lSAllS52Mods.Length
     While liModCount
       liModCount -= 1
       TNG_PapyrusUtil.Slot52ModBehavior(lSAllS52Mods[liModCount], aiChoice)        
-    EndWhile    
-    TNG_PapyrusUtil.SetBoolValue(cbRevealSlot52s, aiChoice==1)
-    TNG_PapyrusUtil.SetBoolValue(cbLetMixSlot52s, False)
-  Else
-    TNG_PapyrusUtil.SetBoolValue(cbLetMixSlot52s, True)  
-  EndIf  
+    EndWhile
+  EndIf    
+  TNG_PapyrusUtil.SetBoolValue(cbRevealSlot52s, aiChoice==1)
+  TNG_PapyrusUtil.SetBoolValue(cbLetMixSlot52s, aiChoice==2)
   ForcePageReset()
 EndFunction
 

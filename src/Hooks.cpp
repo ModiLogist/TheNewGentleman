@@ -12,8 +12,8 @@ RE::NiAVObject* Hooks::Load3D::thunk(Target* actor, bool backgroundLoading) {
   auto res = Load3D::func(actor, backgroundLoading);
   auto npc = actor ? actor->GetActorBase() : nullptr;
   auto canModify = core->CanModifyNPC(npc);
-  if (canModify == Util::resOkRacePP || canModify < 0) return res;
-  if (npc->HasKeyword(ut->Key(Util::kyProcessed))) return res;
+  if (canModify == Common::resOkRacePP || canModify < 0) return res;
+  if (npc->HasKeyword(ut->Key(Common::kyProcessed))) return res;
   auto curSkin = actor->GetSkin();
   events->DoChecks(actor);
   if (actor->GetSkin() != curSkin) {

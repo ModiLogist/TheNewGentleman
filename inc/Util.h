@@ -47,6 +47,8 @@ namespace Common {
     errRace = -1,
     resOkFixed = 0,
     resOkSizable = 1,
+    resOkNoAddon = 2,
+    resOkHasAddon = 3,
     resOkRaceP = 10,
     resOkRaceR = 11,
     resOkRacePP = 12,

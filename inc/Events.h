@@ -25,3 +25,5 @@ class Events : public Singleton<Events>,
     bool showErrMessage;
     std::map<RE::FormID, RE::TESObjectARMO*> oldSkins;
 };
+
+extern Events* events;

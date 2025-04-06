@@ -24,7 +24,7 @@ static void InitializeLogging() {
 
   std::shared_ptr<spdlog::logger> log;
   log = std::make_shared<spdlog::logger>("Global", std::make_shared<spdlog::sinks::basic_file_sink_mt>(path->string(), true));
-  log->set_level(inis->GetLogLvl());
+  log->set_level(core->GetLogLvl());
   log->flush_on(spdlog::level::trace);
   spdlog::set_default_logger(std::move(log));
   spdlog::set_pattern("[%H:%M:%S.%e] [%l] %v");
@@ -33,14 +33,14 @@ static void InitializeLogging() {
 static void EventListener(SKSE::MessagingInterface::Message* message) {
   if (message->type == SKSE::MessagingInterface::kDataLoaded) {
     if (!CheckIncompatibility()) return;
-    if (!ut->SEDH()->LookupModByName(Util::mainFile)) {
-      const char* err = fmt::format("Mod [{}] was not found! Make sure that the mod is active in your plugin load order!", Util::mainFile).c_str();
+    if (!ut->SEDH()->LookupModByName(Common::mainFile)) {
+      const char* err = fmt::format("Mod [{}] was not found! Make sure that the mod is active in your plugin load order!", Common::mainFile).c_str();
       ut->ShowSkyrimMessage(err);
       return;
     }
-    base->Init();
-    inis->LoadMainIni();
-    inis->LoadTngInis();
+    core->Init();
+    core->LoadMainIni();
+    core->LoadTngInis();
     core->ProcessRaces();
     core->ProcessSkins();
     core->CheckArmorPieces();
@@ -49,7 +49,10 @@ static void EventListener(SKSE::MessagingInterface::Message* message) {
     Hooks::Install();
   }
   if (message->type == SKSE::MessagingInterface::kNewGame || message->type == SKSE::MessagingInterface::kPostLoadGame) {
-    base->UnsetPlayerInfo();
+    core->UnsetPlayerInfo();
+  }
+  if (message->type == SKSE::MessagingInterface::kSaveGame) {
+    core->SaveMainIni();
   }
 }
 
@@ -66,18 +69,19 @@ extern "C" __declspec(dllexport) constinit auto SKSEPlugin_Version = []() {
 }();
 #endif
 
-extern "C" __declspec(dllexport) bool SKSEAPI SKSEPlugin_Query(const SKSE::QueryInterface*, SKSE::PluginInfo* aInfo) {
-  aInfo->infoVersion = SKSE::PluginInfo::kVersion;
-  aInfo->name = Version::PROJECT.data();
-  aInfo->version = Version::MAJOR;
+extern "C" __declspec(dllexport) bool SKSEAPI SKSEPlugin_Query(const SKSE::QueryInterface*, SKSE::PluginInfo* info) {
+  info->infoVersion = SKSE::PluginInfo::kVersion;
+  info->name = Version::PROJECT.data();
+  info->version = Version::MAJOR;
   return true;
 }
 
-extern "C" [[maybe_unused]] __declspec(dllexport) bool SKSEPlugin_Load(const SKSE::LoadInterface* aSkse) {
+extern "C" [[maybe_unused]] __declspec(dllexport) bool SKSEPlugin_Load(const SKSE::LoadInterface* skse) {
+  core->LoadMainIni();
   InitializeLogging();
-  SKSE::Init(aSkse, false);
+  SKSE::Init(skse, false);
   SKSE::log::info("Initializing TheNewGentleman {}!", Version::NAME.data());
-  SKSE::log::info("Game version : {}", aSkse->RuntimeVersion().string());
+  SKSE::log::info("Game version : {}", skse->RuntimeVersion().string());
   SKSE::GetMessagingInterface()->RegisterListener(EventListener);
   SKSE::GetPapyrusInterface()->Register(Papyrus::BindPapyrus);
   return true;
