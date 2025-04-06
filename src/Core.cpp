@@ -116,6 +116,12 @@ void Core::ProcessRaces() {
                   logInfo[2], logInfo[3], logInfo[1], logInfo[0]);
 }
 
+int Core::GetRgAddon(const size_t rgChoice, const bool onlyMCM) {
+  auto rg = GetRg(rgChoice, onlyMCM);
+  if (!rg) return Common::err40;
+  return rg->addonIdx;
+}
+
 void Core::SetRgAddon(const size_t rgChoice, const int addonIdx, const bool onlyMCM) {
   auto rg = GetRg(rgChoice, onlyMCM);
   if (!rg || addonIdx < Common::def || (addonIdx >= 0 && rg->malAddons.find(addonIdx) == rg->malAddons.end())) return;
@@ -125,6 +131,11 @@ void Core::SetRgAddon(const size_t rgChoice, const int addonIdx, const bool only
   for (auto& race : rg->races) race->skin = skin;
   auto addon = addonIdx < 0 ? nullptr : malAddons[rg->addonIdx].first;
   Inis::SetRgAddon(rg->races[0], addon, addonIdx);
+}
+
+float Core::GetRgMult(const size_t rgChoice, const bool onlyMCM) {
+  auto rg = GetRg(rgChoice, onlyMCM);
+  return rg ? rg->mult : Common::fErr;
 }
 
 void Core::SetRgMult(const size_t rgChoice, const float mult, const bool onlyMCM) {
@@ -1016,8 +1027,6 @@ void Core::RevisitRevealingArmor() {
   }
 }
 
-// void Core::TryUnhideRace(RE::TESRace *race) {}
-
 // int Core::GetRaceRgIdx(RE::TESRace *race) { return race && raceRgs.find(race) != raceRgs.end() ? static_cast<int>(raceRgs[race]) : Common::nan; }
 
 // RE::TESRace *Core::GetRgRace0(const size_t rgChoice, const bool onlyMCM) {
@@ -1031,24 +1040,6 @@ void Core::RevisitRevealingArmor() {
 //     if (boolSettings[Common::bsShowAllRaces] || !onlyMCM || !rg.noMCM) res.push_back(rg.name);
 //   }
 //   return res;
-// }
-
-// int Core::GetRgAddon(const size_t rgChoice, bool onlyMCM) {
-//   auto rg = GetRg(rgChoice, onlyMCM);
-//   if (!rg) return Common::err40;
-//   return rg->addonIdx;
-// }
-
-// int Core::GetRgAddon(RE::TESRace *race) {
-//   if (!race) return Common::err40;
-//   auto rg = GetRg(race, false);
-//   if (!rg) return Common::err40;
-//   return rg->addonIdx;
-// }
-
-// float Core::GetRgMult(const size_t rgChoice, bool onlyMCM) {
-//   auto rg = GetRg(rgChoice, onlyMCM);
-//   return rg ? rg->mult : Common::fErr;
 // }
 
 // float Core::GetRgMult(RE::TESRace *race) {
