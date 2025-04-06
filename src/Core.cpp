@@ -32,26 +32,6 @@ void Core::LoadAddons() {
   }
 }
 
-RE::TESObjectARMO* Core::GetAddonByIdx(const bool isFemale, const size_t choice, const bool onlyActive) const {
-  const auto& list = isFemale ? femAddons : malAddons;
-  RE::TESObjectARMO* res = nullptr;
-  if (onlyActive) {
-    int activeCount = 0;
-    for (const auto& element : list) {
-      if (element.second) {
-        if (activeCount == choice) {
-          res = element.first;
-          break;
-        }
-        activeCount++;
-      }
-    }
-  } else {
-    res = choice < list.size() ? list[choice].first : nullptr;
-  }
-  return res;
-}
-
 size_t Core::GetAddonCount(const bool isFemale, const bool onlyActive) const {
   auto& list = isFemale ? femAddons : malAddons;
   if (onlyActive) {
@@ -77,9 +57,9 @@ void Core::SetAddonStatus(const bool isFemale, const size_t addonIdx, const bool
   Inis::SetAddonStatus(isFemale, list[addonIdx].first, status);
 }
 
-const std::string Core::GetAddonName(const bool isFemale, const size_t addonIdx, const bool onlyActive) const {
-  auto addon = GetAddonByIdx(isFemale, addonIdx, onlyActive);
-  return addon ? addon->GetName() : "";
+const std::string Core::GetAddonName(const bool isFemale, const size_t addonIdx) const {
+  const auto& list = isFemale ? femAddons : malAddons;
+  return addonIdx < list.size() && list[addonIdx].first ? list[addonIdx].first->GetName() : "";
 }
 
 int Core::GetAddonIdxByLoc(const bool isFemale, const SEFormLocView addonLoc) const {

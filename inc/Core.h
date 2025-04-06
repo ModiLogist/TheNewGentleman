@@ -15,11 +15,10 @@ class Core : public Singleton<Core>, public Inis {
     // int AddonIdxByLoc(bool isFemale, SEFormLocView addonLoc);
 
   public:
-    RE::TESObjectARMO* GetAddonByIdx(const bool isFemale, const size_t choice, const bool onlyActive) const;
     size_t GetAddonCount(const bool isFemale, const bool onlyActive) const;
     bool GetAddonStatus(const bool isFemale, const size_t addonIdx) const;
     void SetAddonStatus(const bool isFemale, const size_t addonIdx, const bool status);
-    const std::string GetAddonName(const bool isFemale, const size_t addonIdx, const bool onlyActive) const;
+    const std::string GetAddonName(const bool isFemale, const size_t addonIdx) const;
 
   private:
     int GetAddonIdxByLoc(const bool isFemale, const SEFormLocView addonLoc) const;
