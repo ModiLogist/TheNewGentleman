@@ -872,7 +872,6 @@ Event OnOptionSelect(Int aiOption)
           liNew = 1
         EndIf
         TNG_PapyrusUtil.Slot52ModBehavior(lSAllS52Mods[liModCount], liNew)
-        TNG_PapyrusUtil.SetBoolValue(cbLetMixSlot52s, True)
         SetToggleOptionValue(fI52ModHdls[liModCount], TNG_PapyrusUtil.Slot52ModBehavior(lSAllS52Mods[liModCount], -1))
         Return
       EndIf
@@ -1170,17 +1169,11 @@ Function HandleWarnings(Int aiRes)
 EndFunction
 
 
-Function Update52Behaviors(Int aiChoice)    
-  If aiChoice < 2
-    String[] lSAllS52Mods = TNG_PapyrusUtil.GetSlot52Mods()
-    Int liModCount = lSAllS52Mods.Length
-    While liModCount
-      liModCount -= 1
-      TNG_PapyrusUtil.Slot52ModBehavior(lSAllS52Mods[liModCount], aiChoice)        
-    EndWhile
-  EndIf    
-  TNG_PapyrusUtil.SetBoolValue(cbRevealSlot52s, aiChoice==1)
+Function Update52Behaviors(Int aiChoice)
   TNG_PapyrusUtil.SetBoolValue(cbLetMixSlot52s, aiChoice==2)
+  If !TNG_PapyrusUtil.GetBoolValue(cbLetMixSlot52s) 
+    TNG_PapyrusUtil.SetBoolValue(cbRevealSlot52s, aiChoice==1)
+  EndIf
   ForcePageReset()
 EndFunction
 

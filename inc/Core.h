@@ -19,6 +19,7 @@ class Core : public Singleton<Core>, public Inis {
     bool GetAddonStatus(const bool isFemale, const size_t addonIdx) const;
     void SetAddonStatus(const bool isFemale, const size_t addonIdx, const bool status);
     const std::string GetAddonName(const bool isFemale, const size_t addonIdx) const;
+    RE::TESObjectARMO* const GetAddonForActor(RE::Actor* const actor, const int addonIdx) const;
 
   private:
     int GetAddonIdxByLoc(const bool isFemale, const SEFormLocView addonLoc) const;
@@ -81,13 +82,13 @@ class Core : public Singleton<Core>, public Inis {
   public:
     void CheckArmorPieces();
     bool SwapRevealing(RE::Actor* const actor, RE::TESObjectARMO* const armor);
+    void RevisitRevealingArmor() const;
 
   private:
     inline static constexpr size_t hardCodedCoveringCount{1};
     inline static constexpr SEFormLocView hardCodedCovering[hardCodedCoveringCount]{{0x3D306, "Dragonborn.esm"}};
     inline static constexpr size_t hardCodedRacesCount{1};
     inline static constexpr SEFormLocView hardCodedRaces[hardCodedRacesCount]{{0x3CA97, "Dragonborn.esm"}};
-    void RevisitRevealingArmor() const;
 };
 
 extern Core* core;

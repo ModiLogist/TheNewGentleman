@@ -62,6 +62,13 @@ const std::string Core::GetAddonName(const bool isFemale, const size_t addonIdx)
   return addonIdx < list.size() && list[addonIdx].first ? list[addonIdx].first->GetName() : "";
 }
 
+RE::TESObjectARMO* const Core::GetAddonForActor(RE::Actor* const actor, const int addonIdx) const {
+  if (addonIdx < 0) return nullptr;
+  auto npc = actor ? actor->GetActorBase() : nullptr;
+  if (!npc) return nullptr;
+  return npc->IsFemale() ? femAddons[static_cast<size_t>(addonIdx)].first : malAddons[static_cast<size_t>(addonIdx)].first;
+}
+
 int Core::GetAddonIdxByLoc(const bool isFemale, const SEFormLocView addonLoc) const {
   auto& list = isFemale ? femAddons : malAddons;
   for (int i = 0; i < list.size(); i++) {
@@ -999,7 +1006,6 @@ void Core::CheckArmorPieces() {
   SKSE::log::info("Finished checking ARMO records.");
 
   ClearInis();
-  boolSettings.SetEvent(Common::bsRevealSlot52Mods, [this]() { RevisitRevealingArmor(); });
 }
 
 bool Core::SwapRevealing(RE::Actor* const actor, RE::TESObjectARMO* const armor) {
