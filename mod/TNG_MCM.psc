@@ -146,12 +146,6 @@ Event OnVersionUpdate(Int aiVersion)
   If (aiVersion != CurrentVersion)
     OnConfigInit()
   EndIf
-  If (CurrentVersion < 7)
-    If (PlayerSkin.GetValueInt() == -1)
-      PlayerSkin.SetValueInt(-2)
-      Return
-    EndIf
-  EndIf
 EndEvent
 
 Event OnGameReload()
@@ -181,7 +175,7 @@ Event OnGameReload()
   If TNG_PapyrusUtil.GetIntValue(ciWhyProblem) > 0
     RegisterForKey(TNG_PapyrusUtil.GetIntValue(ciWhyProblem))
   EndIf
-  If TNG_PapyrusUtil.CanModifyActor(PlayerRef) <= 0
+  If TNG_PapyrusUtil.CanModifyActor(PlayerRef) < 0
     Return
   EndIf
   Int res = TNGSetAddon(PlayerRef, -3)
