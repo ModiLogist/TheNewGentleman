@@ -55,7 +55,7 @@ class Core : public Singleton<Core>, public Inis {
     Common::eRes GetActorSize(RE::Actor* const actor, int& sizeCat);
     Common::eRes SetActorSize(RE::Actor* const actor, int sizeCat, bool shouldSave = true);
     void UpdateFormLists(RE::Actor* const actor, RE::TESNPC* const npc);
-    std::vector<RE::TESObjectARMO*> GetActorWornArmor(RE::Actor* const actor);
+    void UpdateFormLists(RE::Actor* const actor, RE::TESNPC* const npc) const;
 
   private:
     RE::TESObjectARMO* FixSkin(RE::TESObjectARMO* const skin, RE::TESRace* const race, const char* const name);

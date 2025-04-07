@@ -53,3 +53,17 @@ bool Common::Util::IsCovering(const RE::TESNPC* npc, const RE::TESObjectARMO* ar
   if (armor->HasKeyword(Key(Common::kyRevealingM)) && npc->IsFemale()) return true;
   return false;
 }
+
+std::vector<RE::TESObjectARMO*> Common::Util::GetActorWornArmor(RE::Actor* const actor) const {
+  std::vector<RE::TESObjectARMO*> res{};
+  res.clear();
+  if (!actor) return res;
+  auto inv = actor->GetInventory([=](RE::TESBoundObject& obj) { return obj.IsArmor(); });
+  for (const auto& [item, invData] : inv) {
+    const auto& [count, entry] = invData;
+    if (count > 0 && entry && entry->IsWorn() && !IsBlock(item)) {
+      res.push_back(item->As<RE::TESObjectARMO>());
+    }
+  }
+  return res;
+}

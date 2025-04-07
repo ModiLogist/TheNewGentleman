@@ -715,20 +715,6 @@ void Core::UpdateFormLists(RE::Actor* const actor, RE::TESNPC* const npc) {
   }
 }
 
-std::vector<RE::TESObjectARMO*> Core::GetActorWornArmor(RE::Actor* const actor) {
-  std::vector<RE::TESObjectARMO*> res{};
-  res.clear();
-  if (!actor) return res;
-  auto inv = actor->GetInventory([=](RE::TESBoundObject& obj) { return obj.IsArmor(); });
-  for (const auto& [item, invData] : inv) {
-    const auto& [count, entry] = invData;
-    if (count > 0 && entry && entry->IsWorn() && !ut->IsBlock(item)) {
-      res.push_back(item->As<RE::TESObjectARMO>());
-    }
-  }
-  return res;
-}
-
 RE::TESObjectARMO* Core::FixSkin(RE::TESObjectARMO* const skin, RE::TESRace* const race, const char* const name) {
   skin->RemoveKeywords(ut->Keys(Common::kyRevealingF, Common::kyRevealing));
   skin->AddKeyword(ut->Key(Common::kyIgnored));
