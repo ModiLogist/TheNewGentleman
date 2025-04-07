@@ -36,8 +36,6 @@ class Papyrus : public Singleton<Papyrus> {
     static std::vector<std::string> GetSlot52Mods(RE::StaticFunctionTag*);
     static bool Slot52ModBehavior(RE::StaticFunctionTag*, std::string modName, int behavior);
 
-    static void UpdateSettings(RE::StaticFunctionTag*);
-
     static int UpdateLogLvl(RE::StaticFunctionTag*, int logLevel);
     static std::string ShowLogLocation(RE::StaticFunctionTag*);
     static std::string GetErrDscr(RE::StaticFunctionTag*, int errCode);

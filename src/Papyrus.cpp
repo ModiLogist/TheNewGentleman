@@ -37,8 +37,6 @@ bool Papyrus::BindPapyrus(RE::BSScript::IVirtualMachine* vm) {
   vm->RegisterFunction("GetSlot52Mods", "TNG_PapyrusUtil", GetSlot52Mods);
   vm->RegisterFunction("Slot52ModBehavior", "TNG_PapyrusUtil", Slot52ModBehavior);
 
-  vm->RegisterFunction("UpdateSettings", "TNG_PapyrusUtil", UpdateSettings);
-
   vm->RegisterFunction("UpdateLogLvl", "TNG_PapyrusUtil", UpdateLogLvl);
   vm->RegisterFunction("ShowLogLocation", "TNG_PapyrusUtil", ShowLogLocation);
   vm->RegisterFunction("GetErrDscr", "TNG_PapyrusUtil", GetErrDscr);
@@ -224,8 +222,6 @@ bool Papyrus::SwapRevealing(RE::StaticFunctionTag*, RE::Actor* actor, int choice
 std::vector<std::string> Papyrus::GetSlot52Mods(RE::StaticFunctionTag*) { return core->Slot52Mods(); }
 
 bool Papyrus::Slot52ModBehavior(RE::StaticFunctionTag*, std::string modName, int behavior) { return core->Slot52ModBehavior(modName, behavior); }
-
-void Papyrus::UpdateSettings(RE::StaticFunctionTag*) { core->SaveGlobals(); }
 
 int Papyrus::UpdateLogLvl(RE::StaticFunctionTag*, int logLevel) {
   core->SetLogLvl(logLevel < 0 ? logLevel : logLevel + spdlog::level::debug);

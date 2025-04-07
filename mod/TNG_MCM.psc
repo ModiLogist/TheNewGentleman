@@ -156,10 +156,6 @@ Event OnVersionUpdate(Int aiVersion)
   EndIf
 EndEvent
 
-Event OnConfigClose()
-  TNG_PapyrusUtil.UpdateSettings()
-EndEvent
-
 Event OnGameReload()
   Parent.OnGameReload()
   

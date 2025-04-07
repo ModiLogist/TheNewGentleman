@@ -56,8 +56,6 @@ String[] Function GetSlot52Mods() Global Native
 ;Behavior value: -1 -> Get behavior, 0 -> Set to Normal, 1 -> Set to Revealing
 Bool Function Slot52ModBehavior(String asModName, Int aiBehavior) Global Native 
 
-Function UpdateSettings() Global Native
-
 Int Function UpdateLogLvl(Int aiLogLevel) Global Native
 String Function ShowLogLocation() Global Native
 String Function GetErrDscr(Int aiErrCode) Global Native
