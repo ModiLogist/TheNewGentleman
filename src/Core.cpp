@@ -576,12 +576,8 @@ Common::eRes Core::GetActorAddon(RE::Actor* actor, RE::TESObjectARMO*& addon) co
 }
 
 Common::eRes Core::SetActorAddon(RE::Actor* const actor, const int choice, const bool isUser, const bool shouldSave) {
-  if (actor && actor->IsPlayerRef() && choice < Common::def) return UpdatePlayer(actor);
-  const auto npc = actor ? actor->GetActorBase() : nullptr;
-  if (!npc) return Common::errNPC;
-  if (!npc->race) return Common::errRace;
-  if (npc->race->HasKeyword(ut->Key(Common::kyPreProcessed)) && !ReevaluateRace(npc->race, actor)) return Common::errRace;
-  if (IsNPCExcluded(npc)) return Common::errNPC;
+  if (actor && actor->IsPlayerRef() && choice == Common::defPlayer) return UpdatePlayer(actor);
+  const auto npc = actor->GetActorBase();
   auto list = GetActorAddons(actor, !isUser);
   if (shouldSave) {
     if (choice >= static_cast<int>(list.size())) return Common::errAddon;

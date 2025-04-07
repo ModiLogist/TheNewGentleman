@@ -3,6 +3,7 @@
 namespace Common {
   inline static constexpr std::string_view skyrimFile{"Skyrim.esm"};
   inline static constexpr int nan{-99};
+  inline static constexpr int defPlayer{-3};
   inline static constexpr int def{-2};
   inline static constexpr int nul{-1};
   inline static constexpr std::string nanStr{"NA"};

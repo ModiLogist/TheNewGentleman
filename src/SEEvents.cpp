@@ -33,9 +33,7 @@ RE::BSEventNotifyControl SEEvents::ProcessEvent(const RE::TESObjectLoadedEvent* 
   if (!npc) return RE::BSEventNotifyControl::kContinue;
   if (core->CanModifyActor(actor) < 0) return RE::BSEventNotifyControl::kContinue;
   if (npc->race->HasKeyword(ut->Key(Common::kyPreProcessed)) && !core->ReevaluateRace(npc->race, actor)) return RE::BSEventNotifyControl::kContinue;
-  if (actor->IsPlayerRef() && core->HasPlayerChanged(actor)) {
-    core->SetPlayerInfo(actor, Common::def);
-  }
+  if (actor->IsPlayerRef()) core->SetActorAddon(actor, Common::defPlayer, false, false);
   DoChecks(actor);
   return RE::BSEventNotifyControl::kContinue;
 }
