@@ -1,4 +1,3 @@
-#include <Base.h>
 #include <Core.h>
 #include <Hooks.h>
 #include <SEEvents.h>

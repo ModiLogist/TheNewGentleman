@@ -1,6 +1,4 @@
-#include <Base.h>
 #include <Core.h>
-#include <Inis.h>
 #include <Papyrus.h>
 #include <SEEvents.h>
 #include <Util.h>

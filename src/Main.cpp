@@ -1,7 +1,5 @@
-#include <Base.h>
 #include <Core.h>
 #include <Hooks.h>
-#include <Inis.h>
 #include <Papyrus.h>
 #include <SEEvents.h>
 #include <Util.h>
