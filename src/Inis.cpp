@@ -490,8 +490,8 @@ bool Inis::IsRaceExcluded(const RE::TESRace *race) const {
   return false;
 }
 
-bool Inis::IsNPCExcluded(const RE::TESNPC *npc) {
-  if (!npc->GetFile(0)) return false;
+bool Inis::IsNPCExcluded(const RE::TESNPC *npc) const {
+  if (!npc || !npc->GetFile(0)) return false;
   if (excludedNPCs.find(ut->FormToLoc(npc)) != excludedNPCs.end()) return true;
   return false;
 }

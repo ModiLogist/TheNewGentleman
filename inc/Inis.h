@@ -116,7 +116,7 @@ class Inis {
     void LoadPlayerInfos(const std::string& saveName);
     const Common::PlayerInfo* GetPlayerInfo(const RE::Actor* actor);
     void SetPlayerInfo(const RE::Actor* actor, const RE::TESObjectARMO* addon, const int choice = Common::nan, const int sizeCatInp = Common::nan);
-    std::vector<std::string> Slot52Mods() { return std::vector<std::string>(slot52Mods.begin(), slot52Mods.end()); };
+    std::vector<std::string> Slot52Mods() const { return std::vector<std::string>(slot52Mods.begin(), slot52Mods.end()); };
 
   private:
     inline static constexpr const char* cPlayerSection{"PlayerInfo"};
@@ -166,7 +166,7 @@ class Inis {
     std::set<SEFormLoc> femRevRecords;
     std::set<SEFormLoc> malRevRecords;
     bool IsRaceExcluded(const RE::TESRace* race) const;
-    bool IsNPCExcluded(const RE::TESNPC* npc);
+    bool IsNPCExcluded(const RE::TESNPC* npc) const;
     bool IsSkin(const RE::TESObjectARMO* armor, const std::string& modName);
     Common::eKeyword HasStatus(const RE::TESObjectARMO* armor) const;
 
