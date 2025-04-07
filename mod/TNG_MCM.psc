@@ -4,8 +4,6 @@ ScriptName TNG_MCM extends SKI_ConfigBase
 FormList Property Gentified auto
 Bool Property Notifs auto
 Actor Property PlayerRef auto
-Int Property PlayerSize auto
-GlobalVariable Property PlayerSkin auto
 
 ;Constants
 Int cbExcludePlayer
@@ -186,27 +184,7 @@ Event OnGameReload()
   If TNG_PapyrusUtil.CanModifyActor(PlayerRef) <= 0
     Return
   EndIf
-  Int res = TNGSetAddon(PlayerRef, PlayerSkin.GetValueInt())
-  If res >= 0
-    If !PlayerRef.IsOnMount()
-      PlayerRef.QueueNiNodeUpdate()
-    EndIf
-  Else
-    ShowNotification("$TNG_WPT")    
-    PlayerSkin.SetValueInt(-2)
-    TNGSetAddon(PlayerRef, PlayerSkin.GetValueInt())
-    HandleWarnings(res)
-  EndIf
-  res = 0
-  If !TNG_PapyrusUtil.GetBoolValue(cbExcludePlayer)
-    res = TNG_PapyrusUtil.SetActorSize(PlayerRef, PlayerSize)
-  EndIf  
-  If res < 0     
-    ShowNotification("$TNG_WPS")
-    PlayerSize = -2
-    TNG_PapyrusUtil.SetActorSize(PlayerRef, PlayerSize)
-    HandleWarnings(res)
-  EndIf
+  Int res = TNGSetAddon(PlayerRef, -3)
 EndEvent
 
 Event OnPageReset(String asPage)
@@ -883,26 +861,13 @@ Event OnOptionSelect(Int aiOption)
     If aiOption == fiPCEHdl
       TNG_PapyrusUtil.SetBoolValue(cbExcludePlayer, !TNG_PapyrusUtil.GetBoolValue(cbExcludePlayer))    
       SetToggleOptionValue(fiPCEHdl, TNG_PapyrusUtil.GetBoolValue(cbExcludePlayer))
-      If TNG_PapyrusUtil.GetBoolValue(cbExcludePlayer) 
-        PlayerSize = -1
-      EndIf
       Return
     EndIf
     If aiOption == fiPCUHdl
       TNG_PapyrusUtil.SetBoolValue(cbCheckingPCGen, !TNG_PapyrusUtil.GetBoolValue(cbCheckingPCGen))      
       SetToggleOptionValue(fiPCUHdl, TNG_PapyrusUtil.GetBoolValue(cbCheckingPCGen))
       If TNG_PapyrusUtil.GetBoolValue(cbCheckingPCGen) && (TNG_PapyrusUtil.CanModifyActor(PlayerRef) > 0)
-        Int res = TNGSetAddon(PlayerRef, PlayerSkin.GetValueInt()) 
-        If res >= 0 
-          If !PlayerRef.IsOnMount()
-            PlayerRef.QueueNiNodeUpdate()
-          EndIf
-        Else
-          ShowNotification("$TNG_WPT")
-          PlayerSkin.SetValueInt(-2)
-          TNGSetAddon(PlayerRef, PlayerSkin.GetValueInt())
-          HandleWarnings(res)
-        EndIf  
+        Int res = TNGSetAddon(PlayerRef, -3)
       EndIf    
       Return
     EndIf
@@ -1021,10 +986,7 @@ EndEvent
 
 Event OnUpdate()
   If TNG_PapyrusUtil.GetBoolValue(cbCheckingPCGen) && (TNG_PapyrusUtil.CanModifyActor(PlayerRef) > 0)
-    Int res = TNGSetAddon(PlayerRef, PlayerSkin.GetValueInt())
-    If (res >= 0) && !PlayerRef.IsOnMount()
-      PlayerRef.QueueNiNodeUpdate()
-    EndIf
+    Int res = TNGSetAddon(PlayerRef, -3)
   EndIf
 
   If fiLastActor > 0
@@ -1089,15 +1051,8 @@ Function ShowTNGMenu(Actor akActor)
         Return
       EndIf
       If liShape >= 2
-        Int liShapeRes = TNGSetAddon(akActor, liShape - 4)
-        If liShapeRes < 0
-          HandleWarnings(liShapeRes)
-          Return
-        EndIf        
+        Int liShapeRes = TNGSetAddon(akActor, liShape - 4)      
         lbShowSize = (liShapeRes > 0)
-        If !akActor.IsOnMount()
-          akActor.QueueNiNodeUpdate()
-        EndIf
       EndIf
     Else
       lbShowSize = False
@@ -1125,14 +1080,6 @@ Function ShowTNGMenu(Actor akActor)
       Int res = TNG_PapyrusUtil.SetActorSize(akActor, liSize - 4)
       If res < 0
         HandleWarnings(res)
-      Else
-        If akActor == PlayerRef
-          If liSize == 3
-            PlayerSize == -2
-          Else
-            PlayerSize = liSize - 4
-          EndIf
-        EndIf
       EndIf
     EndIf
   EndIf
@@ -1244,7 +1191,18 @@ EndFunction
 
 Int Function TNGSetAddon(Actor akActor, Int aiAddon)
   akActor.SendModEvent("TNGSetMyAddon", akActor.GetName(), aiAddon as Float + 0.1)
-  Return TNG_PapyrusUtil.SetActorAddon(akActor, aiAddon)  
+  Int liRes = TNG_PapyrusUtil.SetActorAddon(akActor, aiAddon)
+  If liRes >= 0
+    If !akActor.IsOnMount()
+      akActor.QueueNiNodeUpdate()
+    EndIf
+  Else
+    If akActor == PlayerRef 
+      ShowNotification("$TNG_WPT")
+    EndIf
+    TNGSetAddon(akActor, -2)    
+    HandleWarnings(res)
+  EndIf
 EndFunction
 
 Function ShowNotification(String asNotif, Bool abForce = False)
