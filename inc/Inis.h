@@ -81,6 +81,11 @@ class Inis {
     std::map<SEFormLoc, bool> runTimeArmorRecords;
     std::map<SEFormLoc, bool> runTimeMalRevRecords;
     std::map<SEFormLoc, bool> runTimeFemRevRecords;
+
+  public:
+    bool Slot52ModBehavior(const std::string& modName, const int behavior);
+
+  protected:
     void SetAddonStatus(const bool isFemale, const RE::TESObjectARMO* addon, const bool status);
 
     void SetValidSkeleton(const std::string& skeletonModel) { settingIni.SetBoolValue(cValidSkeletons, skeletonModel.c_str(), true); };
@@ -97,7 +102,6 @@ class Inis {
 
     void SetArmorStatus(const RE::TESObjectARMO* armor, const int revMode);
     void Process52(const std::string modName);
-    bool Slot52ModBehavior(const std::string& modName, const int behavior);
     bool IsExtraRevealing(const std::string& modName) const;
     bool IsExtraRevealing(const RE::TESObjectARMO* armor) const;
 

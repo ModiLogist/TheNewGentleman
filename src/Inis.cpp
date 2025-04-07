@@ -115,6 +115,23 @@ void Inis::TransferOldIni() {
   SKSE::log::info("\tThe settings were transferred.");
 }
 
+bool Inis::Slot52ModBehavior(const std::string &modName, const int behavior) {
+  switch (behavior) {
+    case 1:
+      settingIni.SetBoolValue(cRevealingModSection, ut->NameToStr(modName).c_str(), true);
+      extraRevealingMods.insert(modName);
+      return true;
+    case 0:
+      settingIni.Delete(cRevealingModSection, ut->NameToStr(modName).c_str(), true);
+      extraRevealingMods.erase(modName);
+      return false;
+    default:
+      CSimpleIniA::TNamesDepend values;
+      settingIni.GetAllKeys(cRevealingModSection, values);
+      return std::ranges::find_if(values, [&](const auto &entry) { return ut->StrToName(entry.pItem) == modName; }) != values.end();
+  }
+}
+
 void Inis::SetAddonStatus(const bool isFemale, const RE::TESObjectARMO *addon, const bool status) {
   auto addonLocStr = ut->FormToStr(addon);
   if (addonLocStr.empty()) {
@@ -265,23 +282,6 @@ void Inis::Process52(const std::string modName) {
   if (boolSettings.Get(Common::bsRevealSlot52Mods)) {
     extraRevealingMods.insert(modName);
     Slot52ModBehavior(modName, 1);
-  }
-}
-
-bool Inis::Slot52ModBehavior(const std::string &modName, const int behavior) {
-  switch (behavior) {
-    case 1:
-      settingIni.SetBoolValue(cRevealingModSection, ut->NameToStr(modName).c_str(), true);
-      extraRevealingMods.insert(modName);
-      return true;
-    case 0:
-      settingIni.Delete(cRevealingModSection, ut->NameToStr(modName).c_str(), true);
-      extraRevealingMods.erase(modName);
-      return false;
-    default:
-      CSimpleIniA::TNamesDepend values;
-      settingIni.GetAllKeys(cRevealingModSection, values);
-      return std::ranges::find_if(values, [&](const auto &entry) { return ut->StrToName(entry.pItem) == modName; }) != values.end();
   }
 }
 
