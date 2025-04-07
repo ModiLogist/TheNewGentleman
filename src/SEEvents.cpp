@@ -59,12 +59,6 @@ RE::BSEventNotifyControl SEEvents::ProcessEvent(const RE::TESSwitchRaceCompleteE
   return RE::BSEventNotifyControl::kContinue;
 }
 
-void SEEvents::DoChecks(RE::Actor* actor, RE::TESObjectARMO* armor, bool isEquipped) {
-  CheckForAddons(actor);
-  CheckCovering(actor, armor, isEquipped);
-  CheckDF(actor);
-}
-
 RE::TESObjectARMO* SEEvents::GetCoveringItem(RE::Actor* actor, RE::TESObjectARMO* exception) {
   auto npc = actor ? actor->GetActorBase() : nullptr;
   if (!npc) return nullptr;
@@ -75,83 +69,6 @@ RE::TESObjectARMO* SEEvents::GetCoveringItem(RE::Actor* actor, RE::TESObjectARMO
     }
   }
   return nullptr;
-}
-
-void SEEvents::CheckForAddons(RE::Actor* actor) {
-  const auto npc = actor ? actor->GetActorBase() : nullptr;
-  if (!npc || !npc->race || !npc->race->HasKeyword(ut->Key(Common::kyProcessed))) return;
-  if (npc->HasKeyword(ut->Key(Common::kyProcessed))) return;
-  npc->AddKeyword(ut->Key(Common::kyProcessed));
-  if (!npc->IsPlayer() || !core->GetBoolSetting(Common::bsExcludePlayerSize)) core->SetActorSize(actor, Common::nul);
-  auto addnPair = GetNPCAutoAddon(npc);
-  if (addnPair.first == Common::err40) {
-    SKSE::log::critical("Faced an issue retrieving information for {}!", npc->GetName());
-    return;
-  }
-  bool requiresUpdate = false;
-  switch (addnPair.first) {
-    case Common::nul:
-      if (npc->IsFemale()) {
-        if (!npc->skin || !npc->skin->HasKeyword(ut->Key(Common::kyTngSkin))) break;
-      } else {
-        if (npc->skin && !npc->skin->HasKeyword(ut->Key(Common::kyTngSkin))) break;
-      }
-      requiresUpdate = true;
-      break;
-    case Common::def:
-      if (core->GetRgAddon(npc->race) < 0) break;
-      if (npc->IsFemale()) {
-        if ((addnPair.first < 0 && npc->skin && npc->skin->HasKeyword(ut->Key(Common::kyTngSkin))) ||
-            (addnPair.first >= 0 && (!npc->skin || !npc->skin->HasKeyword(ut->Key(Common::kyTngSkin)))))
-          requiresUpdate = true;
-      } else {
-        if (addnPair.first < 0 && (!npc->skin || npc->skin->HasKeyword(ut->Key(Common::kyTngSkin)))) break;
-        requiresUpdate = true;
-      }
-      break;
-    default:
-      if (npc->skin && npc->skin->HasKeyword(ut->Key(Common::kyTngSkin))) break;
-      requiresUpdate = true;
-      break;
-  }
-  if (requiresUpdate) {
-    core->SetActorAddon(actor, addnPair.first, addnPair.second, false);
-  }
-  core->UpdateFormLists(actor, npc);
-}
-
-void SEEvents::CheckCovering(RE::Actor* actor, RE::TESObjectARMO* armor, bool isEquipped) {
-  if (!actor) return;
-  auto down = armor && isEquipped && armor->HasPartOf(Common::genitalSlot) ? armor : actor->GetWornArmor(Common::genitalSlot);
-  if (down && down == armor && !isEquipped) down = nullptr;
-  auto cover = armor && isEquipped && !armor->HasPartOf(Common::genitalSlot) ? armor : GetCoveringItem(actor, isEquipped ? nullptr : armor);
-  bool needsCover = NeedsCover(actor);
-  if (!needsCover || (down && (!ut->IsBlock(down) || !cover))) {
-    actor->RemoveItem(ut->Block(), 10, RE::ITEM_REMOVE_REASON::kRemove, nullptr, nullptr);
-    return;
-  }
-  if ((cover && down) || (!cover && !down)) return;
-  auto tngBlock = ut->Block();
-  if (!tngBlock) {
-    if (showErrMessage) {
-      showErrMessage = false;
-      ut->ShowSkyrimMessage("TNG faced an error when trying to cover genitalia. The New Gentleman won't function properly!");
-    }
-    return;
-  }
-  actor->AddObjectToContainer(tngBlock, nullptr, 1, nullptr);
-  RE::ActorEquipManager::GetSingleton()->EquipObject(actor, tngBlock);
-}
-std::pair<int, bool> SEEvents::GetNPCAutoAddon(RE::TESNPC* npc) {
-  auto res = core->GetNPCAddon(npc);
-  if (res.first != Common::def) return res;
-  auto list = core->GetRgAddonList(npc->race, npc->IsFemale(), true);
-  const auto count = list.size();
-  const auto malChance = core->GetBoolSetting(Common::bsRandomizeMaleAddon) ? ut->malRndChance : 0;
-  const size_t chance = npc->IsFemale() ? static_cast<size_t>(std::floor(core->GetFloatSetting(ut->fsWomenChance) + 0.1f)) : malChance;
-  if (count == 0 || chance == 0) return {Common::def, false};
-  auto addon = npc->GetFormID() % 100 < chance ? static_cast<int>(list[npc->GetFormID() % count]) : Common::def;
-  return {addon, false};
 }
 
 bool SEEvents::NeedsCover(RE::Actor* actor) {

@@ -60,8 +60,9 @@ class Core : public Singleton<Core>, public Inis {
   public:
     void ProcessNPCs();
     Common::eRes CanModifyActor(RE::Actor* const actor) const;
+    void UpdateActor(RE::Actor* const actor, RE::TESObjectARMO* const armor, const bool isEquipped);
     std::vector<std::pair<size_t, bool>> GetActorAddons(RE::Actor* const actor, const bool onlyActive) const;
-    Common::eRes GetActorAddon(RE::Actor* actor, RE::TESObjectARMO*& addon) const;
+    Common::eRes GetActorAddon(RE::Actor* actor, int& addon, bool& isAuto) const;
     Common::eRes SetActorAddon(RE::Actor* const actor, const int choice, const bool isUser, const bool shouldSave);
     Common::eRes GetActorSize(RE::Actor* const actor, int& sizeCat) const;
     Common::eRes SetActorSize(RE::Actor* const actor, int sizeCat, bool shouldSave);
@@ -70,6 +71,9 @@ class Core : public Singleton<Core>, public Inis {
   private:
     RE::TESObjectARMO* FixSkin(RE::TESObjectARMO* const skin, RE::TESRace* const race, const char* const name);
     void ApplyUserSettings(RE::TESNPC* npc);
+    void UpdateAddon(RE::Actor* const actor);
+    void UpdateCover(RE::Actor* const actor, RE::TESObjectARMO* const armor, const bool isEquipped) const;
+    std::pair<int, bool> GetApplicableAddon(RE::Actor* const actor) const;
     Common::eRes SetNPCAddon(RE::TESNPC* const npc, const int addonIdx, const bool isUser);
     void OrganizeNPCAddonKeywords(RE::TESNPC* const npc, int addonIdx, bool isUser) const;
     Common::eRes UpdatePlayer(RE::Actor* const actor);

@@ -32,7 +32,6 @@ namespace Common {
 
   inline static constexpr float fEpsilon{0.0001f};
   inline static constexpr float fErr{-1.0f};
-  inline static constexpr size_t malRndChance{100};
 
   enum eRes {
     err40 = nan,
@@ -98,8 +97,8 @@ namespace Common {
     boolSettingCount
   };
   enum eIntSetting { isSetupNPC, isRiseGen, isFallGen, isSwapRevealing, isWhyProblem, intSettingCount };
-  enum eFloatSetting { fsXS, fsS, fsM, fsL, fsXL, fsWomenChance, floatSettingCount };
-  inline static constexpr int sizeCatCount{floatSettingCount - 1};
+  enum eFloatSetting { fsXS, fsS, fsM, fsL, fsXL, fsMalRndChance, fsFemRndChance, floatSettingCount };
+  inline static constexpr int sizeCatCount{fsXL + 1};
 
   struct RaceGroupInfo {
       std::string name{""};

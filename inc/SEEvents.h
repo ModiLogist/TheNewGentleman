@@ -13,13 +13,9 @@ class SEEvents : public Singleton<SEEvents>,
     RE::BSEventNotifyControl ProcessEvent(const RE::TESSwitchRaceCompleteEvent* event, RE::BSTEventSource<RE::TESSwitchRaceCompleteEvent>*) override;
 
   public:
-    void DoChecks(RE::Actor* actor, RE::TESObjectARMO* armor = nullptr, bool isEquipped = false);
     RE::TESObjectARMO* GetCoveringItem(RE::Actor* actor, RE::TESObjectARMO* exception);
 
   private:
-    void CheckForAddons(RE::Actor* actor);
-    void CheckCovering(RE::Actor* actor, RE::TESObjectARMO* armor, bool isEquipped);
-    std::pair<int, bool> GetNPCAutoAddon(RE::TESNPC* npc);
     bool NeedsCover(RE::Actor* actor);
 
     bool showErrMessage;
