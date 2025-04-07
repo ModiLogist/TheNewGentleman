@@ -19,9 +19,9 @@ class Inis {
         std::vector<const char*>(Common::intSettingCount, "Controls"), std::vector<const char*>{"NPCEdit", "GenitalUp", "GenitalDown", "Revealing", "WhyProblem"}};
 
     Common::TypedSetting<float, Common::eFloatSetting> floatSettings{
-        settingIni, Common::floatSettingCount, std::vector<float>{0.8, 0.9, 1.0, 1.2, 1.4, 20.0},
-        std::vector<const char*>{"GlobalSizes", "GlobalSizes", "GlobalSizes", "GlobalSizes", "GlobalSizes", "GentleWomen"},
-        std::vector<const char*>{"Size_XS", "Size__S", "Size__M", "Size__L", "Size_XL", "Chance"}};
+        settingIni, Common::floatSettingCount, std::vector<float>{0.8f, 0.9f, 1.0f, 1.2f, 1.4f, 0.0f, 20.0f},
+        std::vector<const char*>{"GlobalSizes", "GlobalSizes", "GlobalSizes", "GlobalSizes", "GlobalSizes", cActiveMalAddons, cActiveFemAddons},
+        std::vector<const char*>{"Size_XS", "Size__S", "Size__M", "Size__L", "Size_XL", "RandomChance", "RandomChance"}};
 
     spdlog::level::level_enum GetLogLvl() const {
       auto lvl = settingIni.GetLongValue(cGeneral, cLogLvl, static_cast<int>(spdlog::level::info));
@@ -82,9 +82,6 @@ class Inis {
     std::map<SEFormLoc, bool> runTimeMalRevRecords;
     std::map<SEFormLoc, bool> runTimeFemRevRecords;
 
-  public:
-    bool Slot52ModBehavior(const std::string& modName, const int behavior);
-
   protected:
     void SetAddonStatus(const bool isFemale, const RE::TESObjectARMO* addon, const bool status);
 
@@ -116,6 +113,7 @@ class Inis {
     void LoadPlayerInfos(const std::string& saveName);
     const Common::PlayerInfo* GetPlayerInfo(const RE::Actor* actor);
     void SetPlayerInfo(const RE::Actor* actor, const RE::TESObjectARMO* addon, const int choice = Common::nan, const int sizeCatInp = Common::nan);
+    bool Slot52ModBehavior(const std::string& modName, const int behavior);
     std::vector<std::string> Slot52Mods() const { return std::vector<std::string>(slot52Mods.begin(), slot52Mods.end()); };
 
   private:

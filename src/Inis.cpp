@@ -92,7 +92,7 @@ void Inis::TransferOldIni() {
           auto mult = ini.GetDoubleValue(section.pItem, key.pItem);
           ini.SetDoubleValue(cRacialSize, key.pItem, mult);
         }
-        ini.Delete(section.pItem, nullptr);
+        ini.Delete(section.pItem, nullptr, true);
       }
     }
     if (ini.KeyExists("Controls", "DAK_Integration")) {
@@ -109,27 +109,12 @@ void Inis::TransferOldIni() {
       }
       ini.Delete("ExcludedNPCs", entry.pItem, true);
     }
+    auto gwChance = static_cast<float>(ini.GetDoubleValue("GentleWomen", "Chance", 20.0));
+    floatSettings.Set(Common::fsFemRndChance, gwChance);
   }
   ini.SetLongValue(versionKey, versionSection, iniVersion);
   ini.SaveFile(SettingFile());
   SKSE::log::info("\tThe settings were transferred.");
-}
-
-bool Inis::Slot52ModBehavior(const std::string &modName, const int behavior) {
-  switch (behavior) {
-    case 1:
-      settingIni.SetBoolValue(cRevealingModSection, ut->NameToStr(modName).c_str(), true);
-      extraRevealingMods.insert(modName);
-      return true;
-    case 0:
-      settingIni.Delete(cRevealingModSection, ut->NameToStr(modName).c_str(), true);
-      extraRevealingMods.erase(modName);
-      return false;
-    default:
-      CSimpleIniA::TNamesDepend values;
-      settingIni.GetAllKeys(cRevealingModSection, values);
-      return std::ranges::find_if(values, [&](const auto &entry) { return ut->StrToName(entry.pItem) == modName; }) != values.end();
-  }
 }
 
 void Inis::SetAddonStatus(const bool isFemale, const RE::TESObjectARMO *addon, const bool status) {
@@ -438,6 +423,23 @@ void Inis::SetPlayerInfo(const RE::Actor *actor, const RE::TESObjectARMO *addon,
     pcInfo.addon = addonLoc;
     pcInfo.sizeCat = sizeCat;
     activePlayerInfoIdx = playerInfos.size() - 1;
+  }
+}
+
+bool Inis::Slot52ModBehavior(const std::string &modName, const int behavior) {
+  switch (behavior) {
+    case 1:
+      settingIni.SetBoolValue(cRevealingModSection, ut->NameToStr(modName).c_str(), true);
+      extraRevealingMods.insert(modName);
+      return true;
+    case 0:
+      settingIni.Delete(cRevealingModSection, ut->NameToStr(modName).c_str(), true);
+      extraRevealingMods.erase(modName);
+      return false;
+    default:
+      CSimpleIniA::TNamesDepend values;
+      settingIni.GetAllKeys(cRevealingModSection, values);
+      return std::ranges::find_if(values, [&](const auto &entry) { return ut->StrToName(entry.pItem) == modName; }) != values.end();
   }
 }
 
