@@ -72,11 +72,7 @@ RE::TESObjectARMO* SEEvents::GetCoveringItem(RE::Actor* actor, RE::TESObjectARMO
 }
 
 bool SEEvents::NeedsCover(RE::Actor* actor) {
-  const auto npc = actor ? actor->GetActorBase() : nullptr;
-  if (core->CanModifyNPC(npc) < 0) return false;
-  if (npc->IsFemale()) {
-    return npc->HasKeyword(ut->Key(Common::kyGentlewoman)) || (core->GetNPCAddon(npc).first >= 0);
-  } else {
-    return (!npc->HasKeyword(ut->Key(Common::kyExcluded)));
-  }
+  if (core->CanModifyActor(actor) < 0) return false;
+  auto npc = actor->GetActorBase();
+  return npc->skin && npc->skin->HasPartOf(Common::genitalSlot);
 }
