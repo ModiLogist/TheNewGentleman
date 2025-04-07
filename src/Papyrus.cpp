@@ -1,8 +1,8 @@
 #include <Base.h>
 #include <Core.h>
-#include <Events.h>
 #include <Inis.h>
 #include <Papyrus.h>
+#include <SEEvents.h>
 #include <Util.h>
 
 Papyrus* papyrus = Papyrus::GetSingleton();

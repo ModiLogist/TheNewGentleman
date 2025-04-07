@@ -1,9 +1,9 @@
 #pragma once
 
-class Events : public Singleton<Events>,
-               public RE::BSTEventSink<RE::TESObjectLoadedEvent>,
-               public RE::BSTEventSink<RE::TESEquipEvent>,
-               public RE::BSTEventSink<RE::TESSwitchRaceCompleteEvent> {
+class SEEvents : public Singleton<SEEvents>,
+                 public RE::BSTEventSink<RE::TESObjectLoadedEvent>,
+                 public RE::BSTEventSink<RE::TESEquipEvent>,
+                 public RE::BSTEventSink<RE::TESSwitchRaceCompleteEvent> {
   public:
     void RegisterEvents();
 
@@ -26,4 +26,4 @@ class Events : public Singleton<Events>,
     std::map<RE::FormID, RE::TESObjectARMO*> oldSkins;
 };
 
-extern Events* events;
+extern SEEvents* events;

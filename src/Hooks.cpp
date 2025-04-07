@@ -1,7 +1,7 @@
 #include <Base.h>
 #include <Core.h>
-#include <Events.h>
 #include <Hooks.h>
+#include <SEEvents.h>
 
 void Hooks::Install() {
   //

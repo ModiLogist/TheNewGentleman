@@ -1,7 +1,7 @@
 set(headers ${headers}
   inc/Hooks.h
   inc/Papyrus.h
-  inc/Events.h
+  inc/SEEvents.h
   inc/Core.h
   inc/Inis.h
   inc/Util.h

@@ -1,12 +1,11 @@
-#include <Base.h>
 #include <Core.h>
-#include <Events.h>
 #include <Inis.h>
+#include <SEEvents.h>
 #include <Util.h>
 
-Events* events = Events::GetSingleton();
+SEEvents* events = SEEvents::GetSingleton();
 
-void Events::RegisterEvents() {
+void SEEvents::RegisterEvents() {
   showErrMessage = true;
   const auto sesh = RE::ScriptEventSourceHolder::GetSingleton();
   sesh->AddEventSink<RE::TESEquipEvent>(GetSingleton());
@@ -16,24 +15,24 @@ void Events::RegisterEvents() {
   SKSE::log::info("Registered for necessary events.");
 }
 
-RE::BSEventNotifyControl Events::ProcessEvent(const RE::TESEquipEvent* event, RE::BSTEventSource<RE::TESEquipEvent>*) {
+RE::BSEventNotifyControl SEEvents::ProcessEvent(const RE::TESEquipEvent* event, RE::BSTEventSource<RE::TESEquipEvent>*) {
   if (!event) return RE::BSEventNotifyControl::kContinue;
   const auto actor = event->actor ? event->actor->As<RE::Actor>() : nullptr;
   auto npc = actor ? actor->GetActorBase() : nullptr;
   auto armor = RE::TESForm::LookupByID<RE::TESObjectARMO>(event->baseObject);
-  if (core->CanModifyNPC(npc) < 0 || !armor || !ut->IsCovering(npc, armor) || !armor->HasPartOf(Common::genitalSlot)) return RE::BSEventNotifyControl::kContinue;
+  if (core->CanModifyActor(actor) < 0 || !armor || !ut->IsCovering(npc, armor) || !armor->HasPartOf(Common::genitalSlot)) return RE::BSEventNotifyControl::kContinue;
   if (npc->race->HasKeyword(ut->Key(Common::kyPreProcessed)) && !core->ReevaluateRace(npc->race, actor)) return RE::BSEventNotifyControl::kContinue;
   if (ut->IsBlock(armor)) return RE::BSEventNotifyControl::kContinue;
   DoChecks(actor, armor, event->equipped);
   return RE::BSEventNotifyControl::kContinue;
 }
 
-RE::BSEventNotifyControl Events::ProcessEvent(const RE::TESObjectLoadedEvent* event, RE::BSTEventSource<RE::TESObjectLoadedEvent>*) {
+RE::BSEventNotifyControl SEEvents::ProcessEvent(const RE::TESObjectLoadedEvent* event, RE::BSTEventSource<RE::TESObjectLoadedEvent>*) {
   if (!event) return RE::BSEventNotifyControl::kContinue;
   const auto actor = RE::TESForm::LookupByID<RE::Actor>(event->formID);
   const auto npc = actor ? actor->GetActorBase() : nullptr;
   if (!npc) return RE::BSEventNotifyControl::kContinue;
-  if (core->CanModifyNPC(npc) < 0) return RE::BSEventNotifyControl::kContinue;
+  if (core->CanModifyActor(actor) < 0) return RE::BSEventNotifyControl::kContinue;
   if (npc->race->HasKeyword(ut->Key(Common::kyPreProcessed)) && !core->ReevaluateRace(npc->race, actor)) return RE::BSEventNotifyControl::kContinue;
   if (actor->IsPlayerRef() && core->HasPlayerChanged(actor)) {
     core->SetPlayerInfo(actor, Common::def);
@@ -42,7 +41,7 @@ RE::BSEventNotifyControl Events::ProcessEvent(const RE::TESObjectLoadedEvent* ev
   return RE::BSEventNotifyControl::kContinue;
 }
 
-RE::BSEventNotifyControl Events::ProcessEvent(const RE::TESSwitchRaceCompleteEvent* event, RE::BSTEventSource<RE::TESSwitchRaceCompleteEvent>*) {
+RE::BSEventNotifyControl SEEvents::ProcessEvent(const RE::TESSwitchRaceCompleteEvent* event, RE::BSTEventSource<RE::TESSwitchRaceCompleteEvent>*) {
   auto actor = event->subject.get()->As<RE::Actor>();
   auto npc = actor ? actor->GetActorBase() : nullptr;
   if (!actor || !npc || !npc->skin || !npc->race || !npc->race->skin) return RE::BSEventNotifyControl::kContinue;
@@ -63,13 +62,13 @@ RE::BSEventNotifyControl Events::ProcessEvent(const RE::TESSwitchRaceCompleteEve
   return RE::BSEventNotifyControl::kContinue;
 }
 
-void Events::DoChecks(RE::Actor* actor, RE::TESObjectARMO* armor, bool isEquipped) {
+void SEEvents::DoChecks(RE::Actor* actor, RE::TESObjectARMO* armor, bool isEquipped) {
   CheckForAddons(actor);
   CheckCovering(actor, armor, isEquipped);
   CheckDF(actor);
 }
 
-RE::TESObjectARMO* Events::GetCoveringItem(RE::Actor* actor, RE::TESObjectARMO* exception) {
+RE::TESObjectARMO* SEEvents::GetCoveringItem(RE::Actor* actor, RE::TESObjectARMO* exception) {
   auto npc = actor ? actor->GetActorBase() : nullptr;
   if (!npc) return nullptr;
   auto inv = actor->GetInventory([=](RE::TESBoundObject& a_object) { return a_object.IsArmor() && ut->IsCovering(npc, a_object.As<RE::TESObjectARMO>()); }, true);
@@ -81,7 +80,7 @@ RE::TESObjectARMO* Events::GetCoveringItem(RE::Actor* actor, RE::TESObjectARMO* 
   return nullptr;
 }
 
-void Events::CheckForAddons(RE::Actor* actor) {
+void SEEvents::CheckForAddons(RE::Actor* actor) {
   const auto npc = actor ? actor->GetActorBase() : nullptr;
   if (!npc || !npc->race || !npc->race->HasKeyword(ut->Key(Common::kyProcessed))) return;
   if (npc->HasKeyword(ut->Key(Common::kyProcessed))) return;
@@ -124,7 +123,7 @@ void Events::CheckForAddons(RE::Actor* actor) {
   core->UpdateFormLists(actor, npc);
 }
 
-void Events::CheckCovering(RE::Actor* actor, RE::TESObjectARMO* armor, bool isEquipped) {
+void SEEvents::CheckCovering(RE::Actor* actor, RE::TESObjectARMO* armor, bool isEquipped) {
   if (!actor) return;
   auto down = armor && isEquipped && armor->HasPartOf(Common::genitalSlot) ? armor : actor->GetWornArmor(Common::genitalSlot);
   if (down && down == armor && !isEquipped) down = nullptr;
@@ -146,7 +145,7 @@ void Events::CheckCovering(RE::Actor* actor, RE::TESObjectARMO* armor, bool isEq
   actor->AddObjectToContainer(tngBlock, nullptr, 1, nullptr);
   RE::ActorEquipManager::GetSingleton()->EquipObject(actor, tngBlock);
 }
-std::pair<int, bool> Events::GetNPCAutoAddon(RE::TESNPC* npc) {
+std::pair<int, bool> SEEvents::GetNPCAutoAddon(RE::TESNPC* npc) {
   auto res = core->GetNPCAddon(npc);
   if (res.first != Common::def) return res;
   auto list = core->GetRgAddonList(npc->race, npc->IsFemale(), true);
@@ -158,7 +157,7 @@ std::pair<int, bool> Events::GetNPCAutoAddon(RE::TESNPC* npc) {
   return {addon, false};
 }
 
-bool Events::NeedsCover(RE::Actor* actor) {
+bool SEEvents::NeedsCover(RE::Actor* actor) {
   const auto npc = actor ? actor->GetActorBase() : nullptr;
   if (core->CanModifyNPC(npc) < 0) return false;
   if (npc->IsFemale()) {
