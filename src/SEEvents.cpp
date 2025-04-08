@@ -15,11 +15,8 @@ void SEEvents::RegisterEvents() {
 RE::BSEventNotifyControl SEEvents::ProcessEvent(const RE::TESEquipEvent* event, RE::BSTEventSource<RE::TESEquipEvent>*) {
   if (!event) return RE::BSEventNotifyControl::kContinue;
   const auto actor = event->actor ? event->actor->As<RE::Actor>() : nullptr;
-  auto npc = actor ? actor->GetActorBase() : nullptr;
   auto armor = RE::TESForm::LookupByID<RE::TESObjectARMO>(event->baseObject);
-  if (core->CanModifyActor(actor) < 0 || !armor || !ut->IsCovering(npc, armor) || !armor->HasPartOf(Common::genitalSlot)) return RE::BSEventNotifyControl::kContinue;
-  if (npc->race->HasKeyword(ut->Key(Common::kyPreProcessed)) && !core->ReevaluateRace(npc->race, actor)) return RE::BSEventNotifyControl::kContinue;
-  if (ut->IsBlock(armor)) return RE::BSEventNotifyControl::kContinue;
+  if (!armor || ut->IsBlock(armor) || (!ut->IsCovering(actor, armor) && !armor->HasPartOf(Common::genitalSlot))) return RE::BSEventNotifyControl::kContinue;
   core->UpdateActor(actor, armor, event->equipped);
   return RE::BSEventNotifyControl::kContinue;
 }

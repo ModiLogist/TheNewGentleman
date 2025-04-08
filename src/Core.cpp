@@ -909,13 +909,8 @@ void Core::CheckArmorPieces() {
       logInfo[6]++;
       continue;
     }
-    bool has52 = armor->HasPartOf(Common::genitalSlot);
-    size_t i = 0;
-    while (!has52 && i < armor->armorAddons.size()) {
-      auto aa = armor->armorAddons[i];
-      has52 = aa && aa->HasPartOf(Common::genitalSlot);
-      i++;
-    }
+    bool has52 = armor->HasPartOf(Common::genitalSlot) ||
+                 std::any_of(armor->armorAddons.begin(), armor->armorAddons.end(), [](const auto& aa) { return aa && aa->HasPartOf(Common::genitalSlot); });
     if (!has52) {
       if (auto status = HasStatus(armor); status < Common::keywordsCount) {
         if (!ut->Key(status)) {
