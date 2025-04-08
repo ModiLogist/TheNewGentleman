@@ -646,9 +646,6 @@ Common::eRes Core::SetActorSize(RE::Actor* const actor, int sizeCat, bool should
   const auto npc = actor->GetActorBase();
   if (npc->IsPlayer()) return Common::resOkFixed;  // Don't change the size for copies of player actor
   int currCat = Common::nan;
-  const auto npc = actor ? actor->GetActorBase() : nullptr;
-  if (!npc) return Common::errNPC;
-  if (npc->IsPlayer() && !actor->IsPlayerRef()) return Common::resOkFixed;  // Don't change the size for copies of player actor
   if (sizeCat == Common::def) npc->RemoveKeywords(ut->SizeKeys());
   auto res = GetActorSize(actor, currCat);
   if (res != Common::resOkSizable) return res;
@@ -657,8 +654,8 @@ Common::eRes Core::SetActorSize(RE::Actor* const actor, int sizeCat, bool should
     npc->RemoveKeywords(ut->SizeKeys());
     npc->AddKeyword(ut->SizeKey(cat));
   }
-  if (auto race = actor->GetRace(); race, raceRgs.find(race) != raceRgs.end()) {
-    auto mult = raceRgs[race]->mult;
+  if (auto rg = RgKey(npc->race).Get(); rg) {
+    auto mult = rg->mult;
     if (mult < 0.0f) return Common::errRg;
     auto scale = mult * floatSettings.Get(static_cast<Common::eFloatSetting>(cat));
     if (scale < 0.1) scale = 1;
