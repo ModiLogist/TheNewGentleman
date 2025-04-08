@@ -5,7 +5,7 @@
 class Inis {
   public:
     void LoadMainIni();
-    void SaveMainIni() { settingIni.SaveFile(SettingFile()); };
+    void SaveMainIni();
     virtual ~Inis() = default;
 
     Common::TypedSetting<bool, Common::eBoolSetting> boolSettings{
@@ -23,19 +23,8 @@ class Inis {
         std::vector<const char*>{"GlobalSizes", "GlobalSizes", "GlobalSizes", "GlobalSizes", "GlobalSizes", cActiveMalAddons, cActiveFemAddons},
         std::vector<const char*>{"Size_XS", "Size__S", "Size__M", "Size__L", "Size_XL", "RandomChance", "RandomChance"}};
 
-    spdlog::level::level_enum GetLogLvl() const {
-      auto lvl = settingIni.GetLongValue(cGeneral, cLogLvl, static_cast<int>(spdlog::level::info));
-      return lvl > 0 && lvl < static_cast<int>(spdlog::level::n_levels) ? static_cast<spdlog::level::level_enum>(lvl) : spdlog::level::info;
-    };
-    void SetLogLvl(const int newLevel) {
-      if (newLevel < 1 || newLevel >= static_cast<int>(spdlog::level::n_levels)) return;
-      auto logLevel = static_cast<spdlog::level::level_enum>(newLevel);
-      if (logLevel == spdlog::level::info) {
-        settingIni.Delete(cGeneral, cLogLvl, true);
-      } else {
-        settingIni.SetLongValue(cGeneral, cLogLvl, logLevel);
-      }
-    };
+    spdlog::level::level_enum GetLogLvl() const;
+    void SetLogLvl(const int newLevel);
 
   private:
     inline static constexpr int iniVersion = 5;
@@ -85,7 +74,7 @@ class Inis {
   protected:
     void SetAddonStatus(const bool isFemale, const RE::TESObjectARMO* addon, const bool status);
 
-    void SetValidSkeleton(const std::string& skeletonModel) { settingIni.SetBoolValue(cValidSkeletons, skeletonModel.c_str(), true); };
+    void SetValidSkeleton(const std::string& skeletonModel);
     void SetRgAddon(const RE::TESRace* rg0, const RE::TESObjectARMO* addon, const int choice);
     void SetRgMult(const RE::TESRace* rgRace, const float mult);
 

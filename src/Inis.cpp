@@ -45,6 +45,23 @@ void Inis::LoadMainIni() {
   SKSE::log::info("TNG settings loaded.");
 }
 
+void Inis::SaveMainIni() { settingIni.SaveFile(SettingFile()); }
+
+spdlog::level::level_enum Inis::GetLogLvl() const {
+  auto lvl = settingIni.GetLongValue(cGeneral, cLogLvl, static_cast<int>(spdlog::level::info));
+  return lvl > 0 && lvl < static_cast<int>(spdlog::level::n_levels) ? static_cast<spdlog::level::level_enum>(lvl) : spdlog::level::info;
+}
+
+void Inis::SetLogLvl(const int newLevel) {
+  if (newLevel < 1 || newLevel >= static_cast<int>(spdlog::level::n_levels)) return;
+  auto logLevel = static_cast<spdlog::level::level_enum>(newLevel);
+  if (logLevel == spdlog::level::info) {
+    settingIni.Delete(cGeneral, cLogLvl, true);
+  } else {
+    settingIni.SetLongValue(cGeneral, cLogLvl, logLevel);
+  }
+}
+
 const char *Inis::SettingFile(const int version) const { return fmt::format(cSettings, version < 0 ? "" : std::to_string(version)).c_str(); }
 
 void Inis::TransferOldIni() {
@@ -126,6 +143,8 @@ void Inis::SetAddonStatus(const bool isFemale, const RE::TESObjectARMO *addon, c
   status == isFemale ? settingIni.SetBoolValue(isFemale ? cActiveFemAddons : cActiveMalAddons, addonLocStr.c_str(), status)
                      : settingIni.Delete(isFemale ? cActiveFemAddons : cActiveMalAddons, addonLocStr.c_str(), true);
 }
+
+void Inis::SetValidSkeleton(const std::string &skeletonModel) { settingIni.SetBoolValue(cValidSkeletons, skeletonModel.c_str(), true); }
 
 void Inis::SetRgAddon(const RE::TESRace *rgRace, const RE::TESObjectARMO *addon, const int choice) {
   auto raceRecord = ut->FormToStr(rgRace);
