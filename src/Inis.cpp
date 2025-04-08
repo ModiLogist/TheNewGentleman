@@ -477,7 +477,6 @@ void Inis::LoadTngInis() {
 }
 
 void Inis::LoadSingleIni(const char *path, const std::string_view fileName) {
-  // TODO: Start from here next
   CSimpleIniA ini;
   CSimpleIniA::TNamesDepend values;
   ini.SetUnicode();
