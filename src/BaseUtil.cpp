@@ -60,7 +60,7 @@ SEFormLoc Common::BaseUtil::StrToLoc(const std::string& locStr) const {
   }
 }
 
-std::string Common::BaseUtil::Join(const std::vector<std::string>& strings, const std::string_view delimiter) const { auto res = fmt::join(strings, delimiter); }
+std::string Common::BaseUtil::Join(const std::vector<std::string>& strings, const std::string_view delimiter) const { return fmt::format("{}", fmt::join(strings, delimiter)); }
 
 std::vector<std::string> Common::BaseUtil::Split(const std::string& str, const std::string_view delimiter) const {
   std::vector<std::string> tokens;
@@ -75,6 +75,7 @@ std::string Common::BaseUtil::NameToStr(std::string name) const {
   if (name.empty()) return name;
   if (name.length() > 2 && name.front() == '\"' && name.back() == '\"') return name;
   if (name.find_first_of(iniChars) != std::string::npos) return "\"" + name + "\"";
+  return name;
 }
 
 std::string Common::BaseUtil::StrToName(std::string name) const {

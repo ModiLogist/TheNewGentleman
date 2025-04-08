@@ -95,7 +95,6 @@ void Core::SetRgMult(RgKey rgChoice, const float mult) {
   auto rg = rgChoice.Get();
   if (!rg || mult < 0.1f || mult >= 10.0f) {
     SKSE::log::critical("\tFailure in setting a race mult!");
-    SKSE::log::debug("\t\tThe race index was {} and the mult was {}", rgChoice, mult);
     return;
   }
   rg->mult = mult;
@@ -135,19 +134,19 @@ bool Core::ReevaluateRace(RE::TESRace* const race, RE::Actor* const actor) {
   SKSE::log::debug("Re-evaluating race [0x{:x}:{}] ...", race->GetFormID(), race->GetFormEditorID());
   if (!actor->Is3DLoaded()) return false;
   auto rg = raceRgs[race];
-  bool isInvalid = false;
+  bool isValid = true;
   for (auto& boneName : Common::genBoneNames)
     if (!actor->GetNodeByName(boneName)) {
-      isInvalid = true;
+      isValid = false;
       SKSE::log::info("\tTNG would neglect the race [0x{:x}:{}] since its skeleton is missing the bone [{}]", race->GetFormID(), race->GetFormEditorID(), boneName);
     }
-  if (!isInvalid) {
+  if (isValid) {
     if (race->skeletonModels[0].model.empty() || race->skeletonModels[1].model.empty()) {
       SKSE::log::info("\tTNG would neglect the race [0x{:x}:{}] since its skeleton could not be recognized.", race->GetFormID(), race->GetFormEditorID());
-      isInvalid = true;
+      isValid = false;
     }
   }
-  if (!isInvalid) {
+  if (isValid) {
     SetValidSkeleton(race->skeletonModels[0].model.data());
     SetValidSkeleton(race->skeletonModels[1].model.data());
     SKSE::log::debug("\tThe race [0x{:x}:{}] was evaluated to be supported by TNG!", race->GetFormID(), race->GetFormEditorID());
@@ -161,10 +160,10 @@ bool Core::ReevaluateRace(RE::TESRace* const race, RE::Actor* const actor) {
     auto it = std::find(rg->races.begin(), rg->races.end(), race);
     raceRgs.erase(race);
     rg->races.erase(it);
-    auto rgIt = std::find(rgInfoList.begin(), rgInfoList.end(), *rg);
+    auto rgIt = std::ranges::find_if(rgInfoList, [&](const auto& item) { return &item == rg; });
     if (rgIt != rgInfoList.end() && rg->races.empty()) rgInfoList.erase(rgIt);
   }
-  return true;
+  return isValid;
 }
 
 void Core::IgnoreRace(RE::TESRace* const race, bool ready) {
@@ -700,7 +699,7 @@ std::pair<int, bool> Core::GetApplicableAddon(RE::Actor* const actor) const {
   auto npc = actor ? actor->GetActorBase() : nullptr;
   if (!npc) return {addonIdx, false};
   auto savedAddon = Inis::GetActorAddon(actor);
-  auto list = core->GetActorAddons(actor, true);
+  auto list = GetActorAddons(actor, true);
   if (!savedAddon.second.empty()) {
     addonIdx = savedAddon.second == Common::nulStr ? Common::nul : AddonIdxByLoc(npc->IsFemale(), savedAddon);
     if (addonIdx >= 0 && std::ranges::find_if(list, [&](const auto& pair) { return pair.first == static_cast<size_t>(addonIdx); }) != list.end()) {
@@ -949,23 +948,20 @@ void Core::CheckArmorPieces() {
     }
   }
   for (auto entry = potentialSlot52Mods.begin(); entry != potentialSlot52Mods.end();) {
-    if (potentialMods.find(*entry) == potentialMods.end()) {
-      entry = potentialSlot52Mods.erase(entry);
-    } else {
+    if (potentialMods.find(*entry) != potentialMods.end()) {
       Process52(*entry);
       ++entry;
     }
   }
-  for (auto& modName : potentialSlot52Mods)
-    for (auto& armorPair : potentialArmor) {
-      if (IsExtraRevealing(armorPair.first)) {
-        armorPair.second->AddKeyword(ut->Key(Common::kyRevealing));
-        logInfo[5]++;
-      } else {
-        armorPair.second->AddKeyword(ut->Key(Common::kyCovering));
-        logInfo[4]++;
-      }
+  for (auto& armorPair : potentialArmor) {
+    if (IsExtraRevealing(armorPair.first)) {
+      armorPair.second->AddKeyword(ut->Key(Common::kyRevealing));
+      logInfo[5]++;
+    } else {
+      armorPair.second->AddKeyword(ut->Key(Common::kyCovering));
+      logInfo[4]++;
     }
+  }
   SKSE::log::info("\tProcessed [{}] armor pieces:", armorList.size());
   if (logInfo[0] > 0) SKSE::log::warn("\t\t[{}]: were problematic!", logInfo[0]);
   if (logInfo[1] > 0) SKSE::log::info("\t\t[{}]: were already marked with TNG keywords.", logInfo[1]);
