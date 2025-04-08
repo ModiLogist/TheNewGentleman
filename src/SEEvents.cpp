@@ -59,18 +59,6 @@ RE::BSEventNotifyControl SEEvents::ProcessEvent(const RE::TESSwitchRaceCompleteE
   return RE::BSEventNotifyControl::kContinue;
 }
 
-RE::TESObjectARMO* SEEvents::GetCoveringItem(RE::Actor* actor, RE::TESObjectARMO* exception) {
-  auto npc = actor ? actor->GetActorBase() : nullptr;
-  if (!npc) return nullptr;
-  auto inv = actor->GetInventory([=](RE::TESBoundObject& a_object) { return a_object.IsArmor() && ut->IsCovering(npc, a_object.As<RE::TESObjectARMO>()); }, true);
-  for (const auto& [item, invData] : inv) {
-    if (item && invData.first && invData.second && invData.second->IsWorn() && item != exception) {
-      return item->As<RE::TESObjectARMO>();
-    }
-  }
-  return nullptr;
-}
-
 bool SEEvents::NeedsCover(RE::Actor* actor) {
   if (core->CanModifyActor(actor) < 0) return false;
   auto npc = actor->GetActorBase();

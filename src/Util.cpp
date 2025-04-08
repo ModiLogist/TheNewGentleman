@@ -67,3 +67,12 @@ std::vector<RE::TESObjectARMO*> Common::Util::GetActorWornArmor(RE::Actor* const
   }
   return res;
 }
+
+RE::TESObjectARMO* Common::Util::GetCoveringItem(RE::Actor* const actor, RE::TESObjectARMO* const exception) {
+  auto npc = actor ? actor->GetActorBase() : nullptr;
+  if (!npc) return nullptr;
+  auto wornArmor = GetActorWornArmor(actor);
+  for (const auto& armor : wornArmor)
+    if (armor && IsCovering(npc, armor) && armor != exception) return armor;
+  return nullptr;
+}

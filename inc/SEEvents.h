@@ -13,8 +13,6 @@ class SEEvents : public Singleton<SEEvents>,
     RE::BSEventNotifyControl ProcessEvent(const RE::TESSwitchRaceCompleteEvent* event, RE::BSTEventSource<RE::TESSwitchRaceCompleteEvent>*) override;
 
   public:
-    RE::TESObjectARMO* GetCoveringItem(RE::Actor* actor, RE::TESObjectARMO* exception);
-
   private:
     bool NeedsCover(RE::Actor* actor);
 

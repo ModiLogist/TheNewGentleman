@@ -139,6 +139,7 @@ namespace Common {
       bool IsBlock(RE::TESForm* form) const { return form && (FormToLoc(form) == coverID); }
       bool IsCovering(const RE::TESNPC* npc, const RE::TESObjectARMO* armor);
       std::vector<RE::TESObjectARMO*> GetActorWornArmor(RE::Actor* const actor) const;
+      RE::TESObjectARMO* GetCoveringItem(RE::Actor* const actor, RE::TESObjectARMO* const exception);
 
     private:
       inline static constexpr SEFormLocView raceIDs[racesCount]{{0x19, skyrimFile}, {0x13745, skyrimFile}};

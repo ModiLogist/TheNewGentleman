@@ -1,6 +1,5 @@
 #include <Core.h>
 #include <Papyrus.h>
-#include <SEEvents.h>
 #include <Util.h>
 
 Papyrus* papyrus = Papyrus::GetSingleton();
@@ -254,7 +253,7 @@ std::string Papyrus::WhyProblem(RE::StaticFunctionTag* tag, RE::Actor* actor, in
   auto npc = actor ? actor->GetActorBase() : nullptr;
   if (!npc) return "$TNG_PD9";
   auto down = actor->GetWornArmor(Common::genitalSlot);
-  auto cover = events->GetCoveringItem(actor, nullptr);
+  auto cover = ut->GetCoveringItem(actor, nullptr);
   switch (issueID) {
     case iidCanSee:
       if (!cover) return "$TNG_PA1";
