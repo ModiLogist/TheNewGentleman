@@ -260,7 +260,7 @@ std::string Papyrus::WhyProblem(RE::StaticFunctionTag* tag, RE::Actor* actor, in
       if (down) return ut->IsBlock(down) ? "$TNG_PD0" : "$TNG_PA2";
       return WhyProblem(tag, actor, iidCanSeeRep);
     case iidCanSeeRep:
-      events->DoChecks(actor);
+      core->UpdateActor(actor);
       return actor->GetWornArmor(Common::genitalSlot) ? "$TNG_PD1" : "$TNG_PD2";
     case iidCannotSee:
       auto skin = npc->skin ? npc->skin : npc->race->skin;
@@ -286,7 +286,7 @@ std::string Papyrus::WhyProblem(RE::StaticFunctionTag* tag, RE::Actor* actor, in
         RE::TESObjectARMO* actorAddon = nullptr;
         if (core->GetRgAddon(Core::RgKey(npc->race)) == Common::nul) return "$TNG_PA5";
       }
-      events->DoChecks(actor);
+      core->UpdateActor(actor);
       return !actor->GetWornArmor(Common::genitalSlot) && skin->HasKeyword(ut->Key(Common::kyTngSkin)) ? "$TNG_PD1" : "$TNG_PD2";
   }
   return "";

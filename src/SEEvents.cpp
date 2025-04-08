@@ -22,7 +22,7 @@ RE::BSEventNotifyControl SEEvents::ProcessEvent(const RE::TESEquipEvent* event, 
   if (core->CanModifyActor(actor) < 0 || !armor || !ut->IsCovering(npc, armor) || !armor->HasPartOf(Common::genitalSlot)) return RE::BSEventNotifyControl::kContinue;
   if (npc->race->HasKeyword(ut->Key(Common::kyPreProcessed)) && !core->ReevaluateRace(npc->race, actor)) return RE::BSEventNotifyControl::kContinue;
   if (ut->IsBlock(armor)) return RE::BSEventNotifyControl::kContinue;
-  DoChecks(actor, armor, event->equipped);
+  core->UpdateActor(actor, armor, event->equipped);
   return RE::BSEventNotifyControl::kContinue;
 }
 
@@ -33,8 +33,7 @@ RE::BSEventNotifyControl SEEvents::ProcessEvent(const RE::TESObjectLoadedEvent* 
   if (!npc) return RE::BSEventNotifyControl::kContinue;
   if (core->CanModifyActor(actor) < 0) return RE::BSEventNotifyControl::kContinue;
   if (npc->race->HasKeyword(ut->Key(Common::kyPreProcessed)) && !core->ReevaluateRace(npc->race, actor)) return RE::BSEventNotifyControl::kContinue;
-  if (actor->IsPlayerRef()) core->SetActorAddon(actor, Common::defPlayer, false, false);
-  DoChecks(actor);
+  core->UpdateActor(actor);
   return RE::BSEventNotifyControl::kContinue;
 }
 
@@ -54,7 +53,7 @@ RE::BSEventNotifyControl SEEvents::ProcessEvent(const RE::TESSwitchRaceCompleteE
     return RE::BSEventNotifyControl::kContinue;
   }
   if (GetNPCAutoAddon(npc).second && npc->race->HasKeyword(ut->Key(Common::kyProcessed)) && !npc->HasKeyword(ut->Key(Common::kyProcessed))) {
-    DoChecks(actor);
+    core->UpdateActor(actor);
   }
   return RE::BSEventNotifyControl::kContinue;
 }
