@@ -177,11 +177,7 @@ RE::TESObjectARMO* Papyrus::GetActorAddon(RE::StaticFunctionTag*, RE::Actor* act
   return core->GetAddonForActor(actor, addonIdx);
 }
 
-int Papyrus::SetActorAddon(RE::StaticFunctionTag*, RE::Actor* actor, int choice) {
-  auto res = core->SetActorAddon(actor, choice, true, true);
-  if (res >= 0) events->DoChecks(actor);
-  return res;
-}
+int Papyrus::SetActorAddon(RE::StaticFunctionTag*, RE::Actor* actor, int choice) { return core->SetActorAddon(actor, choice, true, true); }
 
 int Papyrus::GetActorSize(RE::StaticFunctionTag*, RE::Actor* actor) {
   int sizeCat = Common::nan;
@@ -200,9 +196,7 @@ std::vector<std::string> Papyrus::ActorItemsInfo(RE::StaticFunctionTag*, RE::Act
 bool Papyrus::SwapRevealing(RE::StaticFunctionTag*, RE::Actor* actor, int choice) {
   auto wornArmor = ut->GetActorWornArmor(actor);
   if (choice < 0 || choice > wornArmor.size()) return false;
-  auto res = core->SwapRevealing(actor, wornArmor[choice]);
-  events->DoChecks(actor);
-  return res;
+  return core->SwapRevealing(actor, wornArmor[choice]);
 }
 
 std::vector<std::string> Papyrus::GetSlot52Mods(RE::StaticFunctionTag*) { return core->Slot52Mods(); }

@@ -622,6 +622,7 @@ Common::eRes Core::SetActorAddon(RE::Actor* const actor, const int choice, const
     auto saved = Inis::SetNPCAddon(npc, addon, addonIdx);
     if (!saved) Inis::SetActorAddon(actor, addon, addonIdx);
   }
+  if (shouldSave) UpdateCover(actor, nullptr, false);
   return res;
 }
 
@@ -1033,6 +1034,7 @@ bool Core::SwapRevealing(RE::Actor* const actor, RE::TESObjectARMO* const armor)
     armor->RemoveKeyword(rcKeys[kb]);
     if (armor->HasPartOf(Common::bodySlot)) armor->AddKeyword(rcKeys[kb ^ mask]);
   }
+  UpdateCover(actor, nullptr, false);
   return true;
 }
 
