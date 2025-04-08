@@ -36,14 +36,14 @@ class Core : public Singleton<Core>, public Inis {
 
   private:
     std::vector<Common::RaceGroupInfo> rgInfoList;
-    std::map<RE::TESRace* const, Common::RaceGroupInfo* const> raceRgs;
-    std::map<RE::TESObjectARMO* const, RE::TESObjectARMO* const> ogSkinMap;
+    std::map<RE::TESRace*, Common::RaceGroupInfo*> raceRgs;
+    std::map<RE::TESObjectARMO*, RE::TESObjectARMO*> ogSkinMap;
     void IgnoreRace(RE::TESRace* const race, bool ready);
     Common::RaceGroupInfo* const ProcessRace(RE::TESRace* const race);
     Common::eRes CheckRace(RE::TESRace* const race);
     Common::RaceGroupInfo* AddRace(RE::TESRace* const race, const bool isProcessed);
     int GetRgDefAddon(Common::RaceGroupInfo& rg);
-    void ProcessRgAddons(Common::RaceGroupInfo& rg, const std::vector<std::pair<RE::TESObjectARMO* const, bool>>& addons, const bool isFemale);
+    void ProcessRgAddons(Common::RaceGroupInfo& rg, const std::vector<std::pair<RE::TESObjectARMO*, bool>>& addons, const bool isFemale);
     void ApplyUserSettings(Common::RaceGroupInfo& rg);
     RE::TESObjectARMO* GetSkinWithAddonForRg(Common::RaceGroupInfo* const rg, RE::TESObjectARMO* skin, const size_t addonIdx, const bool isFemale);
     RE::TESObjectARMO* GetOgSkin(RE::TESObjectARMO* skin) const;

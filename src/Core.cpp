@@ -313,7 +313,7 @@ int Core::GetRgDefAddon(Common::RaceGroupInfo& rg) {
   return Common::nul;
 }
 
-void Core::ProcessRgAddons(Common::RaceGroupInfo& rg, const std::vector<std::pair<RE::TESObjectARMO* const, bool>>& addons, const bool isFemale) {
+void Core::ProcessRgAddons(Common::RaceGroupInfo& rg, const std::vector<std::pair<RE::TESObjectARMO*, bool>>& addons, const bool isFemale) {
   auto& rgAddons = isFemale ? rg.femAddons : rg.malAddons;
   const char* gender = isFemale ? "women" : "men";
   for (size_t i = 0; i < addons.size(); i++) {
