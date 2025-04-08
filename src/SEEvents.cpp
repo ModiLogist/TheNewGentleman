@@ -5,12 +5,10 @@
 SEEvents* events = SEEvents::GetSingleton();
 
 void SEEvents::RegisterEvents() {
-  showErrMessage = true;
   const auto sesh = RE::ScriptEventSourceHolder::GetSingleton();
   sesh->AddEventSink<RE::TESEquipEvent>(GetSingleton());
   sesh->AddEventSink<RE::TESObjectLoadedEvent>(GetSingleton());
   sesh->AddEventSink<RE::TESSwitchRaceCompleteEvent>(GetSingleton());
-
   SKSE::log::info("Registered for necessary events.");
 }
 
