@@ -841,12 +841,12 @@ void Core::UpdateCover(RE::Actor* const actor, RE::TESObjectARMO* const armor, c
   static bool showErrMessage = true;
   auto down = armor && isEquipped && armor->HasPartOf(Common::genitalSlot) ? armor : actor->GetWornArmor(Common::genitalSlot);
   if (down && down == armor && !isEquipped) down = nullptr;
-  auto cover = armor && isEquipped && !armor->HasPartOf(Common::genitalSlot) ? armor : GetCoveringItem(actor, isEquipped ? nullptr : armor);
-  if (!NeedsBlock(actor) || (down && (!ut->IsBlock(down) || !cover))) {
+  auto hasCover = armor && isEquipped && !armor->HasPartOf(Common::genitalSlot) ? true : ut->HasCovering(actor, isEquipped ? nullptr : armor);
+  if (!NeedsBlock(actor) || (down && (!ut->IsBlock(down) || !hasCover))) {
     actor->RemoveItem(ut->Block(), 10, RE::ITEM_REMOVE_REASON::kRemove, nullptr, nullptr);
     return;
   }
-  if ((cover && down) || (!cover && !down)) return;
+  if ((hasCover && down) || (!hasCover && !down)) return;
   auto tngBlock = ut->Block();
   if (!tngBlock) {
     if (showErrMessage) {

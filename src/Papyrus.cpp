@@ -205,13 +205,13 @@ int Papyrus::SetActorSize(RE::StaticFunctionTag*, RE::Actor* actor, int genSize)
 
 std::vector<std::string> Papyrus::ActorItemsInfo(RE::StaticFunctionTag*, RE::Actor* actor) {
   std::vector<std::string> res{};
-  auto wornArmor = ut->GetActorWornArmor(actor);
+  auto wornArmor = ut->GetWornAmor(actor);
   for (auto& armor : wornArmor) res.push_back(armor->GetName());
   return res;
 }
 
 bool Papyrus::SwapRevealing(RE::StaticFunctionTag*, RE::Actor* actor, int choice) {
-  auto wornArmor = ut->GetActorWornArmor(actor);
+  auto wornArmor = ut->GetWornAmor(actor);
   if (choice < 0 || choice > wornArmor.size()) return false;
   return core->SwapRevealing(actor, wornArmor[choice]);
 }
@@ -264,10 +264,10 @@ std::string Papyrus::WhyProblem(RE::StaticFunctionTag* tag, RE::Actor* actor, in
   auto npc = actor ? actor->GetActorBase() : nullptr;
   if (!npc) return "$TNG_PD9";
   auto down = actor->GetWornArmor(Common::genitalSlot);
-  auto cover = ut->GetCoveringItem(actor, nullptr);
+  auto hasCover = ut->HasCovering(actor, nullptr);
   switch (issueID) {
     case iidCanSee:
-      if (!cover) return "$TNG_PA1";
+      if (!hasCover) return "$TNG_PA1";
       if (down) return ut->IsBlock(down) ? "$TNG_PD0" : "$TNG_PA2";
       return WhyProblem(tag, actor, iidCanSeeRep);
     case iidCanSeeRep:
@@ -275,7 +275,7 @@ std::string Papyrus::WhyProblem(RE::StaticFunctionTag* tag, RE::Actor* actor, in
       return actor->GetWornArmor(Common::genitalSlot) ? "$TNG_PD1" : "$TNG_PD2";
     case iidCannotSee:
       auto skin = npc->skin ? npc->skin : npc->race->skin;
-      if (cover) return "$TNG_PA6";
+      if (hasCover) return "$TNG_PA6";
       if (down && !ut->IsBlock(down)) return "$TNG_PA2";
       if (!down) {
         auto res = core->CanModifyActor(actor);

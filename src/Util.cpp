@@ -47,14 +47,16 @@ RE::TESObjectARMO* Common::Util::Block() {
   return block;
 }
 
-bool Common::Util::IsCovering(const RE::TESNPC* npc, const RE::TESObjectARMO* armor) {
+bool Common::Util::IsCovering(const RE::Actor* const actor, const RE::TESObjectARMO* const armor) {
+  auto npc = actor ? actor->GetActorBase() : nullptr;
+  if (!npc || !armor) return false;
   if (armor->HasKeyword(Key(Common::kyCovering))) return true;
   if (armor->HasKeyword(Key(Common::kyRevealingF)) && !npc->IsFemale()) return true;
   if (armor->HasKeyword(Key(Common::kyRevealingM)) && npc->IsFemale()) return true;
   return false;
 }
 
-std::vector<RE::TESObjectARMO*> Common::Util::GetActorWornArmor(RE::Actor* const actor) const {
+std::vector<RE::TESObjectARMO*> Common::Util::GetWornAmor(RE::Actor* const actor) const {
   std::vector<RE::TESObjectARMO*> res{};
   res.clear();
   if (!actor) return res;
@@ -68,11 +70,11 @@ std::vector<RE::TESObjectARMO*> Common::Util::GetActorWornArmor(RE::Actor* const
   return res;
 }
 
-RE::TESObjectARMO* Common::Util::GetCoveringItem(RE::Actor* const actor, RE::TESObjectARMO* const exception) {
+bool Common::Util::HasCovering(RE::Actor* const actor, RE::TESObjectARMO* const exception) {
   auto npc = actor ? actor->GetActorBase() : nullptr;
-  if (!npc) return nullptr;
-  auto wornArmor = GetActorWornArmor(actor);
+  if (!npc) return false;
+  auto wornArmor = GetWornAmor(actor);
   for (const auto& armor : wornArmor)
-    if (armor && IsCovering(npc, armor) && armor != exception) return armor;
-  return nullptr;
+    if (armor && IsCovering(actor, armor) && armor != exception) return true;
+  return false;
 }
