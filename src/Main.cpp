@@ -40,14 +40,14 @@ static void EventListener(SKSE::MessagingInterface::Message* message) {
     core->LoadMainIni();
     core->LoadTngInis();
     core->ProcessRaces();
-    core->ProcessSkins();
+    core->ProcessNPCs();
     core->CheckArmorPieces();
     SKSE::log::info("TheNewGentleman finished initialization.");
     events->RegisterEvents();
     Hooks::Install();
   }
   if (message->type == SKSE::MessagingInterface::kNewGame || message->type == SKSE::MessagingInterface::kPostLoadGame) {
-    core->UnsetPlayerInfo();
+    // core->UnsetPlayerInfo();
   }
   if (message->type == SKSE::MessagingInterface::kSaveGame) {
     core->SaveMainIni();
