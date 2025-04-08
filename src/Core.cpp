@@ -492,14 +492,23 @@ Common::eRes Core::CanModifyActor(RE::Actor* const actor) const {
 }
 
 void Core::UpdateActor(RE::Actor* const actor, RE::TESObjectARMO* const armor, const bool isEquipped) {
-  if (CanModifyActor(actor) == Common::resOkRacePP && !ReevaluateRace(actor->GetRace(), actor)) return;
+  auto npc = actor ? actor->GetActorBase() : nullptr;
+  if (!npc || !npc->race || !npc->race->skin) return;
   auto canModify = CanModifyActor(actor);
-  if (canModify < 0) return;
-  if (canModify == Common::resOkRaceP) {
+  auto skin = npc->skin;
+  if (canModify == Common::resOkRacePP) ReevaluateRace(actor->GetRace(), actor);
+  if (canModify < 0 || canModify == Common::resOkRacePP) {
+    if (skin && skin->HasKeyword(ut->Key(Common::kyTngSkin))) npc->skin = nullptr;
+    return;
+  }
+  if (skin && skin->HasKeyword(ut->Key(Common::kyTngSkin)) &&
+      std::ranges::find_if(skin->armorAddons, [&](const auto& aa) { return aa->IsValidRace(npc->race); }) == skin->armorAddons.end())
+    npc->skin = nullptr;
+  if (canModify == Common::resOkRaceP || canModify == Common::resOkRaceR) {
     if (actor->IsPlayerRef()) {
-      UpdatePlayer(actor);
+      UpdatePlayer(actor, canModify == Common::resOkRaceR);
     } else {
-      UpdateAddon(actor);
+      UpdateAddon(actor, canModify == Common::resOkRaceR);
     }
     UpdateFormLists(actor);
   }
@@ -560,7 +569,7 @@ Common::eRes Core::SetActorAddon(RE::Actor* const actor, const int choice, const
       return res;
     }
   }
-  if (actor && actor->IsPlayerRef() && choice == Common::defPlayer) return UpdatePlayer(actor);
+  if (actor->IsPlayerRef() && choice == Common::defPlayer) return UpdatePlayer(actor, false);
   const auto npc = actor->GetActorBase();
   auto list = GetActorAddons(actor, !isUser);
   if (shouldSave) {
@@ -789,12 +798,13 @@ void Core::OrganizeNPCKeywords(RE::TESNPC* const npc, int addonIdx, bool isUser)
   }
 }
 
-void Core::UpdateAddon(RE::Actor* const actor) {
+void Core::UpdateAddon(RE::Actor* const actor, const bool isRRace) {
+  SetActorSize(actor, Common::nul, false);
+  if (isRRace) return;
   int currIdx;
   bool isAuto = true;
   auto addonRes = GetActorAddon(actor, currIdx, isAuto);
   if (addonRes < 0 && addonRes != Common::err40) return;
-  SetActorSize(actor, Common::nul, false);
   if (!isAuto) {
     if (addonRes == Common::err40) SetActorAddon(actor, currIdx, true, false);
     return;
@@ -807,7 +817,7 @@ void Core::UpdateAddon(RE::Actor* const actor) {
   if (addonRes == Common::err40 || currIdx != autoIdx) SetActorAddon(actor, autoIdx, isSaved, false);
 }
 
-Common::eRes Core::UpdatePlayer(RE::Actor* const actor) {
+Common::eRes Core::UpdatePlayer(RE::Actor* const actor, const bool isRRace) {
   auto player = actor ? actor->GetActorBase() : nullptr;
   if (!player || !actor->IsPlayerRef()) return Common::errNPC;
   // TODO: Update player size and addon

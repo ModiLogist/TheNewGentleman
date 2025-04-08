@@ -64,8 +64,8 @@ class Core : public Singleton<Core>, public Inis {
     std::pair<int, bool> GetApplicableAddon(RE::Actor* const actor) const;
     Common::eRes SetNPCAddon(RE::TESNPC* const npc, const int addonIdx, const bool isUser);
     void OrganizeNPCKeywords(RE::TESNPC* const npc, int addonIdx, bool isUser) const;
-    void UpdateAddon(RE::Actor* const actor);
-    Common::eRes UpdatePlayer(RE::Actor* const actor);
+    void UpdateAddon(RE::Actor* const actor, const bool isRRace);
+    Common::eRes UpdatePlayer(RE::Actor* const actor, const bool isRRace);
     void UpdateFormLists(RE::Actor* const actor) const;
     void UpdateBlock(RE::Actor* const actor, RE::TESObjectARMO* const armor, const bool isEquipped) const;
     bool NeedsBlock(RE::Actor* const actor) const;
