@@ -597,6 +597,13 @@ Common::eRes Core::GetActorAddon(RE::Actor* actor, int& addonIdx, bool& isAuto) 
 }
 
 Common::eRes Core::SetActorAddon(RE::Actor* const actor, const int choice, const bool isUser, const bool shouldSave) {
+  if (shouldSave) {
+    if (CanModifyActor(actor) == Common::resOkRacePP) ReevaluateRace(actor->GetRace(), actor);
+    if (auto res = CanModifyActor(actor); res != Common::resOkRaceP) {
+      if (res >= 0) res = Common::errRace;
+      return res;
+    }
+  }
   if (actor && actor->IsPlayerRef() && choice == Common::defPlayer) return UpdatePlayer(actor);
   const auto npc = actor->GetActorBase();
   auto list = GetActorAddons(actor, !isUser);
@@ -632,6 +639,12 @@ Common::eRes Core::GetActorSize(RE::Actor* const actor, int& sizeCat) const {
 }
 
 Common::eRes Core::SetActorSize(RE::Actor* const actor, int sizeCat, bool shouldSave) {
+  if (shouldSave) {
+    if (CanModifyActor(actor) == Common::resOkRacePP) ReevaluateRace(actor->GetRace(), actor);
+    if (auto res = CanModifyActor(actor); res < 0) return res;
+  }
+  const auto npc = actor->GetActorBase();
+  if (npc->IsPlayer()) return Common::resOkFixed;  // Don't change the size for copies of player actor
   int currCat = Common::nan;
   const auto npc = actor ? actor->GetActorBase() : nullptr;
   if (!npc) return Common::errNPC;
