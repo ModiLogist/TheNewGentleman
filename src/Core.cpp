@@ -182,8 +182,10 @@ Common::RaceGroupInfo* const Core::ProcessRace(RE::TESRace* const race) {
     case Common::resOkRaceP:
       return AddRace(race, true);
     case Common::resOkRaceR:
+      IgnoreRace(race, true);
       break;
     case Common::errRace:
+      IgnoreRace(race, false);
       break;
     default:
       break;
@@ -191,8 +193,7 @@ Common::RaceGroupInfo* const Core::ProcessRace(RE::TESRace* const race) {
   return nullptr;
 }
 
-Common::eRes Core::CheckRace(RE::TESRace* const race) {
-  // TODO: Can probably become const
+Common::eRes Core::CheckRace(RE::TESRace* const race) const {
   try {
     for (auto raceInfo : hardCodedRaces)
       if (ut->FormToLoc(race) == raceInfo) return Common::resOkRaceP;
@@ -216,14 +217,12 @@ Common::eRes Core::CheckRace(RE::TESRace* const race) {
     if (!skinFound) {
       SKSE::log::warn("\tThe race [0x{:x}: {}] cannot have any genitals since their skin cannot be recognized!  It was last modified by [{}].", race->GetFormID(),
                       race->GetFormEditorID(), race->GetFile() ? race->GetFile()->GetFilename() : "Unrecognized File");
-      IgnoreRace(race, false);
       return Common::errRace;
     }
     bool isVanilla = race->GetFile(0) && race->GetFile(0)->GetFilename() == Common::skyrimFile;
     if (race->HasPartOf(Common::genitalSlot) && !isVanilla) {
       auto ready = race->skin->HasPartOf(Common::genitalSlot);
       SKSE::log::info("\tThe race [{}] is designed to be {} TNG. It was not modified.", race->GetFormEditorID(), ready ? "ready for" : "ignored by");
-      IgnoreRace(race, ready);
       return ready ? Common::resOkRaceR : Common::errRace;
     }
   } catch (const std::exception& er) {
@@ -233,7 +232,6 @@ Common::eRes Core::CheckRace(RE::TESRace* const race) {
                                       race->GetFormEditorID(), er.what())
                               .c_str();
     ut->ShowSkyrimMessage(message);
-    IgnoreRace(race, false);
     return Common::errRace;
   }
   bool isValidSk =

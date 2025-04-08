@@ -40,7 +40,7 @@ class Core : public Singleton<Core>, public Inis {
     std::map<RE::TESObjectARMO*, RE::TESObjectARMO*> ogSkinMap;
     void IgnoreRace(RE::TESRace* const race, bool ready);
     Common::RaceGroupInfo* const ProcessRace(RE::TESRace* const race);
-    Common::eRes CheckRace(RE::TESRace* const race);
+    Common::eRes CheckRace(RE::TESRace* const race) const;
     Common::RaceGroupInfo* AddRace(RE::TESRace* const race, const bool isProcessed);
     int GetRgDefAddon(Common::RaceGroupInfo& rg);
     void ProcessRgAddons(Common::RaceGroupInfo& rg, const std::vector<std::pair<RE::TESObjectARMO*, bool>>& addons, const bool isFemale);
