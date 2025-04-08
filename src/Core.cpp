@@ -33,6 +33,9 @@ void Core::LoadAddons() {
 }
 
 int Core::AddonIdxByLoc(const bool isFemale, const SEFormLocView addonLoc) const {
+  if (addonLoc.second.empty()) return Common::nan;
+  if (addonLoc.second == Common::nulStr) return Common::nul;
+  if (addonLoc.second == Common::defStr) return Common::def;
   auto& list = isFemale ? femAddons : malAddons;
   for (int i = 0; i < list.size(); i++) {
     if (ut->FormToLoc(list[i].first) == addonLoc) return i;
@@ -343,7 +346,7 @@ void Core::ProcessRgAddons(Common::RaceGroupInfo& rg, const std::vector<std::pai
       rg.defAddonIdx = static_cast<int>(i);
       rg.addonIdx = static_cast<int>(i);
     }
-    SKSE::log::debug("\t\tThe addon [0x{:x}] from file [{}] {} {} in the race group [{}]!", addon->GetFormID(), addon->GetFile(0)->GetFilename(),
+    SKSE::log::debug("\t\tThe addon [xx{:x}] from file [{}] {} {} in the race group [{}]!", addon->GetFormID(), addon->GetFile(0)->GetFilename(),
                      rgAddons[i].first ? "fully supports" : "can be used for", gender, rg.name);
   }
 }
@@ -355,9 +358,12 @@ void Core::ApplyUserSettings(Common::RaceGroupInfo& rg) {
       auto index = AddonIdxByLoc(false, addonLoc);
       if (index >= 0 && rg.malAddons.find(static_cast<size_t>(index)) != rg.malAddons.end()) {
         rg.addonIdx = index;
-        SKSE::log::debug("\tRestored group [{}] addon to [0x{:x}] from file [{}]!", rg.name, addonLoc.first, addonLoc.second);
+        SKSE::log::debug("\tRestored group [{}] addon to [xx{:x}] from file [{}]!", rg.name, addonLoc.first, addonLoc.second);
+      } else if (index == Common::nul) {
+        rg.addonIdx = Common::nul;
+        SKSE::log::debug("\tRestored group [{}] addon to be empty!", rg.name);
       } else {
-        SKSE::log::debug("\tThe addon [0x{:x}] from file [{}] could not be used for group [{}]!", addonLoc.first, addonLoc.second, rg.name);
+        SKSE::log::debug("\tThe addon [xx{:x}] from file [{}] could not be used for group [{}]!", addonLoc.first, addonLoc.second, rg.name);
       }
     }
     if (racialSizes.find(rg0Loc) != racialSizes.end()) {
@@ -687,7 +693,7 @@ void Core::ApplyUserSettings(RE::TESNPC* npc) {
       auto& addonLoc = npcAddons[npcLoc];
       auto index = AddonIdxByLoc(npc->IsFemale(), addonLoc);
       if (SetNPCAddon(npc, index, true) >= 0) {
-        SKSE::log::debug("\tRestored the addon of npc [xx{:x}] from file [{}] to addon [xx{:x}] from file [{}]", npcLoc.first, npcLoc.second, addonLoc.first, addonLoc.second);
+        SKSE::log::debug("\tRestored the addon of npc [xx{:x}] from file [{}] to addon [xx{:x}~{}]", npcLoc.first, npcLoc.second, addonLoc.first, addonLoc.second);
       } else {
         SKSE::log::debug("\tThe addon [xx{:x}] from file [{}] could not be used for npc [xx{:x}] from file [{}]", addonLoc.first, addonLoc.second, npcLoc.first, npcLoc.second);
       }
@@ -715,6 +721,9 @@ std::pair<int, bool> Core::GetApplicableAddon(RE::Actor* const actor) const {
     if (addonIdx >= 0 && std::ranges::find_if(list, [&](const auto& pair) { return pair.first == static_cast<size_t>(addonIdx); }) != list.end()) {
       SKSE::log::debug("The addon [0x{:x}] from file [{}] was restored for actor [0x{:x}: {}]", savedAddon.first, savedAddon.second, actor->GetFormID(), npc->GetName());
       return {addonIdx, true};
+    } else if (addonIdx == Common::nul) {
+      SKSE::log::debug("The actor [0x{:x}: {}] was restored to have no addon", actor->GetFormID(), npc->GetName());
+      return {Common::nul, true};
     } else {
       SKSE::log::error("The addon [0x{:x}] from file [{}] could not be reused for actor [0x{:x}: {}]", savedAddon.first, savedAddon.second, actor->GetFormID(), npc->GetName());
     }
