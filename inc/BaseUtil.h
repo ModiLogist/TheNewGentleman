@@ -43,7 +43,8 @@ namespace Common {
           } else {
             static_assert(false, "Unsupported type for GetValue");
           }
-          SKSE::log::debug("\tThe setting [{}] was restored to [{}({})].", keys[i], values[i], values[i] == defValues[i] ? "default" : "user");
+          auto valueChar = ini.GetValue(sections[i], keys[i]);
+          SKSE::log::debug("\tThe setting [{}] was restored to [{}({})].", keys[i], valueChar, values[i] == defValues[i] ? "default" : "user");
         }
       }
 
