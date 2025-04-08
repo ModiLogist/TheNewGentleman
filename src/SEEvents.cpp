@@ -24,10 +24,6 @@ RE::BSEventNotifyControl SEEvents::ProcessEvent(const RE::TESEquipEvent* event, 
 RE::BSEventNotifyControl SEEvents::ProcessEvent(const RE::TESObjectLoadedEvent* event, RE::BSTEventSource<RE::TESObjectLoadedEvent>*) {
   if (!event) return RE::BSEventNotifyControl::kContinue;
   const auto actor = RE::TESForm::LookupByID<RE::Actor>(event->formID);
-  const auto npc = actor ? actor->GetActorBase() : nullptr;
-  if (!npc) return RE::BSEventNotifyControl::kContinue;
-  if (core->CanModifyActor(actor) < 0) return RE::BSEventNotifyControl::kContinue;
-  if (npc->race->HasKeyword(ut->Key(Common::kyPreProcessed)) && !core->ReevaluateRace(npc->race, actor)) return RE::BSEventNotifyControl::kContinue;
   core->UpdateActor(actor);
   return RE::BSEventNotifyControl::kContinue;
 }

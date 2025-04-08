@@ -816,23 +816,18 @@ Common::eRes Core::UpdatePlayer(RE::Actor* const actor) {
 void Core::UpdateFormLists(RE::Actor* const actor) const {
   auto npc = actor ? actor->GetActorBase() : nullptr;
   if (!npc) return;
+  auto updateFormList = [&](RE::BGSListForm* formList, bool reason) {
+    if (reason && !formList->HasForm(actor)) {
+      formList->AddForm(actor);
+    } else if (!reason && formList->HasForm(actor)) {
+      formList->forms.erase(std::find_if(formList->forms.begin(), formList->forms.end(), [&](RE::TESForm* form) { return form->As<RE::Actor>() == actor; }));
+    }
+  };
+
   if (npc->IsFemale()) {
-    if (npc->HasKeyword(ut->Key(Common::kyGentlewoman)) && !ut->FormList(Common::flmGentleWomen)->HasForm(actor)) {
-      ut->FormList(Common::flmGentleWomen)->AddForm(actor);
-    } else if (!npc->HasKeyword(ut->Key(Common::kyGentlewoman)) && ut->FormList(Common::flmGentleWomen)->HasForm(actor)) {
-      for (RE::BSTArray<RE::TESForm*>::const_iterator it = ut->FormList(Common::flmGentleWomen)->forms.begin(); it < ut->FormList(Common::flmGentleWomen)->forms.end(); it++) {
-        if ((*it)->As<RE::Actor>() == actor) ut->FormList(Common::flmGentleWomen)->forms.erase(it);
-      }
-    }
-  }
-  if (!npc->IsFemale()) {
-    if (npc->HasKeyword(ut->Key(Common::kyExcluded)) && !ut->FormList(Common::flmNonGentleMen)->HasForm(actor)) {
-      ut->FormList(Common::flmNonGentleMen)->AddForm(actor);
-    } else if (!npc->HasKeyword(ut->Key(Common::kyExcluded)) && ut->FormList(Common::flmNonGentleMen)->HasForm(actor)) {
-      for (RE::BSTArray<RE::TESForm*>::const_iterator it = ut->FormList(Common::flmNonGentleMen)->forms.begin(); it < ut->FormList(Common::flmNonGentleMen)->forms.end(); it++) {
-        if ((*it)->As<RE::Actor>() == actor) ut->FormList(Common::flmNonGentleMen)->forms.erase(it);
-      }
-    }
+    updateFormList(ut->FormList(Common::flmGentleWomen), npc->HasKeyword(ut->Key(Common::kyGentlewoman)));
+  } else {
+    updateFormList(ut->FormList(Common::flmNonGentleMen), npc->HasKeyword(ut->Key(Common::kyExcluded)));
   }
 }
 
