@@ -546,7 +546,17 @@ Common::eRes Core::CanModifyActor(RE::Actor* const actor) const {
 }
 
 void Core::UpdateActor(RE::Actor* const actor, RE::TESObjectARMO* const armor, const bool isEquipped) {
-  UpdateAddon(actor);
+  if (CanModifyActor(actor) == Common::resOkRacePP && !ReevaluateRace(actor->GetRace(), actor)) return;
+  auto canModify = CanModifyActor(actor);
+  if (canModify < 0) return;
+  if (canModify == Common::resOkRaceP) {
+    if (actor->IsPlayerRef()) {
+      UpdatePlayer(actor);
+    } else {
+      UpdateAddon(actor);
+    }
+    UpdateFormLists(actor);
+  }
   UpdateCover(actor, armor, isEquipped);
 }
 
@@ -622,19 +632,20 @@ Common::eRes Core::SetActorAddon(RE::Actor* const actor, const int choice, const
     auto saved = Inis::SetNPCAddon(npc, addon, addonIdx);
     if (!saved) Inis::SetActorAddon(actor, addon, addonIdx);
   }
-  if (shouldSave) UpdateCover(actor, nullptr, false);
+  if (shouldSave) {
+    UpdateFormLists(actor);
+    UpdateCover(actor, nullptr, false);
+  }
   return res;
 }
 
 Common::eRes Core::GetActorSize(RE::Actor* const actor, int& sizeCat) const {
   sizeCat = Common::nan;
-  const auto npc = actor ? actor->GetActorBase() : nullptr;
   if (auto res = CanModifyActor(actor); res < 0) return res;
-  if (npc->IsPlayer() && boolSettings.Get(Common::bsExcludePlayerSize)) return Common::errPlayer;
+  const auto npc = actor->GetActorBase();
+  if (npc->IsPlayer() && boolSettings.Get(Common::bsExcludePlayerSize)) Common::errPlayer;
   if (sizeCat = Inis::GetActorSize(actor); sizeCat >= 0) return Common::resOkSizable;
-  for (size_t i = 0; i < Common::sizeCatCount; i++) {
-    if (npc->HasKeyword(ut->SizeKey(i))) sizeCat = static_cast<int>(i);
-  }
+  sizeCat = ut->HasKeywordInList(npc, ut->SizeKeys());
   if (sizeCat < 0) sizeCat = npc->formID % Common::sizeCatCount;
   return Common::resOkSizable;
 }
@@ -685,27 +696,6 @@ Common::eRes Core::SetActorSize(RE::Actor* const actor, int sizeCat, bool should
   return res;
 }
 
-void Core::UpdateFormLists(RE::Actor* const actor, RE::TESNPC* const npc) const {
-  if (npc->IsFemale()) {
-    if (npc->HasKeyword(ut->Key(Common::kyGentlewoman)) && !ut->FormList(Common::flmGentleWomen)->HasForm(actor)) {
-      ut->FormList(Common::flmGentleWomen)->AddForm(actor);
-    } else if (!npc->HasKeyword(ut->Key(Common::kyGentlewoman)) && ut->FormList(Common::flmGentleWomen)->HasForm(actor)) {
-      for (RE::BSTArray<RE::TESForm*>::const_iterator it = ut->FormList(Common::flmGentleWomen)->forms.begin(); it < ut->FormList(Common::flmGentleWomen)->forms.end(); it++) {
-        if ((*it)->As<RE::Actor>() == actor) ut->FormList(Common::flmGentleWomen)->forms.erase(it);
-      }
-    }
-  }
-  if (!npc->IsFemale()) {
-    if (npc->HasKeyword(ut->Key(Common::kyExcluded)) && !ut->FormList(Common::flmNonGentleMen)->HasForm(actor)) {
-      ut->FormList(Common::flmNonGentleMen)->AddForm(actor);
-    } else if (!npc->HasKeyword(ut->Key(Common::kyExcluded)) && ut->FormList(Common::flmNonGentleMen)->HasForm(actor)) {
-      for (RE::BSTArray<RE::TESForm*>::const_iterator it = ut->FormList(Common::flmNonGentleMen)->forms.begin(); it < ut->FormList(Common::flmNonGentleMen)->forms.end(); it++) {
-        if ((*it)->As<RE::Actor>() == actor) ut->FormList(Common::flmNonGentleMen)->forms.erase(it);
-      }
-    }
-  }
-}
-
 RE::TESObjectARMO* Core::FixSkin(RE::TESObjectARMO* const skin, RE::TESRace* const race, const char* const name) {
   skin->RemoveKeywords(ut->Keys(Common::kyRevealingF, Common::kyRevealing));
   skin->AddKeyword(ut->Key(Common::kyIgnored));
@@ -714,7 +704,7 @@ RE::TESObjectARMO* Core::FixSkin(RE::TESObjectARMO* const skin, RE::TESRace* con
     return nullptr;
   }
   if (skin->HasPartOf(Common::genitalSlot)) {
-    SKSE::log::warn("\t\tThe skin [0x{:x}] cannot have a male genital.", skin->GetFormID());
+    SKSE::log::warn("\t\tThe skin [0x{:x}] cannot have a TNG addon since it already has slot 52.", skin->GetFormID());
     return nullptr;
   }
   if (!skin->race) {
@@ -756,52 +746,6 @@ void Core::ApplyUserSettings(RE::TESNPC* npc) {
       }
     }
   }
-}
-
-void Core::UpdateAddon(RE::Actor* const actor) {
-  if (CanModifyActor(actor) == Common::resOkRacePP) ReevaluateRace(actor->GetRace(), actor);
-  if (CanModifyActor(actor) != Common::resOkRaceP) return;
-  if (actor->IsPlayerRef()) {
-    UpdatePlayer(actor);
-    return;
-  }
-  int currIdx;
-  bool isAuto = true;
-  auto addonRes = GetActorAddon(actor, currIdx, isAuto);
-  if (addonRes < 0 && addonRes != Common::err40) return;
-  if (!isAuto) {
-    if (addonRes == Common::err40) SetActorAddon(actor, currIdx, true, false);
-    return;
-  }
-  auto [autoIdx, isSaved] = GetApplicableAddon(actor);
-  if (autoIdx == Common::def) {
-    if (addonRes == Common::err40) SetActorAddon(actor, currIdx, false, false);
-    return;
-  }
-  if (addonRes == Common::err40 || currIdx != autoIdx) SetActorAddon(actor, autoIdx, isSaved, false);
-}
-
-void Core::UpdateCover(RE::Actor* const actor, RE::TESObjectARMO* const armor, const bool isEquipped) const {
-  if (!actor) return;
-  auto down = armor && isEquipped && armor->HasPartOf(Common::genitalSlot) ? armor : actor->GetWornArmor(Common::genitalSlot);
-  if (down && down == armor && !isEquipped) down = nullptr;
-  auto cover = armor && isEquipped && !armor->HasPartOf(Common::genitalSlot) ? armor : GetCoveringItem(actor, isEquipped ? nullptr : armor);
-  bool needsCover = NeedsCover(actor);
-  if (!needsCover || (down && (!ut->IsBlock(down) || !cover))) {
-    actor->RemoveItem(ut->Block(), 10, RE::ITEM_REMOVE_REASON::kRemove, nullptr, nullptr);
-    return;
-  }
-  if ((cover && down) || (!cover && !down)) return;
-  auto tngBlock = ut->Block();
-  if (!tngBlock) {
-    if (showErrMessage) {
-      showErrMessage = false;
-      ut->ShowSkyrimMessage("TNG faced an error when trying to cover genitalia. The New Gentleman won't function properly!");
-    }
-    return;
-  }
-  actor->AddObjectToContainer(tngBlock, nullptr, 1, nullptr);
-  RE::ActorEquipManager::GetSingleton()->EquipObject(actor, tngBlock);
 }
 
 std::pair<int, bool> Core::GetApplicableAddon(RE::Actor* const actor) const {
@@ -861,20 +805,20 @@ Common::eRes Core::SetNPCAddon(RE::TESNPC* const npc, const int addonIdx, const 
   auto& list = npc->IsFemale() ? rg->femAddons : rg->malAddons;
   if (addonIdx >= 0 && list.find(addonIdx) == list.end()) return Common::errAddon;
   if (addonIdx == Common::def && npc->IsFemale()) {
-    OrganizeNPCAddonKeywords(npc, addonIdx, false);
+    OrganizeNPCKeywords(npc, addonIdx, false);
     if (npcSkin && npcSkin->HasKeyword(ut->Key(Common::kyTngSkin))) npc->skin = ogSkin == raceOgSkin ? nullptr : ogSkin;
     return Common::resOkFixed;
   }
   auto addonChoice = addonIdx == Common::def ? rg->addonIdx : addonIdx;
-  OrganizeNPCAddonKeywords(npc, addonIdx, isUser);
+  OrganizeNPCKeywords(npc, addonIdx, isUser);
   auto resSkin = addonChoice == Common::nul ? (npc->IsFemale() ? raceSkin : activeOgSkin) : GetSkinWithAddonForRg(rg, activeOgSkin, addonChoice, npc->IsFemale());
-  if (resSkin != npcSkin && !(!npcSkin && resSkin == raceSkin)) {
+  if (resSkin != npcSkin) {
     npc->skin = resSkin == npc->race->skin ? nullptr : resSkin;
   }
   return !npc->IsFemale() || npc->HasKeyword(ut->Key(Common::kyGentlewoman)) ? res : Common::resOkFixed;
 }
 
-void Core::OrganizeNPCAddonKeywords(RE::TESNPC* const npc, int addonIdx, bool isUser) const {
+void Core::OrganizeNPCKeywords(RE::TESNPC* const npc, int addonIdx, bool isUser) const {
   npc->ForEachKeyword([&](RE::BGSKeyword* lKw) {
     if (lKw->formEditorID.contains("TNG_ActorAddn")) {
       npc->RemoveKeyword(lKw);
@@ -899,11 +843,75 @@ void Core::OrganizeNPCAddonKeywords(RE::TESNPC* const npc, int addonIdx, bool is
   }
 }
 
+void Core::UpdateAddon(RE::Actor* const actor) {
+  int currIdx;
+  bool isAuto = true;
+  auto addonRes = GetActorAddon(actor, currIdx, isAuto);
+  if (addonRes < 0 && addonRes != Common::err40) return;
+  SetActorSize(actor, Common::nul, false);
+  if (!isAuto) {
+    if (addonRes == Common::err40) SetActorAddon(actor, currIdx, true, false);
+    return;
+  }
+  auto [autoIdx, isSaved] = GetApplicableAddon(actor);
+  if (autoIdx == Common::def) {
+    if (addonRes == Common::err40) SetActorAddon(actor, currIdx, false, false);
+    return;
+  }
+  if (addonRes == Common::err40 || currIdx != autoIdx) SetActorAddon(actor, autoIdx, isSaved, false);
+}
+
 Common::eRes Core::UpdatePlayer(RE::Actor* const actor) {
   auto player = actor ? actor->GetActorBase() : nullptr;
   if (!player || !actor->IsPlayerRef()) return Common::errNPC;
   // TODO: Update player size and addon
-  // if (!core->GetBoolSetting(Common::bsExcludePlayerSize)) core->SetActorSize(actor, Common::nul);
+}
+
+void Core::UpdateFormLists(RE::Actor* const actor) const {
+  auto npc = actor ? actor->GetActorBase() : nullptr;
+  if (!npc) return;
+  if (npc->IsFemale()) {
+    if (npc->HasKeyword(ut->Key(Common::kyGentlewoman)) && !ut->FormList(Common::flmGentleWomen)->HasForm(actor)) {
+      ut->FormList(Common::flmGentleWomen)->AddForm(actor);
+    } else if (!npc->HasKeyword(ut->Key(Common::kyGentlewoman)) && ut->FormList(Common::flmGentleWomen)->HasForm(actor)) {
+      for (RE::BSTArray<RE::TESForm*>::const_iterator it = ut->FormList(Common::flmGentleWomen)->forms.begin(); it < ut->FormList(Common::flmGentleWomen)->forms.end(); it++) {
+        if ((*it)->As<RE::Actor>() == actor) ut->FormList(Common::flmGentleWomen)->forms.erase(it);
+      }
+    }
+  }
+  if (!npc->IsFemale()) {
+    if (npc->HasKeyword(ut->Key(Common::kyExcluded)) && !ut->FormList(Common::flmNonGentleMen)->HasForm(actor)) {
+      ut->FormList(Common::flmNonGentleMen)->AddForm(actor);
+    } else if (!npc->HasKeyword(ut->Key(Common::kyExcluded)) && ut->FormList(Common::flmNonGentleMen)->HasForm(actor)) {
+      for (RE::BSTArray<RE::TESForm*>::const_iterator it = ut->FormList(Common::flmNonGentleMen)->forms.begin(); it < ut->FormList(Common::flmNonGentleMen)->forms.end(); it++) {
+        if ((*it)->As<RE::Actor>() == actor) ut->FormList(Common::flmNonGentleMen)->forms.erase(it);
+      }
+    }
+  }
+}
+
+void Core::UpdateCover(RE::Actor* const actor, RE::TESObjectARMO* const armor, const bool isEquipped) const {
+  if (!actor) return;
+  static bool showErrMessage = true;
+  auto down = armor && isEquipped && armor->HasPartOf(Common::genitalSlot) ? armor : actor->GetWornArmor(Common::genitalSlot);
+  if (down && down == armor && !isEquipped) down = nullptr;
+  auto cover = armor && isEquipped && !armor->HasPartOf(Common::genitalSlot) ? armor : GetCoveringItem(actor, isEquipped ? nullptr : armor);
+  bool needsCover = NeedsCover(actor);
+  if (!needsCover || (down && (!ut->IsBlock(down) || !cover))) {
+    actor->RemoveItem(ut->Block(), 10, RE::ITEM_REMOVE_REASON::kRemove, nullptr, nullptr);
+    return;
+  }
+  if ((cover && down) || (!cover && !down)) return;
+  auto tngBlock = ut->Block();
+  if (!tngBlock) {
+    if (showErrMessage) {
+      showErrMessage = false;
+      ut->ShowSkyrimMessage("TNG faced an error when trying to cover genitalia. The New Gentleman won't function properly!");
+    }
+    return;
+  }
+  actor->AddObjectToContainer(tngBlock, nullptr, 1, nullptr);
+  RE::ActorEquipManager::GetSingleton()->EquipObject(actor, tngBlock);
 }
 
 void Core::CheckArmorPieces() {
