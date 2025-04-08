@@ -15,9 +15,6 @@ class SEEvents : public Singleton<SEEvents>,
   public:
   private:
     bool NeedsCover(RE::Actor* actor);
-
-    bool showErrMessage;
-    std::map<RE::FormID, RE::TESObjectARMO*> oldSkins;
 };
 
 extern SEEvents* events;

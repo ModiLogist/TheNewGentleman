@@ -41,18 +41,11 @@ RE::BSEventNotifyControl SEEvents::ProcessEvent(const RE::TESSwitchRaceCompleteE
   auto actor = event->subject.get()->As<RE::Actor>();
   auto npc = actor ? actor->GetActorBase() : nullptr;
   if (!actor || !npc || !npc->skin || !npc->race || !npc->race->skin) return RE::BSEventNotifyControl::kContinue;
-  if (npc->race->HasKeyword(ut->Key(Common::kyPreProcessed)) && !core->ReevaluateRace(npc->race, actor)) return RE::BSEventNotifyControl::kContinue;
-  if (npc->skin->HasKeyword(ut->Key(Common::kyTngSkin)) && !npc->race->HasKeyword(ut->Key(Common::kyProcessed))) {
-    oldSkins.insert_or_assign(npc->GetFormID(), npc->skin);
+  if (npc->race->HasKeyword(ut->Key(Common::kyPreProcessed)) && !core->ReevaluateRace(npc->race, actor)) {
     npc->skin = nullptr;
-    return RE::BSEventNotifyControl::kContinue;
-  }
-  if (oldSkins.find(npc->GetFormID()) != oldSkins.end() && npc->race->HasKeyword(ut->Key(Common::kyProcessed))) {
-    npc->skin = oldSkins[npc->GetFormID()];
-    oldSkins.erase(npc->GetFormID());
-    return RE::BSEventNotifyControl::kContinue;
-  }
-  if (GetNPCAutoAddon(npc).second && npc->race->HasKeyword(ut->Key(Common::kyProcessed)) && !npc->HasKeyword(ut->Key(Common::kyProcessed))) {
+  } else if (npc->skin->HasKeyword(ut->Key(Common::kyTngSkin)) && !npc->race->HasKeyword(ut->Key(Common::kyProcessed))) {
+    npc->skin = nullptr;
+  } else if (npc->race->HasKeyword(ut->Key(Common::kyProcessed))) {
     core->UpdateActor(actor);
   }
   return RE::BSEventNotifyControl::kContinue;
