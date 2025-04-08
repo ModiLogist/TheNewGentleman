@@ -123,7 +123,6 @@ namespace Common {
       SEFormLoc race;
       SEFormLoc addon;
       int sizeCat = {def};
-      bool isInfoSet;
   };
 
   class Util : public Singleton<Util>, public BaseUtil {

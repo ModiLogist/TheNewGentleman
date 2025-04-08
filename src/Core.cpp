@@ -611,7 +611,7 @@ Common::eRes Core::SetActorSize(RE::Actor* const actor, int sizeCat, bool should
     if (auto res = CanModifyActor(actor); res < 0) return res;
   }
   const auto npc = actor->GetActorBase();
-  if (npc->IsPlayer()) return Common::resOkFixed;  // Don't change the size for copies of player actor
+  if (!actor->IsPlayerRef() && npc->IsPlayer()) return Common::resOkFixed;  // Don't change the size for copies of player actor
   int currCat = Common::nan;
   if (sizeCat == Common::def) npc->RemoveKeywords(ut->SizeKeys());
   auto res = GetActorSize(actor, currCat);
@@ -644,7 +644,8 @@ Common::eRes Core::SetActorSize(RE::Actor* const actor, int sizeCat, bool should
     }).detach();
     if (sizeCat >= 0) SKSE::log::debug("Reloaded actor [0x{:x}] genitalia scale to [{}] to be a size category [{}].", actor->GetFormID(), scale, sizeCat);
   }
-  if (!actor->GetActorBase()->IsPlayer() && shouldSave) {
+  if (actor->IsPlayerRef() && sizeCat != Common::nul) SetPlayerInfo(actor, nullptr, Common::nan, sizeCat);
+  if (!actor->IsPlayerRef() && shouldSave) {
     auto saved = Inis::SetNPCSize(actor->GetActorBase(), sizeCat);
     if (!saved) Inis::SetActorSize(actor, sizeCat);
   }
@@ -818,9 +819,18 @@ void Core::UpdateAddon(RE::Actor* const actor, const bool isRRace) {
 }
 
 Common::eRes Core::UpdatePlayer(RE::Actor* const actor, const bool isRRace) {
-  auto player = actor ? actor->GetActorBase() : nullptr;
-  if (!player || !actor->IsPlayerRef()) return Common::errNPC;
-  // TODO: Update player size and addon
+  auto pcInfo = GetPlayerInfo(actor);
+  if (pcInfo) {
+    auto res = SetActorSize(actor, pcInfo->sizeCat, false);
+    if (isRRace) return res;
+    auto npc = actor->GetActorBase();
+    auto addonIdx = AddonIdxByLoc(npc->IsFemale(), pcInfo->addon);
+    return SetActorAddon(actor, addonIdx, true, false);
+  } else {
+    auto res = SetActorSize(actor, Common::nul, false);
+    if (isRRace) return res;
+    return SetActorAddon(actor, Common::def, false, false);
+  }
 }
 
 void Core::UpdateFormLists(RE::Actor* const actor) const {

@@ -46,8 +46,9 @@ static void EventListener(SKSE::MessagingInterface::Message* message) {
     events->RegisterEvents();
     Hooks::Install();
   }
-  if (message->type == SKSE::MessagingInterface::kNewGame || message->type == SKSE::MessagingInterface::kPostLoadGame) {
-    // core->UnsetPlayerInfo();
+  if (message->type == SKSE::MessagingInterface::kPreLoadGame) {
+    const std::string savePath{static_cast<char*>(message->data), message->dataLen};
+    core->LoadPlayerInfos(savePath);
   }
   if (message->type == SKSE::MessagingInterface::kSaveGame) {
     core->SaveMainIni();

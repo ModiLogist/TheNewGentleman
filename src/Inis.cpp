@@ -362,89 +362,6 @@ void Inis::LoadPlayerInfos(const std::string &saveName) {
   }
 }
 
-const Common::PlayerInfo *Inis::GetPlayerInfo(const RE::Actor *actor) {
-  if (!actor || !actor->IsPlayerRef()) {
-    SKSE::log::critical("GetPlayerInfo was called for a non-player actor! Please report this issue with relevant details.");
-    return nullptr;
-  }
-  auto npc = actor->GetActorBase();
-  if (!npc) {
-    SKSE::log::critical("GetPlayerInfo failed to the npc for the player actor! Please report this issue with relevant details.");
-    return nullptr;
-  }
-  auto raceLoc = ut->FormToLoc(npc->race);
-  if (raceLoc.second.empty()) {
-    SKSE::log::error("GetPlayerInfo failed to retrieve the player actor race!");
-    return nullptr;
-  }
-  if (!playerInfos.empty() && activePlayerInfoIdx < playerInfos.size() && activePlayerInfoIdx >= 0) return &playerInfos[activePlayerInfoIdx];
-  if (playerInfos.empty()) return nullptr;
-  auto it = std::ranges::find_if(playerInfos, [&](const auto &pcInfo) { return pcInfo.name == npc->GetName() && pcInfo.race == raceLoc && pcInfo.isFemale == npc->IsFemale(); });
-  if (it != playerInfos.end()) {
-    activePlayerInfoIdx = static_cast<int>(std::distance(playerInfos.begin(), it));
-    return &playerInfos[activePlayerInfoIdx];
-  }
-  return nullptr;
-}
-
-void Inis::SetPlayerInfo(const RE::Actor *actor, const RE::TESObjectARMO *addon, const int choice, const int sizeCatInp) {
-  auto npc = actor ? actor->GetActorBase() : nullptr;
-  if (!npc || !actor->IsPlayerRef() || !npc->race) return;
-  std::vector<std::string> pcIdTokens;
-  pcIdTokens.push_back(std::string(npc->GetName()));
-  pcIdTokens.push_back(ut->FormToStr(npc->race));
-  if (pcIdTokens[0].empty() || pcIdTokens[1].empty()) {
-    SKSE::log::critical("Failed to set the player information for current character.");
-    return;
-  }
-  pcIdTokens.push_back(npc->IsFemale() ? "F" : "M");
-  if (choice == Common::nan && sizeCatInp == Common::nan) return;
-  SEFormLoc addonLoc{0, Common::defStr};
-  switch (choice) {
-    case Common::nan:
-      if (activePlayerInfoIdx >= 0 && activePlayerInfoIdx < playerInfos.size()) addonLoc = playerInfos[activePlayerInfoIdx].addon;
-      break;
-    case Common::nul:
-      addonLoc = {0, Common::nulStr};
-      break;
-    default:
-      addonLoc = ut->FormToLoc(addon);
-      if (addonLoc.second.empty()) {
-        if (addon) {
-          SKSE::log::critical("Failed to save the addon [0x{:x}] for player!", addon->GetFormID());
-        } else {
-          SKSE::log::critical("Failed to save an addon for a for player!");
-        }
-      }
-      break;
-  }
-  int sizeCat = sizeCatInp == Common::nan ? Common::def : sizeCatInp;
-  if (sizeCatInp == Common::nan && activePlayerInfoIdx >= 0 && activePlayerInfoIdx < playerInfos.size()) sizeCat = playerInfos[activePlayerInfoIdx].sizeCat;
-  std::vector<std::string> pcInfoTokens;
-  pcInfoTokens.push_back(ut->LocToStr(addonLoc));
-  pcInfoTokens.push_back(std::to_string(sizeCat));
-  auto section = fmt::format("{}{}", cPlayerSection, playerIdx).c_str();
-  auto key = ut->Join(pcIdTokens, "|").c_str();
-  auto value = ut->Join(pcInfoTokens, "|").c_str();
-  settingIni.SetValue(section, key, value);
-  auto infoIdx = std::find_if(playerInfos.begin(), playerInfos.end(),
-                              [&](const auto &pcInfo) { return pcInfo.name == pcIdTokens[0] && ut->LocToStr(pcInfo.race) == pcIdTokens[1] && pcInfo.isFemale == npc->IsFemale(); });
-  if (infoIdx != playerInfos.end()) {
-    activePlayerInfoIdx = static_cast<int>(std::distance(playerInfos.begin(), infoIdx));
-    infoIdx->addon = addonLoc;
-    infoIdx->sizeCat = sizeCat;
-  } else {
-    playerInfos.push_back({});
-    auto &pcInfo = playerInfos.back();
-    pcInfo.name = pcIdTokens[0];
-    pcInfo.race = ut->FormToLoc(npc->race);
-    pcInfo.isFemale = npc->IsFemale();
-    pcInfo.addon = addonLoc;
-    pcInfo.sizeCat = sizeCat;
-    activePlayerInfoIdx = static_cast<int>(playerInfos.size()) - 1;
-  }
-}
-
 bool Inis::Slot52ModBehavior(const std::string &modName, const int behavior) {
   switch (behavior) {
     case 1:
@@ -460,6 +377,89 @@ bool Inis::Slot52ModBehavior(const std::string &modName, const int behavior) {
       settingIni.GetAllKeys(cRevealingModSection, values);
       return std::ranges::find_if(values, [&](const auto &entry) { return ut->StrToName(entry.pItem) == modName; }) != values.end();
   }
+}
+
+const Common::PlayerInfo *Inis::GetPlayerInfo(const RE::Actor *actor) {
+  auto pcIdTokens = UpdateActivePlayerInfoIndex(actor);
+  if (pcIdTokens.empty()) return nullptr;
+  if (activePlayerInfoIdx >= 0 && activePlayerInfoIdx < playerInfos.size()) {
+    auto res = &playerInfos[activePlayerInfoIdx];
+    return res;
+  }
+  return nullptr;
+}
+
+void Inis::SetPlayerInfo(const RE::Actor *actor, const RE::TESObjectARMO *addon, const int choice, const int sizeCatInp) {
+  auto pcIdTokens = UpdateActivePlayerInfoIndex(actor);
+  if (pcIdTokens.empty()) return;
+  if (choice == Common::nan && sizeCatInp == Common::nan) return;
+  SEFormLoc addonLoc{0, Common::defStr};
+  switch (choice) {
+    case Common::nan:
+      if (activePlayerInfoIdx >= 0 && activePlayerInfoIdx < playerInfos.size()) addonLoc = playerInfos[activePlayerInfoIdx].addon;
+      break;
+    case Common::nul:
+      addonLoc = {0, Common::nulStr};
+      break;
+    default:
+      addonLoc = ut->FormToLoc(addon);
+      break;
+  }
+  if (addonLoc.second.empty()) {
+    if (addon) {
+      SKSE::log::critical("Failed to save the addon [0x{:x}] for player!", addon->GetFormID());
+    } else {
+      SKSE::log::critical("Failed to save an addon for a for player!");
+    }
+    return;
+  }
+  int sizeCat = sizeCatInp == Common::nan ? Common::def : sizeCatInp;
+  if (sizeCatInp == Common::nan && activePlayerInfoIdx >= 0 && activePlayerInfoIdx < playerInfos.size()) sizeCat = playerInfos[activePlayerInfoIdx].sizeCat;
+  std::vector<std::string> pcInfoTokens;
+  pcInfoTokens.push_back(ut->LocToStr(addonLoc));
+  pcInfoTokens.push_back(std::to_string(sizeCat));
+  auto section = fmt::format("{}{}", cPlayerSection, playerIdx).c_str();
+  auto key = ut->Join(pcIdTokens, "|").c_str();
+  auto value = ut->Join(pcInfoTokens, "|").c_str();
+  settingIni.SetValue(section, key, value);
+  if (activePlayerInfoIdx >= 0 && activePlayerInfoIdx < playerInfos.size()) {
+    playerInfos[activePlayerInfoIdx].addon = addonLoc;
+    playerInfos[activePlayerInfoIdx].sizeCat = sizeCat;
+  } else {
+    playerInfos.push_back({});
+    auto &pcInfo = playerInfos.back();
+    pcInfo.name = pcIdTokens[0];
+    pcInfo.race = ut->StrToLoc(pcIdTokens[1]);
+    pcInfo.isFemale = pcIdTokens[2] == "F";
+    pcInfo.addon = addonLoc;
+    pcInfo.sizeCat = sizeCat;
+    activePlayerInfoIdx = static_cast<int>(playerInfos.size()) - 1;
+  }
+}
+
+std::vector<std::string> Inis::UpdateActivePlayerInfoIndex(const RE::Actor *actor) {
+  std::vector<std::string> pcIdTokens;
+  auto npc = actor ? actor->GetActorBase() : nullptr;
+  if (!npc || !npc->race) return {};
+  pcIdTokens.push_back(std::string(npc->GetName()));
+  pcIdTokens.push_back(ut->FormToStr(npc->race));
+  if (pcIdTokens[0].empty() || pcIdTokens[1].empty()) {
+    SKSE::log::critical("Failed to update the player information for current character.");
+    return {};
+  }
+  pcIdTokens.push_back(npc->IsFemale() ? "F" : "M");
+  if (playerInfos.empty()) {
+    activePlayerInfoIdx = -1;
+    return pcIdTokens;
+  }
+  auto infoIdx = std::find_if(playerInfos.begin(), playerInfos.end(),
+                              [&](const auto &pcInfo) { return pcInfo.name == pcIdTokens[0] && ut->LocToStr(pcInfo.race) == pcIdTokens[1] && pcInfo.isFemale == npc->IsFemale(); });
+  if (infoIdx != playerInfos.end()) {
+    activePlayerInfoIdx = static_cast<int>(std::distance(playerInfos.begin(), infoIdx));
+  } else {
+    activePlayerInfoIdx = -1;
+  }
+  return pcIdTokens;
 }
 
 void Inis::LoadTngInis() {
