@@ -32,44 +32,7 @@ void Core::LoadAddons() {
   }
 }
 
-size_t Core::GetAddonCount(const bool isFemale, const bool onlyActive) const {
-  auto& list = isFemale ? femAddons : malAddons;
-  if (onlyActive) {
-    size_t res = 0;
-    for (const auto& addonPair : list)
-      if (addonPair.second) res++;
-    return res;
-  } else {
-    return list.size();
-  }
-}
-
-bool Core::GetAddonStatus(const bool isFemale, const size_t addonIdx) const {
-  auto& list = isFemale ? femAddons : malAddons;
-  if (addonIdx >= list.size()) return false;
-  return list[addonIdx].second;
-}
-
-void Core::SetAddonStatus(const bool isFemale, const size_t addonIdx, const bool status) {
-  auto& list = isFemale ? femAddons : malAddons;
-  if (addonIdx >= list.size()) return;
-  list[addonIdx].second = status;
-  Inis::SetAddonStatus(isFemale, list[addonIdx].first, status);
-}
-
-const std::string Core::GetAddonName(const bool isFemale, const size_t addonIdx) const {
-  const auto& list = isFemale ? femAddons : malAddons;
-  return addonIdx < list.size() && list[addonIdx].first ? list[addonIdx].first->GetName() : "";
-}
-
-RE::TESObjectARMO* const Core::GetAddonForActor(RE::Actor* const actor, const int addonIdx) const {
-  if (addonIdx < 0) return nullptr;
-  auto npc = actor ? actor->GetActorBase() : nullptr;
-  if (!npc) return nullptr;
-  return npc->IsFemale() ? femAddons[static_cast<size_t>(addonIdx)].first : malAddons[static_cast<size_t>(addonIdx)].first;
-}
-
-int Core::GetAddonIdxByLoc(const bool isFemale, const SEFormLocView addonLoc) const {
+int Core::AddonIdxByLoc(const bool isFemale, const SEFormLocView addonLoc) const {
   auto& list = isFemale ? femAddons : malAddons;
   for (int i = 0; i < list.size(); i++) {
     if (ut->FormToLoc(list[i].first) == addonLoc) return i;
@@ -101,20 +64,6 @@ void Core::ProcessRaces() {
   }
   SKSE::log::info("\tProcessed [{}] races: assigned genitalia to [{}] races, preprocessed [{}] races, found [{}] races to be ready and ignored [{}] races.", allRaces.size(),
                   logInfo[2], logInfo[3], logInfo[1], logInfo[0]);
-}
-
-std::vector<std::string> Core::GetRgNames() const {
-  std::vector<std::string> res{};
-  for (auto& rg : rgInfoList) {
-    if (boolSettings.Get(Common::bsShowAllRaces) || !rg.noMCM) res.push_back(rg.name);
-  }
-  return res;
-}
-
-bool Core::RgIsMain(RgKey rgChoice) const {
-  auto rg = rgChoice.Get();
-  if (!rg) return false;
-  return rg->isMain;
 }
 
 int Core::GetRgAddon(RgKey rgChoice) const {
@@ -357,7 +306,7 @@ int Core::GetRgDefAddon(Common::RaceGroupInfo& rg) {
     };
   });
   if (!defAddonSet) defAddon = std::make_pair(std::get<3>(Common::cVanillaDefaults[rgIsBeast ? 9 : 0]), Common::mainFile);
-  if (auto idx = GetAddonIdxByLoc(false, defAddon); idx >= 0) {
+  if (auto idx = AddonIdxByLoc(false, defAddon); idx >= 0) {
     return idx;
   }
   SKSE::log::critical("TNG faced an error getting the default addon for a race group.");
@@ -406,7 +355,7 @@ void Core::ApplyUserSettings(Common::RaceGroupInfo& rg) {
   if (auto rg0Loc = ut->FormToLoc(rg.races[0]); !rg0Loc.second.empty()) {
     if (racialAddons.find(rg0Loc) != racialAddons.end()) {
       auto& addonLoc = racialAddons[rg0Loc];
-      auto index = GetAddonIdxByLoc(false, addonLoc);
+      auto index = AddonIdxByLoc(false, addonLoc);
       if (index >= 0 && rg.malAddons.find(static_cast<size_t>(index)) != rg.malAddons.end()) {
         rg.addonIdx = index;
         SKSE::log::debug("\tRestored group [{}] addon to [0x{:x}] from file [{}]!", rg.name, addonLoc.first, addonLoc.second);
@@ -729,7 +678,7 @@ void Core::ApplyUserSettings(RE::TESNPC* npc) {
   if (auto npcLoc = ut->FormToLoc(npc); !npcLoc.second.empty()) {
     if (npcAddons.find(npcLoc) != npcAddons.end()) {
       auto& addonLoc = npcAddons[npcLoc];
-      auto index = GetAddonIdxByLoc(npc->IsFemale(), addonLoc);
+      auto index = AddonIdxByLoc(npc->IsFemale(), addonLoc);
       if (SetNPCAddon(npc, index, true) >= 0) {
         SKSE::log::debug("\tRestored the addon of npc [xx{:x}] from file [{}] to addon [xx{:x}] from file [{}]", npcLoc.first, npcLoc.second, addonLoc.first, addonLoc.second);
       } else {
@@ -755,7 +704,7 @@ std::pair<int, bool> Core::GetApplicableAddon(RE::Actor* const actor) const {
   auto savedAddon = Inis::GetActorAddon(actor);
   auto list = core->GetActorAddons(actor, true);
   if (!savedAddon.second.empty()) {
-    addonIdx = savedAddon.second == Common::nulStr ? Common::nul : GetAddonIdxByLoc(npc->IsFemale(), savedAddon);
+    addonIdx = savedAddon.second == Common::nulStr ? Common::nul : AddonIdxByLoc(npc->IsFemale(), savedAddon);
     if (addonIdx >= 0 && std::ranges::find_if(list, [&](const auto& pair) { return pair.first == static_cast<size_t>(addonIdx); }) != list.end()) {
       SKSE::log::debug("The addon [0x{:x}] from file [{}] was restored for actor [0x{:x}: {}]", savedAddon.first, savedAddon.second, actor->GetFormID(), npc->GetName());
       return {addonIdx, true};

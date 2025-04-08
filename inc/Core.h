@@ -8,21 +8,12 @@ class Core : public Singleton<Core>, public Inis {
     void Init();
 
   private:
-    std::vector<std::pair<RE::TESObjectARMO* const, bool>> malAddons;
-    std::vector<std::pair<RE::TESObjectARMO* const, bool>> femAddons;
-    std::set<RE::TESObjectARMO* const, Common::FormComparator> preSkins;
+    friend class Papyrus;
+    std::vector<std::pair<RE::TESObjectARMO*, bool>> malAddons;
+    std::vector<std::pair<RE::TESObjectARMO*, bool>> femAddons;
+    std::set<RE::TESObjectARMO*, Common::FormComparator> preSkins;
     void LoadAddons();
-    // int AddonIdxByLoc(bool isFemale, SEFormLocView addonLoc);
-
-  public:
-    size_t GetAddonCount(const bool isFemale, const bool onlyActive) const;
-    bool GetAddonStatus(const bool isFemale, const size_t addonIdx) const;
-    void SetAddonStatus(const bool isFemale, const size_t addonIdx, const bool status);
-    const std::string GetAddonName(const bool isFemale, const size_t addonIdx) const;
-    RE::TESObjectARMO* const GetAddonForActor(RE::Actor* const actor, const int addonIdx) const;
-
-  private:
-    int GetAddonIdxByLoc(const bool isFemale, const SEFormLocView addonLoc) const;
+    int AddonIdxByLoc(const bool isFemale, const SEFormLocView addonLoc) const;
 
   public:
     struct RgKey {
@@ -34,8 +25,7 @@ class Core : public Singleton<Core>, public Inis {
         Common::RaceGroupInfo* Get() const;
     };
     void ProcessRaces();
-    std::vector<std::string> GetRgNames() const;
-    bool RgIsMain(RgKey rgChoice) const;
+    bool RgIsMain(RgKey rgChoice) const { return rgChoice.Get() && rgChoice.Get()->isMain; };
     int GetRgAddon(RgKey rgChoice) const;
     void SetRgAddon(RgKey rgChoice, const int addonIdx);
     float GetRgMult(RgKey rgChoice) const;

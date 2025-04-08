@@ -84,22 +84,32 @@ void Papyrus::SetFloatValue(RE::StaticFunctionTag*, int settingID, float value) 
 
 std::vector<std::string> Papyrus::GetAllPossibleAddons(RE::StaticFunctionTag*, bool isFemale) {
   std::vector<std::string> res{};
-  auto count = core->GetAddonCount(isFemale, false);
-  for (auto i = 0; i < count; i++) res.push_back(core->GetAddonName(isFemale, i));
+  auto& list = isFemale ? core->femAddons : core->malAddons;
+  for (auto addonPair : list) res.push_back(addonPair.first->GetName());
   return res;
 }
 
 bool Papyrus::GetAddonStatus(RE::StaticFunctionTag*, bool isFemale, int addonIdx) {
-  if (addonIdx < 0 || addonIdx >= core->GetAddonCount(isFemale, false)) return false;
-  return core->GetAddonStatus(isFemale, static_cast<size_t>(addonIdx));
+  auto& list = isFemale ? core->femAddons : core->malAddons;
+  auto count = list.size();
+  if (addonIdx < 0 || addonIdx >= count) return false;
+  return list[addonIdx].second;
 }
 
 void Papyrus::SetAddonStatus(RE::StaticFunctionTag*, bool isFemale, int addonIdx, bool status) {
-  if (addonIdx < 0) return;
-  core->SetAddonStatus(isFemale, static_cast<size_t>(addonIdx), status);
+  auto& list = isFemale ? core->femAddons : core->malAddons;
+  if (addonIdx < 0 || addonIdx >= list.size()) return;
+  list[addonIdx].second = status;
+  core->SetAddonStatus(isFemale, list[addonIdx].first, status);
 }
 
-std::vector<std::string> Papyrus::GetRgNames(RE::StaticFunctionTag*) { return core->GetRgNames(); }
+std::vector<std::string> Papyrus::GetRgNames(RE::StaticFunctionTag*) {
+  std::vector<std::string> res{};
+  for (auto& rg : core->rgInfoList) {
+    if (core->boolSettings.Get(Common::bsShowAllRaces) || !rg.noMCM) res.push_back(rg.name);
+  }
+  return res;
+}
 
 std::string Papyrus::GetRgInfo(RE::StaticFunctionTag*, int rgIdx) { return core->GetRgInfo(Core::RgKey(rgIdx, true)); };
 
@@ -111,7 +121,7 @@ std::vector<std::string> Papyrus::GetRgAddons(RE::StaticFunctionTag*, int rgIdx)
   res.push_back("$TNG_TRS");
   res.push_back("$TNG_TNT");
   for (auto i : list) {
-    auto name = core->GetAddonName(false, i.first);
+    std::string name = core->malAddons[i.first].first->GetName();
     name = isMain ? name : i.second ? name + " (d)" : name + " (s)";
     res.push_back(name);
   }
@@ -158,12 +168,15 @@ int Papyrus::CanModifyActor(RE::StaticFunctionTag*, RE::Actor* actor) {
 
 std::vector<std::string> Papyrus::GetActorAddons(RE::StaticFunctionTag*, RE::Actor* actor) {
   std::vector<std::string> res{};
+  auto npc = actor ? actor->GetActorBase() : nullptr;
+  if (!npc) return res;
   auto list = core->GetActorAddons(actor, false);
+  auto masterList = npc->IsFemale() ? core->femAddons : core->malAddons;
   auto isMain = list.size() > 0 ? core->RgIsMain(Core::RgKey(actor->GetRace())) : false;
   res.push_back("$TNG_TRS");
   res.push_back("$TNG_TNT");
   for (auto i : list) {
-    auto name = core->GetAddonName(false, i.first);
+    std::string name = masterList[i.first].first->GetName();
     name = isMain ? name : i.second ? name + " (d)" : name + " (s)";
     res.push_back(name);
   }
@@ -174,7 +187,11 @@ RE::TESObjectARMO* Papyrus::GetActorAddon(RE::StaticFunctionTag*, RE::Actor* act
   int addonIdx = Common::nul;
   bool isAuto = true;
   core->GetActorAddon(actor, addonIdx, isAuto);
-  return core->GetAddonForActor(actor, addonIdx);
+  if (addonIdx < 0) return nullptr;
+  auto npc = actor ? actor->GetActorBase() : nullptr;
+  if (!npc) return nullptr;
+  auto masterList = npc->IsFemale() ? core->femAddons : core->malAddons;
+  return masterList[static_cast<size_t>(addonIdx)].first;
 }
 
 int Papyrus::SetActorAddon(RE::StaticFunctionTag*, RE::Actor* actor, int choice) { return core->SetActorAddon(actor, choice, true, true); }
@@ -277,7 +294,6 @@ std::string Papyrus::WhyProblem(RE::StaticFunctionTag* tag, RE::Actor* actor, in
         if (skin->HasKeyword(ut->Key(Common::kyTngSkin))) return "$TNG_PD0";
         if (npc->HasKeyword(ut->Key(Common::kyExcluded))) return "$TNG_PA3";
         if (npc->IsFemale() && static_cast<size_t>(std::floor(core->floatSettings.Get(Common::fsFemRndChance) + 0.1f)) < 100) return "$TNG_PA4";
-        RE::TESObjectARMO* actorAddon = nullptr;
         if (core->GetRgAddon(Core::RgKey(npc->race)) == Common::nul) return "$TNG_PA5";
       }
       core->UpdateActor(actor);
