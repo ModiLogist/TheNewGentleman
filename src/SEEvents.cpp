@@ -30,14 +30,6 @@ RE::BSEventNotifyControl SEEvents::ProcessEvent(const RE::TESObjectLoadedEvent* 
 
 RE::BSEventNotifyControl SEEvents::ProcessEvent(const RE::TESSwitchRaceCompleteEvent* event, RE::BSTEventSource<RE::TESSwitchRaceCompleteEvent>*) {
   auto actor = event->subject.get()->As<RE::Actor>();
-  auto npc = actor ? actor->GetActorBase() : nullptr;
-  if (!actor || !npc || !npc->skin || !npc->race || !npc->race->skin) return RE::BSEventNotifyControl::kContinue;
-  if (npc->race->HasKeyword(ut->Key(Common::kyPreProcessed)) && !core->ReevaluateRace(npc->race, actor)) {
-    npc->skin = nullptr;
-  } else if (npc->skin->HasKeyword(ut->Key(Common::kyTngSkin)) && !npc->race->HasKeyword(ut->Key(Common::kyProcessed))) {
-    npc->skin = nullptr;
-  } else if (npc->race->HasKeyword(ut->Key(Common::kyProcessed))) {
-    core->UpdateActor(actor);
-  }
+  core->UpdateActor(actor);
   return RE::BSEventNotifyControl::kContinue;
 }
