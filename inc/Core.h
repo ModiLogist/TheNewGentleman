@@ -68,6 +68,7 @@ class Core : public Singleton<Core>, public Inis {
     Common::eRes UpdatePlayer(RE::Actor* const actor);
     void UpdateFormLists(RE::Actor* const actor) const;
     void UpdateCover(RE::Actor* const actor, RE::TESObjectARMO* const armor, const bool isEquipped) const;
+    bool NeedsBlock(RE::Actor* const actor) const;
 
   public:
     void CheckArmorPieces();

@@ -50,9 +50,3 @@ RE::BSEventNotifyControl SEEvents::ProcessEvent(const RE::TESSwitchRaceCompleteE
   }
   return RE::BSEventNotifyControl::kContinue;
 }
-
-bool SEEvents::NeedsCover(RE::Actor* actor) {
-  if (core->CanModifyActor(actor) < 0) return false;
-  auto npc = actor->GetActorBase();
-  return npc->skin && npc->skin->HasPartOf(Common::genitalSlot);
-}

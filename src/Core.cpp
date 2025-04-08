@@ -843,8 +843,7 @@ void Core::UpdateCover(RE::Actor* const actor, RE::TESObjectARMO* const armor, c
   auto down = armor && isEquipped && armor->HasPartOf(Common::genitalSlot) ? armor : actor->GetWornArmor(Common::genitalSlot);
   if (down && down == armor && !isEquipped) down = nullptr;
   auto cover = armor && isEquipped && !armor->HasPartOf(Common::genitalSlot) ? armor : GetCoveringItem(actor, isEquipped ? nullptr : armor);
-  bool needsCover = NeedsCover(actor);
-  if (!needsCover || (down && (!ut->IsBlock(down) || !cover))) {
+  if (!NeedsBlock(actor) || (down && (!ut->IsBlock(down) || !cover))) {
     actor->RemoveItem(ut->Block(), 10, RE::ITEM_REMOVE_REASON::kRemove, nullptr, nullptr);
     return;
   }
@@ -859,6 +858,12 @@ void Core::UpdateCover(RE::Actor* const actor, RE::TESObjectARMO* const armor, c
   }
   actor->AddObjectToContainer(tngBlock, nullptr, 1, nullptr);
   RE::ActorEquipManager::GetSingleton()->EquipObject(actor, tngBlock);
+}
+
+bool Core::NeedsBlock(RE::Actor* const actor) const {
+  if (CanModifyActor(actor) < 0) return false;
+  auto npc = actor->GetActorBase();
+  return npc->skin && npc->skin->HasPartOf(Common::genitalSlot);
 }
 
 void Core::CheckArmorPieces() {
