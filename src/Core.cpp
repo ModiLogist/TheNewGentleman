@@ -503,7 +503,7 @@ void Core::UpdateActor(RE::Actor* const actor, RE::TESObjectARMO* const armor, c
     }
     UpdateFormLists(actor);
   }
-  UpdateCover(actor, armor, isEquipped);
+  UpdateBlock(actor, armor, isEquipped);
 }
 
 std::vector<std::pair<size_t, bool>> Core::GetActorAddons(RE::Actor* const actor, const bool onlyActive) const {
@@ -580,7 +580,7 @@ Common::eRes Core::SetActorAddon(RE::Actor* const actor, const int choice, const
   }
   if (shouldSave) {
     UpdateFormLists(actor);
-    UpdateCover(actor, nullptr, false);
+    UpdateBlock(actor, nullptr, false);
   }
   return res;
 }
@@ -831,7 +831,7 @@ void Core::UpdateFormLists(RE::Actor* const actor) const {
   }
 }
 
-void Core::UpdateCover(RE::Actor* const actor, RE::TESObjectARMO* const armor, const bool isEquipped) const {
+void Core::UpdateBlock(RE::Actor* const actor, RE::TESObjectARMO* const armor, const bool isEquipped) const {
   if (!actor) return;
   static bool showErrMessage = true;
   auto down = armor && isEquipped && armor->HasPartOf(Common::genitalSlot) ? armor : actor->GetWornArmor(Common::genitalSlot);
@@ -980,7 +980,7 @@ bool Core::SwapRevealing(RE::Actor* const actor, RE::TESObjectARMO* const armor)
     armor->RemoveKeyword(rcKeys[kb]);
     if (armor->HasPartOf(Common::bodySlot)) armor->AddKeyword(rcKeys[kb ^ mask]);
   }
-  UpdateCover(actor, nullptr, false);
+  UpdateBlock(actor, nullptr, false);
   return true;
 }
 
