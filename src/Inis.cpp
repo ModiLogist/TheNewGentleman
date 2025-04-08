@@ -362,7 +362,7 @@ const Common::PlayerInfo *Inis::GetPlayerInfo(const RE::Actor *actor) {
   if (playerInfos.empty()) return nullptr;
   auto it = std::ranges::find_if(playerInfos, [&](const auto &pcInfo) { return pcInfo.name == npc->GetName() && pcInfo.race == raceLoc && pcInfo.isFemale == npc->IsFemale(); });
   if (it != playerInfos.end()) {
-    activePlayerInfoIdx = std::distance(playerInfos.begin(), it);
+    activePlayerInfoIdx = static_cast<int>(std::distance(playerInfos.begin(), it));
     return &playerInfos[activePlayerInfoIdx];
   }
   return nullptr;
@@ -411,7 +411,7 @@ void Inis::SetPlayerInfo(const RE::Actor *actor, const RE::TESObjectARMO *addon,
   auto infoIdx = std::find_if(playerInfos.begin(), playerInfos.end(),
                               [&](const auto &pcInfo) { return pcInfo.name == pcIdTokens[0] && ut->LocToStr(pcInfo.race) == pcIdTokens[1] && pcInfo.isFemale == npc->IsFemale(); });
   if (infoIdx != playerInfos.end()) {
-    activePlayerInfoIdx = std::distance(playerInfos.begin(), infoIdx);
+    activePlayerInfoIdx = static_cast<int>(std::distance(playerInfos.begin(), infoIdx));
     infoIdx->addon = addonLoc;
     infoIdx->sizeCat = sizeCat;
   } else {
@@ -422,7 +422,7 @@ void Inis::SetPlayerInfo(const RE::Actor *actor, const RE::TESObjectARMO *addon,
     pcInfo.isFemale = npc->IsFemale();
     pcInfo.addon = addonLoc;
     pcInfo.sizeCat = sizeCat;
-    activePlayerInfoIdx = playerInfos.size() - 1;
+    activePlayerInfoIdx = static_cast<int>(playerInfos.size()) - 1;
   }
 }
 
