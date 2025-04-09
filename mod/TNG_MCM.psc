@@ -784,7 +784,7 @@ Event OnOptionSelect(Int aiOption)
       Return
     EndIf
     If aiOption == fiDAKHdl
-      TNG_PapyrusUtil.SetIntValue(cbDAK, !TNG_PapyrusUtil.GetIntValue(cbDAK))
+      TNG_PapyrusUtil.SetBoolValue(cbDAK, !TNG_PapyrusUtil.GetBoolValue(cbDAK))
       SetToggleOptionValue(fiDAKHdl, TNG_PapyrusUtil.GetBoolValue(cbDAK) )
       If !TNG_PapyrusUtil.GetBoolValue(cbDAK)
         Bool lbResetAll = ShowMessage("$TNG_DKN", true, "$TNG_Yes", "$TNG__No")
@@ -1195,7 +1195,7 @@ Int Function TNGSetAddon(Actor akActor, Int aiAddon)
       ShowNotification("$TNG_WPT")
     EndIf
     TNGSetAddon(akActor, -2)    
-    HandleWarnings(res)
+    HandleWarnings(liRes)
   EndIf
 EndFunction
 
