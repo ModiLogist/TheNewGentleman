@@ -289,26 +289,6 @@ void Inis::SetArmorStatus(const RE::TESObjectARMO *armor, const int revMode) {
   }
 }
 
-void Inis::Process52(const std::string modName) {
-  slot52Mods.push_back(modName);
-  if (boolSettings.Get(Common::bsRevealSlot52Mods)) {
-    extraRevealingMods.insert(modName);
-    Slot52ModBehavior(modName, 1);
-  }
-}
-
-bool Inis::IsExtraRevealing(const std::string &modName) const {
-  if (modName == "") return false;
-  if (extraRevealingMods.find(modName) != extraRevealingMods.end()) return true;
-  return false;
-}
-
-bool Inis::IsExtraRevealing(const RE::TESObjectARMO *armor) const {
-  if (!armor || !armor->HasPartOf(Common::bodySlot)) return false;
-  auto armoLoc = ut->FormToLoc(armor);
-  return IsExtraRevealing(armoLoc.second);
-}
-
 bool Inis::SetAddon(const std::string &record, const RE::TESObjectARMO *addon, const int choice, const char *section, const std::string &formType) {
   if (record.empty()) {
     if (addon) {
@@ -370,21 +350,33 @@ void Inis::LoadPlayerInfos(const std::string &saveName) {
   }
 }
 
+bool Inis::Slot52ModBehavior(const std::string &modName) const {
+  return settingIni.GetBoolValue(cRevealingModSection, ut->NameToStr(modName).c_str(), boolSettings.Get(Common::bsRevealSlot52Mods));
+}
+
 bool Inis::Slot52ModBehavior(const std::string &modName, const int behavior) {
   switch (behavior) {
+    case 0:
+      settingIni.SetBoolValue(cRevealingModSection, ut->NameToStr(modName).c_str(), false);
+      return false;
     case 1:
       settingIni.SetBoolValue(cRevealingModSection, ut->NameToStr(modName).c_str(), true);
-      extraRevealingMods.insert(modName);
       return true;
-    case 0:
-      settingIni.Delete(cRevealingModSection, ut->NameToStr(modName).c_str(), true);
-      extraRevealingMods.erase(modName);
-      return false;
     default:
-      CSimpleIniA::TNamesDepend values;
-      settingIni.GetAllKeys(cRevealingModSection, values);
-      return std::ranges::find_if(values, [&](const auto &entry) { return ut->StrToName(entry.pItem) == modName; }) != values.end();
+      return settingIni.GetBoolValue(cRevealingModSection, ut->NameToStr(modName).c_str(), boolSettings.Get(Common::bsRevealSlot52Mods));
   }
+}
+
+const std::vector<std::string> Inis::Slot52Mods() const {
+  std::vector<std::string> mods;
+  CSimpleIniA::TNamesDepend keys;
+  settingIni.GetAllKeys(cRevealingModSection, keys);
+  for (auto &key : keys) {
+    auto modName = ut->StrToName(std::string(key.pItem));
+    if (modName.empty()) continue;
+    mods.push_back(modName);
+  }
+  return mods;
 }
 
 const Common::PlayerInfo *Inis::GetPlayerInfo(const RE::Actor *actor) {

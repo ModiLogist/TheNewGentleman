@@ -86,21 +86,17 @@ class Inis {
     void SetActorSize(const RE::Actor* actor, const int genSize);
 
     void SetArmorStatus(const RE::TESObjectARMO* armor, const int revMode);
-    void Process52(const std::string modName);
-    bool IsExtraRevealing(const std::string& modName) const;
-    bool IsExtraRevealing(const RE::TESObjectARMO* armor) const;
 
   private:
     std::map<SEFormLoc, SEFormLoc> actorAddons;
     std::map<SEFormLoc, int> actorSizeCats;
-    std::vector<std::string> slot52Mods;
-    std::set<std::string> extraRevealingMods;
     bool SetAddon(const std::string& record, const RE::TESObjectARMO* addon, const int choice, const char* section, const std::string& formType);
 
   public:
     void LoadPlayerInfos(const std::string& saveName);
+    bool Slot52ModBehavior(const std::string& modName) const;
     bool Slot52ModBehavior(const std::string& modName, const int behavior);
-    const std::vector<std::string>& Slot52Mods() const { return slot52Mods; };
+    const std::vector<std::string> Slot52Mods() const;
 
   protected:
     const Common::PlayerInfo* GetPlayerInfo(const RE::Actor* actor);

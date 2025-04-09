@@ -364,9 +364,10 @@ void Core::RevisitRevealingArmor() const {
     if (!armor || !armor->HasPartOf(Common::bodySlot) || !armor->HasKeywordInArray(rc, false)) continue;
     auto modName = armor->GetFile(0) ? std::string(armor->GetFile(0)->GetFilename()) : "";
     if (modName.empty() || potentialMods.find(modName) == potentialMods.end()) continue;
-    if (IsExtraRevealing(modName) == armor->HasKeyword(ut->Key(Common::kyRevealing))) continue;
-    armor->RemoveKeywords(rc);
-    armor->AddKeyword(ut->Key(IsExtraRevealing(modName) ? Common::kyRevealing : Common::kyCovering));
+    if (auto b = Slot52ModBehavior(modName); b != armor->HasKeyword(ut->Key(Common::kyRevealing))) {
+      armor->RemoveKeywords(rc);
+      armor->AddKeyword(ut->Key(b ? Common::kyRevealing : Common::kyCovering));
+    }
   }
 }
 
@@ -1032,7 +1033,7 @@ void Core::CheckArmorPieces() {
         SKSE::log::info("\t\tThe armor [0x{:x}: {}] was marked with [{}] keyword.", armor->GetFormID(), armorID, ut->Key(status)->GetFormEditorID());
         (status == Common::kyCovering) ? logInfo[2]++ : logInfo[3]++;
       }
-      if (IsExtraRevealing(modName)) {
+      if (Slot52ModBehavior(modName)) {
         armor->AddKeyword(ut->Key(Common::kyRevealing));
         SKSE::log::info("\t\tArmor [0x{:x}: {}] was marked revealing since it is in a mod with slot 52 items.", armor->GetFormID(), armorID);
         logInfo[5]++;
@@ -1055,18 +1056,14 @@ void Core::CheckArmorPieces() {
   }
   for (auto entry = potentialSlot52Mods.begin(); entry != potentialSlot52Mods.end();) {
     if (potentialMods.find(*entry) != potentialMods.end()) {
-      Process52(*entry);
+      Slot52ModBehavior(*entry, boolSettings.Get(Common::bsRevealSlot52Mods));
       ++entry;
     }
   }
   for (auto& armorPair : potentialArmor) {
-    if (IsExtraRevealing(armorPair.first)) {
-      armorPair.second->AddKeyword(ut->Key(Common::kyRevealing));
-      logInfo[5]++;
-    } else {
-      armorPair.second->AddKeyword(ut->Key(Common::kyCovering));
-      logInfo[4]++;
-    }
+    auto b = Slot52ModBehavior(armorPair.first);
+    armorPair.second->AddKeyword(ut->Key(b ? Common::kyRevealing : Common::kyCovering));
+    logInfo[b ? 5 : 4]++;
   }
   SKSE::log::info("\tProcessed [{}] armor pieces:", armorList.size());
   if (logInfo[0] > 0) SKSE::log::warn("\t\t[{}]: were problematic!", logInfo[0]);
