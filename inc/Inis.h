@@ -9,13 +9,13 @@ class Inis {
     virtual ~Inis() = default;
 
     Common::TypedSetting<bool, Common::eBoolSetting> boolSettings{
-        settingIni, Common::boolSettingCount, std::vector<bool>(Common::boolSettingCount, false),
-        std::vector<const char*>{"General", "General", "General", "General", "General", "General", "General", "General", "General", "Controls"},
+        settingIni, Common::boolSettingCount, std::vector<bool>{false, false, false, false, false, false, false, false, false},
+        std::vector<const char*>{"General", "General", "General", "General", "General", "General", "General", "General", "Controls"},
         std::vector<const char*>{"ExcludePlayerSize", "CheckPlayerRegularly", "ForceChecks", "Slot52ModsAreRevealing", "Slot52ModsAreMixed", "RandomizeMaleAddons", "UIExtensions",
                                  "ShowAllRaces", "DAK_Integration"}};
 
     Common::TypedSetting<int, Common::eIntSetting> intSettings{
-        settingIni, Common::intSettingCount, std::vector<int>{Common::nul, Common::nul, Common::nul, Common::nul, Common::nul, Common::nul},
+        settingIni, Common::intSettingCount, std::vector<int>{Common::nul, Common::nul, Common::nul, Common::nul, Common::nul},
         std::vector<const char*>(Common::intSettingCount, "Controls"), std::vector<const char*>{"NPCEdit", "GenitalUp", "GenitalDown", "Revealing", "WhyProblem"}};
 
     Common::TypedSetting<float, Common::eFloatSetting> floatSettings{

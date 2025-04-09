@@ -18,20 +18,21 @@ namespace Common {
   template <typename T, typename U>
   struct TypedSetting {
     private:
+      static_assert(std::is_enum_v<U>, "TypedSetting U must be an enum type");
       CSimpleIniA& ini;
       const U count;
-      std::vector<T> values;
       const std::vector<T> defValues;
       const std::vector<const char*> sections;
       const std::vector<const char*> keys;
-      std::vector<std::function<void()>> events;
+      std::map<U, T> values;
 
     public:
       TypedSetting(CSimpleIniA& ini, U count, std::vector<T> defValues, std::vector<const char*> sections, std::vector<const char*> keys)
-          : ini(ini), count(count), defValues(std::move(defValues)), values(this->defValues), sections(std::move(sections)), keys(std::move(keys)) {}
+          : ini(ini), count(count), defValues(std::move(defValues)), sections(std::move(sections)), keys(std::move(keys)) {}
 
       void Load() {
-        for (size_t i = 0; i < count; ++i) {
+        SKSE::log::debug("Loading settings...");
+        for (U i = static_cast<U>(0); i < count; i = static_cast<U>(static_cast<int>(i) + 1)) {
           if constexpr (std::is_same_v<T, int>) {
             values[i] = ini.GetLongValue(sections[i], keys[i], defValues[i]);
           } else if constexpr (std::is_same_v<T, bool>) {
@@ -43,12 +44,11 @@ namespace Common {
           } else {
             static_assert(false, "Unsupported type for GetValue");
           }
-          auto valueChar = ini.GetValue(sections[i], keys[i]);
-          SKSE::log::debug("\tThe setting [{}] was restored to [{}({})].", keys[i], valueChar, values[i] == defValues[i] ? "default" : "user");
+          SKSE::log::debug("\tThe setting [{}] was restored to [{}({})].", keys[i], values[i], values[i] == defValues[i] ? "default" : "user");
         }
       }
 
-      T Get(const U idx) const { return values[idx]; }
+      T Get(const U idx) const { return values.at(idx); }
 
       void Set(const U idx, const T value) {
         if (values[idx] != value) {
@@ -66,15 +66,9 @@ namespace Common {
           } else {
             static_assert(false, "Unsupported type for SetValue");
           }
-          if (events[idx]) {
-            events[idx]();
-          }
         }
       }
-
-      void SetEvent(const U idx, std::function<void()> event) { events[idx] = std::move(event); }
   };
-  ;
 
   class BaseUtil {
     public:
