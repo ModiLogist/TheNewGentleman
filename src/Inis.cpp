@@ -48,7 +48,11 @@ void Inis::LoadMainIni() {
 void Inis::SaveMainIni() { settingIni.SaveFile(SettingFile()); }
 
 spdlog::level::level_enum Inis::GetLogLvl() const {
-  auto lvl = settingIni.GetLongValue(cGeneral, cLogLvl, static_cast<int>(spdlog::level::info));
+  CSimpleIniA ini;
+  ini.SetUnicode();
+  auto f = fmt::format(cSettings, std::to_string(iniVersion)).c_str();
+  ini.LoadFile(f);
+  auto lvl = ini.GetLongValue(cGeneral, cLogLvl, static_cast<int>(spdlog::level::info));
   return lvl > 0 && lvl < static_cast<int>(spdlog::level::n_levels) ? static_cast<spdlog::level::level_enum>(lvl) : spdlog::level::info;
 }
 

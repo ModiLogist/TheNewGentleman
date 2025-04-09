@@ -36,15 +36,15 @@ static void EventListener(SKSE::MessagingInterface::Message* message) {
       ut->ShowSkyrimMessage(err);
       return;
     }
-    core->Init();
     core->LoadMainIni();
+    core->Init();
     core->LoadTngInis();
     core->ProcessRaces();
     core->ProcessNPCs();
     core->CheckArmorPieces();
-    SKSE::log::info("TheNewGentleman finished initialization.");
     events->RegisterEvents();
     Hooks::Install();
+    SKSE::log::info("TheNewGentleman finished initialization.");
   }
   if (message->type == SKSE::MessagingInterface::kPreLoadGame) {
     const std::string savePath{static_cast<char*>(message->data), message->dataLen};
@@ -55,7 +55,6 @@ static void EventListener(SKSE::MessagingInterface::Message* message) {
   }
 }
 
-#ifdef SKYRIMFLATRIM
 extern "C" __declspec(dllexport) constinit auto SKSEPlugin_Version = []() {
   SKSE::PluginVersionData v;
   v.PluginVersion(Version::MAJOR);
@@ -66,7 +65,6 @@ extern "C" __declspec(dllexport) constinit auto SKSEPlugin_Version = []() {
   v.CompatibleVersions({SKSE::RUNTIME_SSE_LATEST});
   return v;
 }();
-#endif
 
 extern "C" __declspec(dllexport) bool SKSEAPI SKSEPlugin_Query(const SKSE::QueryInterface*, SKSE::PluginInfo* info) {
   info->infoVersion = SKSE::PluginInfo::kVersion;
@@ -76,7 +74,6 @@ extern "C" __declspec(dllexport) bool SKSEAPI SKSEPlugin_Query(const SKSE::Query
 }
 
 extern "C" [[maybe_unused]] __declspec(dllexport) bool SKSEPlugin_Load(const SKSE::LoadInterface* skse) {
-  core->LoadMainIni();
   InitializeLogging();
   SKSE::Init(skse, false);
   SKSE::log::info("Initializing TheNewGentleman {}!", Version::NAME.data());
@@ -85,6 +82,5 @@ extern "C" [[maybe_unused]] __declspec(dllexport) bool SKSEPlugin_Load(const SKS
   SKSE::GetPapyrusInterface()->Register(Papyrus::BindPapyrus);
   return true;
 }
-#ifdef SKYRIMVR
+
 extern "C" __declspec(dllexport) const char* APIENTRY GetPluginVersion() { return Version::NAME.data(); }
-#endif
