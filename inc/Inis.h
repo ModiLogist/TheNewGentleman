@@ -69,9 +69,10 @@ class Inis {
     std::map<SEFormLoc, bool> runTimeMalRevRecords;
     std::map<SEFormLoc, bool> runTimeFemRevRecords;
 
-  protected:
+  public:
     void SetAddonStatus(const bool isFemale, const RE::TESObjectARMO* addon, const bool status);
 
+  protected:
     void SetValidSkeleton(const std::string& skeletonModel);
     void SetRgAddon(const RE::TESRace* rg0, const RE::TESObjectARMO* addon, const int choice);
     void SetRgMult(const RE::TESRace* rgRace, const float mult);

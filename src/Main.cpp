@@ -36,12 +36,7 @@ static void EventListener(SKSE::MessagingInterface::Message* message) {
       ut->ShowSkyrimMessage(err);
       return;
     }
-    core->LoadMainIni();
-    core->Init();
-    core->LoadTngInis();
-    core->ProcessRaces();
-    core->ProcessNPCs();
-    core->CheckArmorPieces();
+    core->Process();
     events->RegisterEvents();
     Hooks::Install();
     SKSE::log::info("TheNewGentleman finished initialization.");

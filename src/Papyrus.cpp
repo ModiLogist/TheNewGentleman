@@ -84,20 +84,20 @@ void Papyrus::SetFloatValue(RE::StaticFunctionTag*, int settingID, float value) 
 
 std::vector<std::string> Papyrus::GetAllPossibleAddons(RE::StaticFunctionTag*, bool isFemale) {
   std::vector<std::string> res{};
-  auto& list = isFemale ? core->femAddons : core->malAddons;
+  auto& list = core->GenderAddons(isFemale);
   for (auto addonPair : list) res.push_back(addonPair.first->GetName());
   return res;
 }
 
 bool Papyrus::GetAddonStatus(RE::StaticFunctionTag*, bool isFemale, int addonIdx) {
-  auto& list = isFemale ? core->femAddons : core->malAddons;
+  auto& list = core->GenderAddons(isFemale);
   auto count = list.size();
   if (addonIdx < 0 || addonIdx >= count) return false;
   return list[addonIdx].second;
 }
 
 void Papyrus::SetAddonStatus(RE::StaticFunctionTag*, bool isFemale, int addonIdx, bool status) {
-  auto& list = isFemale ? core->femAddons : core->malAddons;
+  auto& list = core->GenderAddons(isFemale);
   if (addonIdx < 0 || addonIdx >= list.size()) return;
   list[addonIdx].second = status;
   core->SetAddonStatus(isFemale, list[addonIdx].first, status);
@@ -105,8 +105,12 @@ void Papyrus::SetAddonStatus(RE::StaticFunctionTag*, bool isFemale, int addonIdx
 
 std::vector<std::string> Papyrus::GetRgNames(RE::StaticFunctionTag*) {
   std::vector<std::string> res{};
-  for (auto& rg : core->rgInfoList) {
-    if (core->boolSettings.Get(Common::bsShowAllRaces) || !rg.noMCM) res.push_back(rg.name);
+  size_t i = 0;
+  auto rg = core->Rg(Core::RgKey(i, true));
+  while (rg) {
+    res.push_back(rg->name);
+    i++;
+    rg = core->Rg(Core::RgKey(i, true));
   }
   return res;
 }
@@ -118,10 +122,11 @@ std::vector<std::string> Papyrus::GetRgAddons(RE::StaticFunctionTag*, int rgIdx)
   if (rgIdx < 0) return res;
   auto list = core->GetRgAddons(Core::RgKey(rgIdx, true));
   auto isMain = core->RgIsMain(Core::RgKey(rgIdx, true));
+  auto& masterList = core->GenderAddons(false);
   res.push_back("$TNG_TRS");
   res.push_back("$TNG_TNT");
   for (auto i : list) {
-    std::string name = core->malAddons[i.first].first->GetName();
+    std::string name = masterList[i.first].first->GetName();
     name = isMain ? name : i.second ? name + " (d)" : name + " (s)";
     res.push_back(name);
   }
@@ -171,7 +176,7 @@ std::vector<std::string> Papyrus::GetActorAddons(RE::StaticFunctionTag*, RE::Act
   auto npc = actor ? actor->GetActorBase() : nullptr;
   if (!npc) return res;
   auto list = core->GetActorAddons(actor, false);
-  auto masterList = npc->IsFemale() ? core->femAddons : core->malAddons;
+  auto masterList = core->GenderAddons(npc->IsFemale());
   auto isMain = list.size() > 0 ? core->RgIsMain(Core::RgKey(actor->GetRace())) : false;
   res.push_back("$TNG_TRS");
   res.push_back("$TNG_TNT");
@@ -190,7 +195,7 @@ RE::TESObjectARMO* Papyrus::GetActorAddon(RE::StaticFunctionTag*, RE::Actor* act
   if (addonIdx < 0) return nullptr;
   auto npc = actor ? actor->GetActorBase() : nullptr;
   if (!npc) return nullptr;
-  auto masterList = npc->IsFemale() ? core->femAddons : core->malAddons;
+  auto masterList = core->GenderAddons(npc->IsFemale());
   return masterList[static_cast<size_t>(addonIdx)].first;
 }
 
