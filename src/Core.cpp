@@ -70,13 +70,13 @@ void Core::ProcessRaces() {
 }
 
 int Core::GetRgAddon(RgKey rgChoice) const {
-  auto rg = rgChoice.Get();
+  auto rg = Rg(rgChoice);
   if (!rg) return Common::err40;
   return rg->addonIdx;
 }
 
 void Core::SetRgAddon(RgKey rgChoice, const int addonIdx) {
-  auto rg = rgChoice.Get();
+  auto rg = Rg(rgChoice);
   if (!rg || addonIdx < Common::def || (addonIdx >= 0 && rg->malAddons.find(addonIdx) == rg->malAddons.end())) return;
   rg->addonIdx = (addonIdx == Common::def) ? rg->defAddonIdx : addonIdx;
   auto skin = (rg->addonIdx == Common::nul) ? rg->ogSkin : GetSkinWithAddonForRg(rg, rg->ogSkin, rg->addonIdx, false);
@@ -90,12 +90,12 @@ void Core::SetRgAddon(RgKey rgChoice, const int addonIdx) {
 }
 
 float Core::GetRgMult(RgKey rgChoice) const {
-  auto rg = rgChoice.Get();
+  auto rg = Rg(rgChoice);
   return rg ? rg->mult : Common::fErr;
 }
 
 void Core::SetRgMult(RgKey rgChoice, const float mult) {
-  auto rg = rgChoice.Get();
+  auto rg = Rg(rgChoice);
   if (!rg || mult < 0.1f || mult >= 10.0f) {
     SKSE::log::critical("\tFailure in setting a race mult!");
     return;
@@ -106,7 +106,7 @@ void Core::SetRgMult(RgKey rgChoice, const float mult) {
 
 const std::string Core::GetRgInfo(RgKey rgChoice) const {
   std::string res{""};
-  auto rg = rgChoice.Get();
+  auto rg = Rg(rgChoice);
   if (!rg) return res;
   if (rg == &rgInfoList[0]) return "Internal group for TNG to handle main race groups with same skin.";
   auto& list = rg->races;
@@ -126,17 +126,17 @@ const std::string Core::GetRgInfo(RgKey rgChoice) const {
 
 std::vector<std::pair<size_t, bool>> Core::GetRgAddons(RgKey rgChoice) const {
   std::vector<std::pair<size_t, bool>> res{};
-  auto rg = rgChoice.Get();
+  auto rg = Rg(rgChoice);
   if (!rg) return res;
   for (auto& addonPair : rg->malAddons) res.push_back({addonPair.first, addonPair.second.first});
   return res;
 }
 
 bool Core::ReevaluateRace(RE::TESRace* const race, RE::Actor* const actor) {
-  if (!actor || !race || !RgKey(race).Get()) return false;
+  if (!actor || !race || !Rg(RgKey(race))) return false;
   SKSE::log::debug("Re-evaluating race [0x{:x}:{}] ...", race->GetFormID(), race->GetFormEditorID());
   if (!actor->Is3DLoaded()) return false;
-  auto rg = RgKey(race).Get();
+  auto rg = Rg(RgKey(race));
   bool isValid = true;
   for (auto& boneName : Common::genBoneNames)
     if (!actor->GetNodeByName(boneName)) {
@@ -176,7 +176,7 @@ void Core::IgnoreRace(RE::TESRace* const race, bool ready) {
 }
 
 Common::RaceGroupInfo* const Core::ProcessRace(RE::TESRace* const race) {
-  if (auto rg = RgKey(race).Get(); rg) return rg;
+  if (auto rg = Rg(RgKey(race)); rg) return rg;
   switch (CheckRace(race)) {
     case Common::resOkRacePP:
       return AddRace(race, false);
@@ -316,13 +316,13 @@ void Core::ProcessRgAddons(Common::RaceGroupInfo& rg, const std::vector<std::pai
     auto& addon = addons[i].first;
     bool supports = false;
     for (const auto& aa : addon->armorAddons) {
-      if (aa->IsValidRace(rg.armorRace)) {
+      if (aa && aa->IsValidRace(rg.armorRace)) {
         std::set<RE::TESRace*> aaRaces{aa->race};
         std::set<RE::TESRace*> toEraseRaces{};
         if (rg.isMain) {
           if (aa->additionalRaces.size() > 0) aaRaces.insert(aa->additionalRaces.begin(), aa->additionalRaces.end());
           for (auto& race : aaRaces) {
-            if (auto r = RgKey(race).Get(); r && !r->isMain) toEraseRaces.insert(r->armorRace);
+            if (auto r = Rg(RgKey(race)); r && !r->isMain) toEraseRaces.insert(r->armorRace);
           }
           for (auto& race : toEraseRaces) aaRaces.erase(race);
           if (aaRaces.find(rg.armorRace) == aaRaces.end()) continue;
@@ -344,7 +344,7 @@ void Core::ProcessRgAddons(Common::RaceGroupInfo& rg, const std::vector<std::pai
       rg.defAddonIdx = static_cast<int>(i);
       rg.addonIdx = static_cast<int>(i);
     }
-    SKSE::log::debug("\t\tThe addon [xx{:x}] from file [{}] {} {} in the race group [{}]!", addon->GetFormID(), addon->GetFile(0)->GetFilename(),
+    SKSE::log::debug("\t\tThe addon [0x{:x}] from file [{}] {} {} in the race group [{}]!", addon->GetFormID(), addon->GetFile(0)->GetFilename(),
                      rgAddons[i].first ? "fully supports" : "can be used for", gender, rg.name);
   }
 }
@@ -454,7 +454,7 @@ void Core::ProcessNPCs() {
   }
   for (auto& racePair : raceNPCCount) {
     if (!racePair.first || racePair.second < 5) continue;
-    if (auto rg = RgKey(racePair.first).Get(); rg && rg->malAddons.size() > 0) rg->noMCM = false;
+    if (auto rg = Rg(RgKey(racePair.first)); rg && rg->malAddons.size() > 0) rg->noMCM = false;
   }
   for (auto& skinPair : skinsToPatch) {
     auto& oldSkin = skinPair.first.first;
@@ -488,7 +488,7 @@ Common::eRes Core::CanModifyActor(RE::Actor* const actor) const {
   if (IsNPCExcluded(npc)) return Common::errNPC;
   if (npc->skin && npc->skin->HasPartOf(Common::genitalSlot) && !npc->skin->HasKeyword(ut->Key(Common::kyTngSkin))) return Common::errSkin;
   if (npc->race->HasKeyword(ut->Key(Common::kyReady))) return Common::resOkRaceR;
-  if (auto rg = RgKey(npc->race).Get(); rg || rg->malAddons.size() == 0) return Common::errRace;
+  if (auto rg = Rg(RgKey(npc->race)); rg || rg->malAddons.size() == 0) return Common::errRace;
   if (npc->race->HasKeyword(ut->Key(Common::kyProcessed))) return Common::resOkRaceP;
   if (npc->race->HasKeyword(ut->Key(Common::kyPreProcessed))) return Common::resOkRacePP;
   return Common::errRace;
@@ -521,12 +521,16 @@ void Core::UpdateActor(RE::Actor* const actor, RE::TESObjectARMO* const armor, c
 std::vector<std::pair<size_t, bool>> Core::GetActorAddons(RE::Actor* const actor, const bool onlyActive) const {
   std::vector<std::pair<size_t, bool>> res{};
   auto npc = actor ? actor->GetActorBase() : nullptr;
-  if (!npc) return res;
-  if (auto rg = RgKey(npc->race).Get(); rg) {
+  if (!npc || !npc->race) return res;
+  if (auto rg = Rg(RgKey(npc->race)); rg) {
+    for (auto& addonPair : rg->malAddons)
+      SKSE::log::debug("Rg [{}] has addon [{}] with arma [0x{:x}] dedicated [{}]!", rg->name, addonPair.first, addonPair.second.second->GetFormID(),
+                       addonPair.second.first ? "true" : "false");
     auto& list = npc->IsFemale() ? rg->femAddons : rg->malAddons;
     auto& master = npc->IsFemale() ? femAddons : malAddons;
-    for (auto& addonPair : list)
+    for (auto& addonPair : list) {
       if (!onlyActive || master[addonPair.first].second) res.push_back({addonPair.first, addonPair.second.first});
+    }
   }
   return res;
 }
@@ -541,7 +545,7 @@ Common::eRes Core::GetActorAddon(RE::Actor* actor, int& addonIdx, bool& isAuto) 
     if (npc->skin && npc->skin->HasKeyword(ut->Key(Common::kyTngSkin))) return Common::err40;
     return Common::resOkNoAddon;
   }
-  auto rg = RgKey(npc->race).Get();
+  auto rg = Rg(RgKey(npc->race));
   if (!rg) return Common::errRace;
   if (!npc->IsFemale() && rg->addonIdx != Common::nul) addonIdx = rg->addonIdx;
   if (!npc->skin) return addonIdx > Common::nul ? Common::resOkHasAddon : Common::resOkNoAddon;
@@ -624,7 +628,7 @@ Common::eRes Core::SetActorSize(RE::Actor* const actor, int sizeCat, bool should
     npc->RemoveKeywords(ut->SizeKeys());
     npc->AddKeyword(ut->SizeKey(cat));
   }
-  if (auto rg = RgKey(npc->race).Get(); rg) {
+  if (auto rg = Rg(RgKey(npc->race)); rg) {
     auto mult = rg->mult;
     if (mult < 0.0f) return Common::errRg;
     auto scale = mult * floatSettings.Get(static_cast<Common::eFloatSetting>(cat));
@@ -674,7 +678,7 @@ RE::TESObjectARMO* Core::FixSkin(RE::TESObjectARMO* const skin, RE::TESRace* con
     SKSE::log::warn("\t\tThe skin [0x{:x}] does not have any arma! TNG ignores it.", skin->GetFormID());
     return nullptr;
   }
-  if (auto rg = RgKey(race).Get(); !rg) {
+  if (auto rg = Rg(RgKey(race)); !rg) {
     SKSE::log::critical("\t\tSkin [xx{:x}] from file [{}] together with race [xx{:x}] from file [{}] caused a critical error!", skin->GetLocalFormID(),
                         skin->GetFile() ? skin->GetFile()->GetFilename() : "Unknown", race->GetLocalFormID(), race->GetFile() ? race->GetFile()->GetFilename() : "Unknown");
     return nullptr;
@@ -764,7 +768,7 @@ Common::eRes Core::SetNPCAddon(RE::TESNPC* const npc, const int addonIdx, const 
     ogSkin->AddKeyword(ut->Key(Common::kyIgnored));
     SKSE::log::info("The skin [0x{:x}] was updated accordingly", ogSkin->formID);
   }
-  auto rg = RgKey(npc->race).Get();
+  auto rg = Rg(RgKey(npc->race));
   if (!rg) return Common::errRg;
   auto& list = npc->IsFemale() ? rg->femAddons : rg->malAddons;
   if (addonIdx >= 0 && list.find(addonIdx) == list.end()) return Common::errAddon;
@@ -1028,23 +1032,43 @@ void Core::RevisitRevealingArmor() const {
   }
 }
 
-// RgKey
-Common::RaceGroupInfo* Core::RgKey::Get() const {
-  if (race) {
-    for (auto& rg : core->rgInfoList)
-      if (std::find(rg.races.begin(), rg.races.end(), race) != rg.races.end()) {
+Common::RaceGroupInfo* Core::Rg(const RgKey& ky) {
+  if (ky.race) {
+    for (auto& rg : rgInfoList)
+      if (std::find(rg.races.begin(), rg.races.end(), ky.race) != rg.races.end()) {
         return &rg;
       }
     return nullptr;
-  } else if (index >= 0) {
-    if (onlyMCM && !core->boolSettings.Get(Common::bsShowAllRaces)) {
+  } else if (ky.index >= 0) {
+    if (ky.onlyMCM && !boolSettings.Get(Common::bsShowAllRaces)) {
       int curr = -1;
-      for (auto& rg : core->rgInfoList) {
+      for (auto& rg : rgInfoList) {
         if (!rg.noMCM) curr++;
-        if (curr == index) return &rg;
+        if (curr == ky.index) return &rg;
       }
     } else {
-      if (index < core->rgInfoList.size()) return &core->rgInfoList[static_cast<size_t>(index)];
+      if (ky.index < core->rgInfoList.size()) return &core->rgInfoList[static_cast<size_t>(ky.index)];
+    }
+  }
+  return nullptr;
+}
+
+const Common::RaceGroupInfo* Core::Rg(const RgKey& ky) const {
+  if (ky.race) {
+    for (auto& rg : rgInfoList)
+      if (std::find(rg.races.begin(), rg.races.end(), ky.race) != rg.races.end()) {
+        return &rg;
+      }
+    return nullptr;
+  } else if (ky.index >= 0) {
+    if (ky.onlyMCM && !boolSettings.Get(Common::bsShowAllRaces)) {
+      int curr = -1;
+      for (auto& rg : rgInfoList) {
+        if (!rg.noMCM) curr++;
+        if (curr == ky.index) return &rg;
+      }
+    } else {
+      if (ky.index < core->rgInfoList.size()) return &core->rgInfoList[static_cast<size_t>(ky.index)];
     }
   }
   return nullptr;

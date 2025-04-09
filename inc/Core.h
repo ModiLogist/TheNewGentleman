@@ -22,10 +22,12 @@ class Core : public Singleton<Core>, public Inis {
         bool onlyMCM = true;
         explicit RgKey(RE::TESRace* r) : race(r), index(-1) {}                     // by race
         explicit RgKey(size_t i, bool b) : race(nullptr), index(i), onlyMCM(b) {}  // by index
-        Common::RaceGroupInfo* Get() const;
     };
     void ProcessRaces();
-    bool RgIsMain(RgKey rgChoice) const { return rgChoice.Get() && rgChoice.Get()->isMain; };
+    bool RgIsMain(RgKey rgChoice) const {
+      auto rg = Rg(rgChoice);
+      return rg && rg->isMain;
+    };
     int GetRgAddon(RgKey rgChoice) const;
     void SetRgAddon(RgKey rgChoice, const int addonIdx);
     float GetRgMult(RgKey rgChoice) const;
@@ -37,6 +39,8 @@ class Core : public Singleton<Core>, public Inis {
   private:
     std::vector<Common::RaceGroupInfo> rgInfoList;
     std::map<RE::TESObjectARMO*, RE::TESObjectARMO*> ogSkinMap;
+    Common::RaceGroupInfo* Rg(const RgKey& ky);
+    const Common::RaceGroupInfo* Rg(const RgKey& ky) const;
     void IgnoreRace(RE::TESRace* const race, bool ready);
     Common::RaceGroupInfo* const ProcessRace(RE::TESRace* const race);
     Common::eRes CheckRace(RE::TESRace* const race) const;
