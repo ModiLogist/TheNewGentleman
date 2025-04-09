@@ -1017,7 +1017,7 @@ bool Core::SwapRevealing(RE::Actor* const actor, RE::TESObjectARMO* const armor)
 }
 
 void Core::RevisitRevealingArmor() const {
-  std::set<std::string> potentialMods = {Slot52Mods().begin(), Slot52Mods().end()};
+  std::set<std::string> potentialMods{Slot52Mods().begin(), Slot52Mods().end()};
   if (potentialMods.size() == 0) return;
   auto& armorList = ut->SEDH()->GetFormArray<RE::TESObjectARMO>();
   std::set<std::pair<std::string, RE::TESObjectARMO*>> potentialArmor = {};
