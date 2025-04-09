@@ -24,35 +24,30 @@ namespace Common {
       const std::vector<T> defValues;
       const std::vector<const char*> sections;
       const std::vector<const char*> keys;
-      std::map<U, T> values;
 
     public:
       TypedSetting(CSimpleIniA& ini, U count, std::vector<T> defValues, std::vector<const char*> sections, std::vector<const char*> keys)
           : ini(ini), count(count), defValues(std::move(defValues)), sections(std::move(sections)), keys(std::move(keys)) {}
 
-      void Load() {
-        SKSE::log::debug("Loading settings...");
-        for (U i = static_cast<U>(0); i < count; i = static_cast<U>(static_cast<int>(i) + 1)) {
-          if constexpr (std::is_same_v<T, int>) {
-            values[i] = ini.GetLongValue(sections[i], keys[i], defValues[i]);
-          } else if constexpr (std::is_same_v<T, bool>) {
-            values[i] = ini.GetBoolValue(sections[i], keys[i], defValues[i]);
-          } else if constexpr (std::is_same_v<T, float> || std::is_same_v<T, double>) {
-            values[i] = static_cast<T>(ini.GetDoubleValue(sections[i], keys[i], static_cast<double>(defValues[i])));
-          } else if constexpr (std::is_same_v<T, std::string>) {
-            values[i] = ini.GetValue(sections[i], keys[i], defValues[i]);
-          } else {
-            static_assert(false, "Unsupported type for GetValue");
-          }
-          SKSE::log::debug("\tThe setting [{}] was restored to [{}({})].", keys[i], values[i], values[i] == defValues[i] ? "default" : "user");
+      T Get(const U idx) const {
+        auto value = defValues[idx];
+        if constexpr (std::is_same_v<T, int>) {
+          value = ini.GetLongValue(sections[idx], keys[idx], defValues[idx]);
+        } else if constexpr (std::is_same_v<T, bool>) {
+          value = ini.GetBoolValue(sections[idx], keys[idx], defValues[idx]);
+        } else if constexpr (std::is_same_v<T, float> || std::is_same_v<T, double>) {
+          value = static_cast<T>(ini.GetDoubleValue(sections[idx], keys[idx], static_cast<double>(defValues[idx])));
+        } else if constexpr (std::is_same_v<T, std::string>) {
+          value = ini.GetValue(sections[idx], keys[idx], defValues[idx]);
+        } else {
+          static_assert(false, "Unsupported type for GetValue");
         }
+        SKSE::log::debug("\tThe setting [{}] was restored to [{}({})].", keys[idx], value, value == defValues[idx] ? "default" : "user");
+        return value;
       }
 
-      T Get(const U idx) const { return values.at(idx); }
-
       void Set(const U idx, const T value) {
-        if (values[idx] != value) {
-          values[idx] = value;
+        if (Get(idx) != value) {
           if (defValues[idx] == value) {
             ini.Delete(sections[idx], keys[idx], true);
           } else if constexpr (std::is_same_v<T, int>) {

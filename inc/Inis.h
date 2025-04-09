@@ -13,11 +13,9 @@ class Inis {
         std::vector<const char*>{"General", "General", "General", "General", "General", "General", "General", "General", "Controls"},
         std::vector<const char*>{"ExcludePlayerSize", "CheckPlayerRegularly", "ForceChecks", "Slot52ModsAreRevealing", "Slot52ModsAreMixed", "RandomizeMaleAddons", "UIExtensions",
                                  "ShowAllRaces", "DAK_Integration"}};
-
     Common::TypedSetting<int, Common::eIntSetting> intSettings{
         settingIni, Common::intSettingCount, std::vector<int>{Common::nul, Common::nul, Common::nul, Common::nul, Common::nul},
         std::vector<const char*>(Common::intSettingCount, "Controls"), std::vector<const char*>{"NPCEdit", "GenitalUp", "GenitalDown", "Revealing", "WhyProblem"}};
-
     Common::TypedSetting<float, Common::eFloatSetting> floatSettings{
         settingIni, Common::floatSettingCount, std::vector<float>{0.8f, 0.9f, 1.0f, 1.2f, 1.4f, 0.0f, 20.0f},
         std::vector<const char*>{"GlobalSizes", "GlobalSizes", "GlobalSizes", "GlobalSizes", "GlobalSizes", cActiveMalAddons, cActiveFemAddons},

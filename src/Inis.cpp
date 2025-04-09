@@ -11,9 +11,6 @@ void Inis::LoadMainIni() {
   settingIni.SetUnicode();
   settingIni.LoadFile(SettingFile());
 
-  boolSettings.Load();
-  intSettings.Load();
-  floatSettings.Load();
   if (ut->SEDH()->LookupModByName("Racial Skin Variance - SPID.esp")) {
     boolSettings.Set(Common::bsCheckPlayerAddon, true);
     boolSettings.Set(Common::bsForceRechecks, true);
@@ -148,7 +145,14 @@ void Inis::SetAddonStatus(const bool isFemale, const RE::TESObjectARMO *addon, c
                      : settingIni.Delete(isFemale ? cActiveFemAddons : cActiveMalAddons, addonLocStr.c_str(), true);
 }
 
-void Inis::SetValidSkeleton(const std::string &skeletonModel) { settingIni.SetBoolValue(cValidSkeletons, skeletonModel.c_str(), true); }
+void Inis::SetValidSkeleton(const std::string &skeletonModel) {
+  if (skeletonModel.empty()) {
+    SKSE::log::error("Failed to save the skeleton model name!");
+    return;
+  }
+  validSkeletons.emplace(skeletonModel);
+  settingIni.SetBoolValue(cValidSkeletons, skeletonModel.c_str(), true);
+}
 
 void Inis::SetRgAddon(const RE::TESRace *rgRace, const RE::TESObjectARMO *addon, const int choice) {
   auto raceRecord = ut->FormToStr(rgRace);

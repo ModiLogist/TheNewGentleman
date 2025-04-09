@@ -12,6 +12,7 @@ void Core::Init() {
 }
 
 void Core::LoadAddons() {
+  SKSE::log::info("Loading the addons...");
   malAddons.clear();
   femAddons.clear();
   const auto& armorList = ut->SEDH()->GetFormArray<RE::TESObjectARMO>();
@@ -30,6 +31,7 @@ void Core::LoadAddons() {
     auto addonLoc = ut->FormToLoc(addonPair.first);
     if (activeFemAddons.find(addonLoc) != activeFemAddons.end()) addonPair.second = true;
   }
+  SKSE::log::debug("Loaded all addons with [{}] addons for men and [{}] addons for women.", malAddons.size(), femAddons.size());
 }
 
 int Core::AddonIdxByLoc(const bool isFemale, const SEFormLocView addonLoc) const {
@@ -44,14 +46,14 @@ int Core::AddonIdxByLoc(const bool isFemale, const SEFormLocView addonLoc) const
 }
 
 void Core::ProcessRaces() {
-  SKSE::log::info("Finding the genitals for relevant races...");
+  SKSE::log::info("Processing races...");
   const auto& allRaces = ut->SEDH()->GetFormArray<RE::TESRace>();
   int logInfo[4] = {0, 0, 0, 0};
   std::vector<RE::BGSKeyword*> keywords = {ut->Key(Common::kyIgnored), ut->Key(Common::kyReady), ut->Key(Common::kyProcessed), ut->Key(Common::kyPreProcessed)};
-  validSkeletons.emplace(ut->Race(Common::raceDefault)->skeletonModels[0].model.data());
-  validSkeletons.emplace(ut->Race(Common::raceDefault)->skeletonModels[1].model.data());
-  validSkeletons.emplace(ut->Race(Common::raceDefBeast)->skeletonModels[0].model.data());
-  validSkeletons.emplace(ut->Race(Common::raceDefBeast)->skeletonModels[1].model.data());
+  SetValidSkeleton(ut->Race(Common::raceDefault)->skeletonModels[0].model.data());
+  SetValidSkeleton(ut->Race(Common::raceDefault)->skeletonModels[1].model.data());
+  SetValidSkeleton(ut->Race(Common::raceDefBeast)->skeletonModels[0].model.data());
+  SetValidSkeleton(ut->Race(Common::raceDefBeast)->skeletonModels[1].model.data());
   for (const auto& race : allRaces) {
     if (!race) continue;
     if (!race->HasKeywordInArray(keywords, false)) ProcessRace(race);
@@ -65,7 +67,7 @@ void Core::ProcessRaces() {
         for (auto& race : rg.races) race->skin = skin;
     }
   }
-  SKSE::log::info("\tProcessed [{}] races: assigned genitalia to [{}] races, preprocessed [{}] races, found [{}] races to be ready and ignored [{}] races.", allRaces.size(),
+  SKSE::log::info("Processed [{}] races: assigned genitalia to [{}] races, preprocessed [{}] races, found [{}] races to be ready and ignored [{}] races.", allRaces.size(),
                   logInfo[2], logInfo[3], logInfo[1], logInfo[0]);
 }
 
