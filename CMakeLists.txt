@@ -186,7 +186,7 @@ if(MSVC)
 
         /permissive- # Standards conformance
         /Zc:preprocessor # Enable preprocessor conformance mode
-
+        /W4 # Warning Level 4
         /wd4200 # nonstandard extension used : zero-sized array in struct/union
     )
 
