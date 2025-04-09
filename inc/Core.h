@@ -36,7 +36,6 @@ class Core : public Singleton<Core>, public Inis {
 
   private:
     std::vector<Common::RaceGroupInfo> rgInfoList;
-    std::map<RE::TESRace*, Common::RaceGroupInfo*> raceRgs;
     std::map<RE::TESObjectARMO*, RE::TESObjectARMO*> ogSkinMap;
     void IgnoreRace(RE::TESRace* const race, bool ready);
     Common::RaceGroupInfo* const ProcessRace(RE::TESRace* const race);

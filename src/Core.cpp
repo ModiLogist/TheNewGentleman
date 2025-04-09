@@ -133,10 +133,10 @@ std::vector<std::pair<size_t, bool>> Core::GetRgAddons(RgKey rgChoice) const {
 }
 
 bool Core::ReevaluateRace(RE::TESRace* const race, RE::Actor* const actor) {
-  if (!actor || !race || raceRgs.find(race) == raceRgs.end()) return false;
+  if (!actor || !race || !RgKey(race).Get()) return false;
   SKSE::log::debug("Re-evaluating race [0x{:x}:{}] ...", race->GetFormID(), race->GetFormEditorID());
   if (!actor->Is3DLoaded()) return false;
-  auto rg = raceRgs[race];
+  auto rg = RgKey(race).Get();
   bool isValid = true;
   for (auto& boneName : Common::genBoneNames)
     if (!actor->GetNodeByName(boneName)) {
@@ -161,7 +161,6 @@ bool Core::ReevaluateRace(RE::TESRace* const race, RE::Actor* const actor) {
     race->AddKeyword(ut->Key(Common::kyIgnored));
     race->RemoveSlotFromMask(Common::genitalSlot);
     auto it = std::find(rg->races.begin(), rg->races.end(), race);
-    raceRgs.erase(race);
     rg->races.erase(it);
     auto rgIt = std::ranges::find_if(rgInfoList, [&](const auto& item) { return &item == rg; });
     if (rgIt != rgInfoList.end() && rg->races.empty()) rgInfoList.erase(rgIt);
@@ -177,7 +176,7 @@ void Core::IgnoreRace(RE::TESRace* const race, bool ready) {
 }
 
 Common::RaceGroupInfo* const Core::ProcessRace(RE::TESRace* const race) {
-  if (raceRgs.find(race) != raceRgs.end()) return raceRgs[race];
+  if (auto rg = RgKey(race).Get(); rg) return rg;
   switch (CheckRace(race)) {
     case Common::resOkRacePP:
       return AddRace(race, false);
@@ -250,7 +249,6 @@ Common::RaceGroupInfo* Core::AddRace(RE::TESRace* const race, const bool isProce
     for (auto& rg : rgInfoList) {
       if (rg.armorRace == race->armorParentRace && rg.ogSkin == race->skin) {
         rg.races.push_back(race);
-        raceRgs.insert({race, &rg});
         SKSE::log::info("\tThe race [0x{:x}: {}] was recognized as a member of existing group {}.", race->GetFormID(), race->GetFormEditorID(), rg.name);
         return &rg;
       }
@@ -259,7 +257,6 @@ Common::RaceGroupInfo* Core::AddRace(RE::TESRace* const race, const bool isProce
       SKSE::log::debug("\t\t...processing parent race [0x{:x}: {}]", race->armorParentRace->GetFormID(), race->armorParentRace->GetFormEditorID());
       if (auto rgPtr = ProcessRace(race->armorParentRace); rgPtr) {
         rgPtr->races.push_back(race);
-        raceRgs.insert({race, rgPtr});
         SKSE::log::info("\tThe race [0x{:x}: {}] was recognized as a member of existing group {}.", race->GetFormID(), race->GetFormEditorID(), rgPtr->name);
         return rgPtr;
       }
@@ -282,7 +279,6 @@ Common::RaceGroupInfo* Core::AddRace(RE::TESRace* const race, const bool isProce
   rg.noMCM = !race->GetPlayable() && !race->HasKeyword(ut->Key(Common::kyVampire));
   rg.mult = 1.0f;
   rg.defAddonIdx = GetRgDefAddon(rg);
-  raceRgs.insert({race, &rg});
   ProcessRgAddons(rg, malAddons, false);
   ProcessRgAddons(rg, femAddons, true);
   if (ut->Block() && !ut->Block()->armorAddons[0]->IsValidRace(race)) ut->Block()->armorAddons[0]->additionalRaces.push_back(rg.armorRace);
@@ -322,11 +318,13 @@ void Core::ProcessRgAddons(Common::RaceGroupInfo& rg, const std::vector<std::pai
     for (const auto& aa : addon->armorAddons) {
       if (aa->IsValidRace(rg.armorRace)) {
         std::set<RE::TESRace*> aaRaces{aa->race};
+        std::set<RE::TESRace*> toEraseRaces{};
         if (rg.isMain) {
           if (aa->additionalRaces.size() > 0) aaRaces.insert(aa->additionalRaces.begin(), aa->additionalRaces.end());
           for (auto& race : aaRaces) {
-            if (raceRgs.find(race) != raceRgs.end() && !raceRgs[race]->isMain) aaRaces.erase(raceRgs[race]->armorRace);
+            if (auto r = RgKey(race).Get(); r && !r->isMain) toEraseRaces.insert(r->armorRace);
           }
+          for (auto& race : toEraseRaces) aaRaces.erase(race);
           if (aaRaces.find(rg.armorRace) == aaRaces.end()) continue;
         }
         supports = true;
@@ -336,7 +334,7 @@ void Core::ProcessRgAddons(Common::RaceGroupInfo& rg, const std::vector<std::pai
       }
     }
     if (!supports) {
-      if (i == rg.defAddonIdx) rg.defAddonIdx = rg.malAddons.size() == 0 ? Common::nul : static_cast<int>(rg.malAddons.begin()->first);
+      if (i == rg.defAddonIdx) rg.defAddonIdx = rg.malAddons.empty() ? Common::nul : static_cast<int>(rg.malAddons.begin()->first);
       if (rg.addonIdx < 0 || rg.addonIdx == i) rg.addonIdx = rg.defAddonIdx;
       continue;
     }
@@ -455,9 +453,8 @@ void Core::ProcessNPCs() {
     skinsToPatch[{skin, race}].insert(npc);
   }
   for (auto& racePair : raceNPCCount) {
-    if (racePair.second < 5) continue;
-    if (!racePair.first || raceRgs.find(racePair.first) == raceRgs.end()) continue;
-    if (auto rg = raceRgs[racePair.first]; rg && rg->malAddons.size() > 0) rg->noMCM = false;
+    if (!racePair.first || racePair.second < 5) continue;
+    if (auto rg = RgKey(racePair.first).Get(); rg && rg->malAddons.size() > 0) rg->noMCM = false;
   }
   for (auto& skinPair : skinsToPatch) {
     auto& oldSkin = skinPair.first.first;
@@ -491,7 +488,7 @@ Common::eRes Core::CanModifyActor(RE::Actor* const actor) const {
   if (IsNPCExcluded(npc)) return Common::errNPC;
   if (npc->skin && npc->skin->HasPartOf(Common::genitalSlot) && !npc->skin->HasKeyword(ut->Key(Common::kyTngSkin))) return Common::errSkin;
   if (npc->race->HasKeyword(ut->Key(Common::kyReady))) return Common::resOkRaceR;
-  if (raceRgs.find(npc->race) == raceRgs.end() || raceRgs.at(npc->race)->malAddons.size() == 0) return Common::errRace;
+  if (auto rg = RgKey(npc->race).Get(); rg || rg->malAddons.size() == 0) return Common::errRace;
   if (npc->race->HasKeyword(ut->Key(Common::kyProcessed))) return Common::resOkRaceP;
   if (npc->race->HasKeyword(ut->Key(Common::kyPreProcessed))) return Common::resOkRacePP;
   return Common::errRace;
@@ -677,14 +674,16 @@ RE::TESObjectARMO* Core::FixSkin(RE::TESObjectARMO* const skin, RE::TESRace* con
     SKSE::log::warn("\t\tThe skin [0x{:x}] does not have any arma! TNG ignores it.", skin->GetFormID());
     return nullptr;
   }
-  if (raceRgs.find(race) == raceRgs.end()) {
+  if (auto rg = RgKey(race).Get(); !rg) {
     SKSE::log::critical("\t\tSkin [xx{:x}] from file [{}] together with race [xx{:x}] from file [{}] caused a critical error!", skin->GetLocalFormID(),
                         skin->GetFile() ? skin->GetFile()->GetFilename() : "Unknown", race->GetLocalFormID(), race->GetFile() ? race->GetFile()->GetFilename() : "Unknown");
     return nullptr;
+  } else if (rg->addonIdx == Common::nul || rg->malAddons.size() == 0) {
+    return skin;
+  } else {
+    if (name) SKSE::log::info("\t\tThe skin [0x{:x}: {}] added as extra skin.", skin->GetFormID(), name);
+    return GetSkinWithAddonForRg(rg, skin, rg->addonIdx, false);
   }
-  if (raceRgs[race]->addonIdx == Common::nul) return skin;
-  if (name) SKSE::log::info("\t\tThe skin [0x{:x}: {}] added as extra skin.", skin->GetFormID(), name);
-  return GetSkinWithAddonForRg(raceRgs[race], skin, raceRgs[race]->addonIdx, false);
 }
 
 void Core::ApplyUserSettings(RE::TESNPC* npc) {
@@ -765,8 +764,8 @@ Common::eRes Core::SetNPCAddon(RE::TESNPC* const npc, const int addonIdx, const 
     ogSkin->AddKeyword(ut->Key(Common::kyIgnored));
     SKSE::log::info("The skin [0x{:x}] was updated accordingly", ogSkin->formID);
   }
-  if (raceRgs.find(npc->race) == raceRgs.end()) return Common::errRg;
-  auto& rg = raceRgs[npc->race];
+  auto rg = RgKey(npc->race).Get();
+  if (!rg) return Common::errRg;
   auto& list = npc->IsFemale() ? rg->femAddons : rg->malAddons;
   if (addonIdx >= 0 && list.find(addonIdx) == list.end()) return Common::errAddon;
   if (addonIdx == Common::def && npc->IsFemale()) {
@@ -1032,8 +1031,11 @@ void Core::RevisitRevealingArmor() const {
 // RgKey
 Common::RaceGroupInfo* Core::RgKey::Get() const {
   if (race) {
-    auto it = core->raceRgs.find(race);
-    return (it != core->raceRgs.end()) ? it->second : nullptr;
+    for (auto& rg : core->rgInfoList)
+      if (std::find(rg.races.begin(), rg.races.end(), race) != rg.races.end()) {
+        return &rg;
+      }
+    return nullptr;
   } else if (index >= 0) {
     if (onlyMCM && !core->boolSettings.Get(Common::bsShowAllRaces)) {
       int curr = -1;
