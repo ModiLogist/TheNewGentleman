@@ -286,7 +286,7 @@ void Inis::SetArmorStatus(const RE::TESObjectARMO *armor, const int revMode) {
 }
 
 void Inis::Process52(const std::string modName) {
-  slot52Mods.insert(modName);
+  slot52Mods.push_back(modName);
   if (boolSettings.Get(Common::bsRevealSlot52Mods)) {
     extraRevealingMods.insert(modName);
     Slot52ModBehavior(modName, 1);

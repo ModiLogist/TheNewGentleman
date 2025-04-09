@@ -94,14 +94,14 @@ class Inis {
   private:
     std::map<SEFormLoc, SEFormLoc> actorAddons;
     std::map<SEFormLoc, int> actorSizeCats;
-    std::set<std::string> slot52Mods;
+    std::vector<std::string> slot52Mods;
     std::set<std::string> extraRevealingMods;
     bool SetAddon(const std::string& record, const RE::TESObjectARMO* addon, const int choice, const char* section, const std::string& formType);
 
   public:
     void LoadPlayerInfos(const std::string& saveName);
     bool Slot52ModBehavior(const std::string& modName, const int behavior);
-    std::vector<std::string> Slot52Mods() const { return std::vector<std::string>(slot52Mods.begin(), slot52Mods.end()); };
+    const std::vector<std::string>& Slot52Mods() const { return slot52Mods; };
 
   protected:
     const Common::PlayerInfo* GetPlayerInfo(const RE::Actor* actor);
