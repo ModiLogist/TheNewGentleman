@@ -54,8 +54,11 @@ void Inis::SaveMainIni() {
   settingIni.SetUnicode();
   settingIni.LoadFile(SettingFile());
   boolSettings.Store(settingIni);
+  settingIni.SaveFile(SettingFile());
   intSettings.Store(settingIni);
+  settingIni.SaveFile(SettingFile());
   floatSettings.Store(settingIni);
+  settingIni.SaveFile(SettingFile());
   SaveIniPairs<bool>(settingIni, cActiveMalAddons, activeMalAddons, true);
   SaveIniPairs<bool>(settingIni, cActiveFemAddons, activeFemAddons);
   SKSE::log::debug("\tStored all addon status to previous selections");
@@ -76,7 +79,8 @@ void Inis::SaveMainIni() {
     auto key = pcInfo.IdStr().c_str();
     auto value = pcInfo.InfoStr().c_str();
     SKSE::log::debug("Saving player info: section [{}], key [{}], value [{}]", section, key, value);
-    settingIni.SetValue(section, key, value);
+    settingIni.SetValue(section.c_str(), key, value);
+    settingIni.SaveFile(SettingFile());
   }
   for (auto &pair : slot52Mods) {
     if (!pair.first.empty()) settingIni.SetBoolValue(cRevealingModSection, pair.first.c_str(), pair.second);
