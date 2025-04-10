@@ -374,11 +374,11 @@ void Inis::LoadPlayerInfos(const std::string &saveName) {
   }
 }
 
-bool Inis::Slot52ModBehavior(const std::string &modName) const { return slot52Mods.at(modName); }
+bool Inis::Slot52ModBehavior(const std::string &modName) const { return slot52Mods.find(modName) != slot52Mods.end() && slot52Mods.at(modName); }
 
 bool Inis::Slot52ModBehavior(const std::string &modName, const int behavior) {
   if (behavior >= 0) slot52Mods[modName] = behavior == 1;
-  return slot52Mods[modName];
+  return slot52Mods.find(modName) != slot52Mods.end() && slot52Mods[modName];
 }
 
 const std::vector<std::string> Inis::Slot52Mods() const {
