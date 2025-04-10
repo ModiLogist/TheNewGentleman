@@ -42,7 +42,6 @@ namespace Common {
         } else {
           static_assert(false, "Unsupported type for GetValue");
         }
-        SKSE::log::debug("\tThe setting [{}] was restored to [{}({})].", keys[idx], value, value == defValues[idx] ? "default" : "user");
         return value;
       }
 
