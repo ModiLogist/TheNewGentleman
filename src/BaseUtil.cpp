@@ -23,6 +23,26 @@ int Common::BaseUtil::HasKeywordInList(const RE::BGSKeywordForm* form, const std
   return -1;
 }
 
+void Common::BaseUtil::DoDelayed(std::function<void()> func, std::function<bool()> condition, const bool fixedDelay) const {
+  static bool isFirst{true};
+  std::thread([=]() {
+    if (fixedDelay) {
+      std::this_thread::sleep_for(std::chrono::milliseconds(fixedDelayTime));
+      isFirst = false;
+    } else {
+      size_t count = 0;
+      size_t maxCount = maxDelayCount + isFirst * newGameDelayMult;
+      while (!condition() && count < maxCount) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(delayTime));
+        count++;
+      }
+    }
+    if (!condition()) return;
+    SKSE::log::debug("IsFirst: {}", isFirst);
+    func();
+  }).detach();
+}
+
 SEFormLoc Common::BaseUtil::FormToLoc(const RE::TESForm* form) const {
   if (!form || !form->GetFile(0)) return {0, ""};
   std::string filename = std::string(form->GetFile(0)->GetFilename());

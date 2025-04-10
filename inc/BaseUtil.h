@@ -70,6 +70,7 @@ namespace Common {
       void ShowSkyrimMessage(const char* message) const { RE::DebugMessageBox(message); }
       RE::BGSKeyword* ProduceOrGetKw(const std::string& keyword);
       int HasKeywordInList(const RE::BGSKeywordForm* form, const std::vector<RE::BGSKeyword*>& keywords) const;
+      void DoDelayed(std::function<void()> func, std::function<bool()> condition, const bool fixedDelay) const;
       SEFormLoc FormToLoc(const RE::TESForm* form) const;
       std::string LocToStr(const SEFormLoc& loc) const;
       SEFormLoc StrToLoc(const std::string& locStr) const;
@@ -80,6 +81,10 @@ namespace Common {
       std::string StrToName(std::string name) const;
 
     private:
+      inline static constexpr size_t fixedDelayTime{5000};
+      inline static constexpr size_t delayTime{500};
+      inline static constexpr size_t maxDelayCount{20};
+      inline static constexpr size_t newGameDelayMult{2};
       bool try_strtoul(const std::string& str, std::uint32_t& result, int base = 0) const;
       inline static constexpr std::string iniChars{"[=:]"};
   };
