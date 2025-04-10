@@ -342,7 +342,12 @@ bool Core::SwapRevealing(RE::Actor* const actor, RE::TESObjectARMO* const armor)
     SetArmorStatus(armor, Common::kyCovering);
   } else {
     armor->RemoveKeyword(rcKeys[kb]);
-    if (armor->HasPartOf(Common::bodySlot)) armor->AddKeyword(rcKeys[kb ^ mask]);
+    if (armor->HasPartOf(Common::bodySlot)) {
+      armor->AddKeyword(rcKeys[kb ^ mask]);
+      SetArmorStatus(armor, statusKeys[kb ^ mask]);
+    } else {
+      SetArmorStatus(armor, Common::keywordsCount);
+    }
   }
   UpdateBlock(actor, nullptr, false);
   return true;
