@@ -15,52 +15,59 @@ namespace Common {
       bool operator()(const RE::TESForm* lhs, const RE::TESForm* rhs) const { return lhs->formID < rhs->formID; }
   };
 
-  template <typename T, typename U>
+  template <typename T, typename U, size_t n>
   struct TypedSetting {
     private:
+      const std::array<T, n> defValues;
+      const std::array<std::string, n> sections;
+      const std::array<std::string, n> keys;
+      T values[n];
+
       static_assert(std::is_enum_v<U>, "TypedSetting U must be an enum type");
-      CSimpleIniA& ini;
-      const U count;
-      const std::vector<T> defValues;
-      const std::vector<const char*> sections;
-      const std::vector<const char*> keys;
 
     public:
-      TypedSetting(CSimpleIniA& ini, U count, std::vector<T> defValues, std::vector<const char*> sections, std::vector<const char*> keys)
-          : ini(ini), count(count), defValues(std::move(defValues)), sections(std::move(sections)), keys(std::move(keys)) {}
+      TypedSetting(std::array<T, n> def, std::array<std::string, n> s, std::array<std::string, n> k) : defValues(def), sections(s), keys(k) {}
 
-      T Get(const U idx) const {
-        auto value = defValues[idx];
-        if constexpr (std::is_same_v<T, int>) {
-          value = ini.GetLongValue(sections[idx], keys[idx], defValues[idx]);
-        } else if constexpr (std::is_same_v<T, bool>) {
-          value = ini.GetBoolValue(sections[idx], keys[idx], defValues[idx]);
-        } else if constexpr (std::is_same_v<T, float> || std::is_same_v<T, double>) {
-          value = static_cast<T>(ini.GetDoubleValue(sections[idx], keys[idx], static_cast<double>(defValues[idx])));
-        } else if constexpr (std::is_same_v<T, std::string>) {
-          value = ini.GetValue(sections[idx], keys[idx], defValues[idx]);
-        } else {
-          static_assert(false, "Unsupported type for GetValue");
+      void Load(CSimpleIniA& ini) {
+        for (size_t i = 0; i < n; ++i) {
+          if constexpr (std::is_same_v<T, int>) {
+            values[i] = ini.GetLongValue(sections[i].c_str(), keys[i].c_str(), defValues[i]);
+          } else if constexpr (std::is_same_v<T, bool>) {
+            values[i] = ini.GetBoolValue(sections[i].c_str(), keys[i].c_str(), defValues[i]);
+          } else if constexpr (std::is_same_v<T, float> || std::is_same_v<T, double>) {
+            values[i] = static_cast<float>(ini.GetDoubleValue(sections[i].c_str(), keys[i].c_str(), static_cast<double>(defValues[i])));
+          } else if constexpr (std::is_same_v<T, std::string>) {
+            values[i] = ini.GetValue(sections[i].c_str(), keys[i].c_str(), defValues[i]);
+          } else {
+            static_assert(false, "Unsupported type for LoadValue");
+          }
+          SKSE::log::debug("Loaded setting [{}] in [{}] to be [{}({})] from", keys[i], sections[i], values[i], values[i] == defValues[i] ? "default" : "user");
         }
-        return value;
       }
 
-      void Set(const U idx, const T value) {
-        if (Get(idx) != value) {
-          if (defValues[idx] == value) {
-            ini.Delete(sections[idx], keys[idx], true);
-          } else if constexpr (std::is_same_v<T, int>) {
-            ini.SetLongValue(sections[idx], keys[idx], value);
-          } else if constexpr (std::is_same_v<T, bool>) {
-            ini.SetBoolValue(sections[idx], keys[idx], value);
-          } else if constexpr (std::is_same_v<T, float> || std::is_same_v<T, double>) {
-            ini.SetDoubleValue(sections[idx], keys[idx], static_cast<double>(value));
-          } else if constexpr (std::is_same_v<T, std::string>) {
-            ini.SetValue(sections[idx], keys[idx], value.c_str());
-          } else {
-            static_assert(false, "Unsupported type for SetValue");
+      void Store(CSimpleIniA& ini) {
+        for (size_t i = 0; i < n; ++i) {
+          if (values[i] != defValues[i]) {
+            if constexpr (std::is_same_v<T, int>) {
+              ini.SetLongValue(sections[i].c_str(), keys[i].c_str(), values[i]);
+            } else if constexpr (std::is_same_v<T, bool>) {
+              ini.SetBoolValue(sections[i].c_str(), keys[i].c_str(), values[i]);
+            } else if constexpr (std::is_same_v<T, float> || std::is_same_v<T, double>) {
+              ini.SetDoubleValue(sections[i].c_str(), keys[i].c_str(), static_cast<double>(values[i]));
+            } else if constexpr (std::is_same_v<T, std::string>) {
+              ini.SetValue(sections[i].c_str(), keys[i].c_str(), values[i].c_str());
+            } else {
+              static_assert(false, "Unsupported type for SaveValue");
+            }
+            SKSE::log::debug("Saved setting [{}] in [{}] to be [{}]", keys[i], sections[i], values[i]);
           }
         }
+      }
+
+      T Get(const U idx) const { return values[static_cast<size_t>(idx)]; }
+
+      void Set(const U idx, const T value) {
+        if (values[static_cast<size_t>(idx)] != value) values[static_cast<size_t>(idx)] = value;
       }
   };
 
@@ -71,7 +78,7 @@ namespace Common {
       RE::BGSKeyword* ProduceOrGetKw(const std::string& keyword);
       int HasKeywordInList(const RE::BGSKeywordForm* form, const std::vector<RE::BGSKeyword*>& keywords) const;
       void DoDelayed(std::function<void()> func, std::function<bool()> condition, const bool fixedDelay) const;
-      SEFormLoc FormToLoc(const RE::TESForm* form) const;
+      SEFormLoc FormToLoc(const RE::TESForm* form, const int choice = nan) const;
       std::string LocToStr(const SEFormLoc& loc) const;
       SEFormLoc StrToLoc(const std::string& locStr) const;
       std::string FormToStr(const RE::TESForm* form) const { return LocToStr(FormToLoc(form)); }

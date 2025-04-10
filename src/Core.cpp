@@ -171,9 +171,8 @@ Common::eRes Core::CanModifyActor(RE::Actor* const actor) const {
 }
 
 void Core::UpdateActor(RE::Actor* const actor, RE::TESObjectARMO* const armor, const bool isEquipped) {
-  if (actor && actor->IsDisabled()) return;
   auto npc = actor ? actor->GetActorBase() : nullptr;
-  if (!npc || !npc->race || !npc->race->skin) return;
+  if (!npc || actor->IsDisabled() || !npc->race || !npc->race->skin) return;
   auto canModify = CanModifyActor(actor);
   auto skin = npc->skin;
   if (canModify == Common::resOkRacePP) ReevaluateRace(actor->GetRace(), actor);
@@ -308,7 +307,7 @@ Common::eRes Core::SetActorSize(RE::Actor* const actor, int sizeCat, const bool 
     auto scale = mult * floatSettings.Get(static_cast<Common::eFloatSetting>(cat));
     if (scale < 0.1) scale = 1;
     ut->DoDelayed(
-        [&]() {
+        [actor, scale, shouldSave, sizeCat]() {
           RE::NiAVObject* baseNode = actor->GetNodeByName(Common::genBoneNames[Common::egbBase]);
           RE::NiAVObject* scrotNode = actor->GetNodeByName(Common::genBoneNames[Common::egbScrot]);
           if (baseNode && scrotNode) {
@@ -320,9 +319,9 @@ Common::eRes Core::SetActorSize(RE::Actor* const actor, int sizeCat, const bool 
             SKSE::log::debug("Failed to scale actor [0x{:x}] genitalia to [{}] since their skeleton does not seem to be compatible", actor->GetFormID(), scale);
           }
         },
-        [&actor]() -> bool { return actor->Is3DLoaded(); }, actor->IsPlayerRef());
+        [actor]() -> bool { return actor->Is3DLoaded(); }, actor->IsPlayerRef());
   }
-  if (actor->IsPlayerRef() && sizeCat != Common::nul) SetPlayerInfo(actor, nullptr, Common::nan, sizeCat);
+  if (actor->IsPlayerRef() && sizeCat != Common::nul && shouldSave) SetPlayerInfo(actor, nullptr, Common::nan, sizeCat);
   if (!actor->IsPlayerRef() && shouldSave) {
     auto saved = Inis::SetNPCSize(actor->GetActorBase(), sizeCat);
     if (!saved) Inis::SetActorSize(actor, sizeCat);
@@ -334,7 +333,7 @@ bool Core::SwapRevealing(RE::Actor* const actor, RE::TESObjectARMO* const armor)
   auto npc = actor ? actor->GetActorBase() : nullptr;
   if (!npc || !armor) return false;
   if (armor->HasKeyword(ut->Key(Common::kyUnderwear))) return false;
-  std::vector<RE::BGSKeyword*> rcKeys = {ut->Key(Common::kyCovering), ut->Key(Common::kyRevealingM), ut->Key(Common::kyRevealingF), ut->Key(Common::kyRevealing)};
+  std::vector<RE::BGSKeyword*> rcKeys = {ut->Key(statusKeys[0]), ut->Key(statusKeys[1]), ut->Key(statusKeys[2]), ut->Key(statusKeys[3])};
   auto kb = ut->HasKeywordInList(armor, rcKeys);
   int mask = npc->IsFemale() ? 2 : 1;
   if (kb < 0) {

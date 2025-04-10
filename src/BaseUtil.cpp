@@ -38,16 +38,23 @@ void Common::BaseUtil::DoDelayed(std::function<void()> func, std::function<bool(
       }
     }
     if (!condition()) return;
-    SKSE::log::debug("IsFirst: {}", isFirst);
     func();
   }).detach();
 }
 
-SEFormLoc Common::BaseUtil::FormToLoc(const RE::TESForm* form) const {
-  if (!form || !form->GetFile(0)) return {0, ""};
-  std::string filename = std::string(form->GetFile(0)->GetFilename());
-  auto formID = form->GetFormID() < 0xFF000000 ? form->GetLocalFormID() : form->GetFormID();
-  return {formID, filename};
+SEFormLoc Common::BaseUtil::FormToLoc(const RE::TESForm* form, const int choice) const {
+  switch (choice) {
+    case def:
+      return {0, defStr};
+    case nul:
+      return {0, nulStr};
+    default: {
+      if (!form || !form->GetFile(0)) return {0, ""};
+      std::string filename = std::string(form->GetFile(0)->GetFilename());
+      auto formID = form->GetFormID() < 0xFF000000 ? form->GetLocalFormID() : form->GetFormID();
+      return {formID, filename};
+    }
+  }
 }
 
 std::string Common::BaseUtil::LocToStr(const SEFormLoc& loc) const {

@@ -8,18 +8,18 @@ class Inis {
     void SaveMainIni();
     virtual ~Inis() = default;
 
-    Common::TypedSetting<bool, Common::eBoolSetting> boolSettings{
-        settingIni, Common::boolSettingCount, std::vector<bool>{false, false, false, false, false, false, false, false, false},
-        std::vector<const char*>{"General", "General", "General", "General", "General", "General", "General", "General", "Controls"},
-        std::vector<const char*>{"ExcludePlayerSize", "CheckPlayerRegularly", "ForceChecks", "Slot52ModsAreRevealing", "Slot52ModsAreMixed", "RandomizeMaleAddons", "UIExtensions",
-                                 "ShowAllRaces", "DAK_Integration"}};
-    Common::TypedSetting<int, Common::eIntSetting> intSettings{
-        settingIni, Common::intSettingCount, std::vector<int>{Common::nul, Common::nul, Common::nul, Common::nul, Common::nul},
-        std::vector<const char*>(Common::intSettingCount, "Controls"), std::vector<const char*>{"NPCEdit", "GenitalUp", "GenitalDown", "Revealing", "WhyProblem"}};
-    Common::TypedSetting<float, Common::eFloatSetting> floatSettings{
-        settingIni, Common::floatSettingCount, std::vector<float>{0.8f, 0.9f, 1.0f, 1.2f, 1.4f, 0.0f, 20.0f},
-        std::vector<const char*>{"GlobalSizes", "GlobalSizes", "GlobalSizes", "GlobalSizes", "GlobalSizes", cActiveMalAddons, cActiveFemAddons},
-        std::vector<const char*>{"Size_XS", "Size__S", "Size__M", "Size__L", "Size_XL", "RandomChance", "RandomChance"}};
+    Common::TypedSetting<bool, Common::eBoolSetting, Common::boolSettingCount> boolSettings{
+        std::array<bool, Common::boolSettingCount>{false, false, false, false, false, false, false, false, false},
+        std::array<std::string, Common::boolSettingCount>{"General", "General", "General", "General", "General", "General", "General", "General", "Controls"},
+        std::array<std::string, Common::boolSettingCount>{"ExcludePlayerSize", "CheckPlayerRegularly", "ForceChecks", "Slot52ModsAreRevealing", "Slot52ModsAreMixed",
+                                                          "RandomizeMaleAddons", "UIExtensions", "ShowAllRaces", "DAK_Integration"}};
+    Common::TypedSetting<int, Common::eIntSetting, Common::intSettingCount> intSettings{
+        std::array<int, Common::intSettingCount>{Common::nul, Common::nul, Common::nul, Common::nul, Common::nul}, std::array<std::string, Common::intSettingCount>{"Controls"},
+        std::array<std::string, Common::intSettingCount>{"NPCEdit", "GenitalUp", "GenitalDown", "Revealing", "WhyProblem"}};
+    Common::TypedSetting<float, Common::eFloatSetting, Common::floatSettingCount> floatSettings{
+        std::array<float, Common::floatSettingCount>{0.8f, 0.9f, 1.0f, 1.2f, 1.4f, 0.0f, 20.0f},
+        std::array<std::string, Common::floatSettingCount>{"GlobalSizes", "GlobalSizes", "GlobalSizes", "GlobalSizes", "GlobalSizes", cActiveMalAddons, cActiveFemAddons},
+        std::array<std::string, Common::floatSettingCount>{"Size_XS", "Size__S", "Size__M", "Size__L", "Size_XL", "RandomChance", "RandomChance"}};
 
     spdlog::level::level_enum GetLogLvl() const;
     void SetLogLvl(const int newLevel);
@@ -49,15 +49,13 @@ class Inis {
     inline static constexpr const char* cActorSizeSection{"ActorGenitalSize"};
 
     inline static constexpr const char* cRevealingModSection{"RevealingMod"};
-    inline static constexpr const char* cRevealingSection{"RevealingRecord"};
-    inline static constexpr const char* cFemRevRecordSection{"FemaleRevealingRecord"};
-    inline static constexpr const char* cMalRevRecordSection{"MaleRevealingRecord"};
+    inline static constexpr const char* cArmorStatusSection{"ArmorStatus"};
 
-    CSimpleIniA settingIni;
     const char* SettingFile(const int version = iniVersion) const;
     void TransferOldIni();
 
   protected:
+    inline static constexpr std::array<Common::eKeyword, 4> statusKeys{Common::kyCovering, Common::kyRevealing, Common::kyRevealingF, Common::kyRevealingM};
     std::map<SEFormLoc, bool> activeMalAddons;
     std::map<SEFormLoc, bool> activeFemAddons;
     std::set<std::string> validSkeletons;
@@ -65,9 +63,8 @@ class Inis {
     std::map<SEFormLoc, float> racialSizes;
     std::map<SEFormLoc, SEFormLoc> npcAddons;
     std::map<SEFormLoc, int> npcSizeCats;
-    std::map<SEFormLoc, bool> runTimeArmorRecords;
-    std::map<SEFormLoc, bool> runTimeMalRevRecords;
-    std::map<SEFormLoc, bool> runTimeFemRevRecords;
+    std::map<SEFormLoc, int> runTimeArmorStatus;
+    std::map<std::string, bool> slot52Mods;
 
   public:
     void SetAddonStatus(const bool isFemale, const RE::TESObjectARMO* addon, const bool status);
@@ -85,12 +82,11 @@ class Inis {
     bool SetNPCSize(const RE::TESNPC* npc, int genSize);
     void SetActorSize(const RE::Actor* actor, const int genSize);
 
-    void SetArmorStatus(const RE::TESObjectARMO* armor, const int revMode);
+    void SetArmorStatus(const RE::TESObjectARMO* armor, const Common::eKeyword revMode);
 
   private:
     std::map<SEFormLoc, SEFormLoc> actorAddons;
     std::map<SEFormLoc, int> actorSizeCats;
-    bool SetAddon(const std::string& record, const RE::TESObjectARMO* addon, const int choice, const char* section, const std::string& formType);
 
   public:
     void LoadPlayerInfos(const std::string& saveName);
@@ -165,27 +161,82 @@ class Inis {
     void LoadModRecordPairs(const CSimpleIniA::TNamesDepend& records, std::set<SEFormLoc>& fieldToFill, std::string_view entryType, std::string_view fileName);
 
     template <typename T>
-    void LoadIniPairs(const char* section, std::map<SEFormLoc, T>& fieldToFill, const T defaultValue, const bool canBeNone = false) {
+    T GetDefault() const {
+      if constexpr (std::is_same_v<T, int>) {
+        return Common::nan;
+      } else if constexpr (std::is_same_v<T, bool>) {
+        return false;
+      } else if constexpr (std::is_same_v<T, float> || std::is_same_v<T, double>) {
+        return 1.0f;
+      } else if constexpr (std::is_same_v<T, std::string>) {
+        return "";
+      } else if constexpr (std::is_same_v<T, SEFormLoc>) {
+        return {0, ""};
+      } else {
+        static_assert(false, "Unsupported type for LoadIniPairs");
+      }
+    }
+
+    template <typename T>
+    void LoadIniPairs(CSimpleIniA& settingIni, const char* section, std::map<SEFormLoc, T>& fieldToFill) {
+      LoadIniPairs(settingIni, section, fieldToFill, GetDefault<T>());
+    }
+
+    template <typename T>
+    void LoadIniPairs(CSimpleIniA& settingIni, const char* section, std::map<SEFormLoc, T>& fieldToFill, const T defValue) {
       CSimpleIniA::TNamesDepend keys;
       if (settingIni.GetAllKeys(section, keys)) {
         for (const auto& entry : keys) {
+          T value = defValue;
           auto key = entry.pItem;
           const auto keyLoc = ut->StrToLoc(std::string(key));
           if (keyLoc.second.empty()) continue;
           if constexpr (std::is_same_v<T, int>) {
-            fieldToFill[keyLoc] = settingIni.GetLongValue(section, key, defaultValue);
+            value = settingIni.GetLongValue(section, key, defValue);
           } else if constexpr (std::is_same_v<T, bool>) {
-            fieldToFill[keyLoc] = settingIni.GetBoolValue(section, key, defaultValue);
+            value = settingIni.GetBoolValue(section, key, defValue);
           } else if constexpr (std::is_same_v<T, float> || std::is_same_v<T, double>) {
-            fieldToFill[keyLoc] = static_cast<T>(settingIni.GetDoubleValue(section, key, static_cast<double>(defaultValue)));
+            value = static_cast<T>(settingIni.GetDoubleValue(section, key, static_cast<double>(defValue)));
           } else if constexpr (std::is_same_v<T, std::string>) {
-            fieldToFill[keyLoc] = settingIni.GetValue(section, key, defaultValue);
+            value = settingIni.GetValue(section, key, defValue);
           } else if constexpr (std::is_same_v<T, SEFormLoc>) {
-            fieldToFill[keyLoc] = ut->StrToLoc(std::string(settingIni.GetValue(section, key)));
+            value = ut->StrToLoc(std::string(settingIni.GetValue(section, key)));
           } else {
             static_assert(false, "Unsupported type for LoadIniPairs");
           }
+          if (value != defValue) fieldToFill[keyLoc] = value;
         }
       }
+    }
+
+    template <typename T>
+    void SaveIniPairs(CSimpleIniA& settingIni, const char* section, const std::map<SEFormLoc, T>& fieldToSave) {
+      SaveIniPairs(settingIni, section, fieldToSave, GetDefault<T>());
+    }
+
+    template <typename T>
+    void SaveIniPairs(CSimpleIniA& settingIni, const char* section, const std::map<SEFormLoc, T>& fieldToSave, const T defValue) {
+      for (const auto& [keyLoc, value] : fieldToSave) {
+        const auto keyStr = ut->LocToStr(keyLoc);
+        if (keyStr.empty()) continue;
+        if (value == defValue) {
+          settingIni.Delete(section, keyStr.c_str(), true);
+        } else {
+          if constexpr (std::is_same_v<T, int>) {
+            settingIni.SetLongValue(section, keyStr.c_str(), value);
+          } else if constexpr (std::is_same_v<T, bool>) {
+            settingIni.SetBoolValue(section, keyStr.c_str(), value);
+          } else if constexpr (std::is_same_v<T, float> || std::is_same_v<T, double>) {
+            settingIni.SetDoubleValue(section, keyStr.c_str(), static_cast<double>(value));
+          } else if constexpr (std::is_same_v<T, std::string>) {
+            settingIni.SetValue(section, keyStr.c_str(), value.c_str());
+          } else if constexpr (std::is_same_v<T, SEFormLoc>) {
+            settingIni.SetValue(section, keyStr.c_str(), ut->LocToStr(value).c_str());
+          } else {
+            static_assert(false, "Unsupported type for SaveIniPairs");
+          }
+        }
+      }
+      settingIni.SaveFile(SettingFile());
     }
 };
