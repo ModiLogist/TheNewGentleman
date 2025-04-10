@@ -255,8 +255,6 @@ Common::eRes Core::SetActorAddon(RE::Actor* const actor, const int choice, const
   if (shouldSave) {
     if (choice >= static_cast<int>(list.size())) return Common::errAddon;
     SKSE::log::debug("Setting addon [{}] for actor [0x{:x}:{}].", choice, actor->GetFormID(), npc->GetName());
-  } else {
-    if (choice >= 0 && std::ranges::find(list, std::make_pair(static_cast<size_t>(choice), !isUser)) == list.end()) return Common::errAddon;
   }
   auto addonIdx = choice < 0 ? choice : shouldSave ? static_cast<int>(list[choice].first) : choice;
   auto res = SetNPCAddon(npc, addonIdx, isUser);

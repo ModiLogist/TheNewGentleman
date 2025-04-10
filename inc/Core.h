@@ -33,7 +33,6 @@ class Core : public Singleton<Core>, public Inis {
     void UpdateActor(RE::Actor* const actor, RE::TESObjectARMO* const armor = nullptr, const bool isEquipped = false);
     std::vector<std::pair<size_t, bool>> GetActorAddons(RE::Actor* const actor, const bool onlyActive) const;
     Common::eRes GetActorAddon(RE::Actor* actor, int& addon, bool& isAuto) const;
-    int test();
     Common::eRes SetActorAddon(RE::Actor* const actor, const int choice, const bool isUser, const bool shouldSave);
     Common::eRes GetActorSize(RE::Actor* const actor, int& sizeCat) const;
     Common::eRes SetActorSize(RE::Actor* const actor, int sizeCat, const bool shouldSave);
