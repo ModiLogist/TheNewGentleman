@@ -71,7 +71,7 @@ void Inis::SaveMainIni() {
   SaveIniPairs<int>(settingIni, cArmorStatusSection, runTimeArmorStatus);
   SKSE::log::debug("\tStored all armor records status settings");
   auto playerIdx = RE::BGSSaveLoadManager::GetSingleton()->currentCharacterID & 0xFFFFFFFF;
-  auto section = fmt::format("{}{:X}", cPlayerSection, playerIdx).c_str();
+  auto section = fmt::format("{}{:08X}", cPlayerSection, playerIdx);
   for (auto &pcInfo : playerInfos) {
     auto key = pcInfo.IdStr().c_str();
     auto value = pcInfo.InfoStr().c_str();
@@ -497,11 +497,10 @@ bool Inis::IsSkin(const RE::TESObjectARMO *armor, const std::string &modName) {
 
 Common::eKeyword Inis::HasStatus(const RE::TESObjectARMO *armor) const {
   auto armorLoc = ut->FormToLoc(armor);
-  auto isBody = armor->HasPartOf(Common::bodySlot);
   if (armorLoc.second.empty()) return Common::keywordsCount;
   if (runTimeArmorStatus.find(armorLoc) != runTimeArmorStatus.end()) return statusKeys[static_cast<size_t>(runTimeArmorStatus.at(armorLoc))];
   if (coveringRecords.find(armorLoc) != coveringRecords.end()) return Common::kyCovering;
-  if (!isBody) return Common::keywordsCount;
+  if (!armor->HasPartOf(Common::bodySlot)) return Common::keywordsCount;
   if (revealingRecords.find(armorLoc) != revealingRecords.end()) return Common::kyRevealing;
   if (femRevRecords.find(armorLoc) != femRevRecords.end()) return Common::kyRevealingF;
   if (malRevRecords.find(armorLoc) != malRevRecords.end()) return Common::kyRevealingM;
