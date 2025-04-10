@@ -199,9 +199,6 @@ std::vector<std::pair<size_t, bool>> Core::GetActorAddons(RE::Actor* const actor
   auto npc = actor ? actor->GetActorBase() : nullptr;
   if (!npc || !npc->race) return res;
   if (auto rg = Rg(RgKey(npc->race)); rg) {
-    for (auto& addonPair : rg->malAddons)
-      SKSE::log::debug("Rg [{}] has addon [{}] with arma [0x{:x}] dedicated [{}]!", rg->name, addonPair.first, addonPair.second.second->GetFormID(),
-                       addonPair.second.first ? "true" : "false");
     auto& list = npc->IsFemale() ? rg->femAddons : rg->malAddons;
     auto& master = npc->IsFemale() ? femAddons : malAddons;
     for (auto& addonPair : list) {

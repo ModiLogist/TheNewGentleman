@@ -532,7 +532,7 @@ Common::eKeyword Inis::HasStatus(const RE::TESObjectARMO *armor) const {
   if (isBody && runTimeFemRevRecords.find(armorLoc) != runTimeFemRevRecords.end()) return Common::kyRevealingF;
   if (isBody && runTimeMalRevRecords.find(armorLoc) != runTimeMalRevRecords.end()) return Common::kyRevealingM;
   if (coveringRecords.find(armorLoc) != coveringRecords.end()) return Common::kyCovering;
-  if (!isBody) return Common::kyCovering;
+  if (!isBody) return Common::keywordsCount;
   if (revealingRecords.find(armorLoc) != revealingRecords.end()) return Common::kyRevealing;
   if (femRevRecords.find(armorLoc) != femRevRecords.end()) return Common::kyRevealingF;
   if (malRevRecords.find(armorLoc) != malRevRecords.end()) return Common::kyRevealingM;
