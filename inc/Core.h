@@ -11,8 +11,8 @@ class Core : public Singleton<Core>, public Inis {
         RE::TESRace* race = nullptr;
         int index = -1;
         bool onlyMCM = true;
-        explicit RgKey(RE::TESRace* r) : race(r), index(-1) {}                     // by race
-        explicit RgKey(size_t i, bool b) : race(nullptr), index(i), onlyMCM(b) {}  // by index
+        explicit RgKey(RE::TESRace* r) : race(r), index(-1) {}                           // by race
+        explicit RgKey(size_t i, const bool b) : race(nullptr), index(i), onlyMCM(b) {}  // by index
     };
 
     Common::RaceGroupInfo* Rg(const RgKey& ky);
@@ -36,7 +36,7 @@ class Core : public Singleton<Core>, public Inis {
     int test();
     Common::eRes SetActorAddon(RE::Actor* const actor, const int choice, const bool isUser, const bool shouldSave);
     Common::eRes GetActorSize(RE::Actor* const actor, int& sizeCat) const;
-    Common::eRes SetActorSize(RE::Actor* const actor, int sizeCat, bool shouldSave);
+    Common::eRes SetActorSize(RE::Actor* const actor, int sizeCat, const bool shouldSave);
 
     bool SwapRevealing(RE::Actor* const actor, RE::TESObjectARMO* const armor);
     void RevisitRevealingArmor() const;
@@ -56,7 +56,7 @@ class Core : public Singleton<Core>, public Inis {
     int AddonIdxByLoc(const bool isFemale, const SEFormLocView addonLoc) const;
 
     void ProcessRaces();
-    void IgnoreRace(RE::TESRace* const race, bool ready);
+    void IgnoreRace(RE::TESRace* const race, const bool ready);
     Common::RaceGroupInfo* const ProcessRace(RE::TESRace* const race);
     Common::eRes CheckRace(RE::TESRace* const race) const;
     Common::RaceGroupInfo* AddRace(RE::TESRace* const race, const bool isProcessed);
@@ -71,7 +71,7 @@ class Core : public Singleton<Core>, public Inis {
     void ApplyUserSettings(RE::TESNPC* npc);
     std::pair<int, bool> GetApplicableAddon(RE::Actor* const actor) const;
     Common::eRes SetNPCAddon(RE::TESNPC* const npc, const int addonIdx, const bool isUser);
-    void OrganizeNPCKeywords(RE::TESNPC* const npc, int addonIdx, bool isUser) const;
+    void OrganizeNPCKeywords(RE::TESNPC* const npc, int addonIdx, const bool isUser) const;
     void UpdateAddon(RE::Actor* const actor, const bool isRRace);
     Common::eRes UpdatePlayer(RE::Actor* const actor, const bool isRRace);
     void UpdateFormLists(RE::Actor* const actor) const;

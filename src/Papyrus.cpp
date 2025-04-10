@@ -56,7 +56,6 @@ void Papyrus::SetBoolValue(RE::StaticFunctionTag*, int settingID, bool value) {
       case Common::bsRevealSlot52Mods:
         if (core->boolSettings.Get(Common::eBoolSetting::bsRevealSlot52Mods) != value) core->RevisitRevealingArmor();
         break;
-
       default:
         break;
     }
@@ -271,14 +270,16 @@ std::string Papyrus::WhyProblem(RE::StaticFunctionTag* tag, RE::Actor* actor, in
   auto down = actor->GetWornArmor(Common::genitalSlot);
   auto hasCover = ut->HasCovering(actor, nullptr);
   switch (issueID) {
-    case iidCanSee:
+    case iidCanSee: {
       if (!hasCover) return "$TNG_PA1";
       if (down) return ut->IsBlock(down) ? "$TNG_PD0" : "$TNG_PA2";
       return WhyProblem(tag, actor, iidCanSeeRep);
-    case iidCanSeeRep:
+    }
+    case iidCanSeeRep: {
       core->UpdateActor(actor);
       return actor->GetWornArmor(Common::genitalSlot) ? "$TNG_PD1" : "$TNG_PD2";
-    case iidCannotSee:
+    }
+    case iidCannotSee: {
       auto skin = npc->skin ? npc->skin : npc->race->skin;
       if (hasCover) return "$TNG_PA6";
       if (down && !ut->IsBlock(down)) return "$TNG_PA2";
@@ -303,6 +304,7 @@ std::string Papyrus::WhyProblem(RE::StaticFunctionTag* tag, RE::Actor* actor, in
       }
       core->UpdateActor(actor);
       return !actor->GetWornArmor(Common::genitalSlot) && skin->HasKeyword(ut->Key(Common::kyTngSkin)) ? "$TNG_PD1" : "$TNG_PD2";
+    }
   }
   return "";
 }

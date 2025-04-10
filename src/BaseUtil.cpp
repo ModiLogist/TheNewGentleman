@@ -105,7 +105,7 @@ std::string Common::BaseUtil::StrToName(std::string name) const {
   return res;
 }
 
-bool Common::BaseUtil::try_strtoul(const std::string& str, std::uint32_t& result, int base) const {
+const bool Common::BaseUtil::try_strtoul(const std::string& str, std::uint32_t& result, int base) const {
   char* end;
   errno = 0;
   unsigned long value = std::strtoul(str.c_str(), &end, base);

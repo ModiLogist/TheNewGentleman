@@ -85,7 +85,7 @@ namespace Common {
       inline static constexpr size_t delayTime{500};
       inline static constexpr size_t maxDelayCount{20};
       inline static constexpr size_t newGameDelayMult{2};
-      bool try_strtoul(const std::string& str, std::uint32_t& result, int base = 0) const;
+      const bool try_strtoul(const std::string& str, std::uint32_t& result, int base = 0) const;
       inline static constexpr std::string iniChars{"[=:]"};
   };
 }

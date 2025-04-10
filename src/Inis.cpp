@@ -171,7 +171,7 @@ void Inis::SetRgAddon(const RE::TESRace *rgRace, const RE::TESObjectARMO *addon,
     case Common::nul:
       settingIni.SetValue(cRacialAddon, raceRecord.c_str(), Common::nulStr.c_str());
       break;
-    default:
+    default: {
       auto addonRecord = ut->FormToStr(addon);
       if (addonRecord.empty()) {
         if (addon) {
@@ -182,7 +182,7 @@ void Inis::SetRgAddon(const RE::TESRace *rgRace, const RE::TESObjectARMO *addon,
         return;
       }
       settingIni.SetValue(cRacialAddon, raceRecord.c_str(), addonRecord.c_str());
-      break;
+    } break;
   }
 }
 
@@ -305,7 +305,7 @@ bool Inis::SetAddon(const std::string &record, const RE::TESObjectARMO *addon, c
     case Common::nul:
       settingIni.SetValue(section, record.c_str(), Common::nulStr.c_str());
       break;
-    default:
+    default: {
       auto addonRecord = ut->FormToStr(addon);
       if (addonRecord.empty()) {
         if (addon) {
@@ -316,7 +316,7 @@ bool Inis::SetAddon(const std::string &record, const RE::TESObjectARMO *addon, c
         return false;
       }
       settingIni.SetValue(section, record.c_str(), addonRecord.c_str());
-      break;
+    } break;
   }
   return true;
 }

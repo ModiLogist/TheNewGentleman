@@ -4,15 +4,19 @@
 #include <SEEvents.h>
 #include <Util.h>
 
-static bool CheckIncompatibility() {
+bool CheckIncompatibility() {
+  static bool shownMessage = false;
   if (GetModuleHandleW(L"Data\\SKSE\\Plugins\\acon.dll")) {
-    ut->ShowSkyrimMessage("Warning: TNG is not compatible with acon.dll. Please don't use TNG with mods from that website!");
+    if (!shownMessage) {
+      ut->ShowSkyrimMessage("Warning: TNG is not compatible with acon.dll. Please don't use TNG with mods from that website!");
+      shownMessage = true;
+    }
     return false;
   }
   return true;
 }
 
-static void InitializeLogging() {
+void InitializeLogging() {
   auto path{SKSE::log::log_directory()};
   if (!path) {
     SKSE::stl::report_and_fail("Unable to lookup SKSE logs directory.");
@@ -28,25 +32,33 @@ static void InitializeLogging() {
   spdlog::set_pattern("[%H:%M:%S.%e] [%l] %v");
 }
 
-static void EventListener(SKSE::MessagingInterface::Message* message) {
-  if (message->type == SKSE::MessagingInterface::kDataLoaded) {
-    if (!CheckIncompatibility()) return;
-    if (!ut->SEDH()->LookupModByName(Common::mainFile)) {
-      const char* err = fmt::format("Mod [{}] was not found! Make sure that the mod is active in your plugin load order!", Common::mainFile).c_str();
-      ut->ShowSkyrimMessage(err);
-      return;
-    }
-    core->Process();
-    events->RegisterEvents();
-    Hooks::Install();
-    SKSE::log::info("TheNewGentleman finished initialization.");
-  }
-  if (message->type == SKSE::MessagingInterface::kPreLoadGame) {
-    const std::string savePath{static_cast<char*>(message->data), message->dataLen};
-    core->LoadPlayerInfos(savePath);
-  }
-  if (message->type == SKSE::MessagingInterface::kSaveGame) {
-    core->SaveMainIni();
+void EventListener(SKSE::MessagingInterface::Message* message) {
+  switch (message->type) {
+    case SKSE::MessagingInterface::kDataLoaded: {
+      if (!CheckIncompatibility()) return;
+      if (!ut->SEDH()->LookupModByName(Common::mainFile)) {
+        const char* err = fmt::format("Mod [{}] was not found! Make sure that the mod is active in your plugin load order!", Common::mainFile).c_str();
+        ut->ShowSkyrimMessage(err);
+        return;
+      }
+      core->Process();
+      events->RegisterEvents();
+      Hooks::Install();
+      SKSE::log::info("TheNewGentleman finished initialization.");
+    } break;
+
+    case SKSE::MessagingInterface::kPreLoadGame: {
+      if (!CheckIncompatibility()) return;
+      const std::string savePath{static_cast<char*>(message->data), message->dataLen};
+      core->LoadPlayerInfos(savePath);
+    } break;
+
+    case SKSE::MessagingInterface::kSaveGame: {
+      if (!CheckIncompatibility()) return;
+      core->SaveMainIni();
+    } break;
+    default:
+      break;
   }
 }
 

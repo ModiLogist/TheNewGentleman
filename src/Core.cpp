@@ -286,7 +286,7 @@ Common::eRes Core::GetActorSize(RE::Actor* const actor, int& sizeCat) const {
   return Common::resOkSizable;
 }
 
-Common::eRes Core::SetActorSize(RE::Actor* const actor, int sizeCat, bool shouldSave) {
+Common::eRes Core::SetActorSize(RE::Actor* const actor, int sizeCat, const bool shouldSave) {
   if (shouldSave) {
     if (CanModifyActor(actor) == Common::resOkRacePP) ReevaluateRace(actor->GetRace(), actor);
     if (auto res = CanModifyActor(actor); res < 0) return res;
@@ -426,7 +426,7 @@ void Core::ProcessRaces() {
                   logInfo[2], logInfo[3], logInfo[1], logInfo[0]);
 }
 
-void Core::IgnoreRace(RE::TESRace* const race, bool ready) {
+void Core::IgnoreRace(RE::TESRace* const race, const bool ready) {
   if (!race) return;
   if (auto& skin = race->skin; skin) skin->AddKeyword(ut->Key(Common::kyIgnored));
   race->RemoveKeywords(ut->Keys(Common::kyProcessed, Common::kyExcluded));
@@ -866,7 +866,7 @@ Common::eRes Core::SetNPCAddon(RE::TESNPC* const npc, const int addonIdx, const 
   return !npc->IsFemale() || npc->HasKeyword(ut->Key(Common::kyGentlewoman)) ? res : Common::resOkFixed;
 }
 
-void Core::OrganizeNPCKeywords(RE::TESNPC* const npc, int addonIdx, bool isUser) const {
+void Core::OrganizeNPCKeywords(RE::TESNPC* const npc, int addonIdx, const bool isUser) const {
   npc->ForEachKeyword([&](RE::BGSKeyword* lKw) {
     if (lKw->formEditorID.contains("TNG_ActorAddn")) {
       npc->RemoveKeyword(lKw);
@@ -928,7 +928,7 @@ Common::eRes Core::UpdatePlayer(RE::Actor* const actor, const bool isRRace) {
 void Core::UpdateFormLists(RE::Actor* const actor) const {
   auto npc = actor ? actor->GetActorBase() : nullptr;
   if (!npc) return;
-  auto updateFormList = [&](RE::BGSListForm* formList, bool reason) {
+  auto updateFormList = [&](RE::BGSListForm* formList, const bool reason) {
     if (reason && !formList->HasForm(actor)) {
       formList->AddForm(actor);
     } else if (!reason && formList->HasForm(actor)) {
