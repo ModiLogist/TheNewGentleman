@@ -83,7 +83,7 @@ void Inis::SaveMainIni() {
     settingIni.SaveFile(SettingFile());
   }
   for (auto &pair : slot52Mods) {
-    if (!pair.first.empty()) settingIni.SetBoolValue(cRevealingModSection, pair.first.c_str(), pair.second);
+    if (!pair.first.empty()) settingIni.SetBoolValue(cRevealingModSection, ut->NameToStr(pair.first).c_str(), pair.second);
   }
   settingIni.SaveFile(SettingFile());
 }
