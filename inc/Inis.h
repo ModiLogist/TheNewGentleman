@@ -112,7 +112,6 @@ class Inis {
     inline static constexpr const char* cPlayerSize{"Size"};
     std::vector<Common::PlayerInfo> playerInfos;
     int activePlayerInfoIdx{Common::nul};
-    std::string playerIdx;
     std::vector<std::string> UpdateActivePlayerInfoIndex(const RE::Actor* actor);
 
   public:

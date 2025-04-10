@@ -322,9 +322,9 @@ bool Inis::SetAddon(const std::string &record, const RE::TESObjectARMO *addon, c
 }
 
 void Inis::LoadPlayerInfos(const std::string &saveName) {
-  playerIdx = "";
-  if (const auto save = ut->Split(saveName, "_"); save.size() == 9) playerIdx = save[1];
-  auto section = fmt::format("{}{}", cPlayerSection, playerIdx).c_str();
+  std::string playerStr = "";
+  if (const auto save = ut->Split(saveName, "_"); save.size() == 9) playerStr = save[1];
+  auto section = fmt::format("{}{}", cPlayerSection, playerStr).c_str();
   if (settingIni.SectionExists(section)) {
     CSimpleIniA::TNamesDepend keys;
     settingIni.GetAllKeys(section, keys);
@@ -396,7 +396,7 @@ void Inis::SetPlayerInfo(const RE::Actor *actor, const RE::TESObjectARMO *addon,
   SEFormLoc addonLoc{0, Common::defStr};
   switch (choice) {
     case Common::nan:
-      if (activePlayerInfoIdx >= 0 && activePlayerInfoIdx < playerInfos.size()) addonLoc = playerInfos[activePlayerInfoIdx].addon;
+      addonLoc = activePlayerInfoIdx >= 0 && activePlayerInfoIdx < playerInfos.size() ? playerInfos[activePlayerInfoIdx].addon : SEFormLoc{0, Common::defStr};
       break;
     case Common::nul:
       addonLoc = {0, Common::nulStr};
@@ -418,7 +418,8 @@ void Inis::SetPlayerInfo(const RE::Actor *actor, const RE::TESObjectARMO *addon,
   std::vector<std::string> pcInfoTokens;
   pcInfoTokens.push_back(ut->LocToStr(addonLoc));
   pcInfoTokens.push_back(std::to_string(sizeCat));
-  auto section = fmt::format("{}{}", cPlayerSection, playerIdx).c_str();
+  auto playerIdx = RE::BGSSaveLoadManager::GetSingleton()->currentCharacterID & 0xFFFFFFFF;
+  auto section = fmt::format("{}{:X}", cPlayerSection, playerIdx).c_str();
   auto key = ut->Join(pcIdTokens, "|").c_str();
   auto value = ut->Join(pcInfoTokens, "|").c_str();
   settingIni.SetValue(section, key, value);
