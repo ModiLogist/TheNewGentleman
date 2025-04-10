@@ -21,7 +21,7 @@ namespace Common {
       const std::array<T, n> defValues;
       const std::array<std::string, n> sections;
       const std::array<std::string, n> keys;
-      T values[n];
+      std::array<T, n> values;
 
       static_assert(std::is_enum_v<U>, "TypedSetting U must be an enum type");
 

@@ -126,6 +126,7 @@ void Inis::TransferOldIni() {
   newFile.close();
   CSimpleIniA ini;
   CSimpleIniA::TNamesDepend sections;
+  CSimpleIniA::TNamesDepend keys;
   ini.SetUnicode();
   ini.LoadFile(SettingFile());
   int lIniVersion = ini.GetLongValue(versionKey, versionSection, 1);
@@ -147,7 +148,6 @@ void Inis::TransferOldIni() {
     for (const auto &section : sections) {
       auto sectionName = std::string(section.pItem);
       if (sectionName.contains("RaceSize")) {
-        CSimpleIniA::TNamesDepend keys;
         ini.GetAllKeys(section.pItem, keys);
         for (auto &key : keys) {
           auto mult = ini.GetDoubleValue(section.pItem, key.pItem);
@@ -160,9 +160,8 @@ void Inis::TransferOldIni() {
       boolSettings.Set(Common::bsDAK, ini.GetLongValue("Controls", "DAK_Integration") > 1);
       ini.Delete("Controls", "DAK_Integration", true);
     }
-    CSimpleIniA::TNamesDepend values;
-    ini.GetAllKeys("ExcludedNPCs", values);
-    for (const auto &entry : values) {
+    ini.GetAllKeys("ExcludedNPCs", keys);
+    for (const auto &entry : keys) {
       auto isExcluded = ini.GetBoolValue("ExcludedNPCs", entry.pItem);
       const auto npcLoc = ut->StrToLoc(std::string(entry.pItem));
       if (isExcluded && !npcLoc.second.empty()) {
@@ -172,6 +171,18 @@ void Inis::TransferOldIni() {
     }
     auto gwChance = static_cast<float>(ini.GetDoubleValue("GentleWomen", "Chance", 20.0));
     floatSettings.Set(Common::fsFemRndChance, gwChance);
+    ini.GetAllKeys("RevealingRecord", keys);
+    for (const auto &entry : keys) {
+      int revMod = ini.GetBoolValue("RevealingRecord", entry.pItem, false) ? 3 : 0;
+      ini.SetLongValue(cArmorStatusSection, entry.pItem, revMod);
+    }
+    ini.Delete("RevealingRecord", nullptr, true);
+    ini.GetAllKeys("MaleRevealingRecord", keys);
+    for (const auto &entry : keys) ini.SetLongValue(cArmorStatusSection, entry.pItem, 1);
+    ini.Delete("MaleRevealingRecord", nullptr, true);
+    ini.GetAllKeys("FemaleRevealingRecord", keys);
+    for (const auto &entry : keys) ini.SetLongValue(cArmorStatusSection, entry.pItem, 2);
+    ini.Delete("FemaleRevealingRecord", nullptr, true);
   }
   ini.SetLongValue(versionKey, versionSection, iniVersion);
   ini.SaveFile(SettingFile());
