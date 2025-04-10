@@ -171,6 +171,7 @@ Common::eRes Core::CanModifyActor(RE::Actor* const actor) const {
 }
 
 void Core::UpdateActor(RE::Actor* const actor, RE::TESObjectARMO* const armor, const bool isEquipped) {
+  if (actor && actor->IsDisabled()) return;
   auto npc = actor ? actor->GetActorBase() : nullptr;
   if (!npc || !npc->race || !npc->race->skin) return;
   auto canModify = CanModifyActor(actor);
@@ -306,23 +307,20 @@ Common::eRes Core::SetActorSize(RE::Actor* const actor, int sizeCat, bool should
     if (mult < 0.0f) return Common::errRg;
     auto scale = mult * floatSettings.Get(static_cast<Common::eFloatSetting>(cat));
     if (scale < 0.1) scale = 1;
-    std::thread([actor, scale]() {
-      int ms = 500;
-      int count = 0;
-      while (!actor->Is3DLoaded() && count < 10) {
-        count++;
-        std::this_thread::sleep_for(std::chrono::milliseconds(ms));
-      }
-      RE::NiAVObject* baseNode = actor->GetNodeByName(Common::genBoneNames[Common::egbBase]);
-      RE::NiAVObject* scrotNode = actor->GetNodeByName(Common::genBoneNames[Common::egbScrot]);
-      if (baseNode && scrotNode) {
-        baseNode->local.scale = scale;
-        scrotNode->local.scale = 1.0f / sqrt(scale);
-      } else {
-        SKSE::log::error("Failed to scale actor [0x{:x}] genitalia to [{}] since their skeleton was not loaded after {} seconds.", actor->GetFormID(), scale, count * ms / 1000);
-      }
-    }).detach();
-    if (sizeCat >= 0) SKSE::log::debug("Reloaded actor [0x{:x}] genitalia scale to [{}] to be a size category [{}].", actor->GetFormID(), scale, sizeCat);
+    ut->DoDelayed(
+        [&]() {
+          RE::NiAVObject* baseNode = actor->GetNodeByName(Common::genBoneNames[Common::egbBase]);
+          RE::NiAVObject* scrotNode = actor->GetNodeByName(Common::genBoneNames[Common::egbScrot]);
+          if (baseNode && scrotNode) {
+            if (baseNode->local.scale != scale) return;
+            baseNode->local.scale = scale;
+            scrotNode->local.scale = 1.0f / sqrt(scale);
+            if (sizeCat != Common::nul) SKSE::log::debug("Actor [0x{:x}] genitalia {} to [{}].", actor->GetFormID(), shouldSave ? "scaled" : "restored", scale);
+          } else {
+            SKSE::log::debug("Failed to scale actor [0x{:x}] genitalia to [{}] since their skeleton does not seem to be compatible", actor->GetFormID(), scale);
+          }
+        },
+        [&actor]() -> bool { return actor->Is3DLoaded(); }, actor->IsPlayerRef());
   }
   if (actor->IsPlayerRef() && sizeCat != Common::nul) SetPlayerInfo(actor, nullptr, Common::nan, sizeCat);
   if (!actor->IsPlayerRef() && shouldSave) {
