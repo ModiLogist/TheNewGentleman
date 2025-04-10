@@ -354,7 +354,7 @@ void Inis::LoadPlayerInfos(const std::string &saveName) {
     settingIni.GetAllKeys(section, keys);
     for (auto &key : keys) {
       std::string reqInfoStr{key.pItem};
-      auto value = settingIni.GetValue(section, key.pItem);
+      std::string value = settingIni.GetValue(section, key.pItem);
       std::vector<std::string> pcIdTokens = ut->Split(reqInfoStr, "|");
       std::vector<std::string> pcInfoTokens = ut->Split(value, "|");
       if (pcIdTokens.size() == 3 && pcInfoTokens.size() == 2) {
