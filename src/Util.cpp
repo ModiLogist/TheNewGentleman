@@ -78,3 +78,13 @@ bool Common::Util::HasCovering(RE::Actor* const actor, RE::TESObjectARMO* const 
     if (armor && IsCovering(actor, armor) && armor != exception) return true;
   return false;
 }
+
+std::string Common::PlayerInfo::IdStr() const { return ut->NameToStr(name) + "|" + ut->LocToStr(race) + "|" + (isFemale ? "F" : "M"); }
+
+std::string Common::PlayerInfo::InfoStr() const { return ut->LocToStr(addon) + "|" + std::to_string(sizeCat); }
+
+bool Common::PlayerInfo::FromStr(const std::string& IdStr, const std::string& InfoStr) {
+  PlayerInfo res{};
+  auto idTokens = ut->Split(IdStr, "|");
+  auto infoTokens = ut->Split(InfoStr, "|");
+}

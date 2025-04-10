@@ -910,16 +910,12 @@ void Core::UpdateAddon(RE::Actor* const actor, const bool isRRace) {
 }
 
 Common::eRes Core::UpdatePlayer(RE::Actor* const actor, const bool isRRace) {
-  auto pcInfo = GetPlayerInfo(actor);
-  if (pcInfo) {
+  if (auto pcInfo = GetPlayerInfo(actor); pcInfo) {
     auto res = SetActorSize(actor, pcInfo->sizeCat, false);
-    if (isRRace) return res;
-    auto npc = actor->GetActorBase();
-    auto addonIdx = AddonIdxByLoc(npc->IsFemale(), pcInfo->addon);
+    if (isRRace || res < 0) return res;
+    auto addonIdx = AddonIdxByLoc(pcInfo->isFemale, pcInfo->addon);
     return SetActorAddon(actor, addonIdx, true, false);
   } else {
-    auto res = SetActorSize(actor, Common::nul, false);
-    if (isRRace) return res;
     return SetActorAddon(actor, Common::def, false, false);
   }
 }

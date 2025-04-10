@@ -374,88 +374,53 @@ const std::vector<std::string> Inis::Slot52Mods() const {
   return mods;
 }
 
-const Common::PlayerInfo *Inis::GetPlayerInfo(const RE::Actor *actor) {
-  auto pcIdTokens = UpdateActivePlayerInfoIndex(actor);
-  if (pcIdTokens.empty()) return nullptr;
-  if (activePlayerInfoIdx >= 0 && activePlayerInfoIdx < playerInfos.size()) {
-    auto res = &playerInfos[activePlayerInfoIdx];
-    return res;
+Common::PlayerInfo *Inis::GetPlayerInfo(const RE::Actor *actor) {
+  auto npc = actor ? actor->GetActorBase() : nullptr;
+  if (!npc || !npc->race) return {};
+  std::tuple<const std::string, const SEFormLoc, const bool> pcId{npc->GetName(), ut->FormToLoc(npc->race), npc->IsFemale()};
+  if ((std::get<0>(pcId)).empty() || (std::get<0>(pcId)).empty()) {
+    SKSE::log::critical("Failed to update the player information for current character.");
+    return nullptr;
   }
-  return nullptr;
+  auto infoIdx = std::find_if(playerInfos.begin(), playerInfos.end(), [&pcId](const auto &pcInfo) { return pcInfo.Id() == pcId; });
+  if (infoIdx != playerInfos.end()) {
+    return &(*infoIdx);
+  } else {
+    playerInfos.push_back({});
+    auto &pcInfo = playerInfos.back();
+    pcInfo.name = std::get<0>(pcId);
+    pcInfo.race = std::get<1>(pcId);
+    pcInfo.isFemale = std::get<2>(pcId);
+    return &pcInfo;
+  }
 }
 
-void Inis::SetPlayerInfo(const RE::Actor *actor, const RE::TESObjectARMO *addon, const int choice, const int sizeCatInp) {
-  auto pcIdTokens = UpdateActivePlayerInfoIndex(actor);
-  if (pcIdTokens.empty()) return;
-  if (choice == Common::nan && sizeCatInp == Common::nan) return;
+void Inis::SetPlayerInfo(const RE::Actor *actor, const RE::TESObjectARMO *addon, const int addonChoice, const int sizeChoice) {
+  auto pcInfo = GetPlayerInfo(actor);
+  if (!pcInfo) return;
+  if (addonChoice == Common::nan && sizeChoice == Common::nan) return;
   SEFormLoc addonLoc{0, Common::defStr};
-  switch (choice) {
+  switch (addonChoice) {
     case Common::nan:
-      addonLoc = activePlayerInfoIdx >= 0 && activePlayerInfoIdx < playerInfos.size() ? playerInfos[activePlayerInfoIdx].addon : SEFormLoc{0, Common::defStr};
+      addonLoc = pcInfo->addon;
       break;
     case Common::nul:
       addonLoc = {0, Common::nulStr};
+      break;
+    case Common::def:
       break;
     default:
       addonLoc = ut->FormToLoc(addon);
       break;
   }
   if (addonLoc.second.empty()) {
-    if (addon) {
-      SKSE::log::critical("Failed to save the addon [0x{:x}] for player!", addon->GetFormID());
-    } else {
-      SKSE::log::critical("Failed to save an addon for a for player!");
-    }
     return;
   }
-  int sizeCat = sizeCatInp == Common::nan ? Common::def : sizeCatInp;
-  if (sizeCatInp == Common::nan && activePlayerInfoIdx >= 0 && activePlayerInfoIdx < playerInfos.size()) sizeCat = playerInfos[activePlayerInfoIdx].sizeCat;
-  std::vector<std::string> pcInfoTokens;
-  pcInfoTokens.push_back(ut->LocToStr(addonLoc));
-  pcInfoTokens.push_back(std::to_string(sizeCat));
-  auto playerIdx = RE::BGSSaveLoadManager::GetSingleton()->currentCharacterID & 0xFFFFFFFF;
-  auto section = fmt::format("{}{:X}", cPlayerSection, playerIdx).c_str();
-  auto key = ut->Join(pcIdTokens, "|").c_str();
-  auto value = ut->Join(pcInfoTokens, "|").c_str();
-  settingIni.SetValue(section, key, value);
-  if (activePlayerInfoIdx >= 0 && activePlayerInfoIdx < playerInfos.size()) {
-    playerInfos[activePlayerInfoIdx].addon = addonLoc;
-    playerInfos[activePlayerInfoIdx].sizeCat = sizeCat;
-  } else {
-    playerInfos.push_back({});
-    auto &pcInfo = playerInfos.back();
-    pcInfo.name = pcIdTokens[0];
-    pcInfo.race = ut->StrToLoc(pcIdTokens[1]);
-    pcInfo.isFemale = pcIdTokens[2] == "F";
-    pcInfo.addon = addonLoc;
-    pcInfo.sizeCat = sizeCat;
-    activePlayerInfoIdx = static_cast<int>(playerInfos.size()) - 1;
+  int sizeCat = sizeChoice == Common::nan ? pcInfo->sizeCat : sizeChoice;
+  if (addonLoc != pcInfo->addon || sizeCat != pcInfo->sizeCat) {
+    pcInfo->addon = addonLoc;
+    pcInfo->sizeCat = sizeCat;
   }
-}
-
-std::vector<std::string> Inis::UpdateActivePlayerInfoIndex(const RE::Actor *actor) {
-  std::vector<std::string> pcIdTokens;
-  auto npc = actor ? actor->GetActorBase() : nullptr;
-  if (!npc || !npc->race) return {};
-  pcIdTokens.push_back(std::string(npc->GetName()));
-  pcIdTokens.push_back(ut->FormToStr(npc->race));
-  if (pcIdTokens[0].empty() || pcIdTokens[1].empty()) {
-    SKSE::log::critical("Failed to update the player information for current character.");
-    return {};
-  }
-  pcIdTokens.push_back(npc->IsFemale() ? "F" : "M");
-  if (playerInfos.empty()) {
-    activePlayerInfoIdx = -1;
-    return pcIdTokens;
-  }
-  auto infoIdx = std::find_if(playerInfos.begin(), playerInfos.end(),
-                              [&](const auto &pcInfo) { return pcInfo.name == pcIdTokens[0] && ut->LocToStr(pcInfo.race) == pcIdTokens[1] && pcInfo.isFemale == npc->IsFemale(); });
-  if (infoIdx != playerInfos.end()) {
-    activePlayerInfoIdx = static_cast<int>(std::distance(playerInfos.begin(), infoIdx));
-  } else {
-    activePlayerInfoIdx = -1;
-  }
-  return pcIdTokens;
 }
 
 void Inis::LoadTngInis() {

@@ -95,7 +95,7 @@ class Inis {
     const std::vector<std::string> Slot52Mods() const;
 
   protected:
-    const Common::PlayerInfo* GetPlayerInfo(const RE::Actor* actor);
+    Common::PlayerInfo* GetPlayerInfo(const RE::Actor* actor);
     void SetPlayerInfo(const RE::Actor* actor, const RE::TESObjectARMO* addon, const int choice = Common::nan, const int sizeCatInp = Common::nan);
 
   private:
@@ -107,8 +107,6 @@ class Inis {
     inline static constexpr const char* cPlayerSkin{"Skin"};
     inline static constexpr const char* cPlayerSize{"Size"};
     std::vector<Common::PlayerInfo> playerInfos;
-    int activePlayerInfoIdx{Common::nul};
-    std::vector<std::string> UpdateActivePlayerInfoIndex(const RE::Actor* actor);
 
   public:
     void LoadTngInis();

@@ -119,10 +119,15 @@ namespace Common {
 
   struct PlayerInfo {
       std::string name;
-      bool isFemale;
       SEFormLoc race;
-      SEFormLoc addon;
-      int sizeCat = {def};
+      bool isFemale;
+      SEFormLoc addon{0, defStr};
+      int sizeCat = {nul};
+      std::tuple<const std::string&, const SEFormLoc&, const bool&> Id() const { return {name, race, isFemale}; };
+      std::pair<const SEFormLoc&, const int&> Info() const { return {addon, sizeCat}; };
+      std::string IdStr() const;
+      std::string InfoStr() const;
+      bool FromStr(const std::string& IdStr, const std::string& InfoStr);
   };
 
   class Util : public Singleton<Util>, public BaseUtil {
