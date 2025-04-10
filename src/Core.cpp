@@ -1051,11 +1051,8 @@ void Core::CheckArmorPieces() {
       logInfo[6]++;
     }
   }
-  for (auto entry = potentialSlot52Mods.begin(); entry != potentialSlot52Mods.end();) {
-    if (potentialMods.find(*entry) != potentialMods.end()) {
-      Slot52ModBehavior(*entry, boolSettings.Get(Common::bsRevealSlot52Mods));
-      ++entry;
-    }
+  for (auto entry = potentialSlot52Mods.begin(); entry != potentialSlot52Mods.end(); entry++) {
+    if (potentialMods.find(*entry) != potentialMods.end()) Slot52ModBehavior(*entry, boolSettings.Get(Common::bsRevealSlot52Mods));
   }
   for (auto& armorPair : potentialArmor) {
     auto b = Slot52ModBehavior(armorPair.first);
