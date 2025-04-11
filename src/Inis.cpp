@@ -389,7 +389,7 @@ const std::vector<std::string> Inis::Slot52Mods() const {
   return mods;
 }
 
-Common::PlayerInfo *Inis::GetPlayerInfo(const RE::Actor *actor) {
+Common::PlayerInfo *Inis::GetPlayerInfo(const RE::Actor *actor, const bool allowAdd) {
   auto npc = actor ? actor->GetActorBase() : nullptr;
   if (!npc || !npc->race) return {};
   std::tuple<const std::string, const SEFormLoc, const bool> pcId{npc->GetName(), ut->FormToLoc(npc->race), npc->IsFemale()};
@@ -400,7 +400,7 @@ Common::PlayerInfo *Inis::GetPlayerInfo(const RE::Actor *actor) {
   auto infoIdx = std::find_if(playerInfos.begin(), playerInfos.end(), [&pcId](const auto &pcInfo) { return pcInfo.Id() == pcId; });
   if (infoIdx != playerInfos.end()) {
     return &(*infoIdx);
-  } else {
+  } else if (allowAdd) {
     playerInfos.push_back({});
     auto &pcInfo = playerInfos.back();
     pcInfo.name = std::get<0>(pcId);
@@ -408,10 +408,11 @@ Common::PlayerInfo *Inis::GetPlayerInfo(const RE::Actor *actor) {
     pcInfo.isFemale = std::get<2>(pcId);
     return &pcInfo;
   }
+  return nullptr;
 }
 
 void Inis::SetPlayerInfo(const RE::Actor *actor, const RE::TESObjectARMO *addon, const int addonChoice, const int sizeChoice) {
-  auto pcInfo = GetPlayerInfo(actor);
+  auto pcInfo = GetPlayerInfo(actor, true);
   if (!pcInfo) return;
   if (addonChoice == Common::nan && sizeChoice == Common::nan) return;
   SEFormLoc addonLoc{0, Common::defStr};

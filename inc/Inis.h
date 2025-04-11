@@ -95,7 +95,7 @@ class Inis {
     const std::vector<std::string> Slot52Mods() const;
 
   protected:
-    Common::PlayerInfo* GetPlayerInfo(const RE::Actor* actor);
+    Common::PlayerInfo* GetPlayerInfo(const RE::Actor* actor, const bool allowAdd);
     void SetPlayerInfo(const RE::Actor* actor, const RE::TESObjectARMO* addon, const int choice = Common::nan, const int sizeCatInp = Common::nan);
 
   private:
