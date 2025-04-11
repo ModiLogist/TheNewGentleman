@@ -113,8 +113,8 @@ void Common::BaseUtil::DoDelayed(std::function<void()> func, std::function<bool(
         std::this_thread::sleep_for(std::chrono::milliseconds(delayTime));
         count++;
       }
+      if (!condition()) return;
     }
-    if (!condition()) return;
     func();
   }).detach();
 }
