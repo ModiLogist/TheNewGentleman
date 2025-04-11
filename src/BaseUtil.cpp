@@ -72,6 +72,7 @@ std::string Common::BaseUtil::Join(const std::vector<std::string>& strings, cons
 
 std::vector<std::string> Common::BaseUtil::Split(const std::string& str, const std::string_view delimiter) const {
   std::vector<std::string> tokens;
+  tokens.clear();
   for (auto part : std::views::split(str, delimiter)) {
     auto token = std::string(part.begin(), part.end());
     tokens.emplace_back(token);

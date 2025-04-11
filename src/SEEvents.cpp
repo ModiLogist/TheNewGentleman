@@ -31,6 +31,11 @@ RE::BSEventNotifyControl SEEvents::ProcessEvent(const RE::TESObjectLoadedEvent* 
 RE::BSEventNotifyControl SEEvents::ProcessEvent(const RE::TESSwitchRaceCompleteEvent* event, RE::BSTEventSource<RE::TESSwitchRaceCompleteEvent>*) {
   auto actor = event->subject.get()->As<RE::Actor>();
   auto delay = (actor && actor->IsPlayerRef() && core->boolSettings.Get(Common::bsForceRechecks)) * 500;
-  ut->DoDelayed([actor]() { core->UpdateActor(actor); }, []() { return true; }, delay);
+  ut->DoDelayed(
+      [actor, delay]() {
+        auto ac = delay != 0 ? RE::PlayerCharacter::GetSingleton() : actor;
+        core->UpdateActor(ac);
+      },
+      []() { return true; }, delay);
   return RE::BSEventNotifyControl::kContinue;
 }

@@ -306,16 +306,17 @@ Common::eRes Core::SetActorSize(RE::Actor* const actor, int sizeCat, const bool 
     if (scale < 0.1) scale = 1;
     int useFixed = actor->IsPlayerRef() && !actor->GetNodeByName(Common::genBoneNames[Common::egbBase]) ? -1 : 0;
     ut->DoDelayed(
-        [actor, scale, shouldSave, sizeCat]() {
-          RE::NiAVObject* baseNode = actor->GetNodeByName(Common::genBoneNames[Common::egbBase]);
-          RE::NiAVObject* scrotNode = actor->GetNodeByName(Common::genBoneNames[Common::egbScrot]);
+        [actor, scale, shouldSave, sizeCat, useFixed]() {
+          auto ac = useFixed == -1 ? RE::PlayerCharacter::GetSingleton() : actor;
+          RE::NiAVObject* baseNode = ac->GetNodeByName(Common::genBoneNames[Common::egbBase]);
+          RE::NiAVObject* scrotNode = ac->GetNodeByName(Common::genBoneNames[Common::egbScrot]);
           if (baseNode && scrotNode) {
             if (baseNode->local.scale != scale) return;
             baseNode->local.scale = scale;
             scrotNode->local.scale = 1.0f / sqrt(scale);
-            if (sizeCat != Common::nul) SKSE::log::debug("Actor [0x{:x}] genitalia {} to [{}].", actor->GetFormID(), shouldSave ? "scaled" : "restored", scale);
+            if (sizeCat != Common::nul) SKSE::log::debug("Actor [0x{:x}] genitalia {} to [{}].", ac->GetFormID(), shouldSave ? "scaled" : "restored", scale);
           } else {
-            SKSE::log::debug("Failed to scale actor [0x{:x}] genitalia to [{}] since their skeleton does not seem to be compatible", actor->GetFormID(), scale);
+            SKSE::log::debug("Failed to scale actor [0x{:x}] genitalia to [{}] since their skeleton does not seem to be compatible", ac->GetFormID(), scale);
           }
         },
         [actor]() -> bool { return actor->Is3DLoaded(); }, useFixed);
@@ -353,15 +354,15 @@ bool Core::SwapRevealing(RE::Actor* const actor, RE::TESObjectARMO* const armor)
 }
 
 void Core::RevisitRevealingArmor() const {
-  std::set<std::string> potentialMods{Slot52Mods().begin(), Slot52Mods().end()};
-  if (potentialMods.size() == 0) return;
+  auto s52 = Slot52Mods();
+  if (s52.size() == 0) return;
   auto& armorList = ut->SEDH()->GetFormArray<RE::TESObjectARMO>();
   std::set<std::pair<std::string, RE::TESObjectARMO*>> potentialArmor = {};
   std::vector<RE::BGSKeyword*> rc = {ut->Key(Common::kyCovering), ut->Key(Common::kyRevealing)};
   for (const auto& armor : armorList) {
     if (!armor || !armor->HasPartOf(Common::bodySlot) || !armor->HasKeywordInArray(rc, false)) continue;
     auto modName = armor->GetFile(0) ? std::string(armor->GetFile(0)->GetFilename()) : "";
-    if (modName.empty() || potentialMods.find(modName) == potentialMods.end()) continue;
+    if (modName.empty() || std::ranges::find(s52, modName) == s52.end()) continue;
     if (auto b = Slot52ModBehavior(modName); b != armor->HasKeyword(ut->Key(Common::kyRevealing))) {
       armor->RemoveKeywords(rc);
       armor->AddKeyword(ut->Key(b ? Common::kyRevealing : Common::kyCovering));
@@ -825,7 +826,7 @@ std::pair<int, bool> Core::GetApplicableAddon(RE::Actor* const actor) const {
 
 Common::eRes Core::SetNPCAddon(RE::TESNPC* const npc, const int addonIdx, const bool isUser) {
   if (addonIdx < Common::def) return Common::errAddon;
-  if (!npc) {
+  if (!npc || !npc->race || !npc->race->skin) {
     SKSE::log::critical("Failure in setting a NPC genital!");
     return Common::errNPC;
   }
@@ -974,6 +975,7 @@ bool Core::NeedsBlock(RE::Actor* const actor) const {
 void Core::CheckArmorPieces() {
   SKSE::log::info("Checking ARMO records...");
   auto& armorList = ut->SEDH()->GetFormArray<RE::TESObjectARMO>();
+  auto defRace = ut->Race(Common::raceDefault);
   int logInfo[7]{0};
   std::map<std::string, RE::TESObjectARMO*> potentialArmor = {};
   std::set<std::string> potentialMods{};
@@ -1008,7 +1010,10 @@ void Core::CheckArmorPieces() {
       logInfo[6]++;
       continue;
     }
-    if (!armor->race->HasKeywordInArray(relRaceKeys, false) && armor->race != ut->Race(Common::raceDefault)) continue;
+    if (defRace && !armor->race->HasKeywordInArray(relRaceKeys, false) && armor->race != defRace) {
+      logInfo[6]++;
+      continue;
+    }
     if (IsSkin(armor, modName)) {
       SKSE::log::info("\t\tThe record [0x{:x}: {}] was marked as a skin.", armor->GetFormID(), armorID);
       armor->AddKeyword(ut->Key(Common::kyIgnored));
