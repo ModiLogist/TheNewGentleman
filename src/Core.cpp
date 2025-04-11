@@ -304,6 +304,7 @@ Common::eRes Core::SetActorSize(RE::Actor* const actor, int sizeCat, const bool 
     if (mult < 0.0f) return Common::errRg;
     auto scale = mult * floatSettings.Get(static_cast<Common::eFloatSetting>(cat));
     if (scale < 0.1) scale = 1;
+    int useFixed = actor->IsPlayerRef() && !actor->GetNodeByName(Common::genBoneNames[Common::egbBase]) ? -1 : 0;
     ut->DoDelayed(
         [actor, scale, shouldSave, sizeCat]() {
           RE::NiAVObject* baseNode = actor->GetNodeByName(Common::genBoneNames[Common::egbBase]);
@@ -317,7 +318,7 @@ Common::eRes Core::SetActorSize(RE::Actor* const actor, int sizeCat, const bool 
             SKSE::log::debug("Failed to scale actor [0x{:x}] genitalia to [{}] since their skeleton does not seem to be compatible", actor->GetFormID(), scale);
           }
         },
-        [actor]() -> bool { return actor->Is3DLoaded(); }, actor->IsPlayerRef());
+        [actor]() -> bool { return actor->Is3DLoaded(); }, useFixed);
   }
   if (actor->IsPlayerRef() && sizeCat != Common::nul && shouldSave) SetPlayerInfo(actor, nullptr, Common::nan, sizeCat);
   if (!actor->IsPlayerRef() && shouldSave) {

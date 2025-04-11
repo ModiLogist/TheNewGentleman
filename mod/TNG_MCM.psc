@@ -140,6 +140,10 @@ Event OnConfigInit()
   cfWomenChance = 5
 
   ciLockKey = 56 ; Left Alt Key
+
+  If (TNG_PapyrusUtil.GetBoolValue(cbForceTheCheck))
+    RegisterForSingleUpdate(12)
+  EndIf
 EndEvent
 
 Event OnVersionUpdate(Int aiVersion)
@@ -148,12 +152,13 @@ Event OnVersionUpdate(Int aiVersion)
   EndIf
 EndEvent
 
-Event OnGameReload()
-  Parent.OnGameReload()
-  
+Event OnPlayerLoadGame()
   Gentified.Revert()
-  
-  If TNG_PapyrusUtil.GetBoolValue(cbCheckingPCGen) 
+  If TNG_PapyrusUtil.GetBoolValue(cbForceTheCheck)
+    RegisterForSingleUpdate(7)
+  ElseIf TNG_PapyrusUtil.GetBoolValue(cbCheckingPCGen) 
+    RegisterForSingleUpdate(5.5)
+  Else
     RegisterForSingleUpdate(1)
   EndIf
   
@@ -178,7 +183,17 @@ Event OnGameReload()
   If TNG_PapyrusUtil.CanModifyActor(PlayerRef) < 0
     Return
   EndIf
-  Int res = TNGSetAddon(PlayerRef, -3)
+EndEvent
+
+Event OnUpdate()
+  If (TNG_PapyrusUtil.CanModifyActor(PlayerRef) >= 0)
+    Int res = TNGSetAddon(PlayerRef, -3)
+  EndIf
+
+  If fiLastActor > 0
+    fiLastActor = -1
+    ShowNotification("$TNG_KAR")
+  EndIf
 EndEvent
 
 Event OnPageReset(String asPage)
@@ -978,16 +993,7 @@ Event OnKeyDown(Int aiKey)
   EndIf
 EndEvent
 
-Event OnUpdate()
-  If TNG_PapyrusUtil.GetBoolValue(cbCheckingPCGen) && (TNG_PapyrusUtil.CanModifyActor(PlayerRef) > 0)
-    Int res = TNGSetAddon(PlayerRef, -3)
-  EndIf
 
-  If fiLastActor > 0
-    fiLastActor = -1
-    ShowNotification("$TNG_KAR")
-  EndIf
-EndEvent
 
 Function UpdateKey(Int aHdl, Int aiNewKey)
   Int liCurrKey = -1

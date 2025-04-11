@@ -30,6 +30,7 @@ RE::BSEventNotifyControl SEEvents::ProcessEvent(const RE::TESObjectLoadedEvent* 
 
 RE::BSEventNotifyControl SEEvents::ProcessEvent(const RE::TESSwitchRaceCompleteEvent* event, RE::BSTEventSource<RE::TESSwitchRaceCompleteEvent>*) {
   auto actor = event->subject.get()->As<RE::Actor>();
-  core->UpdateActor(actor);
+  auto delay = (actor && actor->IsPlayerRef() && core->boolSettings.Get(Common::bsForceRechecks)) * 500;
+  ut->DoDelayed([actor]() { core->UpdateActor(actor); }, []() { return true; }, delay);
   return RE::BSEventNotifyControl::kContinue;
 }

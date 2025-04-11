@@ -77,7 +77,6 @@ namespace Common {
       void ShowSkyrimMessage(const char* message) const { RE::DebugMessageBox(message); }
       RE::BGSKeyword* ProduceOrGetKw(const std::string& keyword);
       int HasKeywordInList(const RE::BGSKeywordForm* form, const std::vector<RE::BGSKeyword*>& keywords) const;
-      void DoDelayed(std::function<void()> func, std::function<bool()> condition, const bool fixedDelay) const;
       SEFormLoc FormToLoc(const RE::TESForm* form, const int choice = nan) const;
       std::string LocToStr(const SEFormLoc& loc) const;
       SEFormLoc StrToLoc(const std::string& locStr) const;
@@ -86,6 +85,7 @@ namespace Common {
       std::vector<std::string> Split(const std::string& str, const std::string_view delimiter) const;
       std::string NameToStr(std::string name) const;
       std::string StrToName(std::string name) const;
+      void DoDelayed(std::function<void()> func, std::function<bool()> condition, const int fixedDelay = -1) const;
 
     private:
       inline static constexpr size_t fixedDelayTime{5000};
