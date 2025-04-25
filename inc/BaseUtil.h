@@ -85,6 +85,7 @@ namespace Common {
       std::string NameToStr(std::string name) const;
       std::string StrToName(std::string name) const;
       void QueueNiNodeUpdate(const RE::Actor* actor) const;
+      void UpdateFormList(RE::BGSListForm* formList, RE::TESForm* form, const bool addRemove) const;  // Add: true, Remove: false
       void DoDelayed(std::function<void()> func, std::function<bool()> condition, const int fixedDelay, const bool enforceCond, const std::string fmsg = "") const;
 
     private:

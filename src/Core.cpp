@@ -953,19 +953,7 @@ Common::eRes Core::UpdatePlayer(RE::Actor* const actor, const bool isRRace) {
 void Core::UpdateFormLists(RE::Actor* const actor) const {
   auto npc = actor ? actor->GetActorBase() : nullptr;
   if (!npc) return;
-  auto updateFormList = [&](RE::BGSListForm* formList, const bool reason) {
-    if (reason && !formList->HasForm(actor)) {
-      formList->AddForm(actor);
-    } else if (!reason && formList->HasForm(actor)) {
-      formList->forms.erase(std::find_if(formList->forms.begin(), formList->forms.end(), [&](RE::TESForm* form) { return form->As<RE::Actor>() == actor; }));
-    }
-  };
-
-  if (npc->IsFemale()) {
-    updateFormList(ut->FormList(Common::flmGentleWomen), npc->HasKeyword(ut->Key(Common::kyGentlewoman)));
-  } else {
-    updateFormList(ut->FormList(Common::flmNonGentleMen), npc->HasKeyword(ut->Key(Common::kyExcluded)));
-  }
+  ut->UpdateFormList(ut->FormList(Common::flmGentleWomen), actor, npc->HasKeyword(ut->Key(npc->IsFemale() ? Common::kyGentlewoman : Common::kyExcluded)));
 }
 
 void Core::UpdateBlock(RE::Actor* const actor, RE::TESObjectARMO* const armor, const bool isEquipped) const {

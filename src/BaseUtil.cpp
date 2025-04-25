@@ -106,6 +106,23 @@ void Common::BaseUtil::QueueNiNodeUpdate(const RE::Actor* actor) const {
   }
 }
 
+void Common::BaseUtil::UpdateFormList(RE::BGSListForm* formList, RE::TESForm* form, const bool addRemove) const {
+  if (addRemove && !formList->HasForm(form)) {
+    formList->AddForm(form);
+  } else if (!addRemove && formList->HasForm(form)) {
+    auto ptrIt = std::find(formList->forms.begin(), formList->forms.end(), form);
+    if (ptrIt != formList->forms.end()) {
+      formList->forms.erase(ptrIt);
+      return;
+    }
+    auto idIt = std::find(formList->scriptAddedTempForms->begin(), formList->scriptAddedTempForms->end(), form->formID);
+    if (idIt != formList->scriptAddedTempForms->end()) {
+      formList->scriptAddedTempForms->erase(idIt);
+      return;
+    }
+  }
+}
+
 void Common::BaseUtil::DoDelayed(std::function<void()> func, std::function<bool()> condition, const int fixedDelay, const bool enforceCond, const std::string fmsg) const {
   if (fixedDelay == 0 && condition()) {
     func();
