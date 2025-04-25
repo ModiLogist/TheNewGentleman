@@ -14,7 +14,8 @@ class Inis {
         std::array<std::string, Common::boolSettingCount>{"ExcludePlayerSize", "CheckPlayerRegularly", "ForceChecks", "Slot52ModsAreRevealing", "Slot52ModsAreMixed",
                                                           "RandomizeMaleAddons", "UIExtensions", "ShowAllRaces", "DAK_Integration"}};
     Common::TypedSetting<int, Common::eIntSetting, Common::intSettingCount> intSettings{
-        std::array<int, Common::intSettingCount>{Common::nul, Common::nul, Common::nul, Common::nul, Common::nul}, std::array<std::string, Common::intSettingCount>{"Controls"},
+        std::array<int, Common::intSettingCount>{Common::nul, Common::nul, Common::nul, Common::nul, Common::nul},
+        std::array<std::string, Common::intSettingCount>{"Controls", "Controls", "Controls", "Controls", "Controls"},
         std::array<std::string, Common::intSettingCount>{"NPCEdit", "GenitalUp", "GenitalDown", "Revealing", "WhyProblem"}};
     Common::TypedSetting<float, Common::eFloatSetting, Common::floatSettingCount> floatSettings{
         std::array<float, Common::floatSettingCount>{0.8f, 0.9f, 1.0f, 1.2f, 1.4f, 0.0f, 20.0f},
