@@ -151,35 +151,16 @@ EndEvent
 
 Event OnGameReload()
   Parent.OnGameReload()
-  
-  Gentified.Revert()
-  
-  If TNG_PapyrusUtil.GetBoolValue(cbCheckingPCGen) 
-    RegisterForSingleUpdate(1)
-  EndIf
-  
   If Game.GetModByName("Dynamic Activation Key.esp")
     fkDAK = Game.GetFormFromFile(0x801, "Dynamic Activation Key.esp") As GlobalVariable
   EndIf
-  If TNG_PapyrusUtil.GetIntValue(ciSetupNPC) > 0
-    RegisterForKey(TNG_PapyrusUtil.GetIntValue(ciSetupNPC))
-  EndIf
-  If TNG_PapyrusUtil.GetIntValue(ciSwapRevealing) > 0
-    RegisterForKey(TNG_PapyrusUtil.GetIntValue(ciSwapRevealing))
-  EndIf
-  If TNG_PapyrusUtil.GetIntValue(ciRiseGen) > 0
-    RegisterForKey(TNG_PapyrusUtil.GetIntValue(ciRiseGen))
-  EndIf
-  If TNG_PapyrusUtil.GetIntValue(ciFallGen) > 0
-    RegisterForKey(TNG_PapyrusUtil.GetIntValue(ciFallGen))
-  EndIf
-  If TNG_PapyrusUtil.GetIntValue(ciWhyProblem) > 0
-    RegisterForKey(TNG_PapyrusUtil.GetIntValue(ciWhyProblem))
-  EndIf
-  If TNG_PapyrusUtil.CanModifyActor(PlayerRef) < 0
-    Return
-  EndIf
-  Int res = TNGSetAddon(PlayerRef, -3)
+  Int liKey = 5
+  While liKey > 0
+    liKey -= 1
+    If TNG_PapyrusUtil.GetIntValue(liKey) > 0
+      RegisterForKey(TNG_PapyrusUtil.GetIntValue(liKey))
+    EndIf
+  EndWhile
 EndEvent
 
 Event OnPageReset(String asPage)
