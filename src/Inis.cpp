@@ -343,27 +343,18 @@ void Inis::LoadPlayerInfos(const std::string &saveName) {
   CSimpleIniA settingIni;
   settingIni.SetUnicode();
   settingIni.LoadFile(SettingFile());
-  auto section = fmt::format("{}{}", cPlayerSection, playerStr).c_str();
-  if (settingIni.SectionExists(section)) {
+  std::string section = fmt::format("{}{}", cPlayerSection, playerStr);
+  if (settingIni.SectionExists(section.c_str())) {
     CSimpleIniA::TNamesDepend keys;
-    settingIni.GetAllKeys(section, keys);
+    settingIni.GetAllKeys(section.c_str(), keys);
     for (auto &key : keys) {
-      std::string reqInfoStr{key.pItem};
-      std::string value = settingIni.GetValue(section, key.pItem);
-      std::vector<std::string> pcIdTokens = ut->Split(reqInfoStr, "|");
-      std::vector<std::string> pcInfoTokens = ut->Split(value, "|");
-      if (pcIdTokens.size() == 3 && pcInfoTokens.size() == 2) {
-        playerInfos.push_back({});
-        auto &pcInfo = playerInfos.back();
-        pcInfo.name = pcIdTokens[0];
-        pcInfo.race = ut->StrToLoc(pcIdTokens[1]);
-        pcInfo.isFemale = pcIdTokens[2] == "F";
-        if (pcInfo.name.empty() || pcInfo.race.second.empty()) continue;
-        pcInfo.addon = ut->StrToLoc(pcInfoTokens[0]);
-        pcInfo.sizeCat = std::stoi(pcInfoTokens[1]);
-        if (pcInfo.addon.second.empty()) continue;
-        SKSE::log::debug("\tLoaded player info for active save: name[{}], race [{}], Female [{}], addon [{}], sizeCat [{}]", pcIdTokens[0], pcIdTokens[1], pcIdTokens[2],
-                         pcInfoTokens[0], pcInfoTokens[1]);
+      std::string idStr{key.pItem};
+      std::string infoStr = settingIni.GetValue(section.c_str(), key.pItem);
+      Common::PlayerInfo pcInfo;
+      if (pcInfo.FromStr(idStr, infoStr)) {
+        playerInfos.push_back(pcInfo);
+        SKSE::log::debug("\tLoaded player info for active save: name[{}], race [{:X}], gender [{}], addon [{:x}], sizeCat [{}]", pcInfo.name, pcInfo.race.first,
+                         pcInfo.isFemale ? "female" : "male", pcInfo.addon.first, pcInfo.sizeCat);
       };
     }
   }
@@ -384,7 +375,7 @@ const std::vector<std::string> Inis::Slot52Mods() const {
   return mods;
 }
 
-Common::PlayerInfo *Inis::GetPlayerInfo(const RE::Actor *actor) {
+Common::PlayerInfo *Inis::GetPlayerInfo(const RE::Actor *actor, const bool allowAdd) {
   auto npc = actor ? actor->GetActorBase() : nullptr;
   if (!npc || !npc->race) return {};
   std::tuple<const std::string, const SEFormLoc, const bool> pcId{npc->GetName(), ut->FormToLoc(npc->race), npc->IsFemale()};
@@ -395,7 +386,7 @@ Common::PlayerInfo *Inis::GetPlayerInfo(const RE::Actor *actor) {
   auto infoIdx = std::find_if(playerInfos.begin(), playerInfos.end(), [&pcId](const auto &pcInfo) { return pcInfo.Id() == pcId; });
   if (infoIdx != playerInfos.end()) {
     return &(*infoIdx);
-  } else {
+  } else if (allowAdd) {
     playerInfos.push_back({});
     auto &pcInfo = playerInfos.back();
     pcInfo.name = std::get<0>(pcId);
@@ -403,10 +394,11 @@ Common::PlayerInfo *Inis::GetPlayerInfo(const RE::Actor *actor) {
     pcInfo.isFemale = std::get<2>(pcId);
     return &pcInfo;
   }
+  return nullptr;
 }
 
 void Inis::SetPlayerInfo(const RE::Actor *actor, const RE::TESObjectARMO *addon, const int addonChoice, const int sizeChoice) {
-  auto pcInfo = GetPlayerInfo(actor);
+  auto pcInfo = GetPlayerInfo(actor, true);
   if (!pcInfo) return;
   if (addonChoice == Common::nan && sizeChoice == Common::nan) return;
   SEFormLoc addonLoc{0, Common::defStr};

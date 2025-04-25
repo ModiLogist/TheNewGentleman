@@ -84,7 +84,14 @@ std::string Common::PlayerInfo::IdStr() const { return ut->NameToStr(name) + "|"
 std::string Common::PlayerInfo::InfoStr() const { return ut->LocToStr(addon) + "|" + std::to_string(sizeCat); }
 
 bool Common::PlayerInfo::FromStr(const std::string& IdStr, const std::string& InfoStr) {
-  PlayerInfo res{};
   auto idTokens = ut->Split(IdStr, "|");
   auto infoTokens = ut->Split(InfoStr, "|");
+  bool res = idTokens.size() == 3 && infoTokens.size() == 2;
+  if (!res) return false;
+  this->name = ut->StrToName(idTokens[0]);
+  this->race = ut->StrToLoc(idTokens[1]);
+  this->isFemale = idTokens[2] == "F" ? true : false;
+  this->addon = ut->StrToLoc(infoTokens[0]);
+  this->sizeCat = std::stoi(infoTokens[1]);
+  return true;
 }

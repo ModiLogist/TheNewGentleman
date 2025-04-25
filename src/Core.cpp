@@ -260,7 +260,7 @@ Common::eRes Core::SetActorAddon(RE::Actor* const actor, const int choice, const
   auto res = SetNPCAddon(npc, addonIdx, isUser);
   if (res < 0) return res;
   auto addon = addonIdx < 0 ? nullptr : (npc->IsFemale() ? femAddons[addonIdx].first : malAddons[addonIdx].first);
-  if (actor->IsPlayerRef()) SetPlayerInfo(actor, addon, addonIdx);
+  if (actor->IsPlayerRef() && shouldSave) SetPlayerInfo(actor, addon, addonIdx);
   if (!npc->IsPlayer() && shouldSave) {
     auto saved = Inis::SetNPCAddon(npc, addon, addonIdx);
     if (!saved) Inis::SetActorAddon(actor, addon, addonIdx);
@@ -916,7 +916,7 @@ void Core::UpdateAddon(RE::Actor* const actor, const bool isRRace) {
 }
 
 Common::eRes Core::UpdatePlayer(RE::Actor* const actor, const bool isRRace) {
-  if (auto pcInfo = GetPlayerInfo(actor); pcInfo) {
+  if (auto pcInfo = GetPlayerInfo(actor, false); pcInfo) {
     SetActorSize(actor, pcInfo->sizeCat, false);
     if (isRRace) return Common::resOkFixed;
     auto addonIdx = AddonIdxByLoc(pcInfo->isFemale, pcInfo->addon);
