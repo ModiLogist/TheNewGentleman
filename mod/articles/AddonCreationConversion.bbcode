@@ -1,0 +1,70 @@
+This is a step by step guide for creating addons for TNG or patching SOS addons to be used by TNG. This article assumes you know the basics for using [url=https://www.nexusmods.com/skyrimspecialedition/mods/164]SSEEdit (also known as xEdit)[/url]. The guide would walk you through patching addons for TNG starting from an existing SOS addon, but with a little adaptation that you should be able to do on your own, it can be used to create new addons as well. 
+
+In the guide we talk about addons, i.e. extra genitalia/pubic hair to be distributed to NPCs as well as armor addons (the ARMA record type). To avoid confusion I refer to armor addon as "AA" in the rest of the guide and use "addon" for genitalia addons.
+
+The guide can be summarized in the following steps:
+[list]
+[*]Remove the dependency from SOS if starting from SOS addon.
+[*]Add the keywords [xxff9: TNG_AddonMale] or [xxffA: TNG_AddonFemale] to the ARMO record of the addon.
+[*]If it is a penis for women, in addition to TNG_AddonFemale, also add the [xxff7: TNG_SkinWithPenis].
+[/list]
+If that is enough information for you, you can skip the rest of the article.
+
+[b][size=3]Prerequisites[/size][/b]
+First you should be aware of the way that the addons interact with TNG. TNG needs to know:
+[list]
+[*]What are the AAs used for each specific addon to add them to the skin records when necessary.
+[*]Which races that the addon supports.
+[*]If an addon is used for female NPCs or male NPCs.
+[*]If an addon is used for female NPCs, whether the addon adds a penis to female NPCs or not. This is used for animation frameworks to know how to treat an NPC.
+[*]The name of the addon.
+[/list]
+So an addon for TNG should contain all the AAs for different races in those AAs, the keywords for TNG to recognize them as an addon, and a name. Since an ARMO record can contain multiple AAs, have keywords and a name, it is the ideal place to hold a TNG addon. Note that TNG would not use the ARMO itself, but rather its content(AAs, keywords, and name). TNG goes through all ARMO records in the game to find any relevant addons and recognizes them by keywords [b]TNG_AddonMale[/b] and [b]TNG_AddonFemale[/b]. For female addons, then it looks to see if the record has the keyword [b]TNG_SkinWithPenis[/b]. Here is an example of male and female addons for TNG.
+[img]https://i.imgur.com/VJWYtnq.png[/img]
+
+Every NPC who is using a TNG addon, is using a custom skin made with their own skin + the AAs for their addon. TNG creates a skin record at runtime combining the original skin and the addon.
+
+[b][size=3]Step 0: Prepare the addon scripts (Can be skipped in most cases)[/size][/b]
+This step is only required if the SOS addon comes with special scripts. SOS addons are non-playable armor and SOS distributes and equips them on PC/NPCs. Most SOS addons simply use SOS for distribution and so you can simply skip this step. However there are special cases e.g. [url=https://www.nexusmods.com/skyrimspecialedition/mods/78859?tab=files]Bad Dog's Hoodies[/url] that does much more than just distribution. In cases like that you should adapt the scripts to use TNG functionality instead of SOS and we cannot provide support for the scripting questions that you might have. That part is on you.
+
+[b][size=3]Step 1: Prepare the addon esp[/size][/b]
+Next step is to edit the esp of the addon you want to patch for TNG. Before you make any changes to the esp, make a backup just in case things went wrong. Now put the esp below TNG in plugin order and load it with xEdit. If the esp requires SOS you should have SOS plugins in your plugin list when you do this the first time. For this example we are going to use a very popular addon for SOS [url=https://www.loverslab.com/files/file/19039-trx-futanari-addon-wip/]TRX - Futanari Addon [/url](NSFW website) that is already converted by [url=https://www.nexusmods.com/skyrimspecialedition/users/91759958]MissCorruption[/url] and the original author [url=https://www.nexusmods.com/skyrimspecialedition/users/31693360]TRXtrixter[/url]. But we are going to do it from scratch. Remove everything except for the [b]Armor Addon[/b], [b]Armor[/b], and [b]Texture Set[/b] from the esp. Here is an example of an esp before and after:
+[img]https://i.imgur.com/Wbk5YPw.png[/img]
+
+[b][size=3]Step 3: Add TNG as a master[/size][/b]
+In the next step we would like to replace SOS keywords with TNG ones. So we need TNG as a master for the esp. Right click on the esp and select the option to add masters and then select TNG from the pop-up window and press ok.
+[img]https://i.imgur.com/qpWKBLc.png[/img]
+[img]https://i.imgur.com/7E2Js20.png[/img]
+Now if you click on the File Header you should see something like this:
+[img]https://i.imgur.com/aviu3Ex.png[/img]
+
+[b][size=3]Step 4: Update ARMO records for TNG[/size][/b]
+Now go to the armor records in the esp. Each of these would be an addon for TNG. Usually SOS addons come with one addon per esp. For TNG they can be merged if you know how to do that. Here, let's continue with SOS - TRX - Futanari Addon.esp.
+[i]Side note: I don't like the term Futa and if you are making an addon for TNG try to avoid using it, but in this case we are making an esp replacer, so we gotta stick to the original name[/i]
+If you open the ARMO records, you would see the following there:
+[img]https://i.imgur.com/ectu3N2.png[/img]
+Here the only one that is an addon is the first one. The rest are equippable options that we are not interested in this guide. So simply remove them. (You can also keep them if you know what you are doing to have the equippable option). Then select the addon and check the keywords. We should change the keywords to those from TNG. Below you can see the before and after of the keywords.
+[img]https://i.imgur.com/OPH6RwC.png[/img]
+
+[b][size=3]Step 5: Clean Masters[/size][/b]
+Now simply right click on the plugin and select clean masters. This should remove SOS from the master list of the mod.
+[img]https://i.imgur.com/eh6XJ3v.png[/img]
+If you click on the file header this is what you should see:
+[img]https://i.imgur.com/bEfaEG5.png[/img]
+
+Choose a name for your addon and fill it in the FULL - Name of the ARMO record. If the field is empty, press insert in front of it to place an empty field and then double click to fill it. If you know how translations work in Sky_UI you can even set a translatable name for it.
+
+You are done! Happy modding! You can skip the next part but if you want to understand what is going on behind the scenes, keep reading.
+
+[size=3][b]Deep dive: How does TNG recognize races then?[/b][/size]
+TNG would go through every AA in the addon and check the [b]RNAM - Race[/b] and [b]Additional Races[/b] fields. If an AA supports a race then technically this addon can be used for that race. But let's take the example of Afflicted race: They have Breton as their armor parent race but we don't want to give Bretons the Afflicted genitalia. TNG groups races into two categories: main race groups and secondary race groups. Read the article [url=https://www.nexusmods.com/skyrimspecialedition/articles/9650]for custom races[/url] for more information about the groups. 
+If an AA supports a secondary group, it would be skipped for the main races. This way Afflicted addons won't show up for Bretons. So if an addon supports both Afflicted and Breton, you can either remove Afflicted from the additional races or have two armor addons, one for Afflicted and one for Bretons.
+On the other hand for secondary groups, if an addon has the secondary race as an RNAM or additional race directly, it would show up in their list as a [u]dedicated[/u] addon, otherwise it would show up as a [u]supporting[/u] addon. 
+This way, if you have a Breton addon, it would show up for Afflicted as a supporting addon, but if you have an Afflicted addon, it would not show up for Bretons. 
+So if you are working on an addon for a race belonging to secondary groups, put the race in the [u]RNAM - Race[/u] field and the armor parent race (if it exists) in the [u]Additional races[/u] field.
+If you are working on an addon for a main race, make sure that the addon does not have both secondary and main races in the combination of its RNAM and additional races.
+You can see which races are in which group in the log produced by TNG (check advanced tab of MCM).
+
+[b]Note:[/b] This article applies to TNG versions 4.0+. For older versions you would need a separate AA for each race for male addons. Look at this picture for an example: 
+[img]https://i.imgur.com/8WBKLgl.png[/img]
+Doing so would not cause problems for versions 4.0+ but it is not necessary anymore.

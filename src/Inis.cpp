@@ -1,5 +1,429 @@
-#include <Base.h>
 #include <Inis.h>
+
+void Inis::LoadMainIni() {
+  SKSE::log::info("Loading TNG settings...");
+  if (!std::filesystem::exists(SettingFile())) {
+    std::ofstream newSetting(SettingFile());
+    newSetting << ";TNG Settings File" << std::endl;
+    newSetting.close();
+    TransferOldIni();
+  }
+  CSimpleIniA settingIni;
+  CSimpleIniA::TNamesDepend keys;
+  settingIni.SetUnicode();
+  settingIni.LoadFile(SettingFile());
+  boolSettings.Load(settingIni);
+  intSettings.Load(settingIni);
+  floatSettings.Load(settingIni);
+  if (ut->SEDH()->LookupModByName("Racial Skin Variance - SPID.esp")) {
+    boolSettings.Set(Common::bsCheckPlayerAddon, true);
+    boolSettings.Set(Common::bsForceRechecks, true);
+    SKSE::log::info("\tTNG detected Racial Skin Variance and would force the player and NPCs to be reloaded");
+  }
+  if (ut->SEDH()->LookupModByName("UIExtensions.esp")) {
+    boolSettings.Set(Common::bsUIExtensions, true);
+  } else {
+    SKSE::log::warn("\tTNG could not detected UIExtensions. You may want to check if it is installed.");
+  }
+  LoadIniPairs<bool>(settingIni, cActiveMalAddons, activeMalAddons, true);
+  LoadIniPairs<bool>(settingIni, cActiveFemAddons, activeFemAddons, false);
+  SKSE::log::debug("\tRestored all addon status to previous selections");
+  settingIni.GetAllKeys(cValidSkeletons, keys);
+  for (auto &key : keys) validSkeletons.emplace(std::string(key.pItem));
+  LoadIniPairs<SEFormLoc>(settingIni, cRacialAddon, racialAddons);
+  LoadIniPairs<float>(settingIni, cRacialSize, racialSizes);
+  SKSE::log::debug("\tRestored all racial addon and size settings");
+  LoadIniPairs<SEFormLoc>(settingIni, cNPCAddonSection, npcAddons);
+  LoadIniPairs<int>(settingIni, cNPCSizeSection, npcSizeCats);
+  LoadIniPairs<SEFormLoc>(settingIni, cActorAddonSection, actorAddons);
+  LoadIniPairs<int>(settingIni, cActorSizeSection, actorSizeCats);
+  SKSE::log::debug("\tRestored all NPC and actor addon and size settings");
+  LoadIniPairs<int>(settingIni, cArmorStatusSection, runTimeArmorStatus);
+  SKSE::log::debug("\tRestored all revealing records settings");
+  settingIni.GetAllKeys(cRevealingModSection, keys);
+  for (auto &key : keys) {
+    auto modName = ut->StrToName(std::string(key.pItem));
+    auto status = settingIni.GetBoolValue(cRevealingModSection, key.pItem, false);
+    if (!modName.empty()) slot52Mods.emplace(modName, status);
+  }
+  SKSE::log::info("TNG settings loaded.");
+}
+
+void Inis::SaveMainIni() {
+  CSimpleIniA settingIni;
+  settingIni.SetUnicode();
+  settingIni.LoadFile(SettingFile());
+  boolSettings.Store(settingIni);
+  settingIni.SaveFile(SettingFile());
+  intSettings.Store(settingIni);
+  settingIni.SaveFile(SettingFile());
+  floatSettings.Store(settingIni);
+  settingIni.SaveFile(SettingFile());
+  SaveIniPairs<bool>(settingIni, cActiveMalAddons, activeMalAddons, true);
+  SaveIniPairs<bool>(settingIni, cActiveFemAddons, activeFemAddons);
+  for (auto &skeleton : validSkeletons) settingIni.SetBoolValue(cValidSkeletons, skeleton.c_str(), true);
+  SaveIniPairs<SEFormLoc>(settingIni, cRacialAddon, racialAddons);
+  SaveIniPairs<float>(settingIni, cRacialSize, racialSizes);
+  SaveIniPairs<SEFormLoc>(settingIni, cNPCAddonSection, npcAddons);
+  SaveIniPairs<int>(settingIni, cNPCSizeSection, npcSizeCats);
+  SaveIniPairs<SEFormLoc>(settingIni, cActorAddonSection, actorAddons);
+  SaveIniPairs<int>(settingIni, cActorSizeSection, actorSizeCats);
+  SaveIniPairs<int>(settingIni, cArmorStatusSection, runTimeArmorStatus);
+  auto playerIdx = RE::BGSSaveLoadManager::GetSingleton()->currentCharacterID & 0xFFFFFFFF;
+  auto section = fmt::format("{}{:08X}", cPlayerSection, playerIdx);
+  for (auto &pcInfo : playerInfos) {
+    auto key = pcInfo.IdStr();
+    auto value = pcInfo.InfoStr();
+    settingIni.SetValue(section.c_str(), key.c_str(), value.c_str());
+    settingIni.SaveFile(SettingFile());
+  }
+  for (auto &pair : slot52Mods) {
+    if (!pair.first.empty()) settingIni.SetBoolValue(cRevealingModSection, ut->NameToStr(pair.first).c_str(), pair.second);
+  }
+  settingIni.SaveFile(SettingFile());
+}
+
+spdlog::level::level_enum Inis::GetLogLvl() const {
+  CSimpleIniA ini;
+  ini.SetUnicode();
+  ini.LoadFile(SettingFile());
+  auto lvl = ini.GetLongValue(cGeneral, cLogLvl, static_cast<int>(spdlog::level::info));
+  return lvl > 0 && lvl < static_cast<int>(spdlog::level::n_levels) ? static_cast<spdlog::level::level_enum>(lvl) : spdlog::level::info;
+}
+
+void Inis::SetLogLvl(const int newLevel) {
+  CSimpleIniA ini;
+  ini.SetUnicode();
+  ini.LoadFile(SettingFile());
+  if (newLevel < 1 || newLevel >= static_cast<int>(spdlog::level::n_levels)) return;
+  auto logLevel = static_cast<spdlog::level::level_enum>(newLevel);
+  if (logLevel == spdlog::level::info) {
+    ini.Delete(cGeneral, cLogLvl, true);
+  } else {
+    ini.SetLongValue(cGeneral, cLogLvl, logLevel);
+  }
+  ini.SaveFile(SettingFile());
+}
+
+const char *Inis::SettingFile(const int version) const { return fmt::format(cSettings, version < 0 ? "" : std::to_string(version)).c_str(); }
+
+void Inis::TransferOldIni() {
+  auto oldV = iniVersion > 5 ? iniVersion - 1 : -1;
+  while (!std::filesystem::exists(SettingFile(oldV))) {
+    oldV--;
+    if (oldV < 0) return;
+  }
+  std::ifstream oldFile(SettingFile(oldV), std::ios::binary);
+  std::ofstream newFile(SettingFile(), std::ios::binary);
+
+  if (!oldFile.is_open() || !newFile.is_open()) {
+    SKSE::log::critical("\tFound an old ini file but failed transfering its content");
+    return;
+  }
+  newFile << oldFile.rdbuf();
+  oldFile.close();
+  newFile.close();
+  CSimpleIniA ini;
+  CSimpleIniA::TNamesDepend sections;
+  CSimpleIniA::TNamesDepend keys;
+  ini.SetUnicode();
+  ini.LoadFile(SettingFile());
+  int lIniVersion = ini.GetLongValue(versionKey, versionSection, 1);
+  SKSE::log::info("\tFound old ini file [{}:ini-ver:{}]. Transferring the settings to [{}]. Some settings might have changed!", SettingFile(oldV), lIniVersion, SettingFile());
+  if (lIniVersion < 2) {
+    ini.GetAllSections(sections);
+    for (const auto &section : sections) ini.Delete(section.pItem, nullptr);
+  }
+  if (lIniVersion < 3) {
+    ini.Delete("AutoReveal", nullptr);
+    if (ini.SectionExists(cNPCAddonSection)) ini.Delete(cNPCAddonSection, nullptr);
+  }
+  if (lIniVersion < 4) {
+    if (std::filesystem::exists(R"(.\Data\SKSE\Plugins\Defaults_TNG.ini)")) SKSE::log::warn("The [Defaults_TNG.ini] file is not used anymore by TNG, feel free to delete it.");
+  }
+  if (lIniVersion < 5) {
+    ini.Delete(cGeneral, "CheckNPCsAfterLoad", true);
+    ini.GetAllSections(sections);
+    for (const auto &section : sections) {
+      auto sectionName = std::string(section.pItem);
+      if (sectionName.contains("RaceSize")) {
+        ini.GetAllKeys(section.pItem, keys);
+        for (auto &key : keys) {
+          auto mult = ini.GetDoubleValue(section.pItem, key.pItem);
+          ini.SetDoubleValue(cRacialSize, key.pItem, mult);
+        }
+        ini.Delete(section.pItem, nullptr, true);
+      }
+    }
+    if (ini.KeyExists("Controls", "DAK_Integration")) {
+      boolSettings.Set(Common::bsDAK, ini.GetLongValue("Controls", "DAK_Integration") > 1);
+      ini.Delete("Controls", "DAK_Integration", true);
+    }
+    ini.GetAllKeys("ExcludedNPCs", keys);
+    for (const auto &entry : keys) {
+      auto isExcluded = ini.GetBoolValue("ExcludedNPCs", entry.pItem);
+      const auto npcLoc = ut->StrToLoc(std::string(entry.pItem));
+      if (isExcluded && !npcLoc.second.empty()) {
+        ini.SetValue(cNPCAddonSection, entry.pItem, Common::nulStr.c_str());
+      }
+      ini.Delete("ExcludedNPCs", entry.pItem, true);
+    }
+    auto gwChance = static_cast<float>(ini.GetDoubleValue("GentleWomen", "Chance", 20.0));
+    floatSettings.Set(Common::fsFemRndChance, gwChance);
+    ini.GetAllKeys("RevealingRecord", keys);
+    for (const auto &entry : keys) {
+      int revMod = ini.GetBoolValue("RevealingRecord", entry.pItem, false) ? 3 : 0;
+      ini.SetLongValue(cArmorStatusSection, entry.pItem, revMod);
+    }
+    ini.Delete("RevealingRecord", nullptr, true);
+    ini.GetAllKeys("MaleRevealingRecord", keys);
+    for (const auto &entry : keys) ini.SetLongValue(cArmorStatusSection, entry.pItem, 1);
+    ini.Delete("MaleRevealingRecord", nullptr, true);
+    ini.GetAllKeys("FemaleRevealingRecord", keys);
+    for (const auto &entry : keys) ini.SetLongValue(cArmorStatusSection, entry.pItem, 2);
+    ini.Delete("FemaleRevealingRecord", nullptr, true);
+  }
+  ini.SetLongValue(versionKey, versionSection, iniVersion);
+  ini.SaveFile(SettingFile());
+  SKSE::log::info("\tThe settings were transferred.");
+}
+
+void Inis::SetAddonStatus(const bool isFemale, const RE::TESObjectARMO *addon, const bool status) {
+  auto addonLoc = ut->FormToLoc(addon);
+  if (addonLoc.second.empty()) {
+    SKSE::log::critical("Failed to save the status of the addon [0x{:x}]!", addon->GetFormID());
+    return;
+  }
+  status == isFemale ? activeFemAddons[addonLoc] = status : activeMalAddons[addonLoc] = status;
+}
+
+void Inis::SetValidSkeleton(const std::string &skeletonModel) { validSkeletons.emplace(skeletonModel); }
+
+void Inis::SetRgAddon(const RE::TESRace *rgRace, const RE::TESObjectARMO *addon, const int choice) {
+  auto raceLoc = ut->FormToLoc(rgRace);
+  if (raceLoc.second.empty()) {
+    if (rgRace) {
+      SKSE::log::critical("Failed to save the selected addon for race [0x{:x}]!", rgRace->GetFormID());
+    } else {
+      SKSE::log::critical("Failed to save the selected addon for a race!");
+    }
+    return;
+  }
+  switch (choice) {
+    case Common::def:
+      racialAddons[raceLoc] = GetDefault<SEFormLoc>();
+      break;
+    case Common::nul:
+      racialAddons[raceLoc] = {0, ""};
+      break;
+    default: {
+      auto addonLoc = ut->FormToLoc(addon);
+      if (addonLoc.second.empty()) {
+        if (addon) {
+          SKSE::log::critical("Failed to save the addon [0x{:x}] for race [0x{:x}]!", addon->GetFormID(), rgRace->GetFormID());
+        } else {
+          SKSE::log::critical("Failed to save an addon for a for race [0x{:x}]!", rgRace->GetFormID());
+        }
+        return;
+      }
+      racialAddons[raceLoc] = addonLoc;
+    } break;
+  }
+}
+
+void Inis::SetRgMult(const RE::TESRace *rgRace, const float mult) {
+  auto raceLoc = ut->FormToLoc(rgRace);
+  if (raceLoc.second.empty()) {
+    if (rgRace) {
+      SKSE::log::critical("Failed to save the size multiplier for race [0x{:x}]!", rgRace->GetFormID());
+    } else {
+      SKSE::log::critical("Failed to save the size multiplier a race!");
+    }
+    return;
+  }
+  if (mult < 1.0001f && mult > 0.9999f) {
+    racialSizes[raceLoc] = GetDefault<float>();
+  } else {
+    racialSizes[raceLoc] = mult;
+  }
+}
+
+SEFormLoc Inis::GetActorAddon(const RE::Actor *actor) const {
+  if (!actor || actor->IsPlayerRef()) return {0, ""};
+  auto actorLoc = ut->FormToLoc(actor);
+  if (!actorLoc.second.empty() && actorAddons.find(actorLoc) != actorAddons.end()) return actorAddons.at(actorLoc);
+  return {0, ""};
+}
+
+bool Inis::SetNPCAddon(const RE::TESNPC *npc, const RE::TESObjectARMO *addon, const int choice) {
+  auto npcLoc = ut->FormToLoc(npc);
+  if (npcLoc.second.empty()) return false;
+  auto addonLoc = ut->FormToLoc(addon, choice);
+  if (addonLoc.second.empty()) {
+    if (addon) {
+      SKSE::log::critical("Failed to save the addon [{}] for npc [0x{:x}~{}]!", addon->GetFormID(), npcLoc.first, npcLoc.second);
+    } else {
+      SKSE::log::critical("Failed to save an addon for npc [0x{:x}~{}]!", npcLoc.first, npcLoc.second);
+    }
+    return false;
+  }
+  npcAddons[npcLoc] = addonLoc;
+  return true;
+}
+
+void Inis::SetActorAddon(const RE::Actor *actor, const RE::TESObjectARMO *addon, const int choice) {
+  auto actorLoc = ut->FormToLoc(actor);
+  auto addonLoc = ut->FormToLoc(addon, choice);
+  if (actorLoc.second.empty()) {
+    SKSE::log::critical("Failed to save the selected addon for actor [0x{:x}]!", actor->GetFormID());
+    return;
+  }
+  if (addonLoc.second.empty()) {
+    if (addon) {
+      SKSE::log::debug("Failed to save the addon [0x{:x}] for actor [0x{:x}~{}]!", addon->GetFormID(), actorLoc.first, actorLoc.second);
+    } else {
+      SKSE::log::debug("Failed to save an addon for actor [0x{:x}~{}]!", actorLoc.first, actorLoc.second);
+    }
+    return;
+  }
+  actorAddons[actorLoc] = addonLoc;
+}
+
+int Inis::GetActorSize(const RE::Actor *actor) const {
+  if (!actor || actor->IsPlayerRef()) return Common::nul;
+  auto actorLoc = ut->FormToLoc(actor);
+  if (!actorLoc.second.empty() && actorSizeCats.find(actorLoc) != actorSizeCats.end()) return actorSizeCats.at(actorLoc);
+  return Common::nul;
+}
+
+bool Inis::SetNPCSize(const RE::TESNPC *npc, int genSize) {
+  if (genSize == Common::nul) return true;
+  auto npcLoc = ut->FormToLoc(npc);
+  if (npcLoc.second.empty()) return false;
+  npcSizeCats[npcLoc] = genSize == Common::def ? GetDefault<int>() : genSize;
+  return true;
+}
+
+void Inis::SetActorSize(const RE::Actor *actor, const int genSize) {
+  if (genSize == Common::nul) return;
+  auto actorLoc = ut->FormToLoc(actor);
+  if (actorLoc.second.empty()) {
+    if (actor) {
+      SKSE::log::debug("Failed to save the size for actor [0x{:x}].", actor->GetFormID());
+    } else {
+      SKSE::log::debug("Failed to save the size for an actor.");
+    }
+    return;
+  }
+  actorSizeCats[actorLoc] = genSize == Common::def ? GetDefault<int>() : genSize;
+}
+
+void Inis::SetArmorStatus(const RE::TESObjectARMO *armor, const Common::eKeyword revMode) {
+  auto armoLoc = ut->FormToLoc(armor);
+  if (armoLoc.second.empty()) {
+    if (armor) {
+      SKSE::log::debug("Failed to save the revealing status for armor [0x{:x}].", armor->GetFormID());
+    } else {
+      SKSE::log::debug("Failed to save the revealing status for an armor.");
+    }
+    return;
+  }
+  auto revIdx = std::ranges::find(statusKeys, revMode);
+  if (revIdx == statusKeys.end()) {
+    runTimeArmorStatus[armoLoc] = Common::nan;
+  } else {
+    runTimeArmorStatus[armoLoc] = static_cast<int>(std::distance(statusKeys.begin(), revIdx));
+  }
+}
+
+void Inis::LoadPlayerInfos(const std::string &saveName) {
+  playerInfos.clear();
+  std::string playerStr = "";
+  if (const auto save = ut->Split(saveName, "_"); save.size() == 9) playerStr = save[1];
+  CSimpleIniA settingIni;
+  settingIni.SetUnicode();
+  settingIni.LoadFile(SettingFile());
+  std::string section = fmt::format("{}{}", cPlayerSection, playerStr);
+  if (settingIni.SectionExists(section.c_str())) {
+    CSimpleIniA::TNamesDepend keys;
+    settingIni.GetAllKeys(section.c_str(), keys);
+    for (auto &key : keys) {
+      std::string idStr{key.pItem};
+      std::string infoStr = settingIni.GetValue(section.c_str(), key.pItem);
+      Common::PlayerInfo pcInfo;
+      if (pcInfo.FromStr(idStr, infoStr)) {
+        playerInfos.push_back(pcInfo);
+        SKSE::log::debug("\tLoaded player info for active save: name[{}], race [{:X}], gender [{}], addon [{:x}], sizeCat [{}]", pcInfo.name, pcInfo.race.first,
+                         pcInfo.isFemale ? "female" : "male", pcInfo.addon.first, pcInfo.sizeCat);
+      };
+    }
+  }
+}
+
+bool Inis::Slot52ModBehavior(const std::string &modName) const { return slot52Mods.find(modName) != slot52Mods.end() && slot52Mods.at(modName); }
+
+bool Inis::Slot52ModBehavior(const std::string &modName, const int behavior) {
+  if (behavior >= 0) slot52Mods[modName] = behavior == 1;
+  return slot52Mods.find(modName) != slot52Mods.end() && slot52Mods[modName];
+}
+
+const std::vector<std::string> Inis::Slot52Mods() const {
+  std::vector<std::string> mods;
+  for (auto &pair : slot52Mods) {
+    if (!pair.first.empty()) mods.push_back(pair.first);
+  }
+  return mods;
+}
+
+Common::PlayerInfo *Inis::GetPlayerInfo(const RE::Actor *actor, const bool allowAdd) {
+  auto npc = actor ? actor->GetActorBase() : nullptr;
+  if (!npc || !npc->race) return {};
+  std::tuple<const std::string, const SEFormLoc, const bool> pcId{npc->GetName(), ut->FormToLoc(npc->race), npc->IsFemale()};
+  if ((std::get<0>(pcId)).empty() || (std::get<0>(pcId)).empty()) {
+    SKSE::log::critical("Failed to update the player information for current character.");
+    return nullptr;
+  }
+  auto infoIdx = std::find_if(playerInfos.begin(), playerInfos.end(), [&pcId](const auto &pcInfo) { return pcInfo.Id() == pcId; });
+  if (infoIdx != playerInfos.end()) {
+    return &(*infoIdx);
+  } else if (allowAdd) {
+    playerInfos.push_back({});
+    auto &pcInfo = playerInfos.back();
+    pcInfo.name = std::get<0>(pcId);
+    pcInfo.race = std::get<1>(pcId);
+    pcInfo.isFemale = std::get<2>(pcId);
+    return &pcInfo;
+  }
+  return nullptr;
+}
+
+void Inis::SetPlayerInfo(const RE::Actor *actor, const RE::TESObjectARMO *addon, const int addonChoice, const int sizeChoice) {
+  auto pcInfo = GetPlayerInfo(actor, true);
+  if (!pcInfo) return;
+  if (addonChoice == Common::nan && sizeChoice == Common::nan) return;
+  SEFormLoc addonLoc{0, Common::defStr};
+  switch (addonChoice) {
+    case Common::nan:
+      addonLoc = pcInfo->addon;
+      break;
+    case Common::nul:
+      addonLoc = {0, Common::nulStr};
+      break;
+    case Common::def:
+      break;
+    default:
+      addonLoc = ut->FormToLoc(addon);
+      break;
+  }
+  if (addonLoc.second.empty()) {
+    return;
+  }
+  int sizeCat = sizeChoice == Common::nan ? pcInfo->sizeCat : sizeChoice;
+  if (addonLoc != pcInfo->addon || sizeCat != pcInfo->sizeCat) {
+    pcInfo->addon = addonLoc;
+    pcInfo->sizeCat = sizeCat;
+  }
+}
 
 void Inis::LoadTngInis() {
   SKSE::log::info("Loading ini files...");
@@ -22,602 +446,99 @@ void Inis::LoadSingleIni(const char *path, const std::string_view fileName) {
   ini.SetMultiKey();
   ini.LoadFile(path);
   if (ini.SectionExists(cExcludeSection)) {
-    if (ini.GetAllValues(cExcludeSection, cExcludeNPC, values)) {
-      SKSE::log::info("\t- Found [{}] excluded NPCs in [{}].", values.size(), fileName);
-      LoadModRecodPairs(values, excludedNPCs);
-    }
-    if (ini.GetAllValues(cExcludeSection, cExcModRaces, values)) {
-      SKSE::log::info("\t- Found [{}] excluded mods for their races in [{}].", values.size(), fileName);
-      for (const auto &entry : values) {
-        const std::string modName(entry.pItem);
-        excludedRaceMods.insert(modName);
-      }
-    }
-    if (ini.GetAllValues(cExcludeSection, cExcRace, values)) {
-      SKSE::log::info("\t- Found [{}] excluded races in [{}].", values.size(), fileName);
-      LoadModRecodPairs(values, excludedRaces);
-    }
+    if (ini.GetAllValues(cExcludeSection, cExcModRaces, values)) LoadModNames(values, excludedRaceMods, cExcModRaces, fileName);
+    if (ini.GetAllValues(cExcludeSection, cExcRace, values)) LoadModRecordPairs(values, excludedRaces, cExcRace, fileName);
+    if (ini.GetAllValues(cExcludeSection, cExcludeNPC, values)) LoadModRecordPairs(values, excludedNPCs, cExcludeNPC, fileName);
   }
   if (ini.SectionExists(cSkinSection)) {
-    if (ini.GetAllValues(cSkinSection, cSkinMod, values)) {
-      SKSE::log::info("\t- Found [{}] skin mods in [{}].", values.size(), fileName);
-      for (const auto &entry : values) {
-        const std::string modName(entry.pItem);
-        if (Tng::SEDH()->LookupModByName(modName)) {
-          SKSE::log::info("\t\tTheNewGentleman keeps an eye for [{}] as a skin mod.", modName);
-          skinMods.insert(modName);
-        }
-      }
-    }
-    if (ini.GetAllValues(cSkinSection, cSkinRecord, values)) {
-      SKSE::log::info("\t- Found [{}] skin records in [{}].", values.size(), fileName);
-      LoadModRecodPairs(values, skinRecords);
-    }
+    if (ini.GetAllValues(cSkinSection, cSkinMod, values)) LoadModNames(values, skinMods, cSkinMod, fileName);
+    if (ini.GetAllValues(cSkinSection, cSkinRecord, values)) LoadModRecordPairs(values, skinRecords, cSkinRecord, fileName);
   }
   if (ini.SectionExists(cArmorSection)) {
-    if (ini.GetAllValues(cArmorSection, cRevealingMod, values)) {
-      SKSE::log::info("\t- Found [{}] revealing mods in [{}].", values.size(), fileName);
-      for (const auto &entry : values) {
-        const std::string modName(entry.pItem);
-        if (Tng::SEDH()->LookupModByName(modName)) {
-          revealingMods.insert(modName);
-          SKSE::log::info("\t\tTheNewGentleman keeps an eye for [{}] as a revealing armor mod.", modName);
-        }
-      }
-    }
-    if (ini.GetAllValues(cArmorSection, cFemRevMod, values)) {
-      SKSE::log::info("\t- Found [{}] female revealing mods in [{}].", values.size(), fileName);
-      for (const auto &entry : values) {
-        const std::string modName(entry.pItem);
-        if (Tng::SEDH()->LookupModByName(modName)) {
-          femRevMods.insert(modName);
-          SKSE::log::info("\t\tTheNewGentleman keeps an eye for [{}] as a female revealing armor mod.", modName);
-        }
-      }
-    }
-    if (ini.GetAllValues(cArmorSection, cMalRevMod, values)) {
-      SKSE::log::info("\t- Found [{}] male revealing mods in [{}].", values.size(), fileName);
-      for (const auto &entry : values) {
-        const std::string modName(entry.pItem);
-        if (Tng::SEDH()->LookupModByName(modName)) {
-          malRevMods.insert(modName);
-          SKSE::log::info("\t\tTheNewGentleman keeps an eye for [{}] as a male revealing armor mod.", modName);
-        }
-      }
-    }
-    if (ini.GetAllValues(cArmorSection, cCoveringRecord, values)) {
-      SKSE::log::info("\t- Found [{}] covering records in ini file [{}].", values.size(), fileName);
-      LoadModRecodPairs(values, coveringRecords);
-    }
-    if (ini.GetAllValues(cArmorSection, cRevealingRecord, values)) {
-      SKSE::log::info("\t- Found [{}] revealing records in ini file [{}].", values.size(), fileName);
-      LoadModRecodPairs(values, revealingRecords);
-    }
-    if (ini.GetAllValues(cArmorSection, cFemRevRecord, values)) {
-      SKSE::log::info("\t- Found [{}] revealing records for women in ini file [{}].", values.size(), fileName);
-      LoadModRecodPairs(values, femRevRecords);
-    }
-    if (ini.GetAllValues(cArmorSection, cMalRevRecord, values)) {
-      SKSE::log::info("\t- Found [{}] revealing records for men in ini file [{}].", values.size(), fileName);
-      LoadModRecodPairs(values, malRevRecords);
-    }
+    if (ini.GetAllValues(cArmorSection, cRevealingMod, values)) LoadModNames(values, revealingMods, cRevealingMod, fileName);
+    if (ini.GetAllValues(cArmorSection, cFemRevMod, values)) LoadModNames(values, femRevMods, cFemRevMod, fileName);
+    if (ini.GetAllValues(cArmorSection, cMalRevMod, values)) LoadModNames(values, malRevMods, cMalRevMod, fileName);
+    if (ini.GetAllValues(cArmorSection, cCoveringRecord, values)) LoadModRecordPairs(values, coveringRecords, cCoveringRecord, fileName);
+    if (ini.GetAllValues(cArmorSection, cRevealingRecord, values)) LoadModRecordPairs(values, revealingRecords, cRevealingRecord, fileName);
+    if (ini.GetAllValues(cArmorSection, cFemRevRecord, values)) LoadModRecordPairs(values, femRevRecords, cFemRevRecord, fileName);
+    if (ini.GetAllValues(cArmorSection, cMalRevRecord, values)) LoadModRecordPairs(values, malRevRecords, cMalRevRecord, fileName);
   }
 }
 
-void Inis::LoadMainIni() {
-  if (!std::filesystem::exists(cSettings)) {
-    std::ofstream newSetting(cSettings);
-    newSetting << ";TNG Settings File" << std::endl;
-    newSetting.close();
-  }
-  SKSE::log::info("Loading TNG settings...");
-  UpdateIniVersion();
-  CSimpleIniA ini;
-  CSimpleIniA::TNamesDepend values;
-  ini.SetUnicode();
-  ini.LoadFile(cSettings);
-
-  for (size_t i = 0; i < Base::GetAddonCount(false, false); i++) {
-    auto addon = Base::AddonByIdx(false, i, false);
-    Base::SetAddonStatus(false, i, ini.GetBoolValue(cActiveMalAddons, FormToStr(addon).c_str(), true));
-  }
-  for (size_t i = 0; i < Base::GetAddonCount(true, false); i++) {
-    auto addon = Base::AddonByIdx(true, i, false);
-    Base::SetAddonStatus(true, i, ini.GetBoolValue(cActiveFemAddons, FormToStr(addon).c_str(), false));
-  }
-  SKSE::log::debug("\tRestored all addon status to previous selections");
-  ini.GetAllKeys(cRacialAddon, values);
-  for (const auto &entry : values) {
-    std::string addonStr = ini.GetValue(cRacialAddon, entry.pItem);
-    auto raceRecord = StrToLoc(std::string((entry.pItem)));
-    auto addonRecord = StrToLoc(addonStr);
-    if (!raceRecord.second.empty() && !addonRecord.second.empty()) racialAddons.insert({raceRecord, addonRecord});
-  }
-  ini.GetAllKeys(cRacialSize, values);
-  for (const auto &entry : values) {
-    auto mult = ini.GetDoubleValue(cRacialSize, entry.pItem);
-    auto raceRecord = StrToLoc(std::string((entry.pItem)));
-    if (!raceRecord.second.empty()) {
-      racialMults.insert({raceRecord, static_cast<float>(mult)});
-    }
-  }
-  ini.GetAllKeys(cNPCAddonSection, values);
-  for (const auto &entry : values) {
-    auto addonStr = ini.GetValue(cNPCAddonSection, entry.pItem);
-    auto addonRecord = StrToLoc(addonStr);
-    auto npcRecord = StrToLoc(entry.pItem);
-    if (!npcRecord.second.empty() && !addonRecord.second.empty()) npcAddons.insert({npcRecord, addonRecord});
-  }
-  ini.GetAllKeys(cNPCSizeSection, values);
-  for (const auto &entry : values) {
-    auto sizeCat = ini.GetLongValue(cNPCSizeSection, entry.pItem);
-    auto npcRecord = StrToLoc(entry.pItem);
-    if (!npcRecord.second.empty()) npcSizeCats.insert({npcRecord, sizeCat});
-  }
-  ini.GetAllKeys(cExcludeNPCSection, values);
-  for (const auto &entry : values) {
-    auto isExcluded = ini.GetBoolValue(cExcludeNPCSection, entry.pItem);
-    const std::string npcRecord(entry.pItem);
-    if (isExcluded) {
-      Base::ExcludeNPC(npcRecord);
-      SKSE::log::debug("\tThe npc [{}] was excluded, since it was excluded by user previously.", npcRecord);
-    }
-  }
-  ini.GetAllKeys(cRevealingSection, values);
-  for (const auto &entry : values) {
-    auto isRevealing = ini.GetBoolValue(cRevealingSection, entry.pItem);
-    const std::string armorRecord(entry.pItem);
-    UpdateRevealing(armorRecord, isRevealing ? Tng::kyRevealing : Tng::kyCovering);
-    SKSE::log::debug("\tThe amor [{}] was marked revealing, due to user choice in the past.", armorRecord);
-  }
-  ini.GetAllKeys(cFemRevRecordSection, values);
-  for (const auto &entry : values) {
-    auto isRevealing = ini.GetBoolValue(cFemRevRecordSection, entry.pItem);
-    const std::string armorRecord(entry.pItem);
-    UpdateRevealing(armorRecord, isRevealing ? Tng::kyRevealingF : Tng::cNA);
-    SKSE::log::debug("\tThe amor [{}] was marked revealing for women, due to user choice in the past.", armorRecord);
-  }
-  ini.GetAllKeys(cMalRevRecordSection, values);
-  for (const auto &entry : values) {
-    auto isRevealing = ini.GetBoolValue(cMalRevRecordSection, entry.pItem);
-    const std::string armorRecord(entry.pItem);
-    UpdateRevealing(armorRecord, isRevealing ? Tng::kyRevealingM : Tng::cNA);
-    SKSE::log::debug("\tThe amor [{}] was marked revealing for men, due to user choice in the past.", armorRecord);
-  }
-
-  for (size_t i = 0; i < Tng::BoolSettingCount; i++) {
-    Base::SetBoolSetting(i, ini.GetBoolValue(cGeneral, cBoolSettings[i], cDefBoolSettings[i]));
-    SKSE::log::debug("\tThe boolean setting [{}] was restored to [{}({})].", cBoolSettings[i], Base::GetBoolSetting(i), cDefBoolSettings[i] == Base::GetBoolSetting(i) ? "default" : "user");
-  }
-  if (Tng::SEDH()->LookupModByName("Racial Skin Variance - SPID.esp")) {
-    Base::SetBoolSetting(Tng::bsCheckPlayerAddon, true);
-    Base::SetBoolSetting(Tng::bsCheckNPCsAddons, true);
-    Base::SetBoolSetting(Tng::bsForceRechecks, true);
-    SKSE::log::info("\tTNG detected Racial Skin Variance and would force the player and NPCs to be reloaded");
-  }
-  if (!Tng::SEDH()->LookupModByName("UIExtensions.esp")) {
-    Base::SetBoolSetting(Tng::bsUIExtensions, false);
-    SKSE::log::warn("\tTNG could not detected UIExtensions. You may want to check if it is installed.");
-  }
-
-  for (size_t i = 0; i < Tng::cSizeCategories; i++) Base::SetGlobalSize(i, static_cast<float>(ini.GetDoubleValue(cGlobalSize, cSizeNames[i], cDefSizes[i])));
-  SKSE::log::debug("\tGlobal size settings loaded.");
-  if (ini.KeyExists(cGentleWomen, cGentleWomenChance)) {
-    if (Tng::WRndGlb()) {
-      Tng::WRndGlb()->value = static_cast<float>(ini.GetDoubleValue(cGentleWomen, cGentleWomenChance));
-    } else {
-      SKSE::log::error("The [{}] record for [{} {}] cannot be loaded!", Tng::cName, cGentleWomen, cGentleWomenChance);
-    }
-  }
-  SKSE::log::debug("\tGentlewomen chance value loaded.");
-  LoadHoteKeys();
-  SKSE::log::debug("\tInput settings loaded.");
-}
-
-void Inis::LoadRgInfo() {
-  for (auto &rgInfo : racialAddons) {
-    auto rgIdx = Base::GetRaceRgIdx(Tng::SEDH()->LookupForm<RE::TESRace>(rgInfo.first.first, rgInfo.first.second));
-    auto addonIdx = Base::AddonIdxByLoc(false, rgInfo.second);
-    if ((rgIdx < 0) || (addonIdx < 0)) continue;
-    if (Base::SetRgAddon(rgIdx, addonIdx, false))
-      SKSE::log::debug("\tRestored the addon of race [xx{:x}] from file [{}] to addon [xx{:x}] from file [{}]", rgInfo.first.first, rgInfo.first.second, rgInfo.second.first, rgInfo.second.second);
-  }
-  for (auto &rgInfo : racialMults) {
-    auto rgIdx = Base::GetRaceRgIdx(Tng::SEDH()->LookupForm<RE::TESRace>(rgInfo.first.first, rgInfo.first.second));
-    if (rgIdx < 0) continue;
-    if (Base::SetRgMult(rgIdx, rgInfo.second, false)) SKSE::log::debug("\tRestored the size multiplier of race [xx{:x}] from file [{}] to [{}]", rgInfo.first.first, rgInfo.first.second, rgInfo.second);
-  }
-  racialAddons.clear();
-  racialMults.clear();
-}
-
-void Inis::LoadNpcInfo() {
-  for (auto &npcInfo : npcAddons) {
-    auto npc = Tng::SEDH()->LookupForm<RE::TESNPC>(npcInfo.first.first, npcInfo.first.second);
-    if (!npc) continue;
-    auto addonIdx = Base::AddonIdxByLoc(npc->IsFemale(), npcInfo.second);
-    if (addonIdx < 0) continue;
-    if (Base::SetNPCAddon(npc, addonIdx, true) >= 0)
-      SKSE::log::debug("\tRestored the addon of npc [xx{:x}] from file [{}] to addon [xx{:x}] from file [{}]", npcInfo.first.first, npcInfo.first.second, npcInfo.second.first, npcInfo.second.second);
-  }
-  for (auto &npcInfo : npcSizeCats) {
-    auto npc = Tng::SEDH()->LookupForm<RE::TESNPC>(npcInfo.first.first, npcInfo.first.second);
-    auto sizeCat = npcInfo.second;
-    if (!npc || sizeCat < 0 || sizeCat >= Tng::cSizeCategories) continue;
-    npc->RemoveKeywords(Tng::SizeKeys());
-    npc->AddKeyword(Tng::SizeKey(sizeCat));
-    SKSE::log::debug("\tRestored the size category of npc [xx{:x}] from file [{}] to [{}]", npcInfo.first.first, npcInfo.first.second, npcInfo.second);
-  }
-  npcAddons.clear();
-  npcSizeCats.clear();
-}
-
-void Inis::CleanIniLists() {
-  excludedRaceMods.clear();
-  excludedRaces.clear();
-
-  skinMods.clear();
-  skinRecords.clear();
-
-  coveringRecords.clear();
-  revealingMods.clear();
-  femRevMods.clear();
-  malRevMods.clear();
-  revealingRecords.clear();
-  femRevRecords.clear();
-  malRevRecords.clear();
-
-  runtimeCoveringRecords.clear();
-  runTimeRevealingRecords.clear();
-  runTimeFemRevRecords.clear();
-  runTimeMalRevRecords.clear();
-}
-
-spdlog::level::level_enum Inis::GetLogLvl() {
-  CSimpleIniA ini;
-  ini.SetUnicode();
-  ini.LoadFile(cSettings);
-  auto res = ini.GetLongValue(cGeneral, cLogLvl, static_cast<int>(spdlog::level::info));
-  return res > 0 && res < static_cast<int>(spdlog::level::n_levels) ? static_cast<spdlog::level::level_enum>(res) : spdlog::level::info;
-}
-
-void Inis::SetLogLvl(int logLevel) {
-  if (logLevel < 1 || logLevel >= static_cast<int>(spdlog::level::n_levels)) return;
-  CSimpleIniA ini;
-  ini.SetUnicode();
-  ini.LoadFile(cSettings);
-  ini.SetLongValue(cGeneral, cLogLvl, logLevel);
-  ini.SaveFile(cSettings);
-}
-
-void Inis::SetAddonStatus(const bool isFemale, const int addnIdx, const bool status) {
-  auto addonStr = FormToStr(Base::AddonByIdx(isFemale, addnIdx, false));
-  if (addonStr.empty()) return;
-  CSimpleIniA ini;
-  ini.SetUnicode();
-  ini.LoadFile(cSettings);
-  status == isFemale ? ini.SetBoolValue(isFemale ? cActiveFemAddons : cActiveMalAddons, addonStr.c_str(), status) : ini.Delete(isFemale ? cActiveFemAddons : cActiveMalAddons, addonStr.c_str(), true);
-  ini.SaveFile(cSettings);
-}
-
-void Inis::SetRgMult(const size_t rg, const float mult) {
-  CSimpleIniA ini;
-  ini.SetUnicode();
-  ini.LoadFile(cSettings);
-  auto race = Base::GetRgRace0(rg, true);
-  auto raceRecord = FormToStr(race);
-  if (raceRecord.empty()) {
-    SKSE::log::critical("Failed to save the size multiplier for race [0x{:x}: {}]!", race->GetFormID(), race->GetFormEditorID());
-    return;
-  }
-  if (mult < 1.0001f && mult > 0.9999f) {
-    ini.Delete(cRacialSize, raceRecord.c_str(), true);
-  } else {
-    ini.SetDoubleValue(cRacialSize, raceRecord.c_str(), static_cast<double>(mult));
-  }
-  ini.SaveFile(cSettings);
-}
-
-void Inis::SaveRgAddon(const size_t rg, const int choice) {
-  CSimpleIniA ini;
-  ini.SetUnicode();
-  ini.LoadFile(cSettings);
-  auto race = Base::GetRgRace0(rg, true);
-  auto raceRecord = FormToStr(race);
-  if (raceRecord == "") {
-    if (race) {
-      SKSE::log::critical("Failed to save the selected addon for race [0x{:x}: {}]!", race->GetFormID(), race->GetFormEditorID());
-    } else {
-      SKSE::log::critical("Failed to save the selected addon for a race!");
-    }
-    return;
-  }
-  switch (choice) {
-    case Tng::cDef:
-      ini.Delete(cRacialAddon, raceRecord.c_str(), true);
-      break;
-    case Tng::cNul:
-      ini.SetValue(cRacialAddon, raceRecord.c_str(), "None");
-      break;
-    default:
-      auto addon = Base::AddonByIdx(false, choice, false);
-      auto addonRecord = FormToStr(addon);
-      if (addonRecord == "") {
-        if (addon) {
-          SKSE::log::critical("Failed to save the addon [0x{:x}: {}] for a race !", addon->GetFormID(), addon->GetFormEditorID());
-        } else {
-          SKSE::log::critical("Failed to save an addon for a race !");
-        }
-        return;
-      }
-      ini.SetValue(cRacialAddon, raceRecord.c_str(), addonRecord.c_str());
-      break;
-  }
-  ini.SaveFile(cSettings);
-}
-
-void Inis::SaveNPCAddon(RE::TESNPC *npc, const int choice) {
-  auto npcRecord = FormToStr(npc);
-  if (npcRecord.empty()) {
-    return;
-  }
-  CSimpleIniA ini;
-  ini.SetUnicode();
-  ini.LoadFile(cSettings);
-  switch (choice) {
-    case Tng::cDef:
-      ini.Delete(cNPCAddonSection, npcRecord.c_str(), true);
-      break;
-    case Tng::cNul:
-      ini.Delete(cNPCAddonSection, npcRecord.c_str(), true);
-      ini.SetBoolValue(cExcludeNPCSection, npcRecord.c_str(), true);
-      break;
-    default:
-      auto addon = Base::AddonByIdx(npc->IsFemale(), choice, false);
-      auto addonRecord = FormToStr(addon);
-      ini.Delete(cExcludeNPCSection, npcRecord.c_str(), true);
-      ini.SetValue(cNPCAddonSection, npcRecord.c_str(), addonRecord.c_str());
-      break;
-  }
-  ini.SaveFile(cSettings);
-}
-
-void Inis::SaveNPCSize(RE::TESNPC *npc, int genSize) {
-  if (genSize == Tng::cNul) return;
-  auto npcRecord = FormToStr(npc);
-  if (npcRecord.empty()) return;
-  CSimpleIniA ini;
-  ini.SetUnicode();
-  ini.LoadFile(cSettings);
-  if (genSize == Tng::cDef) {
-    ini.Delete(cNPCSizeSection, npcRecord.c_str(), true);
-  } else {
-    ini.SetLongValue(cNPCSizeSection, npcRecord.c_str(), genSize);
-  }
-  ini.SaveFile(cSettings);
-}
-
-void Inis::SaveRevealingArmor(RE::TESObjectARMO *armor, int revMode) {
-  auto armoRecord = FormToStr(armor);
-  if (armoRecord.empty()) return;
-  CSimpleIniA ini;
-  ini.SetUnicode();
-  ini.LoadFile(cSettings);
-  ini.Delete(cRevealingSection, armoRecord.c_str(), true);
-  ini.Delete(cFemRevRecordSection, armoRecord.c_str(), true);
-  ini.Delete(cMalRevRecordSection, armoRecord.c_str(), true);
-  switch (revMode) {
-    case Tng::kyCovering:
-      ini.SetBoolValue(cRevealingSection, armoRecord.c_str(), false);
-      break;
-    case Tng::kyRevealing:
-      ini.SetBoolValue(cRevealingSection, armoRecord.c_str(), true);
-      break;
-    case Tng::kyRevealingF:
-      ini.SetBoolValue(cFemRevRecordSection, armoRecord.c_str(), true);
-      break;
-    case Tng::kyRevealingM:
-      ini.SetBoolValue(cMalRevRecordSection, armoRecord.c_str(), true);
-      break;
-    default:
-      ini.SetBoolValue(cRevealingSection, armoRecord.c_str(), true);
-      break;
-  }
-  ini.SaveFile(cSettings);
-}
-
-void Inis::LoadHoteKeys() {
-  CSimpleIniA ini;
-  ini.SetUnicode();
-  ini.LoadFile(cSettings);
-  if (ini.KeyExists(cControls, cCtrlNames[Tng::ctrlDAK])) {
-    if (Tng::UserCtrl(Tng::ctrlDAK)) {
-      Tng::UserCtrl(Tng::ctrlDAK)->value = static_cast<float>(ini.GetLongValue(cControls, cCtrlNames[Tng::ctrlDAK]));
-    } else {
-      SKSE::log::error("The [{}] record for [{}] cannot be loaded!", Tng::cName, cCtrlNames[Tng::ctrlDAK]);
-    }
-  }
-  for (size_t i = 0; i < Tng::UserCtrlsCount; i++) {
-    if (ini.KeyExists(cControls, cCtrlNames[i])) {
-      if (Tng::UserCtrl(i)) {
-        Tng::UserCtrl(i)->value = static_cast<float>(ini.GetLongValue(cControls, cCtrlNames[i]));
-      } else {
-        SKSE::log::error("The [{}] record for [{}] cannot be loaded!", Tng::cName, cCtrlNames[i]);
-      }
-    }
-  }
-}
-
-void Inis::SetBoolSetting(Tng::BoolSetting settingID, bool value) {
-  CSimpleIniA ini;
-  ini.SetUnicode();
-  ini.LoadFile(cSettings);
-  if (cDefBoolSettings[settingID] == value) {
-    ini.Delete(cGeneral, cBoolSettings[settingID], true);
-  } else {
-    ini.SetBoolValue(cGeneral, cBoolSettings[settingID], value);
-  }
-  Base::SetBoolSetting(settingID, value);
-  ini.SaveFile(cSettings);
-}
-
-void Inis::SaveGlobals() {
-  CSimpleIniA ini;
-  ini.SetUnicode();
-  ini.LoadFile(cSettings);
-  for (size_t i = 0; i < Tng::cSizeCategories; i++) ini.SetDoubleValue(cGlobalSize, cSizeNames[i], Base::GetGlobalSize(i));
-  ini.SetBoolValue(cControls, cCtrlNames[Tng::ctrlDAK], Tng::UserCtrl(Tng::ctrlDAK)->value > 1.0f);
-  for (size_t i = 0; i < Tng::UserCtrlsCount; i++) ini.SetLongValue(cControls, cCtrlNames[i], static_cast<int>(Tng::UserCtrl(i)->value));
-  ini.SetDoubleValue(cGentleWomen, cGentleWomenChance, Tng::WRndGlb()->value);
-  ini.SaveFile(cSettings);
-}
-
-std::vector<std::string> Inis::Slot52Mods() { return std::vector<std::string>(slot52Mods.begin(), slot52Mods.end()); }
-
-bool Inis::Slot52ModBehavior(const std::string modName, const int behavior) {
-  CSimpleIniA ini;
-  ini.SetUnicode();
-  ini.SetMultiKey();
-  ini.LoadFile(cSettings);
-  switch (behavior) {
-    case 1:
-      ini.SetBoolValue(cRevealingModSection, modName.c_str(), true);
-      ini.SaveFile(cSettings);
-      extraRevealingMods.insert(modName);
-      return true;
-    case 0:
-      ini.Delete(cRevealingModSection, modName.c_str(), true);
-      ini.SaveFile(cSettings);
-      extraRevealingMods.erase(modName);
-      return false;
-    default:
-      CSimpleIniA::TNamesDepend values;
-      ini.GetAllKeys(cRevealingModSection, values);
-      auto it = std::find_if(values.begin(), values.end(), [&](const auto &entry) { return std::string(entry.pItem) == modName; });
-      return it != values.end();
-  }
-}
-
-void Inis::UpdateIniVersion() {
-  CSimpleIniA ini;
-  CSimpleIniA::TNamesDepend sections;
-  ini.SetUnicode();
-  ini.LoadFile(cSettings);
-  int lIniVersion = ini.GetLongValue(cIniVersion, cVersion, 1);
-  switch (lIniVersion) {
-    case 1:
-      ini.GetAllSections(sections);
-      for (CSimpleIniA::TNamesDepend::const_iterator section = sections.begin(); section != sections.end(); section++) ini.Delete(section->pItem, NULL);
-      break;
-    case 2:
-      ini.Delete("AutoReveal", NULL);
-      if (ini.SectionExists(cNPCAddonSection)) ini.Delete(cNPCAddonSection, NULL);
-      break;
-    case 3:
-      if (std::filesystem::remove(R"(.\Data\SKSE\Plugins\Defaults_TNG.ini)")) SKSE::log::info("Removed the [Defaults_TNG.ini] file since it is not used anymore");
-    default:
-      break;
-  }
-  ini.SetLongValue(cIniVersion, cVersion, cCurrVersion);
-  ini.SaveFile(cSettings);
-}
-
-void Inis::LoadModRecodPairs(CSimpleIniA::TNamesDepend records, std::set<SEFormLoc> &fieldToFill) {
-  for (const auto &entry : records) {
-    const std::string modRecord(entry.pItem);
-    fieldToFill.insert(StrToLoc(modRecord));
-  }
-}
-
-void Inis::UpdateRevealing(const std::string armorRecod, const int revealingMode) {
-  auto armor = Tng::SEDH()->LookupForm<RE::TESObjectARMO>(StrToLoc(armorRecod).first, StrToLoc(armorRecod).second);
-  if (!armor) {
-    SKSE::log::info("Previously save armor from mod {} does not exist anymore!", StrToLoc(armorRecod).first);
-    return;
-  }
-  if (revealingMode < 0) return;
-  auto &list = [&]() -> std::set<SEFormLoc> & {
-    switch (revealingMode) {
-      case Tng::kyCovering:
-        return runtimeCoveringRecords;
-      case Tng::kyRevealing:
-        return runTimeRevealingRecords;
-      case Tng::kyRevealingF:
-        return runTimeFemRevRecords;
-      case Tng::kyRevealingM:
-        return runTimeMalRevRecords;
-      default:
-        return runtimeCoveringRecords;
-    }
-  }();
-  list.insert(StrToLoc(armorRecod));
-}
-
-bool Inis::IsRaceExcluded(const RE::TESRace *race) {
+bool Inis::IsRaceExcluded(const RE::TESRace *race) const {
   if (!race->GetFile(0)) return false;
   std::string modName{race->GetFile(0)->GetFilename()};
   if (excludedRaceMods.find(modName) != excludedRaceMods.end()) return true;
-  if (excludedRaces.find({race->GetLocalFormID(), modName}) != excludedRaces.end()) return true;
+  if (excludedRaces.find(ut->FormToLoc(race)) != excludedRaces.end()) return true;
   return false;
 }
 
-bool Inis::IsNPCExcluded(const RE::TESNPC *npc) {
-  if (!npc->GetFile(0)) return false;
-  if (excludedNPCs.find(FormToLoc(npc)) != excludedNPCs.end()) return true;
+bool Inis::IsNPCExcluded(const RE::TESNPC *npc) const {
+  if (!npc || !npc->GetFile(0)) return false;
+  if (excludedNPCs.find(ut->FormToLoc(npc)) != excludedNPCs.end()) return true;
   return false;
 }
 
-bool Inis::IsSkin(const RE::TESObjectARMO *armor, const std::string modName) {
+bool Inis::IsSkin(const RE::TESObjectARMO *armor, const std::string &modName) {
   if (modName == "") return false;
   if (skinMods.find(modName) != skinMods.end()) return true;
   if (skinRecords.find({armor->GetLocalFormID(), modName}) != skinRecords.end()) return true;
   return false;
 }
 
-bool Inis::IsCovering(const RE::TESObjectARMO *armor, const std::string modName) {
-  if (modName == "") return false;
-  if (coveringRecords.find({armor->GetLocalFormID(), modName}) != coveringRecords.end()) return true;
-  return false;
+Common::eKeyword Inis::HasStatus(const RE::TESObjectARMO *armor) const {
+  auto armorLoc = ut->FormToLoc(armor);
+  if (armorLoc.second.empty()) return Common::keywordsCount;
+  if (runTimeArmorStatus.find(armorLoc) != runTimeArmorStatus.end()) return statusKeys[static_cast<size_t>(runTimeArmorStatus.at(armorLoc))];
+  if (coveringRecords.find(armorLoc) != coveringRecords.end()) return Common::kyCovering;
+  if (!armor->HasPartOf(Common::bodySlot)) return Common::keywordsCount;
+  if (revealingRecords.find(armorLoc) != revealingRecords.end()) return Common::kyRevealing;
+  if (femRevRecords.find(armorLoc) != femRevRecords.end()) return Common::kyRevealingF;
+  if (malRevRecords.find(armorLoc) != malRevRecords.end()) return Common::kyRevealingM;
+  if (revealingMods.find(armorLoc.second) != revealingMods.end()) return Common::kyRevealing;
+  if (femRevMods.find(armorLoc.second) != femRevMods.end()) return Common::kyRevealingF;
+  if (malRevMods.find(armorLoc.second) != malRevMods.end()) return Common::kyRevealingM;
+  if (armor->HasKeywordString(Common::sosRevealing)) return Common::kyRevealing;
+  return Common::keywordsCount;
 }
 
-int Inis::IsRevealing(const RE::TESObjectARMO *armor, const std::string modName) {
-  if (modName == "") return Tng::cNA;
-  if (revealingMods.find(modName) != revealingMods.end()) return Tng::kyRevealing;
-  if (femRevMods.find(modName) != femRevMods.end()) return Tng::kyRevealingF;
-  if (malRevMods.find(modName) != malRevMods.end()) return Tng::kyRevealingM;
-  if (revealingRecords.find({armor->GetLocalFormID(), modName}) != revealingRecords.end()) return Tng::kyRevealing;
-  if (femRevRecords.find({armor->GetLocalFormID(), modName}) != femRevRecords.end()) return Tng::kyRevealingF;
-  if (malRevRecords.find({armor->GetLocalFormID(), modName}) != malRevRecords.end()) return Tng::kyRevealingM;
-  if (armor->HasKeywordString(Tng::cSOSR)) return Tng::kyRevealing;
-  return Tng::cNA;
+void Inis::ClearInis() {
+  // Clearing the maps and sets to free memory, NOTE: private members need to remain alive
+  activeMalAddons.clear();
+  activeFemAddons.clear();
+  racialAddons.clear();
+  racialSizes.clear();
+  npcAddons.clear();
+  npcSizeCats.clear();
+  runTimeArmorStatus.clear();
+  // actorAddons|actorSizeCats|slot52Mods|extraRevealingMods should not be cleared during lifetime of the game
+
+  excludedRaceMods.clear();
+  excludedRaces.clear();
+  skinMods.clear();
+  skinRecords.clear();
+  revealingMods.clear();
+  femRevMods.clear();
+  malRevMods.clear();
+  coveringRecords.clear();
+  revealingRecords.clear();
+  femRevRecords.clear();
+  malRevRecords.clear();
+  // excludedNPCs should not be cleared during lifetime of the game
 }
 
-bool Inis::IsRTCovering(const RE::TESObjectARMO *armor, const std::string modName) {
-  if (modName == "") return false;
-  if (runtimeCoveringRecords.find({armor->GetLocalFormID(), modName}) != runtimeCoveringRecords.end()) return true;
-  return false;
+void Inis::LoadModNames(const CSimpleIniA::TNamesDepend &records, std::set<std::string> &fieldToFill, std::string_view entryType, std::string_view fileName) {
+  SKSE::log::info("\t- Found [{}] [{}] entries in [{}].", records.size(), entryType, fileName);
+  for (const auto &entry : records) {
+    const std::string modName(ut->StrToName(entry.pItem));
+    fieldToFill.insert(modName);
+  }
 }
 
-int Inis::IsRTRevealing(const RE::TESObjectARMO *armor, const std::string modName) {
-  if (modName == "") return Tng::cNA;
-  if (runTimeRevealingRecords.find({armor->GetLocalFormID(), modName}) != runTimeRevealingRecords.end()) return Tng::kyRevealing;
-  if (runTimeFemRevRecords.find({armor->GetLocalFormID(), modName}) != runTimeFemRevRecords.end()) return Tng::kyRevealingF;
-  if (runTimeMalRevRecords.find({armor->GetLocalFormID(), modName}) != runTimeMalRevRecords.end()) return Tng::kyRevealingM;
-  return Tng::cNA;
-}
-
-bool Inis::IsExtraRevealing(const std::string modName) {
-  if (modName == "") return false;
-  if (extraRevealingMods.find(modName) != extraRevealingMods.end()) return true;
-  return false;
-}
-
-bool Inis::IsUnhandled(const std::string modName) { return slot52Mods.find(modName) == slot52Mods.end(); }
-
-void Inis::HandleModWithSlot52(const std::string modName, const bool defRevealing) {
-  slot52Mods.insert(modName);
-  if (defRevealing) {
-    extraRevealingMods.insert(modName);
-    Slot52ModBehavior(modName, 1);
+void Inis::LoadModRecordPairs(const CSimpleIniA::TNamesDepend &records, std::set<SEFormLoc> &fieldToFill, std::string_view entryType, std::string_view fileName) {
+  SKSE::log::info("\t- Found [{}] [{}] entries in [{}].", records.size(), entryType, fileName);
+  for (const auto &entry : records) {
+    const std::string modRecord(entry.pItem);
+    fieldToFill.insert(ut->StrToLoc(modRecord));
   }
 }

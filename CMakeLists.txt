@@ -1,7 +1,13 @@
 cmake_minimum_required(VERSION 3.20)
 
+# ---- Project ----
 set(NAME "TheNewGentleman" CACHE STRING "")
 set(VR_VERSION 1)
+project(
+    ${NAME}
+    VERSION 4.0.6
+    LANGUAGES CXX
+)
 
 # ---- Options ----
 option(BUILD_SKYRIMVR "Build for Skyrim VR" OFF)
@@ -58,13 +64,7 @@ endif()
 set(Boost_USE_STATIC_RUNTIME OFF CACHE BOOL "")
 set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>" CACHE STRING "")
 
-# ---- Project ----
 
-project(
-    ${NAME}
-    VERSION 4.0.6
-    LANGUAGES CXX
-)
 
 configure_file(
     ${CMAKE_CURRENT_SOURCE_DIR}/cmake/Version.h.in
@@ -173,7 +173,6 @@ target_precompile_headers(
     ${PROJECT_NAME}
     PRIVATE
     inc/PCH.h
-    inc/Tng.h
     ${SIMPLEINI_INCLUDE_DIRS}/SimpleIni.h
 )
 
@@ -187,7 +186,7 @@ if(MSVC)
 
         /permissive- # Standards conformance
         /Zc:preprocessor # Enable preprocessor conformance mode
-
+        /W4 # Warning Level 4
         /wd4200 # nonstandard extension used : zero-sized array in struct/union
     )
 

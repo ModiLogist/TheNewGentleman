@@ -1,9 +1,7 @@
+*.code-workspace
+
 .idea
 .vs
 .vscode
 build
-buildae
-buildvr
-build353
-cmake-build*
 out

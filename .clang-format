@@ -1,12 +1,10 @@
 BasedOnStyle: Google
 UseTab: Never
-TabWidth: '2'
-IndentWidth: '2'
+TabWidth: "2"
+IndentWidth: "2"
 AccessModifierOffset: 0
 IndentAccessModifiers: true
-ColumnLimit: 210
+ColumnLimit: 180
 NamespaceIndentation: All
 IndentPPDirectives: BeforeHash
 FixNamespaceComments: false
-
-...
