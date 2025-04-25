@@ -1,9 +1,10 @@
 ScriptName TNG_MCM extends SKI_ConfigBase
 
 ;Property
-FormList Property Gentified auto
 Bool Property Notifs auto
 Actor Property PlayerRef auto
+FormList Property FlGW auto
+FormList Property FlUM auto
 
 ;Constants
 Int cbExcludePlayer
@@ -1160,7 +1161,11 @@ Actor Function GetLockedActor()
     fiLastActor += 1
     Return GetLockedActor()
   EndIf
-  If (lkNPC.GetSex() == 1) && (!Gentified.HasForm(lkNPC))    
+  If (lkNPC.GetSex() == 1) && (!FlGW.HasForm(lkNPC))    
+    fiLastActor += 1
+    Return GetLockedActor()
+  EndIf
+  If (FlUM.HasForm(lkNPC))
     fiLastActor += 1
     Return GetLockedActor()
   EndIf
