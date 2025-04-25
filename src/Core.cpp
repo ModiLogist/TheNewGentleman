@@ -192,6 +192,7 @@ void Core::UpdateActor(RE::Actor* const actor, RE::TESObjectARMO* const armor, c
     UpdateFormLists(actor);
   }
   UpdateBlock(actor, armor, isEquipped);
+  if (npc->skin != skin) ut->QueueNiNodeUpdate(actor);
 }
 
 std::vector<std::pair<size_t, bool>> Core::GetActorAddons(RE::Actor* const actor, const bool onlyActive) const {
@@ -346,7 +347,6 @@ void Core::UpdatePlayerAfterLoad() {
     auto skin = pc->skin;
     if (skin && !skin->HasKeyword(ut->Key(Common::kyTngSkin))) {
       core->UpdateActor(player);
-      ut->QueueNiNodeUpdate(player);
     }
     return false;
   };
