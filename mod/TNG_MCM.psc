@@ -163,6 +163,13 @@ Event OnGameReload()
   EndWhile
 EndEvent
 
+Event OnUpdate()
+  If fiLastActor > 0
+    fiLastActor = -1
+    ShowNotification("$TNG_KAR")
+  EndIf
+EndEvent
+
 Event OnPageReset(String asPage)
 
   If asPage == Pages[0]
@@ -960,16 +967,6 @@ Event OnKeyDown(Int aiKey)
   EndIf
 EndEvent
 
-Event OnUpdate()
-  If TNG_PapyrusUtil.GetBoolValue(cbCheckingPCGen) && (TNG_PapyrusUtil.CanModifyActor(PlayerRef) > 0)
-    Int res = TNGSetAddon(PlayerRef, -3)
-  EndIf
-
-  If fiLastActor > 0
-    fiLastActor = -1
-    ShowNotification("$TNG_KAR")
-  EndIf
-EndEvent
 
 Function UpdateKey(Int aHdl, Int aiNewKey)
   Int liCurrKey = -1
