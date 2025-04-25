@@ -37,11 +37,6 @@ RE::BGSListForm* Common::Util::FormList(const size_t idx) {
   return tngFormLists[idx];
 }
 
-RE::TESGlobal* Common::Util::PCAddon() {
-  if (!pcAddon) pcAddon = ut->SEDH()->LookupForm<RE::TESGlobal>(pcAddonID.first, pcAddonID.second);
-  return pcAddon;
-}
-
 RE::TESObjectARMO* Common::Util::Block() {
   if (!block) block = ut->SEDH()->LookupForm<RE::TESObjectARMO>(coverID.first, coverID.second);
   return block;

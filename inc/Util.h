@@ -138,7 +138,6 @@ namespace Common {
       RE::BGSKeyword* SizeKey(const size_t idx);
       std::vector<RE::BGSKeyword*> SizeKeys(const size_t last = sizeCatCount);
       RE::BGSListForm* FormList(const size_t idx);
-      RE::TESGlobal* PCAddon();
       RE::TESObjectARMO* Block();
       bool IsBlock(RE::TESForm* form) const { return form && (FormToLoc(form) == coverID); }
       bool IsCovering(const RE::Actor* const actor, const RE::TESObjectARMO* const armor);
@@ -151,8 +150,6 @@ namespace Common {
                                                                      {0xFF6, mainFile}, {0xFF7, mainFile},     {0xFF8, mainFile},     {0xFF9, mainFile},     {0xFFA, mainFile},
                                                                      {0xFFB, mainFile}, {0xFFC, mainFile},     {0xFFD, mainFile},     {0xFFE, mainFile},     {0xFFF, mainFile},
                                                                      {0xFE0, mainFile}, {0x13794, skyrimFile}, {0xD61D1, skyrimFile}, {0x13795, skyrimFile}, {0xA82BB, skyrimFile}};
-
-      inline static constexpr SEFormLocView pcAddonID{0xCFF, mainFile};
       inline static constexpr RE::FormID sizeKeyIDs[sizeCatCount]{0xFE1, 0xFE2, 0xFE3, 0xFE4, 0xFE5};
 
       inline static constexpr SEFormLocView formListIDs[flCount] = {{0xE00, mainFile}, {0xE01, mainFile}};
@@ -163,7 +160,6 @@ namespace Common {
       RE::TESRace* races[racesCount] = {};
       RE::BGSKeyword* keywords[keywordsCount] = {};
       RE::BGSKeyword* sizeKey[sizeCatCount] = {};
-      RE::TESGlobal* pcAddon = nullptr;
       RE::BGSListForm* tngFormLists[flCount] = {};
       RE::TESObjectARMO* block = nullptr;
   };
