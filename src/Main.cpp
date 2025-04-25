@@ -4,13 +4,14 @@
 #include <SEEvents.h>
 #include <Util.h>
 
-bool CheckIncompatibility() {
-  static bool shownMessage = false;
+bool CheckRequirements() {
+  if (!ut->SEDH()->LookupModByName(Common::mainFile)) {
+    const char* err = fmt::format("Mod [{}] was not found! Make sure that the mod is active in your plugin load order!", Common::mainFile).c_str();
+    ut->ShowSkyrimMessage(err);
+    return false;
+  }
   if (GetModuleHandleW(L"Data\\SKSE\\Plugins\\acon.dll")) {
-    if (!shownMessage) {
-      ut->ShowSkyrimMessage("Warning: TNG is not compatible with acon.dll. Please don't use TNG with mods from that website!");
-      shownMessage = true;
-    }
+    ut->ShowSkyrimMessage("Warning: TNG is not compatible with acon.dll. Please don't use TNG with mods from that website!");
     return false;
   }
   return true;
@@ -33,14 +34,12 @@ void InitializeLogging() {
 }
 
 void EventListener(SKSE::MessagingInterface::Message* message) {
+  static bool isOk = true;
+  if (!isOk) return;
   switch (message->type) {
     case SKSE::MessagingInterface::kDataLoaded: {
-      if (!CheckIncompatibility()) return;
-      if (!ut->SEDH()->LookupModByName(Common::mainFile)) {
-        const char* err = fmt::format("Mod [{}] was not found! Make sure that the mod is active in your plugin load order!", Common::mainFile).c_str();
-        ut->ShowSkyrimMessage(err);
-        return;
-      }
+      isOk = CheckRequirements();
+      if (!isOk) return;
       core->Process();
       events->RegisterEvents();
       Hooks::Install();
@@ -48,15 +47,14 @@ void EventListener(SKSE::MessagingInterface::Message* message) {
     } break;
 
     case SKSE::MessagingInterface::kPreLoadGame: {
-      if (!CheckIncompatibility()) return;
       const std::string savePath{static_cast<char*>(message->data), message->dataLen};
       core->LoadPlayerInfos(savePath);
     } break;
 
     case SKSE::MessagingInterface::kSaveGame: {
-      if (!CheckIncompatibility()) return;
       core->SaveMainIni();
     } break;
+
     default:
       break;
   }
