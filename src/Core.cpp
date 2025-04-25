@@ -338,7 +338,9 @@ void Core::UpdatePlayerAfterLoad() {
   auto LoadPC = []() {
     auto player = RE::PlayerCharacter::GetSingleton();
     if (!player) return;
+    auto oldSkin = player->GetSkin();
     core->UpdateActor(player);
+    if (oldSkin != player->GetSkin()) ut->QueueNiNodeUpdate(player);
   };
   auto player = RE::PlayerCharacter::GetSingleton();
   auto firstSkinId = ut->FormToLoc(player->GetSkin());
