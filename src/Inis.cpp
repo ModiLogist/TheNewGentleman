@@ -61,25 +61,20 @@ void Inis::SaveMainIni() {
   settingIni.SaveFile(SettingFile());
   SaveIniPairs<bool>(settingIni, cActiveMalAddons, activeMalAddons, true);
   SaveIniPairs<bool>(settingIni, cActiveFemAddons, activeFemAddons);
-  SKSE::log::debug("\tStored all addon status to previous selections");
   for (auto &skeleton : validSkeletons) settingIni.SetBoolValue(cValidSkeletons, skeleton.c_str(), true);
   SaveIniPairs<SEFormLoc>(settingIni, cRacialAddon, racialAddons);
   SaveIniPairs<float>(settingIni, cRacialSize, racialSizes);
-  SKSE::log::debug("\tStored all racial addon and size settings");
   SaveIniPairs<SEFormLoc>(settingIni, cNPCAddonSection, npcAddons);
   SaveIniPairs<int>(settingIni, cNPCSizeSection, npcSizeCats);
   SaveIniPairs<SEFormLoc>(settingIni, cActorAddonSection, actorAddons);
   SaveIniPairs<int>(settingIni, cActorSizeSection, actorSizeCats);
-  SKSE::log::debug("\tStored all NPC and actor addon and size settings");
   SaveIniPairs<int>(settingIni, cArmorStatusSection, runTimeArmorStatus);
-  SKSE::log::debug("\tStored all armor records status settings");
   auto playerIdx = RE::BGSSaveLoadManager::GetSingleton()->currentCharacterID & 0xFFFFFFFF;
   auto section = fmt::format("{}{:08X}", cPlayerSection, playerIdx);
   for (auto &pcInfo : playerInfos) {
-    auto key = pcInfo.IdStr().c_str();
-    auto value = pcInfo.InfoStr().c_str();
-    SKSE::log::debug("Saving player info: section [{}], key [{}], value [{}]", section, key, value);
-    settingIni.SetValue(section.c_str(), key, value);
+    auto key = pcInfo.IdStr();
+    auto value = pcInfo.InfoStr();
+    settingIni.SetValue(section.c_str(), key.c_str(), value.c_str());
     settingIni.SaveFile(SettingFile());
   }
   for (auto &pair : slot52Mods) {
