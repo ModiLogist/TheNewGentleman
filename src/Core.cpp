@@ -304,11 +304,11 @@ Common::eRes Core::SetActorSize(RE::Actor* const actor, int sizeCat, const bool 
     if (mult < 0.0f) return Common::errRg;
     auto scale = mult * floatSettings.Get(static_cast<Common::eFloatSetting>(cat));
     if (scale < 0.1) scale = 1;
-    bool useFixed = actor->IsPlayerRef() && !actor->GetNodeByName(Common::genBoneNames[Common::egbBase]);
+    const auto isPlayer = actor->IsPlayerRef();
     const std::string failMessage = fmt::format("Failed to scale actor [0x{:x}] genitalia to [{}] since they are not loaded after standard delay.", actor->GetFormID(), scale);
     ut->DoDelayed(
-        [actor, scale, shouldSave, sizeCat, useFixed]() {
-          auto ac = useFixed ? RE::PlayerCharacter::GetSingleton() : actor;
+        [actor, isPlayer, scale, shouldSave, sizeCat]() {
+          auto ac = isPlayer ? RE::PlayerCharacter::GetSingleton() : actor;
           RE::NiAVObject* baseNode = ac->GetNodeByName(Common::genBoneNames[Common::egbBase]);
           RE::NiAVObject* scrotNode = ac->GetNodeByName(Common::genBoneNames[Common::egbScrot]);
           if (baseNode && scrotNode) {
@@ -320,7 +320,7 @@ Common::eRes Core::SetActorSize(RE::Actor* const actor, int sizeCat, const bool 
             SKSE::log::debug("Failed to scale actor [0x{:x}] genitalia to [{}] since their skeleton does not seem to be compatible.", ac->GetFormID(), scale);
           }
         },
-        [actor]() -> bool { return actor->Is3DLoaded(); }, useFixed ? -1 : 0, true, failMessage);
+        [actor]() -> bool { return actor && actor->Is3DLoaded() && actor->GetNodeByName(Common::genBoneNames[Common::egbBase]); }, 0, true, failMessage);
   }
   if (actor->IsPlayerRef() && sizeCat != Common::nul && shouldSave) SetPlayerInfo(actor, nullptr, Common::nan, sizeCat);
   if (!actor->IsPlayerRef() && shouldSave) {

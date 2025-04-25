@@ -34,6 +34,7 @@ RE::BSEventNotifyControl SEEvents::ProcessEvent(const RE::TESSwitchRaceCompleteE
   ut->DoDelayed(
       [actor, isPlayer]() {
         auto ac = isPlayer ? RE::PlayerCharacter::GetSingleton() : actor;
+        if (!ac) return;
         core->UpdateActor(ac);
       },
       []() { return true; }, isPlayer * 500, false);
