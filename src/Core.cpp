@@ -304,20 +304,23 @@ Common::eRes Core::SetActorSize(RE::Actor* const actor, int sizeCat, const bool 
     if (mult < 0.0f) return Common::errRg;
     auto scale = mult * floatSettings.Get(static_cast<Common::eFloatSetting>(cat));
     if (scale < 0.1) scale = 1;
+    bool useFixed = actor->IsPlayerRef() && !actor->GetNodeByName(Common::genBoneNames[Common::egbBase]);
+    const std::string failMessage = fmt::format("Failed to scale actor [0x{:x}] genitalia to [{}] since they are not loaded after standard delay.", actor->GetFormID(), scale);
     ut->DoDelayed(
-        [actor, scale, shouldSave, sizeCat]() {
-          RE::NiAVObject* baseNode = actor->GetNodeByName(Common::genBoneNames[Common::egbBase]);
-          RE::NiAVObject* scrotNode = actor->GetNodeByName(Common::genBoneNames[Common::egbScrot]);
+        [actor, scale, shouldSave, sizeCat, useFixed]() {
+          auto ac = useFixed ? RE::PlayerCharacter::GetSingleton() : actor;
+          RE::NiAVObject* baseNode = ac->GetNodeByName(Common::genBoneNames[Common::egbBase]);
+          RE::NiAVObject* scrotNode = ac->GetNodeByName(Common::genBoneNames[Common::egbScrot]);
           if (baseNode && scrotNode) {
             if (baseNode->local.scale != scale) return;
             baseNode->local.scale = scale;
             scrotNode->local.scale = 1.0f / sqrt(scale);
-            if (sizeCat != Common::nul) SKSE::log::debug("Actor [0x{:x}] genitalia {} to [{}].", actor->GetFormID(), shouldSave ? "scaled" : "restored", scale);
+            if (sizeCat != Common::nul) SKSE::log::debug("Actor [0x{:x}] genitalia {} to [{}].", ac->GetFormID(), shouldSave ? "scaled" : "restored", scale);
           } else {
-            SKSE::log::debug("Failed to scale actor [0x{:x}] genitalia to [{}] since their skeleton does not seem to be compatible", actor->GetFormID(), scale);
+            SKSE::log::debug("Failed to scale actor [0x{:x}] genitalia to [{}] since their skeleton does not seem to be compatible.", ac->GetFormID(), scale);
           }
         },
-        [actor]() -> bool { return actor->Is3DLoaded(); }, actor->IsPlayerRef());
+        [actor]() -> bool { return actor->Is3DLoaded(); }, useFixed ? -1 : 0, true, failMessage);
   }
   if (actor->IsPlayerRef() && sizeCat != Common::nul && shouldSave) SetPlayerInfo(actor, nullptr, Common::nan, sizeCat);
   if (!actor->IsPlayerRef() && shouldSave) {

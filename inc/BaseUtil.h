@@ -41,7 +41,7 @@ namespace Common {
           } else {
             static_assert(false, "Unsupported type for LoadValue");
           }
-          SKSE::log::debug("Loaded setting [{}] in [{}] to be [{}({})] from", keys[i], sections[i], values[i], values[i] == defValues[i] ? "default" : "user");
+          SKSE::log::debug("Loaded setting [{}] in [{}] to be [{}({})]", keys[i], sections[i], values[i], values[i] == defValues[i] ? "default" : "user");
         }
       }
 
@@ -59,7 +59,6 @@ namespace Common {
             } else {
               static_assert(false, "Unsupported type for SaveValue");
             }
-            SKSE::log::debug("Saved setting [{}] in [{}] to be [{}]", keys[i], sections[i], values[i]);
           }
         }
       }
@@ -77,7 +76,6 @@ namespace Common {
       void ShowSkyrimMessage(const char* message) const { RE::DebugMessageBox(message); }
       RE::BGSKeyword* ProduceOrGetKw(const std::string& keyword);
       int HasKeywordInList(const RE::BGSKeywordForm* form, const std::vector<RE::BGSKeyword*>& keywords) const;
-      void DoDelayed(std::function<void()> func, std::function<bool()> condition, const bool fixedDelay) const;
       SEFormLoc FormToLoc(const RE::TESForm* form, const int choice = nan) const;
       std::string LocToStr(const SEFormLoc& loc) const;
       SEFormLoc StrToLoc(const std::string& locStr) const;
@@ -86,13 +84,14 @@ namespace Common {
       std::vector<std::string> Split(const std::string& str, const std::string_view delimiter) const;
       std::string NameToStr(std::string name) const;
       std::string StrToName(std::string name) const;
+      void DoDelayed(std::function<void()> func, std::function<bool()> condition, const int fixedDelay, const bool enforceCond, const std::string fmsg = "") const;
 
     private:
       inline static constexpr size_t fixedDelayTime{5000};
       inline static constexpr size_t delayTime{500};
       inline static constexpr size_t maxDelayCount{20};
       inline static constexpr size_t newGameDelayMult{2};
-      const bool try_strtoul(const std::string& str, std::uint32_t& result, int base = 0) const;
       inline static constexpr std::string iniChars{"[=:]"};
+      const bool try_strtoul(const std::string& str, std::uint32_t& result, int base = 0) const;
   };
 }

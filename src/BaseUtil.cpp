@@ -23,25 +23,6 @@ int Common::BaseUtil::HasKeywordInList(const RE::BGSKeywordForm* form, const std
   return -1;
 }
 
-void Common::BaseUtil::DoDelayed(std::function<void()> func, std::function<bool()> condition, const bool fixedDelay) const {
-  static bool isFirst{true};
-  std::thread([=]() {
-    if (fixedDelay) {
-      std::this_thread::sleep_for(std::chrono::milliseconds(fixedDelayTime));
-      isFirst = false;
-    } else {
-      size_t count = 0;
-      size_t maxCount = maxDelayCount + isFirst * newGameDelayMult;
-      while (!condition() && count < maxCount) {
-        std::this_thread::sleep_for(std::chrono::milliseconds(delayTime));
-        count++;
-      }
-    }
-    if (!condition()) return;
-    func();
-  }).detach();
-}
-
 SEFormLoc Common::BaseUtil::FormToLoc(const RE::TESForm* form, const int choice) const {
   switch (choice) {
     case def:
@@ -110,6 +91,35 @@ std::string Common::BaseUtil::StrToName(std::string name) const {
   if (name.length() < 2) return res;
   if (name.front() == '\"' && name.back() == '\"') res = name.substr(1, name.length() - 2);
   return res;
+}
+
+void Common::BaseUtil::DoDelayed(std::function<void()> func, std::function<bool()> condition, const int fixedDelay, const bool enforceCond, const std::string fmsg) const {
+  if (fixedDelay == 0 && condition()) {
+    func();
+    return;
+  }
+  static bool isFirst{true};
+  std::thread([=]() {
+    auto delayMult = isFirst ? newGameDelayMult : 1;
+    if (fixedDelay) {
+      auto fixedTime = fixedDelay < 0 ? fixedDelayTime : fixedDelay;
+      std::this_thread::sleep_for(std::chrono::milliseconds(delayMult * fixedTime));
+      isFirst = false;
+    } else {
+      size_t count = 0;
+      size_t maxCount = delayMult * maxDelayCount;
+      while (!condition() && count < maxCount) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(delayTime));
+        count++;
+      }
+      if (count < maxCount) std::this_thread::sleep_for(std::chrono::milliseconds(delayTime));
+    }
+    if (enforceCond && !condition()) {
+      if (!fmsg.empty()) SKSE::log::debug("{}", fmsg.c_str());
+      return;
+    }
+    func();
+  }).detach();
 }
 
 const bool Common::BaseUtil::try_strtoul(const std::string& str, std::uint32_t& result, int base) const {
