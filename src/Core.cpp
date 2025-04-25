@@ -331,29 +331,26 @@ Common::eRes Core::SetActorSize(RE::Actor* const actor, int sizeCat, const bool 
 }
 
 void Core::UpdatePlayerAfterLoad() {
-  if (!core) {
-    SKSE::log::critical("TNG Core is not available! Please report this issue.");
-    return;
-  }
-  auto LoadPC = []() {
-    auto player = RE::PlayerCharacter::GetSingleton();
-    if (!player) return;
-    auto oldSkin = player->GetSkin();
-    core->UpdateActor(player);
-    if (oldSkin != player->GetSkin()) ut->QueueNiNodeUpdate(player);
-  };
+  SKSE::log::debug("TNG would keep an eye on the player skin for a while...");
+  if (!core) return;
   auto player = RE::PlayerCharacter::GetSingleton();
-  auto firstSkinId = ut->FormToLoc(player->GetSkin());
-  auto LoadCond = [firstSkinId, LoadPC]() {
-    if (!core->boolSettings.Get(Common::bsForceRechecks) && !core->boolSettings.Get(Common::bsCheckPlayerAddon)) return true;
+  if (!player) return;
+  core->UpdateActor(player);
+  if (!core->boolSettings.Get(Common::bsForceRechecks) && !core->boolSettings.Get(Common::bsCheckPlayerAddon)) return;
+  auto LoadPC = []() {};
+  auto LoadCond = []() {
     auto player = RE::PlayerCharacter::GetSingleton();
-    auto pc = player ? player->GetActorBase() : nullptr;
+    if (!player) return true;
+    auto pc = player->GetActorBase();
     if (!pc || !player->Is3DLoaded()) return false;
     auto skin = pc->skin;
-    if (skin && !skin->HasKeyword(ut->Key(Common::kyTngSkin))) LoadPC();
-    return skin && ut->FormToLoc(skin) != firstSkinId && !skin->HasKeyword(ut->Key(Common::kyTngSkin));
+    if (skin && !skin->HasKeyword(ut->Key(Common::kyTngSkin))) {
+      core->UpdateActor(player);
+      ut->QueueNiNodeUpdate(player);
+    }
+    return false;
   };
-  ut->DoDelayed(LoadPC, LoadCond, 0, false);
+  ut->DoDelayed(LoadPC, LoadCond, 0, true, "Finished checking the player skin.");
 }
 
 bool Core::SwapRevealing(RE::Actor* const actor, RE::TESObjectARMO* const armor) {
