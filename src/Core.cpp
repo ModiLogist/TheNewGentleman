@@ -330,6 +330,30 @@ Common::eRes Core::SetActorSize(RE::Actor* const actor, int sizeCat, const bool 
   return res;
 }
 
+void Core::UpdatePlayerAfterLoad() {
+  if (!core) {
+    SKSE::log::critical("TNG Core is not available! Please report this issue.");
+    return;
+  }
+  auto LoadPC = []() {
+    auto player = RE::PlayerCharacter::GetSingleton();
+    if (!player) return;
+    core->UpdateActor(player);
+  };
+  auto player = RE::PlayerCharacter::GetSingleton();
+  auto firstSkinId = ut->FormToLoc(player->GetSkin());
+  auto LoadCond = [firstSkinId, LoadPC]() {
+    if (!core->boolSettings.Get(Common::bsForceRechecks) && !core->boolSettings.Get(Common::bsCheckPlayerAddon)) return true;
+    auto player = RE::PlayerCharacter::GetSingleton();
+    auto pc = player ? player->GetActorBase() : nullptr;
+    if (!pc || !player->Is3DLoaded()) return false;
+    auto skin = pc->skin;
+    if (skin && !skin->HasKeyword(ut->Key(Common::kyTngSkin))) LoadPC();
+    return skin && ut->FormToLoc(skin) != firstSkinId && !skin->HasKeyword(ut->Key(Common::kyTngSkin));
+  };
+  ut->DoDelayed(LoadPC, LoadCond, 0, false);
+}
+
 bool Core::SwapRevealing(RE::Actor* const actor, RE::TESObjectARMO* const armor) {
   auto npc = actor ? actor->GetActorBase() : nullptr;
   if (!npc || !armor) return false;

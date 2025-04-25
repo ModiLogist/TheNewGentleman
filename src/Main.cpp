@@ -46,9 +46,17 @@ void EventListener(SKSE::MessagingInterface::Message* message) {
       SKSE::log::info("TheNewGentleman finished initialization.");
     } break;
 
+    case SKSE::MessagingInterface::kNewGame: {
+      core->UpdatePlayerAfterLoad();
+    } break;
+
     case SKSE::MessagingInterface::kPreLoadGame: {
       const std::string savePath{static_cast<char*>(message->data), message->dataLen};
       core->LoadPlayerInfos(savePath);
+    } break;
+
+    case SKSE::MessagingInterface::kPostLoadGame: {
+      core->UpdatePlayerAfterLoad();
     } break;
 
     case SKSE::MessagingInterface::kSaveGame: {

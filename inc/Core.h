@@ -36,6 +36,7 @@ class Core : public Singleton<Core>, public Inis {
     Common::eRes SetActorAddon(RE::Actor* const actor, const int choice, const bool isUser, const bool shouldSave);
     Common::eRes GetActorSize(RE::Actor* const actor, int& sizeCat) const;
     Common::eRes SetActorSize(RE::Actor* const actor, int sizeCat, const bool shouldSave);
+    void UpdatePlayerAfterLoad();
 
     bool SwapRevealing(RE::Actor* const actor, RE::TESObjectARMO* const armor);
     void RevisitRevealingArmor() const;
