@@ -312,7 +312,7 @@ Common::eRes Core::SetActorSize(RE::Actor* const actor, int sizeCat, const bool 
           RE::NiAVObject* baseNode = ac->GetNodeByName(Common::genBoneNames[Common::egbBase]);
           RE::NiAVObject* scrotNode = ac->GetNodeByName(Common::genBoneNames[Common::egbScrot]);
           if (baseNode && scrotNode) {
-            if (baseNode->local.scale != scale) return;
+            if (baseNode->local.scale == scale) return;
             baseNode->local.scale = scale;
             scrotNode->local.scale = 1.0f / sqrt(scale);
             if (sizeCat != Common::nul) SKSE::log::debug("Actor [0x{:x}] genitalia {} to [{}].", ac->GetFormID(), shouldSave ? "scaled" : "restored", scale);
@@ -381,15 +381,15 @@ bool Core::SwapRevealing(RE::Actor* const actor, RE::TESObjectARMO* const armor)
 }
 
 void Core::RevisitRevealingArmor() const {
-  std::set<std::string> potentialMods{Slot52Mods().begin(), Slot52Mods().end()};
-  if (potentialMods.size() == 0) return;
+  auto s52 = Slot52Mods();
+  if (s52.size() == 0) return;
   auto& armorList = ut->SEDH()->GetFormArray<RE::TESObjectARMO>();
   std::set<std::pair<std::string, RE::TESObjectARMO*>> potentialArmor = {};
   std::vector<RE::BGSKeyword*> rc = {ut->Key(Common::kyCovering), ut->Key(Common::kyRevealing)};
   for (const auto& armor : armorList) {
     if (!armor || !armor->HasPartOf(Common::bodySlot) || !armor->HasKeywordInArray(rc, false)) continue;
     auto modName = armor->GetFile(0) ? std::string(armor->GetFile(0)->GetFilename()) : "";
-    if (modName.empty() || potentialMods.find(modName) == potentialMods.end()) continue;
+    if (modName.empty() || std::ranges::find(s52, modName) == s52.end()) continue;
     if (auto b = Slot52ModBehavior(modName); b != armor->HasKeyword(ut->Key(Common::kyRevealing))) {
       armor->RemoveKeywords(rc);
       armor->AddKeyword(ut->Key(b ? Common::kyRevealing : Common::kyCovering));
@@ -853,7 +853,7 @@ std::pair<int, bool> Core::GetApplicableAddon(RE::Actor* const actor) const {
 
 Common::eRes Core::SetNPCAddon(RE::TESNPC* const npc, const int addonIdx, const bool isUser) {
   if (addonIdx < Common::def) return Common::errAddon;
-  if (!npc) {
+  if (!npc || !npc->race || !npc->race->skin) {
     SKSE::log::critical("Failure in setting a NPC genital!");
     return Common::errNPC;
   }
@@ -1002,8 +1002,9 @@ bool Core::NeedsBlock(RE::Actor* const actor) const {
 void Core::CheckArmorPieces() {
   SKSE::log::info("Checking ARMO records...");
   auto& armorList = ut->SEDH()->GetFormArray<RE::TESObjectARMO>();
+  auto defRace = ut->Race(Common::raceDefault);
   int logInfo[7]{0};
-  std::map<std::string, RE::TESObjectARMO*> potentialArmor = {};
+  std::map<RE::TESObjectARMO*, std::string> potentialArmor = {};
   std::set<std::string> potentialMods{};
   std::set<std::string> potentialSlot52Mods{};
   std::vector<RE::BGSKeyword*> armorKeys = ut->Keys(Common::kyRevealingF, Common::kyRevealing);
@@ -1036,7 +1037,10 @@ void Core::CheckArmorPieces() {
       logInfo[6]++;
       continue;
     }
-    if (!armor->race->HasKeywordInArray(relRaceKeys, false) && armor->race != ut->Race(Common::raceDefault)) continue;
+    if (defRace && !armor->race->HasKeywordInArray(relRaceKeys, false) && armor->race != defRace) {
+      logInfo[6]++;
+      continue;
+    }
     if (IsSkin(armor, modName)) {
       SKSE::log::info("\t\tThe record [0x{:x}: {}] was marked as a skin.", armor->GetFormID(), armorID);
       armor->AddKeyword(ut->Key(Common::kyIgnored));
@@ -1049,16 +1053,13 @@ void Core::CheckArmorPieces() {
       if (auto status = HasStatus(armor); status < Common::keywordsCount) {
         if (!ut->Key(status)) {
           SKSE::log::error("TNG cannot load its own keywords! Make sure the esp is active in the load order.");
+          logInfo[0]++;
           continue;
         }
         armor->AddKeyword(ut->Key(status));
         SKSE::log::info("\t\tThe armor [0x{:x}: {}] was marked with [{}] keyword.", armor->GetFormID(), armorID, ut->Key(status)->GetFormEditorID());
         (status == Common::kyCovering) ? logInfo[2]++ : logInfo[3]++;
-      }
-      if (Slot52ModBehavior(modName)) {
-        armor->AddKeyword(ut->Key(Common::kyRevealing));
-        SKSE::log::info("\t\tArmor [0x{:x}: {}] was marked revealing since it is in a mod with slot 52 items.", armor->GetFormID(), armorID);
-        logInfo[5]++;
+        continue;
       }
     } else {
       armor->RemoveKeywords(armorKeys);
@@ -1071,7 +1072,7 @@ void Core::CheckArmorPieces() {
     }
     if (armor->HasPartOf(Common::bodySlot)) {
       if (modName != "") potentialMods.insert(std::string{modName});
-      potentialArmor.insert({modName, armor});
+      potentialArmor.insert({armor, modName});
     } else {
       logInfo[6]++;
     }
@@ -1080,8 +1081,8 @@ void Core::CheckArmorPieces() {
     if (potentialMods.find(*entry) != potentialMods.end()) Slot52ModBehavior(*entry, boolSettings.Get(Common::bsRevealSlot52Mods));
   }
   for (auto& armorPair : potentialArmor) {
-    auto b = Slot52ModBehavior(armorPair.first);
-    armorPair.second->AddKeyword(ut->Key(b ? Common::kyRevealing : Common::kyCovering));
+    auto b = Slot52ModBehavior(armorPair.second);
+    armorPair.first->AddKeyword(ut->Key(b ? Common::kyRevealing : Common::kyCovering));
     logInfo[b ? 5 : 4]++;
   }
   SKSE::log::info("\tProcessed [{}] armor pieces:", armorList.size());
