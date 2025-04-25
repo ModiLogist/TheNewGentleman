@@ -871,13 +871,11 @@ Common::eRes Core::SetNPCAddon(RE::TESNPC* const npc, const int addonIdx, const 
     }
   }
   if (!skinHasRace) activeSkin = npc->race->skin;
-  auto ogSkin = GetOgSkin(npc->skin);
-  auto raceOgSkin = GetOgSkin(npc->race->skin);
-  auto& activeOgSkin = !ogSkin ? raceOgSkin : ogSkin;
-  if (ogSkin && ogSkin->HasKeyword(ut->Key(Common::kyCovering))) {
-    ogSkin->RemoveKeyword(ut->Key(Common::kyCovering));
-    ogSkin->AddKeyword(ut->Key(Common::kyIgnored));
-    SKSE::log::info("The skin [0x{:x}] was updated accordingly", ogSkin->formID);
+  auto activeOgSkin = GetOgSkin(activeSkin);
+  if (activeOgSkin && activeOgSkin->HasKeyword(ut->Key(Common::kyCovering))) {
+    activeOgSkin->RemoveKeyword(ut->Key(Common::kyCovering));
+    activeOgSkin->AddKeyword(ut->Key(Common::kyIgnored));
+    SKSE::log::info("The skin [0x{:x}] was updated accordingly", activeOgSkin->formID);
   }
   auto rg = Rg(RgKey(npc->race));
   if (!rg) return Common::errRg;
@@ -885,12 +883,12 @@ Common::eRes Core::SetNPCAddon(RE::TESNPC* const npc, const int addonIdx, const 
   if (addonIdx >= 0 && list.find(addonIdx) == list.end()) return Common::errAddon;
   if (addonIdx == Common::def && npc->IsFemale()) {
     OrganizeNPCKeywords(npc, addonIdx, false);
-    if (npcSkin && npcSkin->HasKeyword(ut->Key(Common::kyTngSkin))) npc->skin = ogSkin == raceOgSkin ? nullptr : ogSkin;
+    if (npcSkin && npcSkin->HasKeyword(ut->Key(Common::kyTngSkin))) npc->skin = activeOgSkin == raceSkin ? nullptr : activeOgSkin;
     return Common::resOkFixed;
   }
   auto addonChoice = addonIdx == Common::def ? rg->addonIdx : addonIdx;
   OrganizeNPCKeywords(npc, addonIdx, isUser);
-  auto resSkin = addonChoice == Common::nul ? (npc->IsFemale() ? raceSkin : activeOgSkin) : GetSkinWithAddonForRg(rg, activeOgSkin, addonChoice, npc->IsFemale());
+  auto resSkin = addonChoice == Common::nul ? activeOgSkin : GetSkinWithAddonForRg(rg, activeOgSkin, addonChoice, npc->IsFemale());
   if (resSkin != npcSkin) {
     npc->skin = resSkin == npc->race->skin ? nullptr : resSkin;
   }
