@@ -982,7 +982,9 @@ void Core::UpdateBlock(RE::Actor* const actor, RE::TESObjectARMO* const armor, c
 bool Core::NeedsBlock(RE::Actor* const actor) const {
   if (CanModifyActor(actor) < 0) return false;
   auto npc = actor->GetActorBase();
-  return npc->skin && npc->skin->HasPartOf(Common::genitalSlot);
+  if (!npc) return false;
+  auto skin = actor->GetSkin();
+  return skin && skin->HasPartOf(Common::genitalSlot) && (!npc->IsFemale() || npc->HasKeyword(ut->Key(Common::kyGentlewoman)));
 }
 
 void Core::CheckArmorPieces() {
