@@ -22,8 +22,7 @@ RE::BSEventNotifyControl SEEvents::ProcessEvent(const RE::TESEquipEvent* event, 
 }
 
 RE::BSEventNotifyControl SEEvents::ProcessEvent(const RE::TESObjectLoadedEvent* event, RE::BSTEventSource<RE::TESObjectLoadedEvent>*) {
-  if (!event) return RE::BSEventNotifyControl::kContinue;
-
+  if (!event || !event->loaded) return RE::BSEventNotifyControl::kContinue;
   if (const auto actor = RE::TESForm::LookupByID<RE::Actor>(event->formID); actor) core->UpdateActor(actor);
   return RE::BSEventNotifyControl::kContinue;
 }
