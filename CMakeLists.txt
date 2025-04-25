@@ -5,7 +5,7 @@ set(NAME "TheNewGentleman" CACHE STRING "")
 set(VR_VERSION 1)
 project(
     ${NAME}
-    VERSION 4.0.6
+    VERSION 4.1.0
     LANGUAGES CXX
 )
 
