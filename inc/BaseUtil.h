@@ -84,6 +84,7 @@ namespace Common {
       std::vector<std::string> Split(const std::string& str, const std::string_view delimiter) const;
       std::string NameToStr(std::string name) const;
       std::string StrToName(std::string name) const;
+      void QueueNiNodeUpdate(const RE::Actor* actor) const;
       void DoDelayed(std::function<void()> func, std::function<bool()> condition, const int fixedDelay, const bool enforceCond, const std::string fmsg = "") const;
 
     private:
