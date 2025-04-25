@@ -1180,6 +1180,7 @@ Int Function TNGSetAddon(Actor akActor, Int aiAddon)
     TNGSetAddon(akActor, -2)    
     HandleWarnings(liRes)
   EndIf
+  Return liRes
 EndFunction
 
 Function ShowNotification(String asNotif, Bool abForce = False)
