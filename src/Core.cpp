@@ -162,7 +162,11 @@ Common::eRes Core::CanModifyActor(RE::Actor* const actor) const {
   if (!npc) return Common::errNPC;
   if (!npc->race) return Common::errRace;
   if (IsNPCExcluded(npc)) return Common::errNPC;
-  if (npc->skin && npc->skin->HasPartOf(Common::genitalSlot) && !npc->skin->HasKeyword(ut->Key(Common::kyTngSkin))) return Common::errSkin;
+  if (auto skin = npc->skin; skin && skin->HasPartOf(Common::genitalSlot) && !npc->skin->HasKeyword(ut->Key(Common::kyTngSkin))) {
+    for (auto& aa : skin->armorAddons)
+      if (aa && aa->HasPartOf(Common::genitalSlot)) return Common::resOkRaceR;
+    return Common::errSkin;
+  }
   if (npc->race->HasKeyword(ut->Key(Common::kyReady))) return Common::resOkRaceR;
   if (auto rg = Rg(RgKey(npc->race)); !rg || rg->malAddons.size() == 0) return Common::errRace;
   if (npc->race->HasKeyword(ut->Key(Common::kyProcessed))) return Common::resOkRaceP;
