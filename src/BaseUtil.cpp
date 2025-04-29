@@ -130,25 +130,29 @@ void Common::BaseUtil::DoDelayed(std::function<void()> func, std::function<bool(
   }
   static bool isFirst{true};
   std::thread([=]() {
-    auto delayMult = isFirst ? newGameDelayMult : 1;
-    if (fixedDelay) {
-      auto fixedTime = fixedDelay < 0 ? fixedDelayTime : fixedDelay;
-      std::this_thread::sleep_for(std::chrono::milliseconds(delayMult * fixedTime));
-      isFirst = false;
-    } else {
-      size_t count = 0;
-      size_t maxCount = delayMult * maxDelayCount;
-      while (!condition() && count < maxCount) {
-        std::this_thread::sleep_for(std::chrono::milliseconds(delayTime));
-        count++;
+    __try {
+      auto delayMult = isFirst ? newGameDelayMult : 1;
+      if (fixedDelay) {
+        auto fixedTime = fixedDelay < 0 ? fixedDelayTime : fixedDelay;
+        std::this_thread::sleep_for(std::chrono::milliseconds(delayMult * fixedTime));
+        isFirst = false;
+      } else {
+        size_t count = 0;
+        size_t maxCount = delayMult * maxDelayCount;
+        while (!condition() && count < maxCount) {
+          std::this_thread::sleep_for(std::chrono::milliseconds(delayTime));
+          count++;
+        }
+        if (count < maxCount) std::this_thread::sleep_for(std::chrono::milliseconds(delayTime));
       }
-      if (count < maxCount) std::this_thread::sleep_for(std::chrono::milliseconds(delayTime));
+      if (enforceCond && !condition()) {
+        if (!fmsg.empty()) SKSE::log::debug("{}", fmsg.c_str());
+        return;
+      }
+      func();
+    } __except (EXCEPTION_EXECUTE_HANDLER) {
+      SKSE::log::debug("Hardware exception occurred in parallel processes. If the issue is causing you a problem, please report this issue.");
     }
-    if (enforceCond && !condition()) {
-      if (!fmsg.empty()) SKSE::log::debug("{}", fmsg.c_str());
-      return;
-    }
-    func();
   }).detach();
 }
 
