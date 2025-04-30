@@ -266,10 +266,7 @@ Common::eRes Core::SetActorAddon(RE::Actor* const actor, const int choice, const
   if (res < 0) return res;
   auto addon = addonIdx < 0 ? nullptr : (npc->IsFemale() ? femAddons[addonIdx].first : malAddons[addonIdx].first);
   if (actor->IsPlayerRef() && shouldSave) SetPlayerInfo(actor, addon, addonIdx);
-  if (!npc->IsPlayer() && shouldSave) {
-    auto saved = Inis::SetNPCAddon(npc, addon, addonIdx);
-    if (!saved) Inis::SetActorAddon(actor, addon, addonIdx);
-  }
+  if (!npc->IsPlayer() && shouldSave) Inis::SetActorAddon(actor, npc, addon, addonIdx);
   if (shouldSave) {
     UpdateFormLists(actor);
     UpdateBlock(actor, nullptr, false);
@@ -282,7 +279,7 @@ Common::eRes Core::GetActorSize(RE::Actor* const actor, int& sizeCat) const {
   if (auto res = CanModifyActor(actor); res < 0) return res;
   const auto npc = actor->GetActorBase();
   if (npc->IsPlayer() && boolSettings.Get(Common::bsExcludePlayerSize)) Common::errPlayer;
-  if (sizeCat = Inis::GetActorSize(actor); sizeCat >= 0) return Common::resOkSizable;
+  if (sizeCat = Inis::GetActorSize(actor, npc); sizeCat >= 0) return Common::resOkSizable;
   sizeCat = ut->HasKeywordInList(npc, ut->SizeKeys());
   if (sizeCat < 0) sizeCat = npc->formID % Common::sizeCatCount;
   return Common::resOkSizable;
@@ -328,10 +325,7 @@ Common::eRes Core::SetActorSize(RE::Actor* const actor, int sizeCat, const bool 
         [actor]() -> bool { return actor && actor->Is3DLoaded() && actor->GetNodeByName(Common::genBoneNames[Common::egbBase]); }, 0, true, failMessage);
   }
   if (actor->IsPlayerRef() && sizeCat != Common::nul && shouldSave) SetPlayerInfo(actor, nullptr, Common::nan, sizeCat);
-  if (!actor->IsPlayerRef() && shouldSave) {
-    auto saved = Inis::SetNPCSize(actor->GetActorBase(), sizeCat);
-    if (!saved) Inis::SetActorSize(actor, sizeCat);
-  }
+  if (!actor->IsPlayerRef() && shouldSave) Inis::SetActorSize(actor, actor->GetActorBase(), sizeCat);
   return res;
 }
 
@@ -735,7 +729,6 @@ void Core::ProcessNPCs() {
     if (!race->HasKeyword(ut->Key(Common::kyProcessed)) && !race->HasKeyword(ut->Key(Common::kyPreProcessed))) continue;
     raceNPCCount[npc->race]++;
     const auto skin = npc->skin;
-    ApplyUserSettings(npc);
     if (npc->IsFemale()) continue;
     sizeCount[npc->formID % Common::sizeCatCount]++;
     if (!skin) continue;
@@ -802,34 +795,11 @@ RE::TESObjectARMO* Core::FixSkin(RE::TESObjectARMO* const skin, RE::TESRace* con
   }
 }
 
-void Core::ApplyUserSettings(RE::TESNPC* npc) {
-  if (auto npcLoc = ut->FormToLoc(npc); !npcLoc.second.empty()) {
-    if (npcAddons.find(npcLoc) != npcAddons.end()) {
-      auto& addonLoc = npcAddons[npcLoc];
-      auto index = AddonIdxByLoc(npc->IsFemale(), addonLoc);
-      if (SetNPCAddon(npc, index, true) >= 0) {
-        SKSE::log::debug("\tRestored the addon of npc [xx{:x}] from file [{}] to addon [xx{:x}~{}]", npcLoc.first, npcLoc.second, addonLoc.first, addonLoc.second);
-      } else {
-        SKSE::log::debug("\tThe addon [xx{:x}] from file [{}] could not be used for npc [xx{:x}] from file [{}]", addonLoc.first, addonLoc.second, npcLoc.first, npcLoc.second);
-      }
-    }
-    if (npcSizeCats.find(npcLoc) != npcSizeCats.end()) {
-      auto sizeCat = npcSizeCats[npcLoc];
-      if (sizeCat >= 0 && sizeCat <= Common::sizeCatCount) {
-        npc->AddKeyword(ut->SizeKey(sizeCat));
-        SKSE::log::debug("\tRestored the size category of npc [xx{:x}] from file [{}] to [{}]", npcLoc.first, npcLoc.second, sizeCat);
-      } else {
-        SKSE::log::debug("\tThe size category [{}] is out of range for npc [xx{:x}] from file [{}]", sizeCat, npcLoc.first, npcLoc.second);
-      }
-    }
-  }
-}
-
 std::pair<int, bool> Core::GetApplicableAddon(RE::Actor* const actor) const {
   int addonIdx{Common::def};
   auto npc = actor ? actor->GetActorBase() : nullptr;
   if (!npc) return {addonIdx, false};
-  auto savedAddon = Inis::GetActorAddon(actor);
+  auto savedAddon = Inis::GetActorAddon(actor, npc);
   auto list = GetActorAddons(actor, true);
   if (!savedAddon.second.empty()) {
     addonIdx = savedAddon.second == Common::nulStr ? Common::nul : AddonIdxByLoc(npc->IsFemale(), savedAddon);
