@@ -320,7 +320,7 @@ void Inis::SetArmorStatus(const RE::TESObjectARMO *armor, const Common::eKeyword
   }
   auto revIdx = std::ranges::find(statusKeys, revMode);
   if (revIdx == statusKeys.end()) {
-    runTimeArmorStatus[armoLoc] = Common::nan;
+    runTimeArmorStatus[armoLoc] = GetDefault<int>();
   } else {
     runTimeArmorStatus[armoLoc] = static_cast<int>(std::distance(statusKeys.begin(), revIdx));
   }
@@ -499,7 +499,7 @@ void Inis::ClearInis() {
   racialAddons.clear();
   racialSizes.clear();
   runTimeArmorStatus.clear();
-  // actorAddons|actorSizeCats|slot52Mods|extraRevealingMods should not be cleared during lifetime of the game
+  // npcAddons|actorAddons|npcSizeCats|actorSizeCats|slot52Mods|extraRevealingMods should not be cleared during lifetime of the game
 
   excludedRaceMods.clear();
   excludedRaces.clear();

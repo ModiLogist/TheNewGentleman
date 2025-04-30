@@ -311,6 +311,7 @@ Common::eRes Core::SetActorSize(RE::Actor* const actor, int sizeCat, const bool 
     ut->DoDelayed(
         [actor, isPlayer, scale, shouldSave, sizeCat]() {
           auto ac = isPlayer ? RE::PlayerCharacter::GetSingleton() : actor;
+          if (!ac) return;
           RE::NiAVObject* baseNode = ac->GetNodeByName(Common::genBoneNames[Common::egbBase]);
           RE::NiAVObject* scrotNode = ac->GetNodeByName(Common::genBoneNames[Common::egbScrot]);
           if (baseNode && scrotNode) {
