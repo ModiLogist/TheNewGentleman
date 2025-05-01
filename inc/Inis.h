@@ -62,8 +62,6 @@ class Inis {
     std::set<std::string> validSkeletons;
     std::map<SEFormLoc, SEFormLoc> racialAddons;
     std::map<SEFormLoc, float> racialSizes;
-    std::map<SEFormLoc, SEFormLoc> npcAddons;
-    std::map<SEFormLoc, int> npcSizeCats;
     std::map<SEFormLoc, int> runTimeArmorStatus;
     std::map<std::string, bool> slot52Mods;
 
@@ -75,18 +73,18 @@ class Inis {
     void SetRgAddon(const RE::TESRace* rg0, const RE::TESObjectARMO* addon, const int choice);
     void SetRgMult(const RE::TESRace* rgRace, const float mult);
 
-    SEFormLoc GetActorAddon(const RE::Actor* actor) const;
-    bool SetNPCAddon(const RE::TESNPC* npc, const RE::TESObjectARMO* addon, const int choice);
-    void SetActorAddon(const RE::Actor* actor, const RE::TESObjectARMO* addon, const int choice);
+    SEFormLoc GetActorAddon(const RE::Actor* actor, const RE::TESNPC* npc) const;
+    void SetActorAddon(const RE::Actor* actor, const RE::TESNPC* npc, const RE::TESObjectARMO* addon, const int choice);
 
-    int GetActorSize(const RE::Actor* actor) const;
-    bool SetNPCSize(const RE::TESNPC* npc, int genSize);
-    void SetActorSize(const RE::Actor* actor, const int genSize);
+    int GetActorSize(const RE::Actor* actor, const RE::TESNPC* npc) const;
+    void SetActorSize(const RE::Actor* actor, const RE::TESNPC* npc, const int genSize);
 
     void SetArmorStatus(const RE::TESObjectARMO* armor, const Common::eKeyword revMode);
 
   private:
+    std::map<SEFormLoc, SEFormLoc> npcAddons;
     std::map<SEFormLoc, SEFormLoc> actorAddons;
+    std::map<SEFormLoc, int> npcSizeCats;
     std::map<SEFormLoc, int> actorSizeCats;
 
   public:

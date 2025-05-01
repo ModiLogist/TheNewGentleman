@@ -19,10 +19,14 @@ void Inis::LoadMainIni() {
     boolSettings.Set(Common::bsCheckPlayerAddon, true);
     boolSettings.Set(Common::bsForceRechecks, true);
     SKSE::log::info("\tTNG detected Racial Skin Variance and would force the player and NPCs to be reloaded");
+  } else if (boolSettings.Get(Common::bsForceRechecks)) {
+    boolSettings.Set(Common::bsCheckPlayerAddon, false);
+    boolSettings.Set(Common::bsForceRechecks, false);
   }
   if (ut->SEDH()->LookupModByName("UIExtensions.esp")) {
     boolSettings.Set(Common::bsUIExtensions, true);
   } else {
+    boolSettings.Set(Common::bsUIExtensions, false);
     SKSE::log::warn("\tTNG could not detected UIExtensions. You may want to check if it is installed.");
   }
   LoadIniPairs<bool>(settingIni, cActiveMalAddons, activeMalAddons, true);
@@ -248,74 +252,60 @@ void Inis::SetRgMult(const RE::TESRace *rgRace, const float mult) {
   }
 }
 
-SEFormLoc Inis::GetActorAddon(const RE::Actor *actor) const {
-  if (!actor || actor->IsPlayerRef()) return {0, ""};
+SEFormLoc Inis::GetActorAddon(const RE::Actor *actor, const RE::TESNPC *npc) const {
+  if (!npc || !actor || actor->IsPlayerRef() || npc->IsPlayer()) return {0, ""};
+  auto npcLoc = ut->FormToLoc(npc);
+  if (!npcLoc.second.empty() && npcAddons.find(npcLoc) != npcAddons.end()) return npcAddons.at(npcLoc);
   auto actorLoc = ut->FormToLoc(actor);
   if (!actorLoc.second.empty() && actorAddons.find(actorLoc) != actorAddons.end()) return actorAddons.at(actorLoc);
   return {0, ""};
 }
 
-bool Inis::SetNPCAddon(const RE::TESNPC *npc, const RE::TESObjectARMO *addon, const int choice) {
-  auto npcLoc = ut->FormToLoc(npc);
-  if (npcLoc.second.empty()) return false;
-  auto addonLoc = ut->FormToLoc(addon, choice);
-  if (addonLoc.second.empty()) {
-    if (addon) {
-      SKSE::log::critical("Failed to save the addon [{}] for npc [0x{:x}~{}]!", addon->GetFormID(), npcLoc.first, npcLoc.second);
-    } else {
-      SKSE::log::critical("Failed to save an addon for npc [0x{:x}~{}]!", npcLoc.first, npcLoc.second);
-    }
-    return false;
+void Inis::SetActorAddon(const RE::Actor *actor, const RE::TESNPC *npc, const RE::TESObjectARMO *addon, const int choice) {
+  auto charLoc = ut->FormToLoc(npc);
+  bool saveAsActor = false;
+  if (charLoc.second.empty()) {
+    charLoc = ut->FormToLoc(actor);
+    saveAsActor = true;
   }
-  npcAddons[npcLoc] = addonLoc;
-  return true;
-}
-
-void Inis::SetActorAddon(const RE::Actor *actor, const RE::TESObjectARMO *addon, const int choice) {
-  auto actorLoc = ut->FormToLoc(actor);
-  auto addonLoc = ut->FormToLoc(addon, choice);
-  if (actorLoc.second.empty()) {
+  if (charLoc.second.empty()) {
     SKSE::log::critical("Failed to save the selected addon for actor [0x{:x}]!", actor->GetFormID());
     return;
   }
+  auto addonLoc = ut->FormToLoc(addon, choice);
   if (addonLoc.second.empty()) {
     if (addon) {
-      SKSE::log::debug("Failed to save the addon [0x{:x}] for actor [0x{:x}~{}]!", addon->GetFormID(), actorLoc.first, actorLoc.second);
+      SKSE::log::debug("Failed to save the addon [0x{:x}] for [0x{:x}~{}]!", addon->GetFormID(), charLoc.first, charLoc.second);
     } else {
-      SKSE::log::debug("Failed to save an addon for actor [0x{:x}~{}]!", actorLoc.first, actorLoc.second);
+      SKSE::log::debug("Failed to save an addon for [0x{:x}~{}]!", charLoc.first, charLoc.second);
     }
     return;
   }
-  actorAddons[actorLoc] = addonLoc;
+  saveAsActor ? actorAddons[charLoc] = addonLoc : npcAddons[charLoc] = addonLoc;
 }
 
-int Inis::GetActorSize(const RE::Actor *actor) const {
-  if (!actor || actor->IsPlayerRef()) return Common::nul;
+int Inis::GetActorSize(const RE::Actor *actor, const RE::TESNPC *npc) const {
+  if (!npc || !actor || actor->IsPlayerRef() || npc->IsPlayer()) return Common::nul;
+  auto npcLoc = ut->FormToLoc(npc);
+  if (!npcLoc.second.empty() && npcSizeCats.find(npcLoc) != npcSizeCats.end()) return npcSizeCats.at(npcLoc);
   auto actorLoc = ut->FormToLoc(actor);
   if (!actorLoc.second.empty() && actorSizeCats.find(actorLoc) != actorSizeCats.end()) return actorSizeCats.at(actorLoc);
   return Common::nul;
 }
 
-bool Inis::SetNPCSize(const RE::TESNPC *npc, int genSize) {
-  if (genSize == Common::nul) return true;
-  auto npcLoc = ut->FormToLoc(npc);
-  if (npcLoc.second.empty()) return false;
-  npcSizeCats[npcLoc] = genSize == Common::def ? GetDefault<int>() : genSize;
-  return true;
-}
-
-void Inis::SetActorSize(const RE::Actor *actor, const int genSize) {
+void Inis::SetActorSize(const RE::Actor *actor, const RE::TESNPC *npc, const int genSize) {
   if (genSize == Common::nul) return;
-  auto actorLoc = ut->FormToLoc(actor);
-  if (actorLoc.second.empty()) {
-    if (actor) {
-      SKSE::log::debug("Failed to save the size for actor [0x{:x}].", actor->GetFormID());
-    } else {
-      SKSE::log::debug("Failed to save the size for an actor.");
-    }
+  auto charLoc = ut->FormToLoc(npc);
+  bool saveAsActor = false;
+  if (charLoc.second.empty()) {
+    charLoc = ut->FormToLoc(actor);
+    saveAsActor = true;
+  }
+  if (charLoc.second.empty()) {
+    SKSE::log::critical("Failed to save the size for actor [0x{:x}]!", actor->GetFormID());
     return;
   }
-  actorSizeCats[actorLoc] = genSize == Common::def ? GetDefault<int>() : genSize;
+  (saveAsActor ? actorSizeCats[charLoc] : npcSizeCats[charLoc]) = genSize == Common::def ? GetDefault<int>() : genSize;
 }
 
 void Inis::SetArmorStatus(const RE::TESObjectARMO *armor, const Common::eKeyword revMode) {
@@ -330,7 +320,7 @@ void Inis::SetArmorStatus(const RE::TESObjectARMO *armor, const Common::eKeyword
   }
   auto revIdx = std::ranges::find(statusKeys, revMode);
   if (revIdx == statusKeys.end()) {
-    runTimeArmorStatus[armoLoc] = Common::nan;
+    runTimeArmorStatus[armoLoc] = GetDefault<int>();
   } else {
     runTimeArmorStatus[armoLoc] = static_cast<int>(std::distance(statusKeys.begin(), revIdx));
   }
@@ -463,6 +453,8 @@ void Inis::LoadSingleIni(const char *path, const std::string_view fileName) {
     if (ini.GetAllValues(cArmorSection, cFemRevRecord, values)) LoadModRecordPairs(values, femRevRecords, cFemRevRecord, fileName);
     if (ini.GetAllValues(cArmorSection, cMalRevRecord, values)) LoadModRecordPairs(values, malRevRecords, cMalRevRecord, fileName);
   }
+  LoadIniPairs<SEFormLoc>(ini, cNPCAddonSection, npcAddons);
+  LoadIniPairs<int>(ini, cNPCSizeSection, npcSizeCats);
 }
 
 bool Inis::IsRaceExcluded(const RE::TESRace *race) const {
@@ -508,10 +500,8 @@ void Inis::ClearInis() {
   activeFemAddons.clear();
   racialAddons.clear();
   racialSizes.clear();
-  npcAddons.clear();
-  npcSizeCats.clear();
   runTimeArmorStatus.clear();
-  // actorAddons|actorSizeCats|slot52Mods|extraRevealingMods should not be cleared during lifetime of the game
+  // npcAddons|actorAddons|npcSizeCats|actorSizeCats|slot52Mods|extraRevealingMods should not be cleared during lifetime of the game
 
   excludedRaceMods.clear();
   excludedRaces.clear();

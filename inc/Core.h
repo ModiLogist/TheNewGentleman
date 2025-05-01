@@ -68,7 +68,6 @@ class Core : public Singleton<Core>, public Inis {
 
     void ProcessNPCs();
     RE::TESObjectARMO* FixSkin(RE::TESObjectARMO* const skin, RE::TESRace* const race, const char* const name);
-    void ApplyUserSettings(RE::TESNPC* npc);
     std::pair<int, bool> GetApplicableAddon(RE::Actor* const actor) const;
     Common::eRes SetNPCAddon(RE::TESNPC* const npc, const int addonIdx, const bool isUser);
     void OrganizeNPCKeywords(RE::TESNPC* const npc, int addonIdx, const bool isUser) const;
