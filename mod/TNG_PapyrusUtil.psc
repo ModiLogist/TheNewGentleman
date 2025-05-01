@@ -9,7 +9,7 @@ ScriptName TNG_PapyrusUtil hidden
 ; 4: Mark mods with slot 52 as revealing by default,
 ; 5: Allow user to choose the behavior of mods with slot 52,
 ; 6: Randomize Male addons among the active ones
-; 7: UIExtensions compatibility (Used internally)
+; 7: Go to bed compatibility
 ; 8: Show all races in the MCM
 Bool Function GetBoolValue(Int aiID) Global Native
 Function SetBoolValue(Int aiID, Bool abValue) Global Native

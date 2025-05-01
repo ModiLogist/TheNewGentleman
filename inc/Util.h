@@ -91,7 +91,7 @@ namespace Common {
     bsRevealSlot52Mods,
     bsAllowMixSlot52Mods,
     bsRandomizeMaleAddon,
-    bsUIExtensions,
+    bsGoToBed,
     bsShowAllRaces,
     bsDAK,
     boolSettingCount

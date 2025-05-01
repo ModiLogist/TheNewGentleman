@@ -16,7 +16,13 @@ RE::BSEventNotifyControl SEEvents::ProcessEvent(const RE::TESEquipEvent* event, 
   if (!event) return RE::BSEventNotifyControl::kContinue;
   const auto actor = event->actor ? event->actor->As<RE::Actor>() : nullptr;
   auto armor = RE::TESForm::LookupByID<RE::TESObjectARMO>(event->baseObject);
-  if (!armor || ut->IsBlock(armor) || (!ut->IsCovering(actor, armor) && !armor->HasPartOf(Common::genitalSlot))) return RE::BSEventNotifyControl::kContinue;
+  if (!actor || !armor || (!ut->IsCovering(actor, armor) && !armor->HasPartOf(Common::genitalSlot))) return RE::BSEventNotifyControl::kContinue;
+  if (ut->IsBlock(armor)) {
+    if (!event->equipped && core->boolSettings.Get(Common::bsGoToBed)) {
+      ut->DoDelayed([actor]() { core->UpdateActor(actor, nullptr, false); }, []() { return true; }, 100, false);
+    }
+    return RE::BSEventNotifyControl::kContinue;
+  }
   core->UpdateActor(actor, armor, event->equipped);
   return RE::BSEventNotifyControl::kContinue;
 }
