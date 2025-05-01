@@ -160,7 +160,6 @@ namespace Common {
       RE::TESRace* races[racesCount] = {};
       RE::BGSKeyword* keywords[keywordsCount] = {};
       RE::BGSKeyword* sizeKey[sizeCatCount] = {};
-      RE::BGSListForm* tngFormLists[flCount] = {};
       RE::TESObjectARMO* block = nullptr;
   };
 }
