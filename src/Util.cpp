@@ -32,10 +32,7 @@ std::vector<RE::BGSKeyword*> Common::Util::SizeKeys(const size_t last) {
   return res;
 }
 
-RE::BGSListForm* Common::Util::FormList(const size_t idx) {
-  if (!tngFormLists[idx]) tngFormLists[idx] = ut->SEDH()->LookupForm<RE::BGSListForm>(formListIDs[idx].first, formListIDs[idx].second);
-  return tngFormLists[idx];
-}
+RE::BGSListForm* Common::Util::FormList(const size_t idx) { return ut->SEDH()->LookupForm<RE::BGSListForm>(formListIDs[idx].first, formListIDs[idx].second); }
 
 RE::TESObjectARMO* Common::Util::Block() {
   if (!block) block = ut->SEDH()->LookupForm<RE::TESObjectARMO>(coverID.first, coverID.second);

@@ -91,7 +91,7 @@ namespace Common {
     bsRevealSlot52Mods,
     bsAllowMixSlot52Mods,
     bsRandomizeMaleAddon,
-    bsUIExtensions,
+    bsGoToBed,
     bsShowAllRaces,
     bsDAK,
     boolSettingCount
@@ -160,7 +160,6 @@ namespace Common {
       RE::TESRace* races[racesCount] = {};
       RE::BGSKeyword* keywords[keywordsCount] = {};
       RE::BGSKeyword* sizeKey[sizeCatCount] = {};
-      RE::BGSListForm* tngFormLists[flCount] = {};
       RE::TESObjectARMO* block = nullptr;
   };
 }

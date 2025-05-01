@@ -187,8 +187,8 @@ void Core::UpdateActor(RE::Actor* const actor, RE::TESObjectARMO* const armor, c
       UpdatePlayer(actor, canModify == Common::resOkRaceR);
     } else {
       UpdateAddon(actor, canModify == Common::resOkRaceR);
+      UpdateFormLists(actor);
     }
-    UpdateFormLists(actor);
   }
   UpdateBlock(actor, armor, isEquipped);
   if (npc->skin != skin) ut->QueueNiNodeUpdate(actor);
