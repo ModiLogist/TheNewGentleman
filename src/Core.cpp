@@ -3,9 +3,10 @@
 Core* core = Core::GetSingleton();
 
 void Core::Process() {
+  LoadTngInis();
   LoadMainIni();
   LoadAddons();
-  LoadTngInis();
+
   rgInfoList.emplace_back();
   auto& rg0 = rgInfoList[0];
   rg0.name = "TNGRg0";
