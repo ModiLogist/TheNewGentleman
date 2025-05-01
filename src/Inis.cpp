@@ -23,12 +23,7 @@ void Inis::LoadMainIni() {
     boolSettings.Set(Common::bsCheckPlayerAddon, false);
     boolSettings.Set(Common::bsForceRechecks, false);
   }
-  if (ut->SEDH()->LookupModByName("UIExtensions.esp")) {
-    boolSettings.Set(Common::bsUIExtensions, true);
-  } else {
-    boolSettings.Set(Common::bsUIExtensions, false);
-    SKSE::log::warn("\tTNG could not detected UIExtensions. You may want to check if it is installed.");
-  }
+  if (!ut->SEDH()->LookupModByName("UIExtensions.esp")) SKSE::log::warn("\tTNG could not detected UIExtensions. You may want to check if it is installed.");
   LoadIniPairs<bool>(settingIni, cActiveMalAddons, activeMalAddons, true);
   LoadIniPairs<bool>(settingIni, cActiveFemAddons, activeFemAddons, false);
   SKSE::log::debug("\tRestored all addon status to previous selections");

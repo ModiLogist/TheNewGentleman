@@ -13,7 +13,7 @@ Int cbForceTheCheck
 Int cbRevealSlot52s
 Int cbLetMixSlot52s    
 Int cbRandomizeMale
-Int cbUI_Extensions
+Int cbGoToBed
 Int cbShowEveryRace
 Int cbDAK
 
@@ -69,9 +69,10 @@ Int fi52DefBehaviorHdl
 Int fiPCEHdl
 Int fiPCUHdl
 Int fiPCRHdl
+Int fiPZZHdl
 
 Int Function GetVersion()
-  Return 10
+  Return 11
 EndFunction
 
 Event OnConfigInit()
@@ -122,7 +123,7 @@ Event OnConfigInit()
   cbRevealSlot52s = 3
   cbLetMixSlot52s = 4
   cbRandomizeMale = 5
-  cbUI_Extensions = 6
+  cbGoToBed = 6
   cbShowEveryRace = 7
   cbDAK = 8
 
@@ -287,15 +288,15 @@ Event OnPageReset(String asPage)
   
   If asPage == Pages[4]
     AddHeaderOption("$TNG_GPH")
-    AddHeaderOption("")
+    AddHeaderOption("$TNG_GAD")
     fiPCEHdl = AddToggleOption("$TNG_GEP", TNG_PapyrusUtil.GetBoolValue(cbExcludePlayer))
     Int liFlag = OPTION_FLAG_NONE
     If TNG_PapyrusUtil.GetBoolValue(cbForceTheCheck)
       liFlag = OPTION_FLAG_DISABLED
     EndIf
+    fiPZZHdl = AddToggleOption("$TNG_GZZ", TNG_PapyrusUtil.GetBoolValue(cbGoToBed))
     fiPCUHdl = AddToggleOption("$TNG_GPC", TNG_PapyrusUtil.GetBoolValue(cbCheckingPCGen), liFlag)
     fiPCRHdl = AddToggleOption("$TNG_GPR", TNG_PapyrusUtil.GetBoolValue(cbShowEveryRace))
-    AddEmptyOption()
             
     AddHeaderOption("$TNG_L_H")
     AddHeaderOption("")
@@ -587,6 +588,11 @@ Event OnOptionDefault(Int aiOption)
       SetToggleOptionValue(fiPCEHdl, False)
       Return
     EndIf
+    If aiOption == fiPZZHdl
+      TNG_PapyrusUtil.SetBoolValue(cbGoToBed, False)
+      SetToggleOptionValue(fiPZZHdl, False)
+      Return
+    EndIf
     If aiOption == fiLogLvlHdl
       Int liLvl = TNG_PapyrusUtil.UpdateLogLvl(1)
       SetMenuOptionValue(fiLogLvlHdl, cSLogOptions[liLvl])
@@ -857,6 +863,11 @@ Event OnOptionSelect(Int aiOption)
     If aiOption == fiPCRHdl
       TNG_PapyrusUtil.SetBoolValue(cbShowEveryRace, !TNG_PapyrusUtil.GetBoolValue(cbShowEveryRace))      
       SetToggleOptionValue(fiPCRHdl, TNG_PapyrusUtil.GetBoolValue(cbShowEveryRace))
+      Return
+    EndIf
+    If aiOption == fiPZZHdl
+      TNG_PapyrusUtil.SetBoolValue(cbGoToBed, !TNG_PapyrusUtil.GetBoolValue(cbGoToBed))      
+      SetToggleOptionValue(fiPZZHdl, TNG_PapyrusUtil.GetBoolValue(cbGoToBed))
       Return
     EndIf
     If aiOption == fiLogDirHdl
