@@ -6,12 +6,6 @@ void Core::Process() {
   LoadTngInis();
   LoadMainIni();
   LoadAddons();
-
-  rgInfoList.emplace_back();
-  auto& rg0 = rgInfoList[0];
-  rg0.name = "TNGRg0";
-  rg0.isMain = true;
-  rg0.noMCM = true;
   ProcessRaces();
   ProcessNPCs();
   CheckArmorPieces();
@@ -430,6 +424,10 @@ int Core::AddonIdxByLoc(const bool isFemale, const SEFormLocView addonLoc) const
 
 void Core::ProcessRaces() {
   SKSE::log::info("Processing races...");
+  auto& rg0 = rgInfoList.emplace_back();
+  rg0.name = "TNGRg0";
+  rg0.isMain = true;
+  rg0.noMCM = true;
   const auto& allRaces = ut->SEDH()->GetFormArray<RE::TESRace>();
   int logInfo[4] = {0, 0, 0, 0};
   std::vector<RE::BGSKeyword*> keywords = {ut->Key(Common::kyIgnored), ut->Key(Common::kyReady), ut->Key(Common::kyProcessed), ut->Key(Common::kyPreProcessed)};
