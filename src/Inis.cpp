@@ -453,6 +453,8 @@ void Inis::LoadSingleIni(const char *path, const std::string_view fileName) {
     if (ini.GetAllValues(cArmorSection, cFemRevRecord, values)) LoadModRecordPairs(values, femRevRecords, cFemRevRecord, fileName);
     if (ini.GetAllValues(cArmorSection, cMalRevRecord, values)) LoadModRecordPairs(values, malRevRecords, cMalRevRecord, fileName);
   }
+  LoadIniPairs<SEFormLoc>(ini, cNPCAddonSection, npcAddons);
+  LoadIniPairs<int>(ini, cNPCSizeSection, npcSizeCats);
 }
 
 bool Inis::IsRaceExcluded(const RE::TESRace *race) const {
