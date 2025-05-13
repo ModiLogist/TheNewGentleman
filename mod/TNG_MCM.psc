@@ -40,7 +40,6 @@ Actor fkLastActor = None
 GlobalVariable fkDAK = None
 Int fiPos = 0
 Int fiLastActor = -1
-Int fiL = 0
 
 ;Pointer to UI
 Int[] fIRaceTypeHdls
@@ -165,6 +164,7 @@ Event OnGameReload()
 EndEvent
 
 Event OnUpdate()
+  fkLastActor = None
   If fiLastActor > 0
     fiLastActor = -1
     ShowNotification("$TNG_KAR")
@@ -1108,62 +1108,70 @@ Function Update52Behaviors(Int aiChoice)
   ForcePageReset()
 EndFunction
 
-Actor Function TargetOrPlayer(Bool abCheckLock)
+Actor Function TargetOrPlayer(Bool abNeedsAddon, Bool abFromTop = True)
   Actor lkActor = Game.GetCurrentCrosshairRef() as Actor
-  If abCheckLock && (fiLastActor >= 0)
-    lkActor = GetLockedActor()
-    If (!lkActor)
-      fiLastActor = -1
-      Return TargetOrPlayer(False)
-    EndIf
-  EndIf
   If !lkActor
     lkActor = PlayerRef
+  EndIf
+  If !abNeedsAddon
+    Return lkActor    
+  EndIf
+  If !HasAddon(lkActor)
+    lkActor = PlayerRef
+  EndIf
+
+  Cell lkCell = PlayerRef.GetParentCell()  
+  Int liCount = lkCell.GetNumRefs(43)
+  If abFromTop ;On user keypress
+    If (fiLastActor < 0) && HasAddon(lkActor)
+      Return lkActor
+    ElseIf fkLastActor && (PlayerRef.GetDistance(fkLastActor) < 300)
+      RegisterForSingleUpdate(60.0)
+      Return fkLastActor
+    ElseIf (fiLastActor >= liCount) || (fiLastActor < 0)
+      fiLastActor = 0
+    EndIf
+  EndIf
+
+  If (fiLastActor >= liCount) ;When the list is exhausted on internal calls
+    fiLastActor = -1
+    Return PlayerRef
+  EndIf
+
+  Actor lkActor = lkCell.GetNthRef(fiLastActor, 43) as Actor
+  If !HasAddon(lkActor)
+    fiLastActor += 1
+    Actor lkActor = TargetOrPlayer(True, False) 
+  EndIf
+  If (PlayerRef.GetDistance(lkActor) > 300)
+    fiLastActor += 1
+    Actor lkActor = TargetOrPlayer(True, False)
   EndIf
   Return lkActor
 EndFunction
 
 Actor Function LockOnNext()
-  fiLastActor += 1
-  Actor lkActor = TargetOrPlayer(True)  
-  If fiLastActor == 0
-    ShowNotification("$TNG_KAL", true)
+  fkLastActor = None
+  If fiLastActor < 0
+    ShowNotification("$TNG_KAL", True)
   EndIf
-  ShowNotification(lkActor.GetLeveledActorBase().GetName(), true)
+  fiLastActor += 1
+  Actor lkActor = TargetOrPlayer(True, False)  
+  ShowNotification(lkActor.GetLeveledActorBase().GetName(), True)
   RegisterForSingleUpdate(60.0)
 EndFunction
 
-Actor Function GetLockedActor()  
-  fiL += 1
-  Cell lkCell = PlayerRef.GetParentCell()
-  Int liCount = lkCell.GetNumRefs(43)  
-  If (fiL > liCount)
-    fiLastActor = -1
-    Return PlayerRef
-  EndIf
-  If fiLastActor >= liCount
-    fiLastActor = 0
-  EndIf
-  Actor lkActor = lkCell.GetNthRef(fiLastActor, 43) as Actor
+Bool Function HasAddon(Actor akActor)
   ActorBase lkNPC = lkActor.GetLeveledActorBase()
   If !lkNPC
-    fiLastActor += 1
-    Return GetLockedActor()
+    Return False
   EndIf
   If (lkNPC.GetSex() == 1) && (!FlGW.HasForm(lkNPC))    
-    fiLastActor += 1
-    Return GetLockedActor()
+    Return False
   EndIf
   If (FlUM.HasForm(lkNPC))
-    fiLastActor += 1
-    Return GetLockedActor()
+    Return False
   EndIf
-  If (PlayerRef.GetDistance(lkActor) > 300)
-    fiLastActor += 1
-    Return GetLockedActor()
-  EndIf
-  fiL = 0
-  Return lkActor
 EndFunction
 
 Function ShowDebugMenu(Actor akActor)
