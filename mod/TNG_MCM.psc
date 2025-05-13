@@ -447,7 +447,7 @@ Event OnOptionDefault(Int aiOption)
     If aiOption == fiDAKHdl
       TNG_PapyrusUtil.SetBoolValue(cbDAK, False)
       SetToggleOptionValue(fiDAKHdl, False)
-      Bool lbResetAll = ShowMessage("$TNG_DKN", true, "$TNG_Yes", "$TNG__No")
+      Bool lbResetAll = ShowMessage("$TNG_DKN", True, "$TNG_Yes", "$TNG__No")
       If lbResetAll
         OnOptionDefault(fiNPCKeyHdl)
         OnOptionDefault(fiRevealKeyHdl)
@@ -782,7 +782,7 @@ Event OnOptionSelect(Int aiOption)
       TNG_PapyrusUtil.SetBoolValue(cbDAK, !TNG_PapyrusUtil.GetBoolValue(cbDAK))
       SetToggleOptionValue(fiDAKHdl, TNG_PapyrusUtil.GetBoolValue(cbDAK) )
       If !TNG_PapyrusUtil.GetBoolValue(cbDAK)
-        Bool lbResetAll = ShowMessage("$TNG_DKN", true, "$TNG_Yes", "$TNG__No")
+        Bool lbResetAll = ShowMessage("$TNG_DKN", True, "$TNG_Yes", "$TNG__No")
         If lbResetAll
           OnOptionDefault(fiNPCKeyHdl)
           OnOptionDefault(fiRevealKeyHdl)
@@ -871,7 +871,7 @@ Event OnOptionSelect(Int aiOption)
       Return
     EndIf
     If aiOption == fiLogDirHdl
-      ShowMessage(TNG_PapyrusUtil.ShowLogLocation(), true, "Ok")
+      ShowMessage(TNG_PapyrusUtil.ShowLogLocation(), True, "Ok")
       Return
     EndIf
     Return
@@ -889,7 +889,7 @@ Event OnOptionKeyMapChange(Int aiOption, Int aiKeyCode, String asConflictControl
       Else
         lsNotif = "This key is already mapped to:\n\"" + asConflictControl + "\"\n\nAre you sure you want to continue?"
       EndIf
-      lbContinue = ShowMessage(lsNotif, true, "$TNG_Yes", "$TNG__No")  
+      lbContinue = ShowMessage(lsNotif, True, "$TNG_Yes", "$TNG__No")  
       If (!lbContinue) 
         Return
       EndIf
@@ -903,7 +903,7 @@ EndEvent
 
 Event OnKeyDown(Int aiKey)
   If TNG_PapyrusUtil.GetBoolValue(cbDAK) && !fkDAK
-    ShowNotification("$TNG_W_3", true)
+    ShowNotification("$TNG_W_3", True)
     Return
   EndIf
   If TNG_PapyrusUtil.GetBoolValue(cbDAK)
@@ -1174,7 +1174,7 @@ Function ShowDebugMenu(Actor akActor)
   lkDebugMenu.AddEntryItem("$TNG_P_2")  
   lkDebugMenu.OpenMenu(akActor)
   Int liIssueID = lkDebugMenu.GetResultInt()  
-  ShowNotification(TNG_PapyrusUtil.WhyProblem(akActor,liIssueID), true)
+  ShowNotification(TNG_PapyrusUtil.WhyProblem(akActor,liIssueID), True)
 EndFunction
 
 Int Function TNGSetAddon(Actor akActor, Int aiAddon)
