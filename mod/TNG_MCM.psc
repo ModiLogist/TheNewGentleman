@@ -1178,7 +1178,6 @@ Function ShowDebugMenu(Actor akActor)
 EndFunction
 
 Int Function TNGSetAddon(Actor akActor, Int aiAddon)
-  akActor.SendModEvent("TNGSetMyAddon", akActor.GetName(), aiAddon as Float + 0.1)
   Int liRes = TNG_PapyrusUtil.SetActorAddon(akActor, aiAddon)
   If liRes >= 0
     If !akActor.IsOnMount()
@@ -1190,7 +1189,8 @@ Int Function TNGSetAddon(Actor akActor, Int aiAddon)
     EndIf
     TNGSetAddon(akActor, -2)    
     HandleWarnings(liRes)
-  EndIf
+  EndIf  
+  akActor.SendModEvent("TNGSetMyAddon", akActor.GetName(), aiAddon as Float + 0.1)
   Return liRes
 EndFunction
 
