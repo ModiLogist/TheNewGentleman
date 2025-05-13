@@ -72,7 +72,7 @@ Int fiPCRHdl
 Int fiPZZHdl
 
 Int Function GetVersion()
-  Return 11
+  Return 12
 EndFunction
 
 Event OnConfigInit()
@@ -139,7 +139,7 @@ Event OnConfigInit()
   cFSizes[2] = 2
   cFSizes[3] = 3
   cFSizes[4] = 4
-  cfWomenChance = 5
+  cfWomenChance = 6
 
   ciLockKey = 56 ; Left Alt Key
 EndEvent
