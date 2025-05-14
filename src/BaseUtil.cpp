@@ -107,23 +107,16 @@ void Common::BaseUtil::QueueNiNodeUpdate(const RE::Actor* actor) const {
 }
 
 void Common::BaseUtil::UpdateFormList(RE::BGSListForm* formList, RE::TESForm* form, const bool addRemove) const {
-  if (!formList || !form) {
+  if (!formList || !form || !formList->scriptAddedTempForms) {
     SKSE::log::critical("UpdateFormList failed: formList is {} and form is {}.", formList ? "valid" : "invalid", form ? "valid" : "invalid");
     return;
   }
-  if (addRemove && !formList->HasForm(form)) {
+  auto idIt = std::find(formList->scriptAddedTempForms->begin(), formList->scriptAddedTempForms->end(), form->formID);
+  if (addRemove && idIt == formList->scriptAddedTempForms->end()) {
     formList->AddForm(form);
-  } else if (!addRemove && formList->HasForm(form)) {
-    auto ptrIt = std::find(formList->forms.begin(), formList->forms.end(), form);
-    if (ptrIt != formList->forms.end()) {
-      formList->forms.erase(ptrIt);
-      return;
-    }
-    auto idIt = std::find(formList->scriptAddedTempForms->begin(), formList->scriptAddedTempForms->end(), form->formID);
-    if (idIt != formList->scriptAddedTempForms->end()) {
-      formList->scriptAddedTempForms->erase(idIt);
-      return;
-    }
+  } else if (!addRemove && idIt != formList->scriptAddedTempForms->end()) {
+    formList->scriptAddedTempForms->erase(idIt);
+    return;
   }
 }
 
