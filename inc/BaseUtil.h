@@ -59,6 +59,8 @@ namespace Common {
             } else {
               static_assert(false, "Unsupported type for SaveValue");
             }
+          } else {
+            ini.Delete(sections[i].c_str(), keys[i].c_str(), true);
           }
         }
       }
