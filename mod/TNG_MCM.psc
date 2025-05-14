@@ -40,7 +40,6 @@ Actor fkLastActor = None
 GlobalVariable fkDAK = None
 Int fiPos = 0
 Int fiLastActor = -1
-Int fiL = 0
 
 ;Pointer to UI
 Int[] fIRaceTypeHdls
@@ -72,7 +71,7 @@ Int fiPCRHdl
 Int fiPZZHdl
 
 Int Function GetVersion()
-  Return 11
+  Return 12
 EndFunction
 
 Event OnConfigInit()
@@ -139,7 +138,7 @@ Event OnConfigInit()
   cFSizes[2] = 2
   cFSizes[3] = 3
   cFSizes[4] = 4
-  cfWomenChance = 5
+  cfWomenChance = 6
 
   ciLockKey = 56 ; Left Alt Key
 EndEvent
@@ -165,6 +164,7 @@ Event OnGameReload()
 EndEvent
 
 Event OnUpdate()
+  fkLastActor = None
   If fiLastActor > 0
     fiLastActor = -1
     ShowNotification("$TNG_KAR")
@@ -447,7 +447,7 @@ Event OnOptionDefault(Int aiOption)
     If aiOption == fiDAKHdl
       TNG_PapyrusUtil.SetBoolValue(cbDAK, False)
       SetToggleOptionValue(fiDAKHdl, False)
-      Bool lbResetAll = ShowMessage("$TNG_DKN", true, "$TNG_Yes", "$TNG__No")
+      Bool lbResetAll = ShowMessage("$TNG_DKN", True, "$TNG_Yes", "$TNG__No")
       If lbResetAll
         OnOptionDefault(fiNPCKeyHdl)
         OnOptionDefault(fiRevealKeyHdl)
@@ -782,7 +782,7 @@ Event OnOptionSelect(Int aiOption)
       TNG_PapyrusUtil.SetBoolValue(cbDAK, !TNG_PapyrusUtil.GetBoolValue(cbDAK))
       SetToggleOptionValue(fiDAKHdl, TNG_PapyrusUtil.GetBoolValue(cbDAK) )
       If !TNG_PapyrusUtil.GetBoolValue(cbDAK)
-        Bool lbResetAll = ShowMessage("$TNG_DKN", true, "$TNG_Yes", "$TNG__No")
+        Bool lbResetAll = ShowMessage("$TNG_DKN", True, "$TNG_Yes", "$TNG__No")
         If lbResetAll
           OnOptionDefault(fiNPCKeyHdl)
           OnOptionDefault(fiRevealKeyHdl)
@@ -871,7 +871,7 @@ Event OnOptionSelect(Int aiOption)
       Return
     EndIf
     If aiOption == fiLogDirHdl
-      ShowMessage(TNG_PapyrusUtil.ShowLogLocation(), true, "Ok")
+      ShowMessage(TNG_PapyrusUtil.ShowLogLocation(), True, "Ok")
       Return
     EndIf
     Return
@@ -889,7 +889,7 @@ Event OnOptionKeyMapChange(Int aiOption, Int aiKeyCode, String asConflictControl
       Else
         lsNotif = "This key is already mapped to:\n\"" + asConflictControl + "\"\n\nAre you sure you want to continue?"
       EndIf
-      lbContinue = ShowMessage(lsNotif, true, "$TNG_Yes", "$TNG__No")  
+      lbContinue = ShowMessage(lsNotif, True, "$TNG_Yes", "$TNG__No")  
       If (!lbContinue) 
         Return
       EndIf
@@ -903,7 +903,7 @@ EndEvent
 
 Event OnKeyDown(Int aiKey)
   If TNG_PapyrusUtil.GetBoolValue(cbDAK) && !fkDAK
-    ShowNotification("$TNG_W_3", true)
+    ShowNotification("$TNG_W_3", True)
     Return
   EndIf
   If TNG_PapyrusUtil.GetBoolValue(cbDAK)
@@ -1108,62 +1108,70 @@ Function Update52Behaviors(Int aiChoice)
   ForcePageReset()
 EndFunction
 
-Actor Function TargetOrPlayer(Bool abCheckLock)
+Actor Function TargetOrPlayer(Bool abNeedsAddon, Bool abFromTop = True)
   Actor lkActor = Game.GetCurrentCrosshairRef() as Actor
-  If abCheckLock && (fiLastActor >= 0)
-    lkActor = GetLockedActor()
-    If (!lkActor)
-      fiLastActor = -1
-      Return TargetOrPlayer(False)
-    EndIf
-  EndIf
   If !lkActor
     lkActor = PlayerRef
+  EndIf
+  If !abNeedsAddon
+    Return lkActor    
+  EndIf
+  If !HasAddon(lkActor)
+    lkActor = PlayerRef
+  EndIf
+
+  Cell lkCell = PlayerRef.GetParentCell()  
+  Int liCount = lkCell.GetNumRefs(43)
+  If abFromTop ;On user keypress
+    If (fiLastActor < 0) && HasAddon(lkActor)
+      Return lkActor
+    ElseIf fkLastActor && (PlayerRef.GetDistance(fkLastActor) < 300)
+      RegisterForSingleUpdate(60.0)
+      Return fkLastActor
+    ElseIf (fiLastActor >= liCount) || (fiLastActor < 0)
+      fiLastActor = 0
+    EndIf
+  EndIf
+
+  If (fiLastActor >= liCount) ;When the list is exhausted on internal calls
+    fiLastActor = -1
+    Return PlayerRef
+  EndIf
+
+  lkActor = lkCell.GetNthRef(fiLastActor, 43) as Actor
+  If !HasAddon(lkActor)
+    fiLastActor += 1
+    lkActor = TargetOrPlayer(True, False) 
+  EndIf
+  If (PlayerRef.GetDistance(lkActor) > 300)
+    fiLastActor += 1
+    lkActor = TargetOrPlayer(True, False)
   EndIf
   Return lkActor
 EndFunction
 
 Actor Function LockOnNext()
-  fiLastActor += 1
-  Actor lkActor = TargetOrPlayer(True)  
-  If fiLastActor == 0
-    ShowNotification("$TNG_KAL", true)
+  fkLastActor = None
+  If fiLastActor < 0
+    ShowNotification("$TNG_KAL", True)
   EndIf
-  ShowNotification(lkActor.GetLeveledActorBase().GetName(), true)
+  fiLastActor += 1
+  Actor lkActor = TargetOrPlayer(True, False)  
+  ShowNotification(lkActor.GetLeveledActorBase().GetName(), True)
   RegisterForSingleUpdate(60.0)
 EndFunction
 
-Actor Function GetLockedActor()  
-  fiL += 1
-  Cell lkCell = PlayerRef.GetParentCell()
-  Int liCount = lkCell.GetNumRefs(43)  
-  If (fiL > liCount)
-    fiLastActor = -1
-    Return PlayerRef
-  EndIf
-  If fiLastActor >= liCount
-    fiLastActor = 0
-  EndIf
-  Actor lkActor = lkCell.GetNthRef(fiLastActor, 43) as Actor
-  ActorBase lkNPC = lkActor.GetLeveledActorBase()
+Bool Function HasAddon(Actor akActor)
+  ActorBase lkNPC = akActor.GetLeveledActorBase()
   If !lkNPC
-    fiLastActor += 1
-    Return GetLockedActor()
+    Return False
   EndIf
   If (lkNPC.GetSex() == 1) && (!FlGW.HasForm(lkNPC))    
-    fiLastActor += 1
-    Return GetLockedActor()
+    Return False
   EndIf
   If (FlUM.HasForm(lkNPC))
-    fiLastActor += 1
-    Return GetLockedActor()
+    Return False
   EndIf
-  If (PlayerRef.GetDistance(lkActor) > 300)
-    fiLastActor += 1
-    Return GetLockedActor()
-  EndIf
-  fiL = 0
-  Return lkActor
 EndFunction
 
 Function ShowDebugMenu(Actor akActor)
@@ -1174,11 +1182,10 @@ Function ShowDebugMenu(Actor akActor)
   lkDebugMenu.AddEntryItem("$TNG_P_2")  
   lkDebugMenu.OpenMenu(akActor)
   Int liIssueID = lkDebugMenu.GetResultInt()  
-  ShowNotification(TNG_PapyrusUtil.WhyProblem(akActor,liIssueID), true)
+  ShowNotification(TNG_PapyrusUtil.WhyProblem(akActor,liIssueID), True)
 EndFunction
 
 Int Function TNGSetAddon(Actor akActor, Int aiAddon)
-  akActor.SendModEvent("TNGSetMyAddon", akActor.GetName(), aiAddon as Float + 0.1)
   Int liRes = TNG_PapyrusUtil.SetActorAddon(akActor, aiAddon)
   If liRes >= 0
     If !akActor.IsOnMount()
@@ -1190,7 +1197,8 @@ Int Function TNGSetAddon(Actor akActor, Int aiAddon)
     EndIf
     TNGSetAddon(akActor, -2)    
     HandleWarnings(liRes)
-  EndIf
+  EndIf  
+  akActor.SendModEvent("TNGSetMyAddon", akActor.GetName(), aiAddon as Float + 0.1)
   Return liRes
 EndFunction
 
