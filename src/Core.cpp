@@ -273,7 +273,7 @@ Common::eRes Core::GetActorSize(RE::Actor* const actor, int& sizeCat) const {
   sizeCat = Common::nan;
   if (auto res = CanModifyActor(actor); res < 0) return res;
   const auto npc = actor->GetActorBase();
-  if (npc->IsPlayer() && boolSettings.Get(Common::bsExcludePlayerSize)) Common::errPlayer;
+  if (npc->IsPlayer() && boolSettings.Get(Common::bsExcludePlayerSize)) return Common::errPlayer;
   if (sizeCat = Inis::GetActorSize(actor, npc); sizeCat >= 0) return Common::resOkSizable;
   sizeCat = ut->HasKeywordInList(npc, ut->SizeKeys());
   if (sizeCat < 0) sizeCat = npc->formID % Common::sizeCatCount;
