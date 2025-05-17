@@ -187,7 +187,6 @@ void Core::UpdateActor(RE::Actor* const actor, RE::TESObjectARMO* const armor, c
       UpdatePlayer(actor, canModify == Common::resOkRaceR);
     } else {
       UpdateAddon(actor, canModify == Common::resOkRaceR);
-      UpdateFormLists(actor);
     }
   }
   UpdateBlock(actor, armor, isEquipped);
@@ -257,12 +256,13 @@ Common::eRes Core::SetActorAddon(RE::Actor* const actor, const int choice, const
     SKSE::log::debug("Setting addon [{}] for actor [0x{:x}:{}].", choice, actor->GetFormID(), npc->GetName());
   }
   auto addonIdx = choice < 0 ? choice : shouldSave ? static_cast<int>(list[choice].first) : choice;
+  auto oldSkin = npc->skin;
   auto res = SetNPCAddon(npc, addonIdx, isUser);
   if (res < 0) return res;
   auto addon = addonIdx < 0 ? nullptr : (npc->IsFemale() ? femAddons[addonIdx].first : malAddons[addonIdx].first);
   if (actor->IsPlayerRef() && shouldSave) SetPlayerInfo(actor, addon, addonIdx);
   if (!npc->IsPlayer() && shouldSave) Inis::SetActorAddon(actor, npc, addon, addonIdx);
-  if (shouldSave) {
+  if (shouldSave || (!isUser && npc->skin != oldSkin)) {
     UpdateFormLists(actor);
     UpdateBlock(actor, nullptr, false);
   }
