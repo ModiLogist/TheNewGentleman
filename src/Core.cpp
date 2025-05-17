@@ -882,8 +882,8 @@ void Core::OrganizeNPCKeywords(RE::TESNPC* const npc, int addonIdx, const bool i
     if (!kw) SKSE::log::critical("Keyword generation routine failed with keyword {}", reqKw);
     npc->AddKeyword(kw);
   }
-  if (npc->IsFemale() && addonIdx >= 0) {
-    if (femAddons[addonIdx].first->HasKeyword(ut->Key(Common::kySkinWP))) {
+  if (npc->IsFemale()) {
+    if (addonIdx >= 0 && femAddons[addonIdx].first->HasKeyword(ut->Key(Common::kySkinWP))) {
       npc->AddKeyword(ut->Key(Common::kyGentlewoman));
     } else {
       npc->RemoveKeyword(ut->Key(Common::kyGentlewoman));
