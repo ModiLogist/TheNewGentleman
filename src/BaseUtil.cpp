@@ -111,8 +111,8 @@ void Common::BaseUtil::UpdateFormList(RE::BGSListForm* formList, RE::TESForm* fo
     SKSE::log::critical("UpdateFormList failed: formList is {} and form is {}.", formList ? "valid" : "invalid", form ? "valid" : "invalid");
     return;
   }
-  if (!formList->scriptAddedTempForms && addRemove) {
-    formList->AddForm(form);
+  if (!formList->scriptAddedTempForms) {
+    if (addRemove) formList->AddForm(form);
     return;
   }
   auto idIt = std::find(formList->scriptAddedTempForms->begin(), formList->scriptAddedTempForms->end(), form->formID);
