@@ -187,7 +187,6 @@ void Core::UpdateActor(RE::Actor* const actor, RE::TESObjectARMO* const armor, c
       UpdatePlayer(actor, canModify == Common::resOkRaceR);
     } else {
       UpdateAddon(actor, canModify == Common::resOkRaceR);
-      UpdateFormLists(actor);
     }
   }
   UpdateBlock(actor, armor, isEquipped);
@@ -257,12 +256,13 @@ Common::eRes Core::SetActorAddon(RE::Actor* const actor, const int choice, const
     SKSE::log::debug("Setting addon [{}] for actor [0x{:x}:{}].", choice, actor->GetFormID(), npc->GetName());
   }
   auto addonIdx = choice < 0 ? choice : shouldSave ? static_cast<int>(list[choice].first) : choice;
+  auto oldSkin = npc->skin;
   auto res = SetNPCAddon(npc, addonIdx, isUser);
   if (res < 0) return res;
   auto addon = addonIdx < 0 ? nullptr : (npc->IsFemale() ? femAddons[addonIdx].first : malAddons[addonIdx].first);
   if (actor->IsPlayerRef() && shouldSave) SetPlayerInfo(actor, addon, addonIdx);
   if (!npc->IsPlayer() && shouldSave) Inis::SetActorAddon(actor, npc, addon, addonIdx);
-  if (shouldSave) {
+  if (shouldSave || (!isUser && npc->skin != oldSkin)) {
     UpdateFormLists(actor);
     UpdateBlock(actor, nullptr, false);
   }
@@ -273,7 +273,7 @@ Common::eRes Core::GetActorSize(RE::Actor* const actor, int& sizeCat) const {
   sizeCat = Common::nan;
   if (auto res = CanModifyActor(actor); res < 0) return res;
   const auto npc = actor->GetActorBase();
-  if (npc->IsPlayer() && boolSettings.Get(Common::bsExcludePlayerSize)) Common::errPlayer;
+  if (npc->IsPlayer() && boolSettings.Get(Common::bsExcludePlayerSize)) return Common::errPlayer;
   if (sizeCat = Inis::GetActorSize(actor, npc); sizeCat >= 0) return Common::resOkSizable;
   sizeCat = ut->HasKeywordInList(npc, ut->SizeKeys());
   if (sizeCat < 0) sizeCat = npc->formID % Common::sizeCatCount;
@@ -882,8 +882,8 @@ void Core::OrganizeNPCKeywords(RE::TESNPC* const npc, int addonIdx, const bool i
     if (!kw) SKSE::log::critical("Keyword generation routine failed with keyword {}", reqKw);
     npc->AddKeyword(kw);
   }
-  if (npc->IsFemale() && addonIdx >= 0) {
-    if (femAddons[addonIdx].first->HasKeyword(ut->Key(Common::kySkinWP))) {
+  if (npc->IsFemale()) {
+    if (addonIdx >= 0 && femAddons[addonIdx].first->HasKeyword(ut->Key(Common::kySkinWP))) {
       npc->AddKeyword(ut->Key(Common::kyGentlewoman));
     } else {
       npc->RemoveKeyword(ut->Key(Common::kyGentlewoman));
