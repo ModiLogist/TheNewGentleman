@@ -927,6 +927,32 @@ void Core::UpdateFormLists(RE::Actor* const actor) const {
   ut->UpdateFormList(ut->FormList(Common::flmGentleWomen), actor, npc->HasKeyword(ut->Key(npc->IsFemale() ? Common::kyGentlewoman : Common::kyExcluded)));
 }
 
+inline bool InInventory(RE::Actor* const actor, RE::TESBoundObject* const object) {
+  auto invChanges = actor->GetInventoryChanges(true);
+  if (invChanges && invChanges->entryList) {
+    for (auto& entry : *invChanges->entryList) {
+      if (entry && entry->object && entry->object == object) {
+        return true;
+      }
+    }
+  }
+
+  auto container = actor->GetContainer();
+  auto found = false;
+  if (container) {
+    container->ForEachContainerObject([&](RE::ContainerObject& a_entry) {
+      auto obj = a_entry.obj;
+      if (obj && obj == object) {
+        found = true;
+        return RE::BSContainer::ForEachResult::kStop;
+      }
+      return RE::BSContainer::ForEachResult::kContinue;
+    });
+  }
+
+  return found;
+}
+
 void Core::UpdateBlock(RE::Actor* const actor, RE::TESObjectARMO* const armor, const bool isEquipped) const {
   if (!actor) return;
   static bool showErrMessage = true;
@@ -934,7 +960,8 @@ void Core::UpdateBlock(RE::Actor* const actor, RE::TESObjectARMO* const armor, c
   if (down && down == armor && !isEquipped) down = nullptr;
   auto hasCover = armor && isEquipped && !armor->HasPartOf(Common::genitalSlot) ? true : ut->HasCovering(actor, isEquipped ? nullptr : armor);
   if (!NeedsBlock(actor) || (down && (!ut->IsBlock(down) || !hasCover))) {
-    actor->RemoveItem(ut->Block(), 10, RE::ITEM_REMOVE_REASON::kRemove, nullptr, nullptr);
+    //SKSE::log::info(" --- RemoveItem [0x{:x}: {}]", actor->GetFormID(), actor->GetName());
+    actor->RemoveItem(ut->Block(), 1000, RE::ITEM_REMOVE_REASON::kRemove, nullptr, nullptr);
     return;
   }
   if ((hasCover && down) || (!hasCover && !down)) return;
@@ -946,7 +973,12 @@ void Core::UpdateBlock(RE::Actor* const actor, RE::TESObjectARMO* const armor, c
     }
     return;
   }
-  actor->AddObjectToContainer(tngBlock, nullptr, 1, nullptr);
+  if (!InInventory(actor, tngBlock)) {
+    actor->AddObjectToContainer(tngBlock, nullptr, 1, nullptr);
+    //SKSE::log::info(" +++ AddObjectToContainer [0x{:x}: {}]", actor->GetFormID(), actor->GetName());
+  } else {
+    //SKSE::log::info(" === AddObjectToContainer [0x{:x}: {}]", actor->GetFormID(), actor->GetName());
+  }
   RE::ActorEquipManager::GetSingleton()->EquipObject(actor, tngBlock);
 }
 
