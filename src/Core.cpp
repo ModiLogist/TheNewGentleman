@@ -924,7 +924,13 @@ Common::eRes Core::UpdatePlayer(RE::Actor* const actor, const bool isRRace) {
 void Core::UpdateFormLists(RE::Actor* const actor) const {
   auto npc = actor ? actor->GetActorBase() : nullptr;
   if (!npc) return;
-  ut->UpdateFormList(ut->FormList(Common::flmGentleWomen), actor, npc->HasKeyword(ut->Key(npc->IsFemale() ? Common::kyGentlewoman : Common::kyExcluded)));
+  auto list = ut->FormList(npc->IsFemale() ? Common::flmGentleWomen : Common::flmNonGentleMen);
+  auto key = ut->Key(npc->IsFemale() ? Common::kyGentlewoman : Common::kyExcluded);
+  if (!list || !key) {
+    SKSE::log::critical("TNG faced an error when trying to update the form lists. Keyword available: {}. Form list available: {}.", key != nullptr, list != nullptr);
+    return;
+  }
+  ut->UpdateFormList(list, actor, npc->HasKeyword(key));
 }
 
 void Core::UpdateBlock(RE::Actor* const actor, RE::TESObjectARMO* const armor, const bool isEquipped) const {
