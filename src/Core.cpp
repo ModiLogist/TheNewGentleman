@@ -219,25 +219,24 @@ Common::eRes Core::GetActorAddon(RE::Actor* actor, int& addonIdx, bool& isAuto) 
   }
   auto rg = Rg(RgKey(npc->race));
   if (!rg) return Common::errRace;
-  if (!npc->IsFemale() && rg->addonIdx != Common::nul) addonIdx = rg->addonIdx;
-  if (!npc->skin) return addonIdx > Common::nul ? Common::resOkHasAddon : Common::resOkNoAddon;
-  if (!npc->skin->HasKeyword(ut->Key(Common::kyTngSkin))) {
-    if (!npc->IsFemale() && rg->addonIdx != Common::nul) return Common::err40;
-    return Common::resOkNoAddon;
-  }
+  if (!npc->IsFemale()) addonIdx = rg->addonIdx;
+  if (!npc->skin) return (addonIdx > Common::nul) ? Common::resOkHasAddon : Common::resOkNoAddon;
+  if (!npc->skin->HasKeyword(ut->Key(Common::kyTngSkin))) return (addonIdx > Common::nul) ? Common::err40 : Common::resOkNoAddon;
   npc->ForEachKeyword([&](RE::BGSKeyword* kw) {
     if (!kw || kw->GetFormEditorID() == NULL) return RE::BSContainer::ForEachResult::kContinue;
     const std::string kwStr(kw->GetFormEditorID());
     std::string str = "";
     if (kwStr.starts_with(Common::cNPCAutoAddon)) {
       addonIdx = std::stoi(kwStr.substr(strlen(Common::cNPCAutoAddon), 2));
+      return RE::BSContainer::ForEachResult::kStop;
     } else if (kwStr.starts_with(Common::cNPCUserAddon)) {
       isAuto = false;
       addonIdx = std::stoi(kwStr.substr(strlen(Common::cNPCUserAddon), 2));
+      return RE::BSContainer::ForEachResult::kStop;
     }
-    return addonIdx >= 0 ? RE::BSContainer::ForEachResult::kStop : RE::BSContainer::ForEachResult::kContinue;
+    return RE::BSContainer::ForEachResult::kContinue;
   });
-  return addonIdx >= 0 ? Common::resOkHasAddon : Common::resOkNoAddon;
+  return (addonIdx >= 0) ? Common::resOkHasAddon : Common::resOkNoAddon;
 }
 
 Common::eRes Core::SetActorAddon(RE::Actor* const actor, const int choice, const bool isUser, const bool shouldSave) {
@@ -857,11 +856,11 @@ Common::eRes Core::SetNPCAddon(RE::TESNPC* const npc, const int addonIdx, const 
     if (npcSkin && npcSkin->HasKeyword(ut->Key(Common::kyTngSkin))) npc->skin = activeOgSkin == raceSkin ? nullptr : activeOgSkin;
     return Common::resOkFixed;
   }
-  auto addonChoice = addonIdx == Common::def ? rg->addonIdx : addonIdx;
+  auto addonChoice = (addonIdx == Common::def) ? rg->addonIdx : addonIdx;
   OrganizeNPCKeywords(npc, addonIdx, isUser);
-  auto resSkin = addonChoice == Common::nul ? activeOgSkin : GetSkinWithAddonForRg(rg, activeOgSkin, addonChoice, npc->IsFemale());
+  auto resSkin = (addonChoice == Common::nul) ? activeOgSkin : GetSkinWithAddonForRg(rg, activeOgSkin, addonChoice, npc->IsFemale());
   if (resSkin != npcSkin) {
-    npc->skin = resSkin == npc->race->skin ? nullptr : resSkin;
+    npc->skin = (resSkin == npc->race->skin) ? nullptr : resSkin;
   }
   return !npc->IsFemale() || npc->HasKeyword(ut->Key(Common::kyGentlewoman)) ? res : Common::resOkFixed;
 }
