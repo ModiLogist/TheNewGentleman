@@ -19,7 +19,14 @@ RE::BSEventNotifyControl SEEvents::ProcessEvent(const RE::TESEquipEvent* event, 
   if (!actor || !armor || (!ut->IsCovering(actor, armor) && !armor->HasPartOf(Common::genitalSlot))) return RE::BSEventNotifyControl::kContinue;
   if (ut->IsBlock(armor)) {
     if (!event->equipped && core->boolSettings.Get(Common::bsGoToBed)) {
-      ut->DoDelayed([actor]() { core->UpdateActor(actor, nullptr, false); }, []() { return true; }, 100, false);
+      auto actorHandle = actor->GetHandle();
+      ut->DoDelayed([actorHandle]() {
+            SKSE::GetTaskInterface()->AddTask([actorHandle]() {
+              if (actorHandle.get() != nullptr) {
+                core->UpdateActor(actorHandle.get().get(), nullptr, false);
+              }
+            });
+          }, []() { return true; }, 100, false);
     }
     return RE::BSEventNotifyControl::kContinue;
   }
