@@ -484,6 +484,9 @@ Common::eRes Core::CheckRace(RE::TESRace* const race) const {
     for (auto raceInfo : hardCodedRaces)
       if (ut->FormToLoc(race) == raceInfo) return Common::resOkRaceP;
     if (race->HasKeyword(ut->Key(Common::kyCreature)) || race->IsChildRace() || !race->HasKeyword(ut->Key(Common::kyManMer))) return Common::errRaceBase;
+    auto raceID = std::string(race->formEditorID.c_str());
+    std::transform(raceID.begin(), raceID.end(), raceID.begin(), ::tolower);
+    if (raceID.contains("child")) return Common::errRaceBase;
     if (IsRaceExcluded(race)) {
       SKSE::log::info("\tThe race [{}: xx{:x}: {}] was ignored because an ini excludes it!", race->GetFile(0)->GetFilename(), race->GetLocalFormID(), race->GetFormEditorID());
       return Common::errRaceBase;
