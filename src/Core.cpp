@@ -259,8 +259,10 @@ Common::eRes Core::SetActorAddon(RE::Actor* const actor, const int choice, const
   auto res = SetNPCAddon(npc, addonIdx, isUser);
   if (res < 0) return res;
   auto addon = addonIdx < 0 ? nullptr : (npc->IsFemale() ? femAddons[addonIdx].first : malAddons[addonIdx].first);
-  if (actor->IsPlayerRef() && shouldSave) SetPlayerInfo(actor, addon, addonIdx);
-  if (!npc->IsPlayer() && shouldSave) Inis::SetActorAddon(actor, npc, addon, addonIdx);
+  if (actor->IsPlayerRef() && shouldSave)
+    SetPlayerInfo(actor, addon, addonIdx);
+  else if (!npc->IsPlayer() && shouldSave)
+    Inis::SetActorAddon(actor, npc, addon, addonIdx);
   if (shouldSave || (!isUser && npc->skin != oldSkin)) {
     UpdateFormLists(actor);
     UpdateBlock(actor, nullptr, false);
