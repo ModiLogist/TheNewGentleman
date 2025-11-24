@@ -219,25 +219,24 @@ Common::eRes Core::GetActorAddon(RE::Actor* actor, int& addonIdx, bool& isAuto) 
   }
   auto rg = Rg(RgKey(npc->race));
   if (!rg) return Common::errRace;
-  if (!npc->IsFemale() && rg->addonIdx != Common::nul) addonIdx = rg->addonIdx;
-  if (!npc->skin) return addonIdx > Common::nul ? Common::resOkHasAddon : Common::resOkNoAddon;
-  if (!npc->skin->HasKeyword(ut->Key(Common::kyTngSkin))) {
-    if (!npc->IsFemale() && rg->addonIdx != Common::nul) return Common::err40;
-    return Common::resOkNoAddon;
-  }
+  if (!npc->IsFemale()) addonIdx = rg->addonIdx;
+  if (!npc->skin) return (addonIdx > Common::nul) ? Common::resOkHasAddon : Common::resOkNoAddon;
+  if (!npc->skin->HasKeyword(ut->Key(Common::kyTngSkin))) return (addonIdx > Common::nul) ? Common::err40 : Common::resOkNoAddon;
   npc->ForEachKeyword([&](RE::BGSKeyword* kw) {
     if (!kw || kw->GetFormEditorID() == NULL) return RE::BSContainer::ForEachResult::kContinue;
     const std::string kwStr(kw->GetFormEditorID());
     std::string str = "";
     if (kwStr.starts_with(Common::cNPCAutoAddon)) {
       addonIdx = std::stoi(kwStr.substr(strlen(Common::cNPCAutoAddon), 2));
+      return RE::BSContainer::ForEachResult::kStop;
     } else if (kwStr.starts_with(Common::cNPCUserAddon)) {
       isAuto = false;
       addonIdx = std::stoi(kwStr.substr(strlen(Common::cNPCUserAddon), 2));
+      return RE::BSContainer::ForEachResult::kStop;
     }
-    return addonIdx >= 0 ? RE::BSContainer::ForEachResult::kStop : RE::BSContainer::ForEachResult::kContinue;
+    return RE::BSContainer::ForEachResult::kContinue;
   });
-  return addonIdx >= 0 ? Common::resOkHasAddon : Common::resOkNoAddon;
+  return (addonIdx >= 0) ? Common::resOkHasAddon : Common::resOkNoAddon;
 }
 
 Common::eRes Core::SetActorAddon(RE::Actor* const actor, const int choice, const bool isUser, const bool shouldSave) {
@@ -260,8 +259,10 @@ Common::eRes Core::SetActorAddon(RE::Actor* const actor, const int choice, const
   auto res = SetNPCAddon(npc, addonIdx, isUser);
   if (res < 0) return res;
   auto addon = addonIdx < 0 ? nullptr : (npc->IsFemale() ? femAddons[addonIdx].first : malAddons[addonIdx].first);
-  if (actor->IsPlayerRef() && shouldSave) SetPlayerInfo(actor, addon, addonIdx);
-  if (!npc->IsPlayer() && shouldSave) Inis::SetActorAddon(actor, npc, addon, addonIdx);
+  if (actor->IsPlayerRef() && shouldSave)
+    SetPlayerInfo(actor, addon, addonIdx);
+  else if (!npc->IsPlayer() && shouldSave)
+    Inis::SetActorAddon(actor, npc, addon, addonIdx);
   if (shouldSave || (!isUser && npc->skin != oldSkin)) {
     UpdateFormLists(actor);
     UpdateBlock(actor, nullptr, false);
@@ -483,6 +484,9 @@ Common::eRes Core::CheckRace(RE::TESRace* const race) const {
     for (auto raceInfo : hardCodedRaces)
       if (ut->FormToLoc(race) == raceInfo) return Common::resOkRaceP;
     if (race->HasKeyword(ut->Key(Common::kyCreature)) || race->IsChildRace() || !race->HasKeyword(ut->Key(Common::kyManMer))) return Common::errRaceBase;
+    auto raceID = std::string(race->formEditorID.c_str());
+    std::transform(raceID.begin(), raceID.end(), raceID.begin(), ::tolower);
+    if (raceID.contains("child")) return Common::errRaceBase;
     if (IsRaceExcluded(race)) {
       SKSE::log::info("\tThe race [{}: xx{:x}: {}] was ignored because an ini excludes it!", race->GetFile(0)->GetFilename(), race->GetLocalFormID(), race->GetFormEditorID());
       return Common::errRaceBase;
@@ -857,11 +861,11 @@ Common::eRes Core::SetNPCAddon(RE::TESNPC* const npc, const int addonIdx, const 
     if (npcSkin && npcSkin->HasKeyword(ut->Key(Common::kyTngSkin))) npc->skin = activeOgSkin == raceSkin ? nullptr : activeOgSkin;
     return Common::resOkFixed;
   }
-  auto addonChoice = addonIdx == Common::def ? rg->addonIdx : addonIdx;
+  auto addonChoice = (addonIdx == Common::def) ? rg->addonIdx : addonIdx;
   OrganizeNPCKeywords(npc, addonIdx, isUser);
-  auto resSkin = addonChoice == Common::nul ? activeOgSkin : GetSkinWithAddonForRg(rg, activeOgSkin, addonChoice, npc->IsFemale());
+  auto resSkin = (addonChoice == Common::nul) ? activeOgSkin : GetSkinWithAddonForRg(rg, activeOgSkin, addonChoice, npc->IsFemale());
   if (resSkin != npcSkin) {
-    npc->skin = resSkin == npc->race->skin ? nullptr : resSkin;
+    npc->skin = (resSkin == npc->race->skin) ? nullptr : resSkin;
   }
   return !npc->IsFemale() || npc->HasKeyword(ut->Key(Common::kyGentlewoman)) ? res : Common::resOkFixed;
 }
@@ -924,7 +928,38 @@ Common::eRes Core::UpdatePlayer(RE::Actor* const actor, const bool isRRace) {
 void Core::UpdateFormLists(RE::Actor* const actor) const {
   auto npc = actor ? actor->GetActorBase() : nullptr;
   if (!npc) return;
-  ut->UpdateFormList(ut->FormList(Common::flmGentleWomen), actor, npc->HasKeyword(ut->Key(npc->IsFemale() ? Common::kyGentlewoman : Common::kyExcluded)));
+  auto key = ut->Key(npc->IsFemale() ? Common::kyGentlewoman : Common::kyExcluded);
+  if (!key) {
+    SKSE::log::critical("TNG faced an error when trying to update the form lists. The keyword is not available.");
+    return;
+  }
+  ut->UpdateFormList(ut->FormList(Common::flmGentleWomen), actor, npc->HasKeyword(key));
+}
+
+inline bool InInventory(RE::Actor* const actor, RE::TESBoundObject* const object) {
+  auto invChanges = actor->GetInventoryChanges(true);
+  if (invChanges && invChanges->entryList) {
+    for (auto& entry : *invChanges->entryList) {
+      if (entry && entry->object && entry->object == object) {
+        return true;
+      }
+    }
+  }
+
+  auto container = actor->GetContainer();
+  auto found = false;
+  if (container) {
+    container->ForEachContainerObject([&](RE::ContainerObject& a_entry) {
+      auto obj = a_entry.obj;
+      if (obj && obj == object) {
+        found = true;
+        return RE::BSContainer::ForEachResult::kStop;
+      }
+      return RE::BSContainer::ForEachResult::kContinue;
+    });
+  }
+
+  return found;
 }
 
 void Core::UpdateBlock(RE::Actor* const actor, RE::TESObjectARMO* const armor, const bool isEquipped) const {
@@ -934,7 +969,7 @@ void Core::UpdateBlock(RE::Actor* const actor, RE::TESObjectARMO* const armor, c
   if (down && down == armor && !isEquipped) down = nullptr;
   auto hasCover = armor && isEquipped && !armor->HasPartOf(Common::genitalSlot) ? true : ut->HasCovering(actor, isEquipped ? nullptr : armor);
   if (!NeedsBlock(actor) || (down && (!ut->IsBlock(down) || !hasCover))) {
-    actor->RemoveItem(ut->Block(), 10, RE::ITEM_REMOVE_REASON::kRemove, nullptr, nullptr);
+    actor->RemoveItem(ut->Block(), 1000, RE::ITEM_REMOVE_REASON::kRemove, nullptr, nullptr);
     return;
   }
   if ((hasCover && down) || (!hasCover && !down)) return;
@@ -946,7 +981,9 @@ void Core::UpdateBlock(RE::Actor* const actor, RE::TESObjectARMO* const armor, c
     }
     return;
   }
-  actor->AddObjectToContainer(tngBlock, nullptr, 1, nullptr);
+  if (!InInventory(actor, tngBlock)) {
+    actor->AddObjectToContainer(tngBlock, nullptr, 1, nullptr);
+  }
   RE::ActorEquipManager::GetSingleton()->EquipObject(actor, tngBlock);
 }
 
