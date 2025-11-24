@@ -104,7 +104,6 @@ namespace Common {
       std::string name{""};
       std::string file{""};
       RE::TESRace* armorRace = nullptr;
-      RE::TESObjectARMO* ogSkin = nullptr;
       bool isMain{false};
       std::vector<RE::TESRace*> races{};
       bool noMCM{false};
@@ -113,8 +112,6 @@ namespace Common {
       int addonIdx{nan};
       std::map<size_t, std::pair<bool, RE::TESObjectARMA*>> malAddons{};
       std::map<size_t, std::pair<bool, RE::TESObjectARMA*>> femAddons{};
-      std::map<RE::TESObjectARMO*, std::map<size_t, RE::TESObjectARMO*>> malSkins{};
-      std::map<RE::TESObjectARMO*, std::map<size_t, RE::TESObjectARMO*>> femSkins{};
   };
 
   struct PlayerInfo {
@@ -138,8 +135,7 @@ namespace Common {
       RE::BGSKeyword* SizeKey(const size_t idx);
       std::vector<RE::BGSKeyword*> SizeKeys(const size_t last = sizeCatCount);
       RE::BGSListForm* FormList(const size_t idx);
-      RE::TESObjectARMO* Block();
-      bool IsBlock(RE::TESForm* form) const { return form && (FormToLoc(form) == coverID); }
+
       bool IsCovering(const RE::Actor* const actor, const RE::TESObjectARMO* const armor);
       std::vector<RE::TESObjectARMO*> GetWornAmor(RE::Actor* const actor) const;
       bool HasCovering(RE::Actor* const actor, RE::TESObjectARMO* const exception);
@@ -154,13 +150,10 @@ namespace Common {
 
       inline static constexpr SEFormLocView formListIDs[flCount] = {{0xE00, mainFile}, {0xE01, mainFile}};
 
-      inline static constexpr SEFormLocView coverID{0xAFF, mainFile};
-
       RE::TESDataHandler* sedh = nullptr;
       RE::TESRace* races[racesCount] = {};
       RE::BGSKeyword* keywords[keywordsCount] = {};
       RE::BGSKeyword* sizeKey[sizeCatCount] = {};
-      RE::TESObjectARMO* block = nullptr;
   };
 }
 

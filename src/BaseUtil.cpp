@@ -93,19 +93,6 @@ std::string Common::BaseUtil::StrToName(std::string name) const {
   return res;
 }
 
-void Common::BaseUtil::QueueNiNodeUpdate(const RE::Actor* actor) const {
-  if (!actor) return;
-  if (actor->IsOnMount()) return;
-  if (const auto vm = RE::SkyrimVM::GetSingleton(); vm) {
-    if (auto vmi = vm->impl; vmi) {
-      RE::BSTSmartPointer<RE::BSScript::IStackCallbackFunctor> callback;
-      auto args = RE::MakeFunctionArguments();
-      auto handle = vm->handlePolicy.GetHandleForObject(static_cast<RE::VMTypeID>(actor->FORMTYPE), actor);
-      vmi->DispatchMethodCall2(handle, "Actor", "QueueNiNodeUpdate", args, callback);
-    }
-  }
-}
-
 void Common::BaseUtil::UpdateFormList(RE::BGSListForm* formList, RE::TESForm* form, const bool addRemove) const {
   if (!formList || !form) {
     SKSE::log::critical("UpdateFormList failed: formList is {} and form is {}.", formList ? "valid" : "invalid", form ? "valid" : "invalid");

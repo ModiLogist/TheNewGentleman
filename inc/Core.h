@@ -47,10 +47,8 @@ class Core : public Singleton<Core>, public Inis {
     inline static constexpr size_t hardCodedRacesCount{1};
     inline static constexpr SEFormLocView hardCodedRaces[hardCodedRacesCount]{{0x3CA97, "Dragonborn.esm"}};
     std::vector<Common::RaceGroupInfo> rgInfoList;
-    std::map<RE::TESObjectARMO*, RE::TESObjectARMO*> ogSkinMap;
     std::vector<std::pair<RE::TESObjectARMO*, bool>> malAddons;
     std::vector<std::pair<RE::TESObjectARMO*, bool>> femAddons;
-    std::set<RE::TESObjectARMO*, Common::FormComparator> preSkins;
 
     void LoadAddons();
     int AddonIdxByLoc(const bool isFemale, const SEFormLocView addonLoc) const;

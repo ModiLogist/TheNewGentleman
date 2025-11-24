@@ -63,12 +63,6 @@ void Core::SetRgAddon(RgKey rgChoice, const int addonIdx) {
   auto rg = Rg(rgChoice);
   if (!rg || addonIdx < Common::def || (addonIdx >= 0 && rg->malAddons.find(addonIdx) == rg->malAddons.end())) return;
   rg->addonIdx = (addonIdx == Common::def) ? rg->defAddonIdx : addonIdx;
-  auto skin = (rg->addonIdx == Common::nul) ? rg->ogSkin : GetSkinWithAddonForRg(rg, rg->ogSkin, rg->addonIdx, false);
-  if (!skin) {
-    SKSE::log::critical("The race group [{}]'s original skin was not found!", rg->name);
-    return;
-  }
-  for (auto& race : rg->races) race->skin = skin;
   auto addon = addonIdx < 0 ? nullptr : malAddons[rg->addonIdx].first;
   Inis::SetRgAddon(rg->races[0], addon, addonIdx);
 }
@@ -442,20 +436,12 @@ void Core::ProcessRaces() {
     auto k = ut->HasKeywordInList(race, keywords);
     k >= 0 ? logInfo[k]++ : logInfo[0]++;
   }
-  for (auto& rg : rgInfoList) {
-    if (rg.addonIdx >= 0) {
-      auto skin = GetSkinWithAddonForRg(&rg, rg.ogSkin, rg.addonIdx, false);
-      if (skin)
-        for (auto& race : rg.races) race->skin = skin;
-    }
-  }
   SKSE::log::info("Processed [{}] races: assigned genitalia to [{}] races, preprocessed [{}] races, found [{}] races to be ready and ignored [{}] races.", allRaces.size(),
                   logInfo[2], logInfo[3], logInfo[1], logInfo[0]);
 }
 
 void Core::IgnoreRace(RE::TESRace* const race, const bool ready) {
   if (!race) return;
-  if (auto& skin = race->skin; skin) skin->AddKeyword(ut->Key(Common::kyIgnored));
   race->RemoveKeywords(ut->Keys(Common::kyProcessed, Common::kyExcluded));
   race->AddKeyword(ut->Key(ready ? Common::kyReady : Common::kyIgnored));
 }

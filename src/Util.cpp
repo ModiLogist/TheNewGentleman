@@ -34,11 +34,6 @@ std::vector<RE::BGSKeyword*> Common::Util::SizeKeys(const size_t last) {
 
 RE::BGSListForm* Common::Util::FormList(const size_t idx) { return ut->SEDH()->LookupForm<RE::BGSListForm>(formListIDs[idx].first, formListIDs[idx].second); }
 
-RE::TESObjectARMO* Common::Util::Block() {
-  if (!block) block = ut->SEDH()->LookupForm<RE::TESObjectARMO>(coverID.first, coverID.second);
-  return block;
-}
-
 bool Common::Util::IsCovering(const RE::Actor* const actor, const RE::TESObjectARMO* const armor) {
   auto npc = actor ? actor->GetActorBase() : nullptr;
   if (!npc || !armor) return false;
@@ -55,7 +50,7 @@ std::vector<RE::TESObjectARMO*> Common::Util::GetWornAmor(RE::Actor* const actor
   auto inv = actor->GetInventory([=](RE::TESBoundObject& obj) { return obj.IsArmor(); });
   for (const auto& [item, invData] : inv) {
     const auto& [count, entry] = invData;
-    if (count > 0 && entry && entry->IsWorn() && !IsBlock(item)) {
+    if (count > 0 && entry && entry->IsWorn()) {
       res.push_back(item->As<RE::TESObjectARMO>());
     }
   }
