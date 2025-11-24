@@ -6,7 +6,8 @@
 class Core : public Singleton<Core>, public Inis {
   public:
     void Process();
-    std::vector<std::pair<RE::TESObjectARMO*, bool>>& GenderAddons(const bool isFemale) { return isFemale ? femAddons : malAddons; };
+    using AllAddonsType = std::vector<std::pair<std::vector<RE::TESObjectARMO*>, bool>>;
+    AllAddonsType& GenderAddons(const bool isFemale) { return isFemale ? allFemAddons : allMalAddons; };
     struct RgKey {
         RE::TESRace* race = nullptr;
         int index = -1;
@@ -26,7 +27,7 @@ class Core : public Singleton<Core>, public Inis {
     float GetRgMult(RgKey rgChoice) const;
     void SetRgMult(RgKey rgChoice, const float mult);
     const std::string GetRgInfo(RgKey rgChoice) const;
-    std::vector<std::pair<size_t, bool>> GetRgAddons(RgKey rgChoice) const;
+    std::vector<size_t> GetRgAddons(RgKey rgChoice) const;
     bool ReevaluateRace(RE::TESRace* const race, RE::Actor* const actor);
 
     Common::eRes CanModifyActor(RE::Actor* const actor) const;
@@ -47,8 +48,8 @@ class Core : public Singleton<Core>, public Inis {
     inline static constexpr size_t hardCodedRacesCount{1};
     inline static constexpr SEFormLocView hardCodedRaces[hardCodedRacesCount]{{0x3CA97, "Dragonborn.esm"}};
     std::vector<Common::RaceGroupInfo> rgInfoList;
-    std::vector<std::pair<RE::TESObjectARMO*, bool>> malAddons;
-    std::vector<std::pair<RE::TESObjectARMO*, bool>> femAddons;
+    AllAddonsType allMalAddons;
+    AllAddonsType allFemAddons;
 
     void LoadAddons();
     int AddonIdxByLoc(const bool isFemale, const SEFormLocView addonLoc) const;

@@ -100,11 +100,11 @@ const std::string Core::GetRgInfo(RgKey rgChoice) const {
   return res;
 }
 
-std::vector<std::pair<size_t, bool>> Core::GetRgAddons(RgKey rgChoice) const {
-  std::vector<std::pair<size_t, bool>> res{};
+std::vector<size_t> Core::GetRgAddons(RgKey rgChoice) const {
+  std::vector<size_t> res{};
   auto rg = Rg(rgChoice);
   if (!rg) return res;
-  for (auto& addonPair : rg->malAddons) res.push_back({addonPair.first, addonPair.second.first});
+  for (auto& addonPair : rg->malAddons) res.push_back(addonPair.first);
   return res;
 }
 
@@ -378,8 +378,8 @@ void Core::RevisitRevealingArmor() const {
 
 void Core::LoadAddons() {
   SKSE::log::info("Loading the addons...");
-  malAddons.clear();
-  femAddons.clear();
+  allMalAddons.clear();
+  allFemAddons.clear();
   const auto& armorList = ut->SEDH()->GetFormArray<RE::TESObjectARMO>();
   for (const auto& armor : armorList) {
     if (armor->HasKeyword(ut->Key(Common::kyAddonM))) malAddons.emplace_back(armor, true);
@@ -424,6 +424,11 @@ void Core::ProcessRaces() {
     auto k = ut->HasKeywordInList(race, keywords);
     k >= 0 ? logInfo[k]++ : logInfo[0]++;
   }
+  for (auto& rg : rgInfoList) {
+    ProcessRgAddons(rg, malAddons, false);
+    ProcessRgAddons(rg, femAddons, true);
+    ApplyUserSettings(rg);
+  }
   SKSE::log::info("Processed [{}] races: assigned genitalia to [{}] races, preprocessed [{}] races, found [{}] races to be ready and ignored [{}] races.", allRaces.size(),
                   logInfo[2], logInfo[3], logInfo[1], logInfo[0]);
 }
@@ -436,11 +441,15 @@ void Core::IgnoreRace(RE::TESRace* const race, const bool ready) {
 
 Common::RaceGroupInfo* const Core::ProcessRace(RE::TESRace* const race) {
   if (auto rg = Rg(RgKey(race)); rg) return rg;
+  Common::RaceGroupInfo* res = nullptr;
+  SKSE::log::debug("\tProcessing race [0x{:x}: {}] ...", race->GetFormID(), race->GetFormEditorID());
   switch (CheckRace(race)) {
     case Common::resOkRacePP:
-      return AddRace(race, false);
+      res = AddRace(race, false);
+      break;
     case Common::resOkRaceP:
-      return AddRace(race, true);
+      res = AddRace(race, true);
+      break;
     case Common::resOkRaceR:
       IgnoreRace(race, true);
       break;
@@ -450,7 +459,8 @@ Common::RaceGroupInfo* const Core::ProcessRace(RE::TESRace* const race) {
     default:
       break;
   }
-  return nullptr;
+  if (res) SKSE::log::info("\tRace [0x{:x}: {}]: member of {} group {}.", race->GetFormID(), race->GetFormEditorID(), res->isMain ? "primary" : "secondary", res->name);
+  return res;
 }
 
 Common::eRes Core::CheckRace(RE::TESRace* const race) const {
@@ -506,46 +516,37 @@ Common::RaceGroupInfo* Core::AddRace(RE::TESRace* const race, const bool isProce
   race->AddKeyword(ut->Key(isProcessed ? Common::kyProcessed : Common::kyPreProcessed));
   race->AddSlotToMask(Common::genitalSlot);
   race->skin->AddKeyword(ut->Key(Common::kyIgnored));
-  SKSE::log::debug("\tTrying to add race [0x{:x}: {}] ...", race->GetFormID(), race->GetFormEditorID());
-  if (race->armorParentRace) {
+  auto pRace = race;
+  while (pRace->armorParentRace && pRace->armorParentRace != ut->Race(Common::raceDefault)) {
+    pRace = pRace->armorParentRace;
+  };
+  if (pRace != race) {
     for (auto& rg : rgInfoList) {
-      if (rg.armorRace == race->armorParentRace && rg.ogSkin == race->skin) {
+      if (rg.armorRace == pRace && rg.races[0]->skin == race->skin) {
         rg.races.push_back(race);
-        SKSE::log::info("\tThe race [0x{:x}: {}] was recognized as a member of existing group {}.", race->GetFormID(), race->GetFormEditorID(), rg.name);
         return &rg;
       }
     }
-    if (race->armorParentRace->skin == race->skin) {
-      SKSE::log::debug("\t\t...processing parent race [0x{:x}: {}]", race->armorParentRace->GetFormID(), race->armorParentRace->GetFormEditorID());
-      if (auto rgPtr = ProcessRace(race->armorParentRace); rgPtr) {
-        rgPtr->races.push_back(race);
-        SKSE::log::info("\tThe race [0x{:x}: {}] was recognized as a member of existing group {}.", race->GetFormID(), race->GetFormEditorID(), rgPtr->name);
-        return rgPtr;
+    if (pRace->skin == race->skin) {
+      SKSE::log::debug("\t\t...jumping to parent race...");
+      if (auto parentRg = ProcessRace(pRace); parentRg) {
+        parentRg->races.push_back(race);
+        return parentRg;
       }
-      SKSE::log::debug("\t\t...parent race [0x{:x}: {}] was not a valid race.", race->armorParentRace->GetFormID(), race->armorParentRace->GetFormEditorID());
+      SKSE::log::debug("\t\t...parent race [0x{:x}: {}] is not a valid race.", pRace->GetFormID(), pRace->GetFormEditorID());
     }
   }
-  auto pRace = race;
-  while (pRace->armorParentRace) {
-    pRace = pRace->armorParentRace;
-  };
   auto filename = race->GetFile(0) ? race->GetFile(0)->GetFilename() : "Unknown";
   rgInfoList.push_back({});
   auto& rg = rgInfoList.back();
   rg.name = race->GetFormEditorID();
   rg.file = filename;
   rg.armorRace = pRace;
-  rg.ogSkin = race->skin;
   rg.isMain = pRace == race;
   rg.races.push_back(race);
   rg.noMCM = !race->GetPlayable() && !race->HasKeyword(ut->Key(Common::kyVampire));
   rg.mult = 1.0f;
   rg.defAddonIdx = GetRgDefAddon(rg);
-  ProcessRgAddons(rg, malAddons, false);
-  ProcessRgAddons(rg, femAddons, true);
-  if (ut->Block() && !ut->Block()->armorAddons[0]->IsValidRace(race)) ut->Block()->armorAddons[0]->additionalRaces.push_back(rg.armorRace);
-  SKSE::log::info("\tThe race [0x{:x}: {}] was recognized as a new {} group [{}].", race->GetFormID(), race->GetFormEditorID(), rg.isMain ? "primary" : "secondary", rg.name);
-  ApplyUserSettings(rg);
   return &rg;
 }
 
@@ -578,7 +579,7 @@ void Core::ProcessRgAddons(Common::RaceGroupInfo& rg, const std::vector<std::pai
     for (const auto& aa : addons[i].first->armorAddons) {
       if (aa && aa->IsValidRace(rg.armorRace)) {
         rgAddons.insert_or_assign(i, addons[i].first);
-        nameToIdxs[addons[i].first->GetFullName()].push_back(i);
+        nameToIdxs[addons[i].first->GetName()].push_back(i);
         SKSE::log::debug("\t\tThe addon [0x{:x}] from file [{}] can support {} in the race group [{}]!", addons[i].first->GetFormID(), addons[i].first->GetFile(0)->GetFilename(),
                          isFemale ? "women" : "men", rg.name);
         break;
@@ -623,7 +624,7 @@ void Core::ProcessRgAddons(Common::RaceGroupInfo& rg, const std::vector<std::pai
   }
   SKSE::log::info("\t\t[{}] addons support [{}] from the race group [{}]!", rgAddons.size(), isFemale ? "women" : "men", rg.name);
   if (isFemale) return;
-  if (!rgAddons.contains(rg.defAddonIdx)) rg.defAddonIdx = rgAddons.empty() ? Common::nul : static_cast<int>(rgAddons.begin()->first);
+  if (rg.defAddonIdx < 0 || !rgAddons.contains(rg.defAddonIdx)) rg.defAddonIdx = rgAddons.empty() ? Common::nul : static_cast<int>(rgAddons.begin()->first);
 }
 
 void Core::ApplyUserSettings(Common::RaceGroupInfo& rg) {
