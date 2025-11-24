@@ -61,19 +61,13 @@ class Core : public Singleton<Core>, public Inis {
     int GetRgDefAddon(Common::RaceGroupInfo& rg);
     void ProcessRgAddons(Common::RaceGroupInfo& rg, const std::vector<std::pair<RE::TESObjectARMO*, bool>>& addons, const bool isFemale);
     void ApplyUserSettings(Common::RaceGroupInfo& rg);
-    RE::TESObjectARMO* GetSkinWithAddonForRg(Common::RaceGroupInfo* const rg, RE::TESObjectARMO* skin, const size_t addonIdx, const bool isFemale);
-    RE::TESObjectARMO* GetOgSkin(RE::TESObjectARMO* skin) const;
-
     void ProcessNPCs();
-    RE::TESObjectARMO* FixSkin(RE::TESObjectARMO* const skin, RE::TESRace* const race, const char* const name);
     std::pair<int, bool> GetApplicableAddon(RE::Actor* const actor) const;
     Common::eRes SetNPCAddon(RE::TESNPC* const npc, const int addonIdx, const bool isUser);
     void OrganizeNPCKeywords(RE::TESNPC* const npc, int addonIdx, const bool isUser) const;
     void UpdateAddon(RE::Actor* const actor, const bool isRRace);
     Common::eRes UpdatePlayer(RE::Actor* const actor, const bool isRRace);
     void UpdateFormLists(RE::Actor* const actor) const;
-    void UpdateBlock(RE::Actor* const actor, RE::TESObjectARMO* const armor, const bool isEquipped) const;
-    bool NeedsBlock(RE::Actor* const actor) const;
     void CheckArmorPieces();
 };
 

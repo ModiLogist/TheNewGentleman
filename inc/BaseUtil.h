@@ -87,7 +87,7 @@ namespace Common {
       std::string NameToStr(std::string name) const;
       std::string StrToName(std::string name) const;
       void UpdateFormList(RE::BGSListForm* formList, RE::TESForm* form, const bool addRemove) const;  // Add: true, Remove: false
-      // ToDo: Clean up when necessary. This shouldn't be needed/used anymore, but may be a good reference for async operations.
+      // TODO: Clean up when necessary. This shouldn't be needed/used anymore, but may be a good reference for async operations.
       void DoDelayed(std::function<void()> func, std::function<bool()> condition, const int fixedDelay, const bool enforceCond, const std::string fmsg = "") const;
 
     private:

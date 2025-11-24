@@ -64,17 +64,17 @@ namespace Common {
     kyPreProcessed,
     kyIgnored,
     kyExcluded,
-    kyTngSkin,
     kySkinWP,
+    kySkinWOP,
     kyGentlewoman,
     kyAddonM,
     kyAddonF,
+    kyAddonSec,
     kyRevealingF,
     kyRevealingM,
     kyCovering,
     kyUnderwear,
     kyRevealing,
-    kyPreSkin,
     kyManMer,
     kyBeast,
     kyCreature,
@@ -110,8 +110,8 @@ namespace Common {
       float mult = {1.0f};
       int defAddonIdx{nan};
       int addonIdx{nan};
-      std::map<size_t, std::pair<bool, RE::TESObjectARMA*>> malAddons{};
-      std::map<size_t, std::pair<bool, RE::TESObjectARMA*>> femAddons{};
+      std::map<size_t, RE::TESObjectARMO*> malAddons{};
+      std::map<size_t, RE::TESObjectARMO*> femAddons{};
   };
 
   struct PlayerInfo {
@@ -139,13 +139,18 @@ namespace Common {
       bool IsCovering(const RE::Actor* const actor, const RE::TESObjectARMO* const armor);
       std::vector<RE::TESObjectARMO*> GetWornAmor(RE::Actor* const actor) const;
       bool HasCovering(RE::Actor* const actor, RE::TESObjectARMO* const exception);
+      const bool InInventory(RE::Actor* const actor, RE::TESBoundObject* const object) const;
 
     private:
       inline static constexpr SEFormLocView raceIDs[racesCount]{{0x19, skyrimFile}, {0x13745, skyrimFile}};
-      inline static constexpr SEFormLocView keyIDs[keywordsCount] = {{0xFF0, mainFile}, {0xFF1, mainFile},     {0xFF2, mainFile},     {0xFF3, mainFile},     {0xFF4, mainFile},
-                                                                     {0xFF6, mainFile}, {0xFF7, mainFile},     {0xFF8, mainFile},     {0xFF9, mainFile},     {0xFFA, mainFile},
-                                                                     {0xFFB, mainFile}, {0xFFC, mainFile},     {0xFFD, mainFile},     {0xFFE, mainFile},     {0xFFF, mainFile},
-                                                                     {0xFE0, mainFile}, {0x13794, skyrimFile}, {0xD61D1, skyrimFile}, {0x13795, skyrimFile}, {0xA82BB, skyrimFile}};
+      // TODO: Update it before release!
+      inline static constexpr SEFormLocView keyIDs[keywordsCount] = {
+          // {0xFF0, mainFile}, {0xFF1, mainFile},     {0xFF2, mainFile},     {0xFF3, mainFile},     {0xFF4, mainFile},
+          //                                                              {0xFF6, mainFile}, {0xFF7, mainFile},     {0xFF8, mainFile},     {0xFF9, mainFile},     {0xFFA, mainFile},
+          //                                                              {0xFFB, mainFile}, {0xFFC, mainFile},     {0xFFD, mainFile},     {0xFFE, mainFile},     {0xFFF, mainFile},
+          //                                                              {0xFE0, mainFile}, {0x13794, skyrimFile}, {0xD61D1, skyrimFile}, {0x13795, skyrimFile}, {0xA82BB,
+          //                                                              skyrimFile}
+      };
       inline static constexpr RE::FormID sizeKeyIDs[sizeCatCount]{0xFE1, 0xFE2, 0xFE3, 0xFE4, 0xFE5};
 
       inline static constexpr SEFormLocView formListIDs[flCount] = {{0xE00, mainFile}, {0xE01, mainFile}};

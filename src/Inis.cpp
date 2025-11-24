@@ -29,8 +29,8 @@ void Inis::LoadMainIni() {
   SKSE::log::debug("\tRestored all addon status to previous selections");
   settingIni.GetAllKeys(cValidSkeletons, keys);
   for (auto& key : keys) validSkeletons.emplace(std::string(key.pItem));
-  LoadIniPairs<SEFormLoc>(settingIni, cRacialAddon, racialAddons);
-  LoadIniPairs<float>(settingIni, cRacialSize, racialSizes);
+  LoadIniPairs<SEFormLoc>(settingIni, cRacialAddon, userRacialAddons);
+  LoadIniPairs<float>(settingIni, cRacialSize, userRacialSizes);
   SKSE::log::debug("\tRestored all racial addon and size settings");
   LoadIniPairs<SEFormLoc>(settingIni, cNPCAddonSection, npcAddons);
   LoadIniPairs<int>(settingIni, cNPCSizeSection, npcSizeCats);
@@ -61,8 +61,8 @@ void Inis::SaveMainIni() {
   SaveIniPairs<bool>(settingIni, cActiveMalAddons, activeMalAddons, true);
   SaveIniPairs<bool>(settingIni, cActiveFemAddons, activeFemAddons);
   for (auto& skeleton : validSkeletons) settingIni.SetBoolValue(cValidSkeletons, skeleton.c_str(), true);
-  SaveIniPairs<SEFormLoc>(settingIni, cRacialAddon, racialAddons);
-  SaveIniPairs<float>(settingIni, cRacialSize, racialSizes);
+  SaveIniPairs<SEFormLoc>(settingIni, cRacialAddon, userRacialAddons);
+  SaveIniPairs<float>(settingIni, cRacialSize, userRacialSizes);
   SaveIniPairs<SEFormLoc>(settingIni, cNPCAddonSection, npcAddons);
   SaveIniPairs<int>(settingIni, cNPCSizeSection, npcSizeCats);
   SaveIniPairs<SEFormLoc>(settingIni, cActorAddonSection, actorAddons);
@@ -210,10 +210,10 @@ void Inis::SetRgAddon(const RE::TESRace* rgRace, const RE::TESObjectARMO* addon,
   }
   switch (choice) {
     case Common::def:
-      racialAddons[raceLoc] = GetDefault<SEFormLoc>();
+      userRacialAddons[raceLoc] = GetDefault<SEFormLoc>();
       break;
     case Common::nul:
-      racialAddons[raceLoc] = {Common::nul, ""};
+      userRacialAddons[raceLoc] = {Common::nul, ""};
       break;
     default: {
       auto addonLoc = ut->FormToLoc(addon);
@@ -225,7 +225,7 @@ void Inis::SetRgAddon(const RE::TESRace* rgRace, const RE::TESObjectARMO* addon,
         }
         return;
       }
-      racialAddons[raceLoc] = addonLoc;
+      userRacialAddons[raceLoc] = addonLoc;
     } break;
   }
 }
@@ -241,9 +241,9 @@ void Inis::SetRgMult(const RE::TESRace* rgRace, const float mult) {
     return;
   }
   if (mult < 1.0001f && mult > 0.9999f) {
-    racialSizes[raceLoc] = GetDefault<float>();
+    userRacialSizes[raceLoc] = GetDefault<float>();
   } else {
-    racialSizes[raceLoc] = mult;
+    userRacialSizes[raceLoc] = mult;
   }
 }
 
@@ -493,8 +493,8 @@ void Inis::ClearInis() {
   // Clearing the maps and sets to free memory, NOTE: private members need to remain alive
   activeMalAddons.clear();
   activeFemAddons.clear();
-  racialAddons.clear();
-  racialSizes.clear();
+  userRacialAddons.clear();
+  userRacialSizes.clear();
   runTimeArmorStatus.clear();
   // npcAddons|actorAddons|npcSizeCats|actorSizeCats|slot52Mods|extraRevealingMods should not be cleared during lifetime of the game
 

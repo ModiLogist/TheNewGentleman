@@ -66,6 +66,30 @@ bool Common::Util::HasCovering(RE::Actor* const actor, RE::TESObjectARMO* const 
   return false;
 }
 
+const bool Common::Util::InInventory(RE::Actor* const actor, RE::TESBoundObject* const object) const {
+  auto invChanges = actor->GetInventoryChanges(true);
+  if (invChanges && invChanges->entryList) {
+    for (auto& entry : *invChanges->entryList) {
+      if (entry && entry->object && entry->object == object) {
+        return true;
+      }
+    }
+  }
+  auto container = actor->GetContainer();
+  auto res = false;
+  if (container) {
+    container->ForEachContainerObject([&](RE::ContainerObject& a_entry) {
+      auto obj = a_entry.obj;
+      if (obj && obj == object) {
+        res = true;
+        return RE::BSContainer::ForEachResult::kStop;
+      }
+      return RE::BSContainer::ForEachResult::kContinue;
+    });
+  }
+  return res;
+}
+
 std::string Common::PlayerInfo::IdStr() const { return ut->NameToStr(name) + "|" + ut->LocToStr(race) + "|" + (isFemale ? "F" : "M"); }
 
 std::string Common::PlayerInfo::InfoStr() const { return ut->LocToStr(addon) + "|" + std::to_string(sizeCat); }

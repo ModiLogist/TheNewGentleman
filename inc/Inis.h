@@ -60,8 +60,8 @@ class Inis {
     std::map<SEFormLoc, bool> activeMalAddons;
     std::map<SEFormLoc, bool> activeFemAddons;
     std::set<std::string> validSkeletons;
-    std::map<SEFormLoc, SEFormLoc> racialAddons;
-    std::map<SEFormLoc, float> racialSizes;
+    std::map<SEFormLoc, SEFormLoc> userRacialAddons;
+    std::map<SEFormLoc, float> userRacialSizes;
     std::map<SEFormLoc, int> runTimeArmorStatus;
     std::map<std::string, bool> slot52Mods;
 
@@ -103,7 +103,6 @@ class Inis {
     inline static constexpr const char* cPlayerGender{"Gender"};
     inline static constexpr const char* cPlayerRace{"Race"};
     inline static constexpr const char* cPlayerAddon{"Addon"};
-    inline static constexpr const char* cPlayerSkin{"Skin"};
     inline static constexpr const char* cPlayerSize{"Size"};
     std::vector<Common::PlayerInfo> playerInfos;
 
