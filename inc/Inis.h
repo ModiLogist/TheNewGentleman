@@ -168,7 +168,7 @@ class Inis {
       } else if constexpr (std::is_same_v<T, std::string>) {
         return "";
       } else if constexpr (std::is_same_v<T, SEFormLoc>) {
-        return {0, ""};
+        return {Common::def, ""};
       } else {
         static_assert(false, "Unsupported type for LoadIniPairs");
       }
