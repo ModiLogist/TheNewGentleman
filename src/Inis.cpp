@@ -24,8 +24,8 @@ void Inis::LoadMainIni() {
     boolSettings.Set(Common::bsForceRechecks, false);
   }
   if (!ut->SEDH()->LookupModByName("UIExtensions.esp")) SKSE::log::warn("\tTNG could not detected UIExtensions. You may want to check if it is installed.");
-  LoadIniPairs<bool>(settingIni, cActiveMalAddons, activeMalAddons, true);
-  LoadIniPairs<bool>(settingIni, cActiveFemAddons, activeFemAddons, false);
+  LoadIniPairs<bool>(settingIni, cActiveMalAddons, userMalAddons, true);
+  LoadIniPairs<bool>(settingIni, cActiveFemAddons, userFemAddons, false);
   SKSE::log::debug("\tRestored all addon status to previous selections");
   settingIni.GetAllKeys(cValidSkeletons, keys);
   for (auto& key : keys) validSkeletons.emplace(std::string(key.pItem));
@@ -58,8 +58,8 @@ void Inis::SaveMainIni() {
   settingIni.SaveFile(SettingFile());
   floatSettings.Store(settingIni);
   settingIni.SaveFile(SettingFile());
-  SaveIniPairs<bool>(settingIni, cActiveMalAddons, activeMalAddons, true);
-  SaveIniPairs<bool>(settingIni, cActiveFemAddons, activeFemAddons);
+  SaveIniPairs<bool>(settingIni, cActiveMalAddons, userMalAddons, true);
+  SaveIniPairs<bool>(settingIni, cActiveFemAddons, userFemAddons);
   for (auto& skeleton : validSkeletons) settingIni.SetBoolValue(cValidSkeletons, skeleton.c_str(), true);
   SaveIniPairs<SEFormLoc>(settingIni, cRacialAddon, userRacialAddons);
   SaveIniPairs<float>(settingIni, cRacialSize, userRacialSizes);
@@ -193,7 +193,7 @@ void Inis::SetAddonStatus(const bool isFemale, const RE::TESObjectARMO* addon, c
     SKSE::log::critical("Failed to save the status of the addon [0x{:x}]!", addon->GetFormID());
     return;
   }
-  status == isFemale ? activeFemAddons[addonLoc] = status : activeMalAddons[addonLoc] = status;
+  status == isFemale ? userFemAddons[addonLoc] = status : userMalAddons[addonLoc] = status;
 }
 
 void Inis::SetValidSkeleton(const std::string& skeletonModel) { validSkeletons.emplace(skeletonModel); }
@@ -491,8 +491,8 @@ Common::eKeyword Inis::HasStatus(const RE::TESObjectARMO* armor) const {
 
 void Inis::ClearInis() {
   // Clearing the maps and sets to free memory, NOTE: private members need to remain alive
-  activeMalAddons.clear();
-  activeFemAddons.clear();
+  userMalAddons.clear();
+  userFemAddons.clear();
   userRacialAddons.clear();
   userRacialSizes.clear();
   runTimeArmorStatus.clear();

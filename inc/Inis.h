@@ -57,8 +57,8 @@ class Inis {
 
   protected:
     inline static constexpr std::array<Common::eKeyword, 4> statusKeys{Common::kyCovering, Common::kyRevealing, Common::kyRevealingF, Common::kyRevealingM};
-    std::map<SEFormLoc, bool> activeMalAddons;
-    std::map<SEFormLoc, bool> activeFemAddons;
+    std::map<SEFormLoc, bool> userMalAddons;
+    std::map<SEFormLoc, bool> userFemAddons;
     std::set<std::string> validSkeletons;
     std::map<SEFormLoc, SEFormLoc> userRacialAddons;
     std::map<SEFormLoc, float> userRacialSizes;
@@ -70,7 +70,7 @@ class Inis {
 
   protected:
     void SetValidSkeleton(const std::string& skeletonModel);
-    void SetRgAddon(const RE::TESRace* rg0, const RE::TESObjectARMO* addon, const int choice);
+    void SetRgAddon(const RE::TESRace* rgRace, const RE::TESObjectARMO* addon, const int choice);
     void SetRgMult(const RE::TESRace* rgRace, const float mult);
 
     SEFormLoc GetActorAddon(const RE::Actor* actor, const RE::TESNPC* npc) const;

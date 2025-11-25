@@ -100,6 +100,13 @@ namespace Common {
   enum eFloatSetting { fsXS, fsS, fsM, fsL, fsXL, fsMalRndChance, fsFemRndChance, floatSettingCount };
   inline static constexpr int sizeCatCount{fsXL + 1};
 
+  struct AddonInfo {
+      std::string name{""};
+      std::vector<RE::TESObjectARMO*> records{};
+      bool isActive{false};
+      bool isGenderChanger{false};
+  };
+
   struct RaceGroupInfo {
       std::string name{""};
       std::string file{""};

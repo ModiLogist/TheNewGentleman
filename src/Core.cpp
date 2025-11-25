@@ -62,7 +62,7 @@ void Core::SetRgAddon(RgKey rgChoice, const int addonIdx) {
   auto rg = Rg(rgChoice);
   if (!rg || addonIdx < Common::def || (addonIdx >= 0 && rg->malAddons.find(addonIdx) == rg->malAddons.end())) return;
   rg->addonIdx = (addonIdx == Common::def) ? rg->defAddonIdx : addonIdx;
-  auto addon = addonIdx < 0 ? nullptr : malAddons[rg->addonIdx].first;
+  auto addon = addonIdx < 0 ? nullptr : rg->malAddons[static_cast<size_t>(addonIdx)];
   Inis::SetRgAddon(rg->races[0], addon, addonIdx);
 }
 
@@ -164,33 +164,24 @@ void Core::UpdateActor(RE::Actor* const actor, RE::TESObjectARMO* const armor, c
   auto npc = actor ? actor->GetActorBase() : nullptr;
   if (!npc || actor->IsDisabled() || !npc->race || !npc->race->skin) return;
   auto canModify = CanModifyActor(actor);
-  auto skin = npc->skin;
-  if (canModify == Common::resOkRacePP) ReevaluateRace(actor->GetRace(), actor);
-  if (canModify < 0 || canModify == Common::resOkRacePP) {
-    if (skin && skin->HasKeyword(ut->Key(Common::kyTngSkin))) npc->skin = nullptr;
-    return;
-  }
-  if (skin && skin->HasKeyword(ut->Key(Common::kyTngSkin)) &&
-      std::ranges::find_if(skin->armorAddons, [&](const auto& aa) { return aa->IsValidRace(npc->race); }) == skin->armorAddons.end())
-    npc->skin = nullptr;
-  if (canModify == Common::resOkRaceP || canModify == Common::resOkRaceR) {
-    if (actor->IsPlayerRef()) {
-      UpdatePlayer(actor, canModify == Common::resOkRaceR);
-    } else {
-      UpdateAddon(actor, canModify == Common::resOkRaceR);
-    }
+  if (canModify < Common::resOkRaceP || (canModify == Common::resOkRacePP && !ReevaluateRace(actor->GetRace(), actor))) ExcludeActor(actor);
+  // TODO: Really necessary to separate player and other actors in new way?
+  if (actor->IsPlayerRef()) {
+    UpdatePlayer(actor, canModify == Common::resOkRaceR);
+  } else {
+    UpdateAddon(actor, canModify == Common::resOkRaceR);
   }
 }
 
-std::vector<std::pair<size_t, bool>> Core::GetActorAddons(RE::Actor* const actor, const bool onlyActive) const {
-  std::vector<std::pair<size_t, bool>> res{};
+std::vector<size_t> Core::GetActorAddons(RE::Actor* const actor, const bool onlyActive) const {
+  std::vector<size_t> res{};
   auto npc = actor ? actor->GetActorBase() : nullptr;
   if (!npc || !npc->race) return res;
   if (auto rg = Rg(RgKey(npc->race)); rg) {
     auto& list = npc->IsFemale() ? rg->femAddons : rg->malAddons;
-    auto& master = npc->IsFemale() ? femAddons : malAddons;
+    auto& master = npc->IsFemale() ? allFemAddons : allMalAddons;
     for (auto& addonPair : list) {
-      if (!onlyActive || master[addonPair.first].second) res.push_back({addonPair.first, addonPair.second.first});
+      if (!onlyActive || master[addonPair.first].isActive) res.push_back(addonPair.first);
     }
   }
   return res;
@@ -203,7 +194,6 @@ Common::eRes Core::GetActorAddon(RE::Actor* actor, int& addonIdx, bool& isAuto) 
   if (!npc) return Common::errNPC;
   if (IsNPCExcluded(npc) || npc->HasKeyword(ut->Key(Common::kyExcluded))) {
     isAuto = false;
-    if (npc->skin && npc->skin->HasKeyword(ut->Key(Common::kyTngSkin))) return Common::err40;
     return Common::resOkNoAddon;
   }
   auto rg = Rg(RgKey(npc->race));
@@ -382,20 +372,35 @@ void Core::LoadAddons() {
   allFemAddons.clear();
   const auto& armorList = ut->SEDH()->GetFormArray<RE::TESObjectARMO>();
   for (const auto& armor : armorList) {
-    if (armor->HasKeyword(ut->Key(Common::kyAddonM))) malAddons.emplace_back(armor, true);
-    if (armor->HasKeyword(ut->Key(Common::kyAddonF))) femAddons.emplace_back(armor, false);
+    if (!armor || !armor->GetName()) continue;
+    if (armor->HasKeyword(ut->Key(Common::kyAddonM))) {
+      if (!armor->HasKeyword(ut->Key(Common::kyIgnored))) armor->AddKeyword(ut->Key(Common::kyIgnored));
+      auto addonLoc = ut->FormToLoc(armor);
+      if (auto it = std::ranges::find_if(allMalAddons, [&](const auto& item) { return item.name == armor->GetName(); }); it == allMalAddons.end()) {
+        allMalAddons.push_back({armor->GetName(), {armor}, userMalAddons.find(addonLoc) == userMalAddons.end(), armor->HasKeyword(ut->Key(Common::kySkinWOP))});
+      } else {
+        it->records.push_back(armor);
+        it->isActive = it->isActive && (userMalAddons.find(addonLoc) == userMalAddons.end());
+        if (armor->HasKeyword(ut->Key(Common::kySkinWOP)) != it->isGenderChanger)
+          SKSE::log::error("Inconsistent keywords were found in addon [{}] between [0x{:x}] and [0x{:x}] regarding gender specification. This would cause problems in animations!",
+                           it->name, it->records[0]->GetFormID(), armor->GetFormID());
+      }
+    }
+    if (armor->HasKeyword(ut->Key(Common::kyAddonF))) {
+      if (!armor->HasKeyword(ut->Key(Common::kyIgnored))) armor->AddKeyword(ut->Key(Common::kyIgnored));
+      auto addonLoc = ut->FormToLoc(armor);
+      if (auto it = std::ranges::find_if(allFemAddons, [&](const auto& item) { return item.name == armor->GetName(); }); it == allFemAddons.end()) {
+        allFemAddons.push_back({armor->GetName(), {armor}, userFemAddons.find(addonLoc) != userFemAddons.end(), armor->HasKeyword(ut->Key(Common::kySkinWP))});
+      } else {
+        it->records.push_back(armor);
+        it->isActive = it->isActive && (userFemAddons.find(addonLoc) != userFemAddons.end());
+        if (armor->HasKeyword(ut->Key(Common::kySkinWP)) != it->isGenderChanger)
+          SKSE::log::error("Inconsistent keywords were found in addon [{}] between [0x{:x}] and [0x{:x}] regarding gender specification. This would cause problems in animations!",
+                           it->name, it->records[0]->GetFormID(), armor->GetFormID());
+      }
+    }
   }
-  for (auto& addonPair : malAddons) {
-    if (!addonPair.first->HasKeyword(ut->Key(Common::kyIgnored))) addonPair.first->AddKeyword(ut->Key(Common::kyIgnored));
-    auto addonLoc = ut->FormToLoc(addonPair.first);
-    if (activeMalAddons.find(addonLoc) != activeMalAddons.end()) addonPair.second = false;
-  }
-  for (auto& addonPair : femAddons) {
-    if (!addonPair.first->HasKeyword(ut->Key(Common::kyIgnored))) addonPair.first->AddKeyword(ut->Key(Common::kyIgnored));
-    auto addonLoc = ut->FormToLoc(addonPair.first);
-    if (activeFemAddons.find(addonLoc) != activeFemAddons.end()) addonPair.second = true;
-  }
-  SKSE::log::debug("Loaded all addons with [{}] addons for men and [{}] addons for women.", malAddons.size(), femAddons.size());
+  SKSE::log::debug("Loaded all addons. Found [{}] addons for men and [{}] addons for women.", allMalAddons.size(), allFemAddons.size());
 }
 
 int Core::AddonIdxByLoc(const bool isFemale, const SEFormLocView addonLoc) const {

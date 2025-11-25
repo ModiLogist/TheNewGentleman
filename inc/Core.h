@@ -6,8 +6,8 @@
 class Core : public Singleton<Core>, public Inis {
   public:
     void Process();
-    using AllAddonsType = std::vector<std::pair<std::vector<RE::TESObjectARMO*>, bool>>;
-    AllAddonsType& GenderAddons(const bool isFemale) { return isFemale ? allFemAddons : allMalAddons; };
+
+    std::vector<Common::AddonInfo>& GenderAddons(const bool isFemale) { return isFemale ? allFemAddons : allMalAddons; };
     struct RgKey {
         RE::TESRace* race = nullptr;
         int index = -1;
@@ -32,7 +32,7 @@ class Core : public Singleton<Core>, public Inis {
 
     Common::eRes CanModifyActor(RE::Actor* const actor) const;
     void UpdateActor(RE::Actor* const actor, RE::TESObjectARMO* const armor = nullptr, const bool isEquipped = false);
-    std::vector<std::pair<size_t, bool>> GetActorAddons(RE::Actor* const actor, const bool onlyActive) const;
+    std::vector<size_t> GetActorAddons(RE::Actor* const actor, const bool onlyActive) const;
     Common::eRes GetActorAddon(RE::Actor* actor, int& addon, bool& isAuto) const;
     Common::eRes SetActorAddon(RE::Actor* const actor, const int choice, const bool isUser, const bool shouldSave);
     Common::eRes GetActorSize(RE::Actor* const actor, int& sizeCat) const;
@@ -48,8 +48,8 @@ class Core : public Singleton<Core>, public Inis {
     inline static constexpr size_t hardCodedRacesCount{1};
     inline static constexpr SEFormLocView hardCodedRaces[hardCodedRacesCount]{{0x3CA97, "Dragonborn.esm"}};
     std::vector<Common::RaceGroupInfo> rgInfoList;
-    AllAddonsType allMalAddons;
-    AllAddonsType allFemAddons;
+    std::vector<Common::AddonInfo> allMalAddons;
+    std::vector<Common::AddonInfo> allFemAddons;
 
     void LoadAddons();
     int AddonIdxByLoc(const bool isFemale, const SEFormLocView addonLoc) const;
