@@ -25,10 +25,10 @@ void Inis::LoadMainIni() {
   LoadIniPairs<SEFormLoc>(settingIni, cRacialAddon, userRacialAddons);
   LoadIniPairs<float>(settingIni, cRacialSize, userRacialSizes);
   SKSE::log::debug("\tRestored all racial addon and size settings");
-  LoadIniPairs<SEFormLoc>(settingIni, cNPCAddonSection, npcAddons);
-  LoadIniPairs<int>(settingIni, cNPCSizeSection, npcSizeCats);
-  LoadIniPairs<SEFormLoc>(settingIni, cActorAddonSection, actorAddons);
-  LoadIniPairs<int>(settingIni, cActorSizeSection, actorSizeCats);
+  LoadIniPairs<SEFormLoc>(settingIni, cNPCAddonSection, userNpcAddons);
+  LoadIniPairs<int>(settingIni, cNPCSizeSection, userNpcSizeCats);
+  LoadIniPairs<SEFormLoc>(settingIni, cActorAddonSection, userActorAddons);
+  LoadIniPairs<int>(settingIni, cActorSizeSection, userActorSizeCats);
   SKSE::log::debug("\tRestored all NPC and actor addon and size settings");
   LoadIniPairs<int>(settingIni, cArmorStatusSection, userArmorStatus);
   SKSE::log::debug("\tRestored all revealing records settings");
@@ -56,10 +56,10 @@ void Inis::SaveMainIni() {
   for (auto& skeleton : validSkeletons) settingIni.SetBoolValue(cValidSkeletons, skeleton.c_str(), true);
   SaveIniPairs<SEFormLoc>(settingIni, cRacialAddon, userRacialAddons);
   SaveIniPairs<float>(settingIni, cRacialSize, userRacialSizes);
-  SaveIniPairs<SEFormLoc>(settingIni, cNPCAddonSection, npcAddons);
-  SaveIniPairs<int>(settingIni, cNPCSizeSection, npcSizeCats);
-  SaveIniPairs<SEFormLoc>(settingIni, cActorAddonSection, actorAddons);
-  SaveIniPairs<int>(settingIni, cActorSizeSection, actorSizeCats);
+  SaveIniPairs<SEFormLoc>(settingIni, cNPCAddonSection, userNpcAddons);
+  SaveIniPairs<int>(settingIni, cNPCSizeSection, userNpcSizeCats);
+  SaveIniPairs<SEFormLoc>(settingIni, cActorAddonSection, userActorAddons);
+  SaveIniPairs<int>(settingIni, cActorSizeSection, userActorSizeCats);
   SaveIniPairs<int>(settingIni, cArmorStatusSection, userArmorStatus);
   auto playerIdx = RE::BGSSaveLoadManager::GetSingleton()->currentCharacterID & 0xFFFFFFFF;
   auto section = fmt::format("{}{:08X}", cPlayerSection, playerIdx);
@@ -240,16 +240,16 @@ void Inis::SetRgMult(const RE::TESRace* rgRace, const float mult) {
   }
 }
 
-SEFormLoc Inis::GetActorAddon(const RE::Actor* actor, const RE::TESNPC* npc) const {
+SEFormLoc Inis::ActorSavedAddon(const RE::Actor* actor, const RE::TESNPC* npc) const {
   if (!npc || !actor || actor->IsPlayerRef() || npc->IsPlayer()) return {0, ""};
   auto npcLoc = ut->FormToLoc(npc);
-  if (!npcLoc.second.empty() && npcAddons.find(npcLoc) != npcAddons.end()) return npcAddons.at(npcLoc);
+  if (!npcLoc.second.empty() && userNpcAddons.find(npcLoc) != userNpcAddons.end()) return userNpcAddons.at(npcLoc);
   auto actorLoc = ut->FormToLoc(actor);
-  if (!actorLoc.second.empty() && actorAddons.find(actorLoc) != actorAddons.end()) return actorAddons.at(actorLoc);
+  if (!actorLoc.second.empty() && userActorAddons.find(actorLoc) != userActorAddons.end()) return userActorAddons.at(actorLoc);
   return {0, ""};
 }
 
-void Inis::SetActorAddon(const RE::Actor* actor, const RE::TESNPC* npc, const RE::TESObjectARMO* addon, const int choice) {
+void Inis::SaveActorAddon(const RE::Actor* actor, const RE::TESNPC* npc, const RE::TESObjectARMO* addon, const int choice) {
   auto charLoc = ut->FormToLoc(npc);
   bool saveAsActor = false;
   if (charLoc.second.empty()) {
@@ -269,19 +269,19 @@ void Inis::SetActorAddon(const RE::Actor* actor, const RE::TESNPC* npc, const RE
     }
     return;
   }
-  saveAsActor ? actorAddons[charLoc] = addonLoc : npcAddons[charLoc] = addonLoc;
+  saveAsActor ? userActorAddons[charLoc] = addonLoc : userNpcAddons[charLoc] = addonLoc;
 }
 
-int Inis::GetActorSize(const RE::Actor* actor, const RE::TESNPC* npc) const {
+int Inis::ActorSavedSize(const RE::Actor* actor, const RE::TESNPC* npc) const {
   if (!npc || !actor || actor->IsPlayerRef() || npc->IsPlayer()) return nul;
   auto npcLoc = ut->FormToLoc(npc);
-  if (!npcLoc.second.empty() && npcSizeCats.find(npcLoc) != npcSizeCats.end()) return npcSizeCats.at(npcLoc);
+  if (!npcLoc.second.empty() && userNpcSizeCats.find(npcLoc) != userNpcSizeCats.end()) return userNpcSizeCats.at(npcLoc);
   auto actorLoc = ut->FormToLoc(actor);
-  if (!actorLoc.second.empty() && actorSizeCats.find(actorLoc) != actorSizeCats.end()) return actorSizeCats.at(actorLoc);
+  if (!actorLoc.second.empty() && userActorSizeCats.find(actorLoc) != userActorSizeCats.end()) return userActorSizeCats.at(actorLoc);
   return nul;
 }
 
-void Inis::SetActorSize(const RE::Actor* actor, const RE::TESNPC* npc, const int genSize) {
+void Inis::SaveActorSize(const RE::Actor* actor, const RE::TESNPC* npc, const int genSize) {
   if (genSize == nul) return;
   auto charLoc = ut->FormToLoc(npc);
   bool saveAsActor = false;
@@ -293,7 +293,7 @@ void Inis::SetActorSize(const RE::Actor* actor, const RE::TESNPC* npc, const int
     SKSE::log::critical("Failed to save the size for actor [0x{:x}]!", actor->GetFormID());
     return;
   }
-  (saveAsActor ? actorSizeCats[charLoc] : npcSizeCats[charLoc]) = genSize == def ? GetDefault<int>() : genSize;
+  (saveAsActor ? userActorSizeCats[charLoc] : userNpcSizeCats[charLoc]) = genSize == def ? GetDefault<int>() : genSize;
 }
 
 void Inis::SetArmorStatus(const RE::TESObjectARMO* armor, const eKeyword revMode) {
@@ -440,8 +440,8 @@ void Inis::LoadSingleIni(const char* path, const std::string_view fileName) {
     if (ini.GetAllValues(cArmorSection, cFemRevRecord, values)) LoadModRecordPairs(values, femRevRecords, cFemRevRecord, fileName);
     if (ini.GetAllValues(cArmorSection, cMalRevRecord, values)) LoadModRecordPairs(values, malRevRecords, cMalRevRecord, fileName);
   }
-  LoadIniPairs<SEFormLoc>(ini, cNPCAddonSection, npcAddons);
-  LoadIniPairs<int>(ini, cNPCSizeSection, npcSizeCats);
+  LoadIniPairs<SEFormLoc>(ini, cNPCAddonSection, userNpcAddons);
+  LoadIniPairs<int>(ini, cNPCSizeSection, userNpcSizeCats);
 }
 
 bool Inis::IsRaceExcluded(const RE::TESRace* race) const {
@@ -488,7 +488,7 @@ void Inis::ClearInis() {
   userRacialAddons.clear();
   userRacialSizes.clear();
   userArmorStatus.clear();
-  // npcAddons|actorAddons|npcSizeCats|actorSizeCats|slot52Mods|extraRevealingMods should not be cleared during lifetime of the game
+  // userNpcAddons|userActorAddons|userNpcSizeCats|userActorSizeCats|slot52Mods|extraRevealingMods should not be cleared during lifetime of the game
 
   excludedRaceMods.clear();
   excludedRaces.clear();

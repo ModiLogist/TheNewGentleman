@@ -86,19 +86,19 @@ namespace TNG {
       void SetRgAddon(const RE::TESRace* rgRace, const RE::TESObjectARMO* addon, const int choice);
       void SetRgMult(const RE::TESRace* rgRace, const float mult);
 
-      SEFormLoc GetActorAddon(const RE::Actor* actor, const RE::TESNPC* npc) const;
-      void SetActorAddon(const RE::Actor* actor, const RE::TESNPC* npc, const RE::TESObjectARMO* addon, const int choice);
+      SEFormLoc ActorSavedAddon(const RE::Actor* actor, const RE::TESNPC* npc) const;
+      void SaveActorAddon(const RE::Actor* actor, const RE::TESNPC* npc, const RE::TESObjectARMO* addon, const int choice);
 
-      int GetActorSize(const RE::Actor* actor, const RE::TESNPC* npc) const;
-      void SetActorSize(const RE::Actor* actor, const RE::TESNPC* npc, const int genSize);
+      int ActorSavedSize(const RE::Actor* actor, const RE::TESNPC* npc) const;
+      void SaveActorSize(const RE::Actor* actor, const RE::TESNPC* npc, const int genSize);
 
       void SetArmorStatus(const RE::TESObjectARMO* armor, const eKeyword revMode);
 
     private:
-      std::map<SEFormLoc, SEFormLoc> npcAddons;
-      std::map<SEFormLoc, SEFormLoc> actorAddons;
-      std::map<SEFormLoc, int> npcSizeCats;
-      std::map<SEFormLoc, int> actorSizeCats;
+      std::map<SEFormLoc, SEFormLoc> userNpcAddons;
+      std::map<SEFormLoc, SEFormLoc> userActorAddons;
+      std::map<SEFormLoc, int> userNpcSizeCats;
+      std::map<SEFormLoc, int> userActorSizeCats;
 
     public:
       void LoadPlayerInfo(const std::string& saveName);

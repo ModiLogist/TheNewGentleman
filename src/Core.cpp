@@ -242,7 +242,7 @@ eRes Core::SetActorAddon(RE::Actor* const actor, const int choice, const bool is
   if (actor->IsPlayerRef() && shouldSave)
     SetPlayerInfo(actor, addon, addonIdx);
   else if (!npc->IsPlayer() && shouldSave)
-    Inis::SetActorAddon(actor, npc, addon, addonIdx);
+    Inis::SaveActorAddon(actor, npc, addon, addonIdx);
   if (shouldSave || (!isUser && npc->skin != oldSkin)) {
     UpdateFormLists(actor);
   }
@@ -254,7 +254,7 @@ eRes Core::GetActorSize(RE::Actor* const actor, int& sizeCat) const {
   if (auto res = CanModifyActor(actor); res < 0) return res;
   const auto npc = actor->GetActorBase();
   if (npc->IsPlayer() && boolSettings.Get(bsExcludePlayerSize)) return errPlayer;
-  if (sizeCat = Inis::GetActorSize(actor, npc); sizeCat >= 0) return resOkSizable;
+  if (sizeCat = Inis::ActorSavedSize(actor, npc); sizeCat >= 0) return resOkSizable;
   sizeCat = ut->HasKeywordInList(npc, ut->SizeKeys());
   if (sizeCat < 0) sizeCat = npc->formID % sizeCatCount;
   return resOkSizable;
@@ -301,7 +301,7 @@ eRes Core::SetActorSize(RE::Actor* const actor, int sizeCat, const bool shouldSa
         [actor]() -> bool { return actor && actor->Is3DLoaded() && actor->GetNodeByName(genBoneNames[egbBase]); }, 0, true, failMessage);
   }
   if (actor->IsPlayerRef() && sizeCat != nul && shouldSave) SetPlayerInfo(actor, nullptr, errInt, sizeCat);
-  if (!actor->IsPlayerRef() && shouldSave) Inis::SetActorSize(actor, actor->GetActorBase(), sizeCat);
+  if (!actor->IsPlayerRef() && shouldSave) Inis::SaveActorSize(actor, actor->GetActorBase(), sizeCat);
   return res;
 }
 
@@ -720,7 +720,7 @@ std::pair<int, bool> Core::GetApplicableAddon(RE::Actor* const actor) const {
   int addonIdx{def};
   auto npc = actor ? actor->GetActorBase() : nullptr;
   if (!npc) return {addonIdx, false};
-  auto savedAddon = Inis::GetActorAddon(actor, npc);
+  auto savedAddon = ActorSavedAddon(actor, npc);
   auto list = GetActorAddons(actor, true);
   if (!savedAddon.second.empty()) {
     addonIdx = savedAddon.second == nulStr ? nul : AddonIdxByLoc(npc->IsFemale(), savedAddon);
