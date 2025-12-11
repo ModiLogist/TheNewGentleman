@@ -102,7 +102,8 @@ namespace TNG {
 
     public:
       void LoadPlayerInfo(const std::string& saveName);
-      bool Slot52ModBehavior(const std::string& modName, const int behavior = errInt);
+      const bool Slot52ModBehavior(const std::string& modName) const;
+      bool Slot52ModBehavior(const std::string& modName, const int behavior);
       const std::vector<std::string> Slot52Mods() const;
 
     protected:

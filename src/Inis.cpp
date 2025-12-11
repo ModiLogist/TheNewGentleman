@@ -337,6 +337,7 @@ void Inis::LoadPlayerInfo(const std::string& saveName) {
     }
   }
 }
+const bool Inis::Slot52ModBehavior(const std::string& modName) const { return slot52Mods.find(modName) != slot52Mods.end() && slot52Mods.at(modName); }
 
 bool Inis::Slot52ModBehavior(const std::string& modName, const int behavior) {
   if (behavior >= 0) slot52Mods[modName] = behavior == 1;
