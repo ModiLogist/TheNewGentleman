@@ -2,11 +2,11 @@
 #include <Hooks.h>
 #include <Papyrus.h>
 #include <SEEvents.h>
-#include <Util.h>
+#include <TNGUtil.h>
 
 bool CheckRequirements() {
-  if (!ut->SEDH()->LookupModByName(Common::mainFile)) {
-    const char* err = fmt::format("Mod [{}] was not found! Make sure that the mod is active in your plugin load order!", Common::mainFile).c_str();
+  if (!ut->SEDH()->LookupModByName(TNG::mainFile)) {
+    const char* err = fmt::format("Mod [{}] was not found! Make sure that the mod is active in your plugin load order!", TNG::mainFile).c_str();
     ut->ShowSkyrimMessage(err);
     return false;
   }
@@ -92,7 +92,7 @@ extern "C" [[maybe_unused]] __declspec(dllexport) bool SKSEPlugin_Load(const SKS
   SKSE::log::info("Initializing TheNewGentleman {}!", Version::NAME.data());
   SKSE::log::info("Game version : {}", skse->RuntimeVersion().string());
   SKSE::GetMessagingInterface()->RegisterListener(EventListener);
-  SKSE::GetPapyrusInterface()->Register(Papyrus::BindPapyrus);
+  SKSE::GetPapyrusInterface()->Register(TNG::Papyrus::BindPapyrus);
   return true;
 }
 

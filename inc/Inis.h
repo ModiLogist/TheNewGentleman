@@ -1,237 +1,251 @@
 #pragma once
 
-#include <Util.h>
+#include <TNGUtil.h>
 
-class Inis {
-  public:
-    void LoadMainIni();
-    void SaveMainIni();
-    virtual ~Inis() = default;
+namespace TNG {
 
-    Common::TypedSetting<bool, Common::eBoolSetting, Common::boolSettingCount> boolSettings{
-        std::array<bool, Common::boolSettingCount>{false, false, false, false, false, false},
-        std::array<std::string, Common::boolSettingCount>{"General", "General", "General", "General", "General", "Controls"},
-        std::array<std::string, Common::boolSettingCount>{"ExcludePlayerSize", "Slot52ModsAreRevealing", "Slot52ModsAreMixed", "RandomizeMaleAddons", "ShowAllRaces",
-                                                          "DAK_Integration"}};
-    Common::TypedSetting<int, Common::eIntSetting, Common::intSettingCount> intSettings{
-        std::array<int, Common::intSettingCount>{Common::nul, Common::nul, Common::nul, Common::nul, Common::nul},
-        std::array<std::string, Common::intSettingCount>{"Controls", "Controls", "Controls", "Controls", "Controls"},
-        std::array<std::string, Common::intSettingCount>{"NPCEdit", "GenitalUp", "GenitalDown", "Revealing", "WhyProblem"}};
-    Common::TypedSetting<float, Common::eFloatSetting, Common::floatSettingCount> floatSettings{
-        std::array<float, Common::floatSettingCount>{0.8f, 0.9f, 1.0f, 1.2f, 1.4f, 0.0f, 20.0f},
-        std::array<std::string, Common::floatSettingCount>{"GlobalSizes", "GlobalSizes", "GlobalSizes", "GlobalSizes", "GlobalSizes", cActiveMalAddons, cActiveFemAddons},
-        std::array<std::string, Common::floatSettingCount>{"Size_XS", "Size__S", "Size__M", "Size__L", "Size_XL", "RandomChance", "RandomChance"}};
+  struct PlayerInfo {
+      std::string name;
+      SEFormLoc race;
+      bool isFemale;
+      SEFormLoc addon{0, defStr};
+      int sizeCat = {nul};
+      std::tuple<const std::string&, const SEFormLoc&, const bool&> Id() const { return {name, race, isFemale}; };
+      std::pair<const SEFormLoc&, const int&> Info() const { return {addon, sizeCat}; };
+      std::string IdStr() const;
+      std::string InfoStr() const;
+      bool FromStr(const std::string& IdStr, const std::string& InfoStr);
+  };
 
-    spdlog::level::level_enum GetLogLvl() const;
-    void SetLogLvl(const int newLevel);
+  class Inis {
+    public:
+      void LoadMainIni();
+      void SaveMainIni();
+      virtual ~Inis() = default;
 
-  private:
-    inline static constexpr int iniVersion = 5;
-    inline static constexpr const char* cSettings{R"(.\Data\SKSE\Plugins\TheNewGentleman{}.ini)"};
-    inline static constexpr const char* cTngIniEnding{"TNG.ini"};
-    inline static constexpr const char* cTngInisPath{R"(.\Data\SKSE\Plugins\TNG)"};
+      TypedSetting<bool, eBoolSetting, boolSettingCount> boolSettings{
+          std::array<bool, boolSettingCount>{false, false, false, false, false, false},
+          std::array<std::string, boolSettingCount>{"General", "General", "General", "General", "General", "Controls"},
+          std::array<std::string, boolSettingCount>{"ExcludePlayerSize", "Slot52ModsAreRevealing", "Slot52ModsAreMixed", "RandomizeMaleAddons", "ShowAllRaces", "DAK_Integration"}};
+      TypedSetting<int, eIntSetting, intSettingCount> intSettings{std::array<int, intSettingCount>{nul, nul, nul, nul, nul},
+                                                                  std::array<std::string, intSettingCount>{"Controls", "Controls", "Controls", "Controls", "Controls"},
+                                                                  std::array<std::string, intSettingCount>{"NPCEdit", "GenitalUp", "GenitalDown", "Revealing", "WhyProblem"}};
+      TypedSetting<float, eFloatSetting, floatSettingCount> floatSettings{
+          std::array<float, floatSettingCount>{0.8f, 0.9f, 1.0f, 1.2f, 1.4f, 0.0f, 20.0f},
+          std::array<std::string, floatSettingCount>{"GlobalSizes", "GlobalSizes", "GlobalSizes", "GlobalSizes", "GlobalSizes", cActiveMalAddons, cActiveFemAddons},
+          std::array<std::string, floatSettingCount>{"Size_XS", "Size__S", "Size__M", "Size__L", "Size_XL", "RandomChance", "RandomChance"}};
 
-    inline static constexpr const char* versionSection{"Version"};
-    inline static constexpr const char* versionKey{"IniVersion"};
+      spdlog::level::level_enum GetLogLvl() const;
+      void SetLogLvl(const int newLevel);
 
-    inline static constexpr const char* cGeneral{"General"};
-    inline static constexpr const char* cLogLvl{"LoggingLevel"};
+    private:
+      inline static constexpr int iniVersion = 5;
+      inline static constexpr const char* cSettings{R"(.\Data\SKSE\Plugins\TheNewGentleman{}.ini)"};
+      inline static constexpr const char* cTngIniEnding{"TNG.ini"};
+      inline static constexpr const char* cTngInisPath{R"(.\Data\SKSE\Plugins\TNG)"};
 
-    inline static constexpr const char* cActiveMalAddons{"ActiveMaleAddons"};
-    inline static constexpr const char* cActiveFemAddons{"ActiveFemaleAddons"};
+      inline static constexpr const char* versionSection{"Version"};
+      inline static constexpr const char* versionKey{"IniVersion"};
 
-    inline static constexpr const char* cValidSkeletons{"ValidSkeletons"};
-    inline static constexpr const char* cRacialAddon{"RaceGenital"};
-    inline static constexpr const char* cRacialSize{"RaceSizeMultiplier"};
+      inline static constexpr const char* cGeneral{"General"};
+      inline static constexpr const char* cLogLvl{"LoggingLevel"};
 
-    inline static constexpr const char* cNPCAddonSection{"NPCGenitalAddon"};
-    inline static constexpr const char* cNPCSizeSection{"NPCGenitalSize"};
-    inline static constexpr const char* cActorAddonSection{"ActorGenitalAddon"};
-    inline static constexpr const char* cActorSizeSection{"ActorGenitalSize"};
+      inline static constexpr const char* cActiveMalAddons{"ActiveMaleAddons"};
+      inline static constexpr const char* cActiveFemAddons{"ActiveFemaleAddons"};
 
-    inline static constexpr const char* cRevealingModSection{"RevealingMod"};
-    inline static constexpr const char* cArmorStatusSection{"ArmorStatus"};
+      inline static constexpr const char* cValidSkeletons{"ValidSkeletons"};
+      inline static constexpr const char* cRacialAddon{"RaceGenital"};
+      inline static constexpr const char* cRacialSize{"RaceSizeMultiplier"};
 
-    const char* SettingFile(const int version = iniVersion) const;
-    void TransferOldIni();
+      inline static constexpr const char* cNPCAddonSection{"NPCGenitalAddon"};
+      inline static constexpr const char* cNPCSizeSection{"NPCGenitalSize"};
+      inline static constexpr const char* cActorAddonSection{"ActorGenitalAddon"};
+      inline static constexpr const char* cActorSizeSection{"ActorGenitalSize"};
 
-  protected:
-    inline static constexpr std::array<Common::eKeyword, 4> statusKeys{Common::kyCovering, Common::kyRevealing, Common::kyRevealingF, Common::kyRevealingM};
-    std::map<SEFormLoc, bool> userMalAddons;
-    std::map<SEFormLoc, bool> userFemAddons;
-    std::set<std::string> validSkeletons;
-    std::map<SEFormLoc, SEFormLoc> userRacialAddons;
-    std::map<SEFormLoc, float> userRacialSizes;
-    std::map<SEFormLoc, int> userArmorStatus;
-    std::map<std::string, bool> slot52Mods;
+      inline static constexpr const char* cRevealingModSection{"RevealingMod"};
+      inline static constexpr const char* cArmorStatusSection{"ArmorStatus"};
 
-  public:
-    void SetAddonStatus(const bool isFemale, const RE::TESObjectARMO* addon, const bool status);
+      const char* SettingFile(const int version = iniVersion) const;
+      void TransferOldIni();
 
-  protected:
-    void SetValidSkeleton(const std::string& skeletonModel);
-    void SetRgAddon(const RE::TESRace* rgRace, const RE::TESObjectARMO* addon, const int choice);
-    void SetRgMult(const RE::TESRace* rgRace, const float mult);
+    protected:
+      inline static constexpr std::array<eKeyword, 4> statusKeys{kyCovering, kyRevealing, kyRevealingF, kyRevealingM};
+      std::map<SEFormLoc, bool> userMalAddons;
+      std::map<SEFormLoc, bool> userFemAddons;
+      std::set<std::string> validSkeletons;
+      std::map<SEFormLoc, SEFormLoc> userRacialAddons;
+      std::map<SEFormLoc, float> userRacialSizes;
+      std::map<SEFormLoc, int> userArmorStatus;
+      std::map<std::string, bool> slot52Mods;
 
-    SEFormLoc GetActorAddon(const RE::Actor* actor, const RE::TESNPC* npc) const;
-    void SetActorAddon(const RE::Actor* actor, const RE::TESNPC* npc, const RE::TESObjectARMO* addon, const int choice);
+    public:
+      void SetAddonStatus(const bool isFemale, const RE::TESObjectARMO* addon, const bool status);
 
-    int GetActorSize(const RE::Actor* actor, const RE::TESNPC* npc) const;
-    void SetActorSize(const RE::Actor* actor, const RE::TESNPC* npc, const int genSize);
+    protected:
+      void SetValidSkeleton(const std::string& skeletonModel);
+      void SetRgAddon(const RE::TESRace* rgRace, const RE::TESObjectARMO* addon, const int choice);
+      void SetRgMult(const RE::TESRace* rgRace, const float mult);
 
-    void SetArmorStatus(const RE::TESObjectARMO* armor, const Common::eKeyword revMode);
+      SEFormLoc GetActorAddon(const RE::Actor* actor, const RE::TESNPC* npc) const;
+      void SetActorAddon(const RE::Actor* actor, const RE::TESNPC* npc, const RE::TESObjectARMO* addon, const int choice);
 
-  private:
-    std::map<SEFormLoc, SEFormLoc> npcAddons;
-    std::map<SEFormLoc, SEFormLoc> actorAddons;
-    std::map<SEFormLoc, int> npcSizeCats;
-    std::map<SEFormLoc, int> actorSizeCats;
+      int GetActorSize(const RE::Actor* actor, const RE::TESNPC* npc) const;
+      void SetActorSize(const RE::Actor* actor, const RE::TESNPC* npc, const int genSize);
 
-  public:
-    void LoadPlayerInfo(const std::string& saveName);
-    bool Slot52ModBehavior(const std::string& modName, const int behavior = Common::errInt);
-    const std::vector<std::string> Slot52Mods() const;
+      void SetArmorStatus(const RE::TESObjectARMO* armor, const eKeyword revMode);
 
-  protected:
-    Common::PlayerInfo* GetPlayerInfo(const RE::Actor* actor, const bool allowAdd);
-    void SetPlayerInfo(const RE::Actor* actor, const RE::TESObjectARMO* addon, const int choice = Common::errInt, const int sizeCatInp = Common::errInt);
+    private:
+      std::map<SEFormLoc, SEFormLoc> npcAddons;
+      std::map<SEFormLoc, SEFormLoc> actorAddons;
+      std::map<SEFormLoc, int> npcSizeCats;
+      std::map<SEFormLoc, int> actorSizeCats;
 
-  private:
-    inline static constexpr const char* cPlayerSection{"PlayerInfo"};
-    inline static constexpr const char* cPlayerName{"Name"};
-    inline static constexpr const char* cPlayerGender{"Gender"};
-    inline static constexpr const char* cPlayerRace{"Race"};
-    inline static constexpr const char* cPlayerAddon{"Addon"};
-    inline static constexpr const char* cPlayerSize{"Size"};
-    std::vector<Common::PlayerInfo> playerInfos;
+    public:
+      void LoadPlayerInfo(const std::string& saveName);
+      bool Slot52ModBehavior(const std::string& modName, const int behavior = errInt);
+      const std::vector<std::string> Slot52Mods() const;
 
-  public:
-    void LoadTngInis();
+    protected:
+      PlayerInfo* GetPlayerInfo(const RE::Actor* actor, const bool allowAdd);
+      void SetPlayerInfo(const RE::Actor* actor, const RE::TESObjectARMO* addon, const int choice = errInt, const int sizeCatInp = errInt);
 
-  private:
-    inline static constexpr const char* cExcludeSection{"Exclusions"};
-    inline static constexpr const char* cExcModRaces{"ExcludeRacesInMod"};
-    inline static constexpr const char* cExcRace{"ExcludeRace"};
-    inline static constexpr const char* cExcludeNPC{"ExcludeNPC"};
+    private:
+      inline static constexpr const char* cPlayerSection{"PlayerInfo"};
+      inline static constexpr const char* cPlayerName{"Name"};
+      inline static constexpr const char* cPlayerGender{"Gender"};
+      inline static constexpr const char* cPlayerRace{"Race"};
+      inline static constexpr const char* cPlayerAddon{"Addon"};
+      inline static constexpr const char* cPlayerSize{"Size"};
+      std::vector<PlayerInfo> playerInfos;
 
-    inline static constexpr const char* cSkinSection{"Skin"};
-    inline static constexpr const char* cSkinMod{"SkinMod"};
-    inline static constexpr const char* cSkinRecord{"SkinRecord"};
+    public:
+      void LoadTngInis();
 
-    inline static constexpr const char* cArmorSection{"Armor"};
-    inline static constexpr const char* cCoveringRecord{"CoveringRecord"};
-    inline static constexpr const char* cRevealingMod{"RevealingMod"};
-    inline static constexpr const char* cFemRevMod{"FemaleRevealingMod"};
-    inline static constexpr const char* cMalRevMod{"MaleRevealingMod"};
-    inline static constexpr const char* cRevealingRecord{"RevealingRecord"};
-    inline static constexpr const char* cFemRevRecord{"FemaleRevealingRecord"};
-    inline static constexpr const char* cMalRevRecord{"MaleRevealingRecord"};
-    void LoadSingleIni(const char* path, const std::string_view fileName);
+    private:
+      inline static constexpr const char* cExcludeSection{"Exclusions"};
+      inline static constexpr const char* cExcModRaces{"ExcludeRacesInMod"};
+      inline static constexpr const char* cExcRace{"ExcludeRace"};
+      inline static constexpr const char* cExcludeNPC{"ExcludeNPC"};
 
-  protected:
-    std::set<std::string> excludedRaceMods;
-    std::set<SEFormLoc> excludedRaces;
-    std::set<std::string> skinMods;
-    std::set<SEFormLoc> skinRecords;
-    std::set<std::string> revealingMods;
-    std::set<std::string> femRevMods;
-    std::set<std::string> malRevMods;
-    std::set<SEFormLoc> coveringRecords;
-    std::set<SEFormLoc> revealingRecords;
-    std::set<SEFormLoc> femRevRecords;
-    std::set<SEFormLoc> malRevRecords;
-    bool IsRaceExcluded(const RE::TESRace* race) const;
-    bool IsNPCExcluded(const RE::TESNPC* npc) const;
-    bool IsSkin(const RE::TESObjectARMO* armor, const std::string& modName);
-    Common::eKeyword HasStatus(const RE::TESObjectARMO* armor) const;
+      inline static constexpr const char* cSkinSection{"Skin"};
+      inline static constexpr const char* cSkinMod{"SkinMod"};
+      inline static constexpr const char* cSkinRecord{"SkinRecord"};
 
-  private:
-    std::set<SEFormLoc> excludedNPCs;
+      inline static constexpr const char* cArmorSection{"Armor"};
+      inline static constexpr const char* cCoveringRecord{"CoveringRecord"};
+      inline static constexpr const char* cRevealingMod{"RevealingMod"};
+      inline static constexpr const char* cFemRevMod{"FemaleRevealingMod"};
+      inline static constexpr const char* cMalRevMod{"MaleRevealingMod"};
+      inline static constexpr const char* cRevealingRecord{"RevealingRecord"};
+      inline static constexpr const char* cFemRevRecord{"FemaleRevealingRecord"};
+      inline static constexpr const char* cMalRevRecord{"MaleRevealingRecord"};
+      void LoadSingleIni(const char* path, const std::string_view fileName);
 
-  protected:
-    void ClearInis();
+    protected:
+      std::set<std::string> excludedRaceMods;
+      std::set<SEFormLoc> excludedRaces;
+      std::set<std::string> skinMods;
+      std::set<SEFormLoc> skinRecords;
+      std::set<std::string> revealingMods;
+      std::set<std::string> femRevMods;
+      std::set<std::string> malRevMods;
+      std::set<SEFormLoc> coveringRecords;
+      std::set<SEFormLoc> revealingRecords;
+      std::set<SEFormLoc> femRevRecords;
+      std::set<SEFormLoc> malRevRecords;
+      bool IsRaceExcluded(const RE::TESRace* race) const;
+      bool IsNPCExcluded(const RE::TESNPC* npc) const;
+      bool IsSkin(const RE::TESObjectARMO* armor, const std::string& modName);
+      eKeyword HasStatus(const RE::TESObjectARMO* armor) const;
 
-  private:
-    void LoadModNames(const CSimpleIniA::TNamesDepend& records, std::set<std::string>& fieldToFill, std::string_view entryType, std::string_view fileName);
-    void LoadModRecordPairs(const CSimpleIniA::TNamesDepend& records, std::set<SEFormLoc>& fieldToFill, std::string_view entryType, std::string_view fileName);
+    private:
+      std::set<SEFormLoc> excludedNPCs;
 
-    template <typename T>
-    T GetDefault() const {
-      if constexpr (std::is_same_v<T, int>) {
-        return Common::errInt;
-      } else if constexpr (std::is_same_v<T, bool>) {
-        return false;
-      } else if constexpr (std::is_same_v<T, float> || std::is_same_v<T, double>) {
-        return 1.0f;
-      } else if constexpr (std::is_same_v<T, std::string>) {
-        return "";
-      } else if constexpr (std::is_same_v<T, SEFormLoc>) {
-        return {Common::def, ""};
-      } else {
-        static_assert(false, "Unsupported type for LoadIniPairs");
-      }
-    }
+    protected:
+      void ClearInis();
 
-    template <typename T>
-    void LoadIniPairs(CSimpleIniA& settingIni, const char* section, std::map<SEFormLoc, T>& fieldToFill) {
-      LoadIniPairs(settingIni, section, fieldToFill, GetDefault<T>());
-    }
+    private:
+      void LoadModNames(const CSimpleIniA::TNamesDepend& records, std::set<std::string>& fieldToFill, std::string_view entryType, std::string_view fileName);
+      void LoadModRecordPairs(const CSimpleIniA::TNamesDepend& records, std::set<SEFormLoc>& fieldToFill, std::string_view entryType, std::string_view fileName);
 
-    template <typename T>
-    void LoadIniPairs(CSimpleIniA& settingIni, const char* section, std::map<SEFormLoc, T>& fieldToFill, const T defValue) {
-      CSimpleIniA::TNamesDepend keys;
-      if (settingIni.GetAllKeys(section, keys)) {
-        for (const auto& entry : keys) {
-          T value = defValue;
-          auto key = entry.pItem;
-          const auto keyLoc = ut->StrToLoc(std::string(key));
-          if (keyLoc.second.empty()) continue;
-          if constexpr (std::is_same_v<T, int>) {
-            value = settingIni.GetLongValue(section, key, defValue);
-          } else if constexpr (std::is_same_v<T, bool>) {
-            value = settingIni.GetBoolValue(section, key, defValue);
-          } else if constexpr (std::is_same_v<T, float> || std::is_same_v<T, double>) {
-            value = static_cast<T>(settingIni.GetDoubleValue(section, key, static_cast<double>(defValue)));
-          } else if constexpr (std::is_same_v<T, std::string>) {
-            value = settingIni.GetValue(section, key, defValue);
-          } else if constexpr (std::is_same_v<T, SEFormLoc>) {
-            value = ut->StrToLoc(std::string(settingIni.GetValue(section, key)));
-          } else {
-            static_assert(false, "Unsupported type for LoadIniPairs");
-          }
-          if (value != defValue) fieldToFill[keyLoc] = value;
-        }
-      }
-    }
-
-    template <typename T>
-    void SaveIniPairs(CSimpleIniA& settingIni, const char* section, const std::map<SEFormLoc, T>& fieldToSave) {
-      SaveIniPairs(settingIni, section, fieldToSave, GetDefault<T>());
-    }
-
-    template <typename T>
-    void SaveIniPairs(CSimpleIniA& settingIni, const char* section, const std::map<SEFormLoc, T>& fieldToSave, const T defValue) {
-      for (const auto& [keyLoc, value] : fieldToSave) {
-        const auto keyStr = ut->LocToStr(keyLoc);
-        if (keyStr.empty()) continue;
-        if (value == defValue) {
-          settingIni.Delete(section, keyStr.c_str(), true);
+      template <typename T>
+      T GetDefault() const {
+        if constexpr (std::is_same_v<T, int>) {
+          return errInt;
+        } else if constexpr (std::is_same_v<T, bool>) {
+          return false;
+        } else if constexpr (std::is_same_v<T, float> || std::is_same_v<T, double>) {
+          return 1.0f;
+        } else if constexpr (std::is_same_v<T, std::string>) {
+          return "";
+        } else if constexpr (std::is_same_v<T, SEFormLoc>) {
+          return {def, ""};
         } else {
-          if constexpr (std::is_same_v<T, int>) {
-            settingIni.SetLongValue(section, keyStr.c_str(), value);
-          } else if constexpr (std::is_same_v<T, bool>) {
-            settingIni.SetBoolValue(section, keyStr.c_str(), value);
-          } else if constexpr (std::is_same_v<T, float> || std::is_same_v<T, double>) {
-            settingIni.SetDoubleValue(section, keyStr.c_str(), static_cast<double>(value));
-          } else if constexpr (std::is_same_v<T, std::string>) {
-            settingIni.SetValue(section, keyStr.c_str(), value.c_str());
-          } else if constexpr (std::is_same_v<T, SEFormLoc>) {
-            settingIni.SetValue(section, keyStr.c_str(), ut->LocToStr(value).c_str());
-          } else {
-            static_assert(false, "Unsupported type for SaveIniPairs");
+          static_assert(false, "Unsupported type for LoadIniPairs");
+        }
+      }
+
+      template <typename T>
+      void LoadIniPairs(CSimpleIniA& settingIni, const char* section, std::map<SEFormLoc, T>& fieldToFill) {
+        LoadIniPairs(settingIni, section, fieldToFill, GetDefault<T>());
+      }
+
+      template <typename T>
+      void LoadIniPairs(CSimpleIniA& settingIni, const char* section, std::map<SEFormLoc, T>& fieldToFill, const T defValue) {
+        CSimpleIniA::TNamesDepend keys;
+        if (settingIni.GetAllKeys(section, keys)) {
+          for (const auto& entry : keys) {
+            T value = defValue;
+            auto key = entry.pItem;
+            const auto keyLoc = ut->StrToLoc(std::string(key));
+            if (keyLoc.second.empty()) continue;
+            if constexpr (std::is_same_v<T, int>) {
+              value = settingIni.GetLongValue(section, key, defValue);
+            } else if constexpr (std::is_same_v<T, bool>) {
+              value = settingIni.GetBoolValue(section, key, defValue);
+            } else if constexpr (std::is_same_v<T, float> || std::is_same_v<T, double>) {
+              value = static_cast<T>(settingIni.GetDoubleValue(section, key, static_cast<double>(defValue)));
+            } else if constexpr (std::is_same_v<T, std::string>) {
+              value = settingIni.GetValue(section, key, defValue);
+            } else if constexpr (std::is_same_v<T, SEFormLoc>) {
+              value = ut->StrToLoc(std::string(settingIni.GetValue(section, key)));
+            } else {
+              static_assert(false, "Unsupported type for LoadIniPairs");
+            }
+            if (value != defValue) fieldToFill[keyLoc] = value;
           }
         }
       }
-      settingIni.SaveFile(SettingFile());
-    }
-};
+
+      template <typename T>
+      void SaveIniPairs(CSimpleIniA& settingIni, const char* section, const std::map<SEFormLoc, T>& fieldToSave) {
+        SaveIniPairs(settingIni, section, fieldToSave, GetDefault<T>());
+      }
+
+      template <typename T>
+      void SaveIniPairs(CSimpleIniA& settingIni, const char* section, const std::map<SEFormLoc, T>& fieldToSave, const T defValue) {
+        for (const auto& [keyLoc, value] : fieldToSave) {
+          const auto keyStr = ut->LocToStr(keyLoc);
+          if (keyStr.empty()) continue;
+          if (value == defValue) {
+            settingIni.Delete(section, keyStr.c_str(), true);
+          } else {
+            if constexpr (std::is_same_v<T, int>) {
+              settingIni.SetLongValue(section, keyStr.c_str(), value);
+            } else if constexpr (std::is_same_v<T, bool>) {
+              settingIni.SetBoolValue(section, keyStr.c_str(), value);
+            } else if constexpr (std::is_same_v<T, float> || std::is_same_v<T, double>) {
+              settingIni.SetDoubleValue(section, keyStr.c_str(), static_cast<double>(value));
+            } else if constexpr (std::is_same_v<T, std::string>) {
+              settingIni.SetValue(section, keyStr.c_str(), value.c_str());
+            } else if constexpr (std::is_same_v<T, SEFormLoc>) {
+              settingIni.SetValue(section, keyStr.c_str(), ut->LocToStr(value).c_str());
+            } else {
+              static_assert(false, "Unsupported type for SaveIniPairs");
+            }
+          }
+        }
+        settingIni.SaveFile(SettingFile());
+      }
+  };
+}

@@ -1,6 +1,7 @@
 #include <Core.h>
 #include <SEEvents.h>
-#include <Util.h>
+#include <TNGUtil.h>
+using namespace TNG;
 
 SEEvents* events = SEEvents::GetSingleton();
 
@@ -16,7 +17,7 @@ RE::BSEventNotifyControl SEEvents::ProcessEvent(const RE::TESEquipEvent* event, 
   if (!event) return RE::BSEventNotifyControl::kContinue;
   const auto actor = event->actor ? event->actor->As<RE::Actor>() : nullptr;
   auto armor = RE::TESForm::LookupByID<RE::TESObjectARMO>(event->baseObject);
-  if (!actor || !armor || (!ut->IsCovering(actor, armor) && !armor->HasPartOf(Common::genitalSlot))) return RE::BSEventNotifyControl::kContinue;
+  if (!actor || !armor || (!ut->IsCovering(actor, armor) && !armor->HasPartOf(genitalSlot))) return RE::BSEventNotifyControl::kContinue;
   if (ut->IsBlock(armor)) {
     return RE::BSEventNotifyControl::kContinue;
   }

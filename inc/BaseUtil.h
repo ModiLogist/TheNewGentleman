@@ -90,6 +90,9 @@ namespace Common {
       void UpdateFormList(RE::BGSListForm* formList, RE::TESForm* form, const bool addRemove) const;  // Add: true, Remove: false
       // TODO: Clean up when necessary. This shouldn't be needed/used anymore, but may be a good reference for async operations.
       void DoDelayed(std::function<void()> func, std::function<bool()> condition, const int fixedDelay, const bool enforceCond, const std::string fmsg = "") const;
+      // TODO: Clean up if it ends up not being used.
+      const bool InInventory(RE::Actor* const actor, RE::TESBoundObject* const object) const;
+      const std::vector<RE::TESObjectARMO*> InvItemsWithKey(RE::Actor* const actor, RE::BGSKeyword* const key) const;
 
     private:
       inline static constexpr size_t fixedDelayTime{5000};

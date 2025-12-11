@@ -1,4 +1,5 @@
 #include <Inis.h>
+using namespace TNG;
 
 void Inis::LoadMainIni() {
   SKSE::log::info("Loading TNG settings...");
@@ -147,7 +148,7 @@ void Inis::TransferOldIni() {
       }
     }
     if (ini.KeyExists("Controls", "DAK_Integration")) {
-      boolSettings.Set(Common::bsDAK, ini.GetLongValue("Controls", "DAK_Integration") > 1);
+      boolSettings.Set(bsDAK, ini.GetLongValue("Controls", "DAK_Integration") > 1);
       ini.Delete("Controls", "DAK_Integration", true);
     }
     ini.GetAllKeys("ExcludedNPCs", keys);
@@ -155,12 +156,12 @@ void Inis::TransferOldIni() {
       auto isExcluded = ini.GetBoolValue("ExcludedNPCs", entry.pItem);
       const auto npcLoc = ut->StrToLoc(std::string(entry.pItem));
       if (isExcluded && !npcLoc.second.empty()) {
-        ini.SetValue(cNPCAddonSection, entry.pItem, Common::nulStr.c_str());
+        ini.SetValue(cNPCAddonSection, entry.pItem, nulStr.c_str());
       }
       ini.Delete("ExcludedNPCs", entry.pItem, true);
     }
     auto gwChance = static_cast<float>(ini.GetDoubleValue("GentleWomen", "Chance", 20.0));
-    floatSettings.Set(Common::fsFemRndChance, gwChance);
+    floatSettings.Set(fsFemRndChance, gwChance);
     ini.GetAllKeys("RevealingRecord", keys);
     for (const auto& entry : keys) {
       int revMod = ini.GetBoolValue("RevealingRecord", entry.pItem, false) ? 3 : 0;
@@ -201,11 +202,11 @@ void Inis::SetRgAddon(const RE::TESRace* rgRace, const RE::TESObjectARMO* addon,
     return;
   }
   switch (choice) {
-    case Common::def:
+    case def:
       userRacialAddons[raceLoc] = GetDefault<SEFormLoc>();
       break;
-    case Common::nul:
-      userRacialAddons[raceLoc] = {Common::nul, ""};
+    case nul:
+      userRacialAddons[raceLoc] = {nul, ""};
       break;
     default: {
       auto addonLoc = ut->FormToLoc(addon);
@@ -272,16 +273,16 @@ void Inis::SetActorAddon(const RE::Actor* actor, const RE::TESNPC* npc, const RE
 }
 
 int Inis::GetActorSize(const RE::Actor* actor, const RE::TESNPC* npc) const {
-  if (!npc || !actor || actor->IsPlayerRef() || npc->IsPlayer()) return Common::nul;
+  if (!npc || !actor || actor->IsPlayerRef() || npc->IsPlayer()) return nul;
   auto npcLoc = ut->FormToLoc(npc);
   if (!npcLoc.second.empty() && npcSizeCats.find(npcLoc) != npcSizeCats.end()) return npcSizeCats.at(npcLoc);
   auto actorLoc = ut->FormToLoc(actor);
   if (!actorLoc.second.empty() && actorSizeCats.find(actorLoc) != actorSizeCats.end()) return actorSizeCats.at(actorLoc);
-  return Common::nul;
+  return nul;
 }
 
 void Inis::SetActorSize(const RE::Actor* actor, const RE::TESNPC* npc, const int genSize) {
-  if (genSize == Common::nul) return;
+  if (genSize == nul) return;
   auto charLoc = ut->FormToLoc(npc);
   bool saveAsActor = false;
   if (charLoc.second.empty()) {
@@ -292,10 +293,10 @@ void Inis::SetActorSize(const RE::Actor* actor, const RE::TESNPC* npc, const int
     SKSE::log::critical("Failed to save the size for actor [0x{:x}]!", actor->GetFormID());
     return;
   }
-  (saveAsActor ? actorSizeCats[charLoc] : npcSizeCats[charLoc]) = genSize == Common::def ? GetDefault<int>() : genSize;
+  (saveAsActor ? actorSizeCats[charLoc] : npcSizeCats[charLoc]) = genSize == def ? GetDefault<int>() : genSize;
 }
 
-void Inis::SetArmorStatus(const RE::TESObjectARMO* armor, const Common::eKeyword revMode) {
+void Inis::SetArmorStatus(const RE::TESObjectARMO* armor, const eKeyword revMode) {
   auto armoLoc = ut->FormToLoc(armor);
   if (armoLoc.second.empty()) {
     if (armor) {
@@ -327,7 +328,7 @@ void Inis::LoadPlayerInfo(const std::string& saveName) {
     for (auto& key : keys) {
       std::string idStr{key.pItem};
       std::string infoStr = settingIni.GetValue(section.c_str(), key.pItem);
-      Common::PlayerInfo pcInfo;
+      PlayerInfo pcInfo;
       if (pcInfo.FromStr(idStr, infoStr)) {
         playerInfos.push_back(pcInfo);
         SKSE::log::debug("\tLoaded player info for active save: name[{}], race [{:X}], gender [{}], addon [{:x}], sizeCat [{}]", pcInfo.name, pcInfo.race.first,
@@ -350,7 +351,7 @@ const std::vector<std::string> Inis::Slot52Mods() const {
   return mods;
 }
 
-Common::PlayerInfo* Inis::GetPlayerInfo(const RE::Actor* actor, const bool allowAdd) {
+PlayerInfo* Inis::GetPlayerInfo(const RE::Actor* actor, const bool allowAdd) {
   auto npc = actor ? actor->GetActorBase() : nullptr;
   if (!npc || !npc->race) return {};
   std::tuple<const std::string, const SEFormLoc, const bool> pcId{npc->GetName(), ut->FormToLoc(npc->race), npc->IsFemale()};
@@ -375,16 +376,16 @@ Common::PlayerInfo* Inis::GetPlayerInfo(const RE::Actor* actor, const bool allow
 void Inis::SetPlayerInfo(const RE::Actor* actor, const RE::TESObjectARMO* addon, const int addonChoice, const int sizeChoice) {
   auto pcInfo = GetPlayerInfo(actor, true);
   if (!pcInfo) return;
-  if (addonChoice == Common::errInt && sizeChoice == Common::errInt) return;
-  SEFormLoc addonLoc{0, Common::defStr};
+  if (addonChoice == errInt && sizeChoice == errInt) return;
+  SEFormLoc addonLoc{0, defStr};
   switch (addonChoice) {
-    case Common::errInt:
+    case errInt:
       addonLoc = pcInfo->addon;
       break;
-    case Common::nul:
-      addonLoc = {0, Common::nulStr};
+    case nul:
+      addonLoc = {0, nulStr};
       break;
-    case Common::def:
+    case def:
       break;
     default:
       addonLoc = ut->FormToLoc(addon);
@@ -393,7 +394,7 @@ void Inis::SetPlayerInfo(const RE::Actor* actor, const RE::TESObjectARMO* addon,
   if (addonLoc.second.empty()) {
     return;
   }
-  int sizeCat = sizeChoice == Common::errInt ? pcInfo->sizeCat : sizeChoice;
+  int sizeCat = sizeChoice == errInt ? pcInfo->sizeCat : sizeChoice;
   if (addonLoc != pcInfo->addon || sizeCat != pcInfo->sizeCat) {
     pcInfo->addon = addonLoc;
     pcInfo->sizeCat = sizeCat;
@@ -463,20 +464,20 @@ bool Inis::IsSkin(const RE::TESObjectARMO* armor, const std::string& modName) {
   return false;
 }
 
-Common::eKeyword Inis::HasStatus(const RE::TESObjectARMO* armor) const {
+eKeyword Inis::HasStatus(const RE::TESObjectARMO* armor) const {
   auto armorLoc = ut->FormToLoc(armor);
-  if (armorLoc.second.empty()) return Common::keywordsCount;
+  if (armorLoc.second.empty()) return keywordsCount;
   if (userArmorStatus.find(armorLoc) != userArmorStatus.end()) return statusKeys[static_cast<size_t>(userArmorStatus.at(armorLoc))];
-  if (coveringRecords.find(armorLoc) != coveringRecords.end()) return Common::kyCovering;
-  if (!armor->HasPartOf(Common::bodySlot)) return Common::keywordsCount;
-  if (revealingRecords.find(armorLoc) != revealingRecords.end()) return Common::kyRevealing;
-  if (femRevRecords.find(armorLoc) != femRevRecords.end()) return Common::kyRevealingF;
-  if (malRevRecords.find(armorLoc) != malRevRecords.end()) return Common::kyRevealingM;
-  if (revealingMods.find(armorLoc.second) != revealingMods.end()) return Common::kyRevealing;
-  if (femRevMods.find(armorLoc.second) != femRevMods.end()) return Common::kyRevealingF;
-  if (malRevMods.find(armorLoc.second) != malRevMods.end()) return Common::kyRevealingM;
-  if (armor->HasKeywordString(Common::sosRevealing)) return Common::kyRevealing;
-  return Common::keywordsCount;
+  if (coveringRecords.find(armorLoc) != coveringRecords.end()) return kyCovering;
+  if (!armor->HasPartOf(bodySlot)) return keywordsCount;
+  if (revealingRecords.find(armorLoc) != revealingRecords.end()) return kyRevealing;
+  if (femRevRecords.find(armorLoc) != femRevRecords.end()) return kyRevealingF;
+  if (malRevRecords.find(armorLoc) != malRevRecords.end()) return kyRevealingM;
+  if (revealingMods.find(armorLoc.second) != revealingMods.end()) return kyRevealing;
+  if (femRevMods.find(armorLoc.second) != femRevMods.end()) return kyRevealingF;
+  if (malRevMods.find(armorLoc.second) != malRevMods.end()) return kyRevealingM;
+  if (armor->HasKeywordString(sosRevealing)) return kyRevealing;
+  return keywordsCount;
 }
 
 void Inis::ClearInis() {
@@ -516,4 +517,21 @@ void Inis::LoadModRecordPairs(const CSimpleIniA::TNamesDepend& records, std::set
     const std::string modRecord(entry.pItem);
     fieldToFill.insert(ut->StrToLoc(modRecord));
   }
+}
+
+std::string PlayerInfo::IdStr() const { return ut->NameToStr(name) + "|" + ut->LocToStr(race) + "|" + (isFemale ? "F" : "M"); }
+
+std::string PlayerInfo::InfoStr() const { return ut->LocToStr(addon) + "|" + std::to_string(sizeCat); }
+
+bool PlayerInfo::FromStr(const std::string& IdStr, const std::string& InfoStr) {
+  auto idTokens = ut->Split(IdStr, "|");
+  auto infoTokens = ut->Split(InfoStr, "|");
+  bool res = idTokens.size() == 3 && infoTokens.size() == 2;
+  if (!res) return false;
+  this->name = ut->StrToName(idTokens[0]);
+  this->race = ut->StrToLoc(idTokens[1]);
+  this->isFemale = idTokens[2] == "F" ? true : false;
+  this->addon = ut->StrToLoc(infoTokens[0]);
+  this->sizeCat = std::stoi(infoTokens[1]);
+  return true;
 }

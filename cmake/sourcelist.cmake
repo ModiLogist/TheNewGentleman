@@ -5,6 +5,6 @@ set(sources ${sources}
   src/SEEvents.cpp
   src/Core.cpp
   src/Inis.cpp
-  src/Util.cpp
+  src/TNGUtil.cpp
   src/BaseUtil.cpp
 )

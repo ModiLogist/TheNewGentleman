@@ -4,7 +4,7 @@ set(headers ${headers}
   inc/SEEvents.h
   inc/Core.h
   inc/Inis.h
-  inc/Util.h
+  inc/TNGUtil.h
   inc/BaseUtil.h
   inc/PCH.h
 )

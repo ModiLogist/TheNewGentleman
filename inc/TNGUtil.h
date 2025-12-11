@@ -2,7 +2,8 @@
 
 #include <BaseUtil.h>
 
-namespace Common {
+namespace TNG {
+  using namespace Common;
 
   inline static constexpr std::string_view mainFile{"TheNewGentleman.esp"};
 
@@ -87,41 +88,7 @@ namespace Common {
   enum eFloatSetting { fsXS, fsS, fsM, fsL, fsXL, fsMalRndChance, fsFemRndChance, floatSettingCount };
   inline static constexpr int sizeCatCount{fsXL + 1};
 
-  struct AddonInfo {
-      std::string name{""};
-      std::vector<RE::TESObjectARMO*> records{};
-      bool isActive{false};
-      bool isGenderChanger{false};
-  };
-
-  struct RaceGroupInfo {
-      std::string name{""};
-      std::string file{""};
-      RE::TESRace* armorRace = nullptr;
-      bool isMain{false};
-      std::vector<RE::TESRace*> races{};
-      bool noMCM{false};
-      float mult = {1.0f};
-      int defAddonIdx{errInt};
-      int addonIdx{errInt};
-      std::map<size_t, RE::TESObjectARMO*> malAddons{};
-      std::map<size_t, RE::TESObjectARMO*> femAddons{};
-  };
-
-  struct PlayerInfo {
-      std::string name;
-      SEFormLoc race;
-      bool isFemale;
-      SEFormLoc addon{0, defStr};
-      int sizeCat = {nul};
-      std::tuple<const std::string&, const SEFormLoc&, const bool&> Id() const { return {name, race, isFemale}; };
-      std::pair<const SEFormLoc&, const int&> Info() const { return {addon, sizeCat}; };
-      std::string IdStr() const;
-      std::string InfoStr() const;
-      bool FromStr(const std::string& IdStr, const std::string& InfoStr);
-  };
-
-  class Util : public Singleton<Util>, public BaseUtil {
+  class TNGUtil : public Singleton<TNGUtil>, public BaseUtil {
     public:
       RE::TESRace* Race(const size_t idx);
       RE::BGSKeyword* Key(const size_t idx);
@@ -133,9 +100,6 @@ namespace Common {
       bool IsCovering(const RE::Actor* const actor, const RE::TESObjectARMO* const armor);
       std::vector<RE::TESObjectARMO*> GetWornAmor(RE::Actor* const actor) const;
       bool HasCovering(RE::Actor* const actor, RE::TESObjectARMO* const exception);
-      // TODO: Clean up if it ends up not being used.
-      const bool InInventory(RE::Actor* const actor, RE::TESBoundObject* const object) const;
-      const std::vector<RE::TESObjectARMO*> InvItemsWithKey(RE::Actor* const actor, RE::BGSKeyword* const key) const;
 
     private:
       inline static constexpr SEFormLocView raceIDs[racesCount]{{0x19, skyrimFile}, {0x13745, skyrimFile}};
@@ -158,4 +122,4 @@ namespace Common {
   };
 }
 
-extern Common::Util* ut;
+extern TNG::TNGUtil* ut;
