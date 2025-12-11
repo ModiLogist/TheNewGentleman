@@ -135,6 +135,7 @@ namespace Common {
       bool HasCovering(RE::Actor* const actor, RE::TESObjectARMO* const exception);
       // TODO: Clean up if it ends up not being used.
       const bool InInventory(RE::Actor* const actor, RE::TESBoundObject* const object) const;
+      const std::vector<RE::TESObjectARMO*> InvItemsWithKey(RE::Actor* const actor, RE::BGSKeyword* const key) const;
 
     private:
       inline static constexpr SEFormLocView raceIDs[racesCount]{{0x19, skyrimFile}, {0x13745, skyrimFile}};

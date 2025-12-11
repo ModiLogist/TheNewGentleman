@@ -91,6 +91,21 @@ const bool Common::Util::InInventory(RE::Actor* const actor, RE::TESBoundObject*
   return res;
 }
 
+const std::vector<RE::TESObjectARMO*> Common::Util::InvItemsWithKey(RE::Actor* const actor, RE::BGSKeyword* const key) const {
+  auto container = actor->GetContainer();
+  std::vector<RE::TESObjectARMO*> res = {};
+  if (container) {
+    container->ForEachContainerObject([&](RE::ContainerObject& a_entry) {
+      auto obj = a_entry.obj;
+      if (obj && obj->IsArmor() && obj->As<RE::TESObjectARMO>()->HasKeyword(key)) {
+        res.push_back(obj->As<RE::TESObjectARMO>());
+      }
+      return RE::BSContainer::ForEachResult::kContinue;
+    });
+  }
+  return res;
+}
+
 std::string Common::PlayerInfo::IdStr() const { return ut->NameToStr(name) + "|" + ut->LocToStr(race) + "|" + (isFemale ? "F" : "M"); }
 
 std::string Common::PlayerInfo::InfoStr() const { return ut->LocToStr(addon) + "|" + std::to_string(sizeCat); }
