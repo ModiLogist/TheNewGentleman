@@ -15,14 +15,6 @@ void Inis::LoadMainIni() {
   boolSettings.Load(settingIni);
   intSettings.Load(settingIni);
   floatSettings.Load(settingIni);
-  if (ut->SEDH()->LookupModByName("Racial Skin Variance - SPID.esp")) {
-    boolSettings.Set(Common::bsCheckPlayerAddon, true);
-    boolSettings.Set(Common::bsForceRechecks, true);
-    SKSE::log::info("\tTNG detected Racial Skin Variance and would force the player and NPCs to be reloaded");
-  } else if (boolSettings.Get(Common::bsForceRechecks)) {
-    boolSettings.Set(Common::bsCheckPlayerAddon, false);
-    boolSettings.Set(Common::bsForceRechecks, false);
-  }
   if (!ut->SEDH()->LookupModByName("UIExtensions.esp")) SKSE::log::warn("\tTNG could not detected UIExtensions. You may want to check if it is installed.");
   LoadIniPairs<bool>(settingIni, cActiveMalAddons, userMalAddons, true);
   LoadIniPairs<bool>(settingIni, cActiveFemAddons, userFemAddons, false);

@@ -9,10 +9,10 @@ class Inis {
     virtual ~Inis() = default;
 
     Common::TypedSetting<bool, Common::eBoolSetting, Common::boolSettingCount> boolSettings{
-        std::array<bool, Common::boolSettingCount>{false, false, false, false, false, false, false, false, false},
-        std::array<std::string, Common::boolSettingCount>{"General", "General", "General", "General", "General", "General", "General", "General", "Controls"},
-        std::array<std::string, Common::boolSettingCount>{"ExcludePlayerSize", "CheckPlayerRegularly", "ForceChecks", "Slot52ModsAreRevealing", "Slot52ModsAreMixed",
-                                                          "RandomizeMaleAddons", "GoToBed", "ShowAllRaces", "DAK_Integration"}};
+        std::array<bool, Common::boolSettingCount>{false, false, false, false, false, false},
+        std::array<std::string, Common::boolSettingCount>{"General", "General", "General", "General", "General", "Controls"},
+        std::array<std::string, Common::boolSettingCount>{"ExcludePlayerSize", "Slot52ModsAreRevealing", "Slot52ModsAreMixed", "RandomizeMaleAddons", "ShowAllRaces",
+                                                          "DAK_Integration"}};
     Common::TypedSetting<int, Common::eIntSetting, Common::intSettingCount> intSettings{
         std::array<int, Common::intSettingCount>{Common::nul, Common::nul, Common::nul, Common::nul, Common::nul},
         std::array<std::string, Common::intSettingCount>{"Controls", "Controls", "Controls", "Controls", "Controls"},

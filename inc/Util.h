@@ -86,12 +86,11 @@ namespace Common {
 
   enum eBoolSetting {
     bsExcludePlayerSize,
-    bsCheckPlayerAddon,
-    bsForceRechecks,
+
     bsRevealSlot52Mods,
     bsAllowMixSlot52Mods,
     bsRandomizeMaleAddon,
-    bsGoToBed,
+
     bsShowAllRaces,
     bsDAK,
     boolSettingCount

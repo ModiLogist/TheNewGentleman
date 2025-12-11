@@ -310,7 +310,6 @@ void Core::UpdatePlayerAfterLoad() {
   auto player = RE::PlayerCharacter::GetSingleton();
   if (!player) return;
   core->UpdateActor(player);
-  if (!core->boolSettings.Get(Common::bsForceRechecks) && !core->boolSettings.Get(Common::bsCheckPlayerAddon)) return;
   auto LoadPC = []() {};
   auto LoadCond = []() {
     auto player = RE::PlayerCharacter::GetSingleton();
