@@ -2,18 +2,18 @@
 
 namespace Common {
   inline static constexpr std::string_view skyrimFile{"Skyrim.esm"};
-  inline static constexpr int nan{-99};
-  inline static constexpr int defPlayer{-3};
   inline static constexpr int def{-2};
   inline static constexpr int nul{-1};
-  inline static constexpr std::string nanStr{"NA"};
+  inline static constexpr int errInt{-99};
+  inline static constexpr float errFlt{-1.0f};
   inline static constexpr std::string defStr{"Default"};
   inline static constexpr std::string nulStr{"None"};
   inline static constexpr char delim{'~'};
 
-  struct FormComparator {
-      bool operator()(const RE::TESForm* lhs, const RE::TESForm* rhs) const { return lhs->formID < rhs->formID; }
-  };
+  // TODO: Clean up if it ends up not being used.
+  //  struct FormComparator {
+  //      bool operator()(const RE::TESForm* lhs, const RE::TESForm* rhs) const { return lhs->formID < rhs->formID; }
+  //  };
 
   template <typename T, typename U, size_t n>
   struct TypedSetting {
@@ -78,11 +78,12 @@ namespace Common {
       void ShowSkyrimMessage(const char* message) const { RE::DebugMessageBox(message); }
       RE::BGSKeyword* ProduceOrGetKw(const std::string& keyword);
       int HasKeywordInList(const RE::BGSKeywordForm* form, const std::vector<RE::BGSKeyword*>& keywords) const;
-      SEFormLoc FormToLoc(const RE::TESForm* form, const int choice = nan) const;
+      SEFormLoc FormToLoc(const RE::TESForm* form, const int choice = errInt) const;
       std::string LocToStr(const SEFormLoc& loc) const;
       SEFormLoc StrToLoc(const std::string& locStr) const;
       std::string FormToStr(const RE::TESForm* form) const { return LocToStr(FormToLoc(form)); }
-      std::string Join(const std::vector<std::string>& strings, const std::string_view delimiter) const;
+      // TODO: Clean up if it ends up not being used.
+      // std::string Join(const std::vector<std::string>& strings, const std::string_view delimiter) const { return fmt::format("{}", fmt::join(strings, delimiter)); }
       std::vector<std::string> Split(const std::string& str, const std::string_view delimiter) const;
       std::string NameToStr(std::string name) const;
       std::string StrToName(std::string name) const;

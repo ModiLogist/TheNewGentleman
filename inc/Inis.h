@@ -31,8 +31,8 @@ class Inis {
     inline static constexpr const char* cTngIniEnding{"TNG.ini"};
     inline static constexpr const char* cTngInisPath{R"(.\Data\SKSE\Plugins\TNG)"};
 
-    inline static constexpr const char* versionKey{"IniVersion"};
     inline static constexpr const char* versionSection{"Version"};
+    inline static constexpr const char* versionKey{"IniVersion"};
 
     inline static constexpr const char* cGeneral{"General"};
     inline static constexpr const char* cLogLvl{"LoggingLevel"};
@@ -62,7 +62,7 @@ class Inis {
     std::set<std::string> validSkeletons;
     std::map<SEFormLoc, SEFormLoc> userRacialAddons;
     std::map<SEFormLoc, float> userRacialSizes;
-    std::map<SEFormLoc, int> runTimeArmorStatus;
+    std::map<SEFormLoc, int> userArmorStatus;
     std::map<std::string, bool> slot52Mods;
 
   public:
@@ -88,14 +88,13 @@ class Inis {
     std::map<SEFormLoc, int> actorSizeCats;
 
   public:
-    void LoadPlayerInfos(const std::string& saveName);
-    bool Slot52ModBehavior(const std::string& modName) const;
-    bool Slot52ModBehavior(const std::string& modName, const int behavior);
+    void LoadPlayerInfo(const std::string& saveName);
+    bool Slot52ModBehavior(const std::string& modName, const int behavior = Common::errInt);
     const std::vector<std::string> Slot52Mods() const;
 
   protected:
     Common::PlayerInfo* GetPlayerInfo(const RE::Actor* actor, const bool allowAdd);
-    void SetPlayerInfo(const RE::Actor* actor, const RE::TESObjectARMO* addon, const int choice = Common::nan, const int sizeCatInp = Common::nan);
+    void SetPlayerInfo(const RE::Actor* actor, const RE::TESObjectARMO* addon, const int choice = Common::errInt, const int sizeCatInp = Common::errInt);
 
   private:
     inline static constexpr const char* cPlayerSection{"PlayerInfo"};
@@ -159,7 +158,7 @@ class Inis {
     template <typename T>
     T GetDefault() const {
       if constexpr (std::is_same_v<T, int>) {
-        return Common::nan;
+        return Common::errInt;
       } else if constexpr (std::is_same_v<T, bool>) {
         return false;
       } else if constexpr (std::is_same_v<T, float> || std::is_same_v<T, double>) {

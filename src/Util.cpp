@@ -47,7 +47,8 @@ std::vector<RE::TESObjectARMO*> Common::Util::GetWornAmor(RE::Actor* const actor
   std::vector<RE::TESObjectARMO*> res{};
   res.clear();
   if (!actor) return res;
-  auto inv = actor->GetInventory([=](RE::TESBoundObject& obj) { return obj.IsArmor(); });
+  // TODO: Test variety of swaps before release
+  auto inv = actor->GetInventory([=](RE::TESBoundObject& obj) { return obj.IsArmor() && !obj.As<RE::TESObjectARMO>()->HasPartOf(Common::genitalSlot); });
   for (const auto& [item, invData] : inv) {
     const auto& [count, entry] = invData;
     if (count > 0 && entry && entry->IsWorn()) {

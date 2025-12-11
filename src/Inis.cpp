@@ -29,7 +29,7 @@ void Inis::LoadMainIni() {
   LoadIniPairs<SEFormLoc>(settingIni, cActorAddonSection, actorAddons);
   LoadIniPairs<int>(settingIni, cActorSizeSection, actorSizeCats);
   SKSE::log::debug("\tRestored all NPC and actor addon and size settings");
-  LoadIniPairs<int>(settingIni, cArmorStatusSection, runTimeArmorStatus);
+  LoadIniPairs<int>(settingIni, cArmorStatusSection, userArmorStatus);
   SKSE::log::debug("\tRestored all revealing records settings");
   settingIni.GetAllKeys(cRevealingModSection, keys);
   for (auto& key : keys) {
@@ -59,7 +59,7 @@ void Inis::SaveMainIni() {
   SaveIniPairs<int>(settingIni, cNPCSizeSection, npcSizeCats);
   SaveIniPairs<SEFormLoc>(settingIni, cActorAddonSection, actorAddons);
   SaveIniPairs<int>(settingIni, cActorSizeSection, actorSizeCats);
-  SaveIniPairs<int>(settingIni, cArmorStatusSection, runTimeArmorStatus);
+  SaveIniPairs<int>(settingIni, cArmorStatusSection, userArmorStatus);
   auto playerIdx = RE::BGSSaveLoadManager::GetSingleton()->currentCharacterID & 0xFFFFFFFF;
   auto section = fmt::format("{}{:08X}", cPlayerSection, playerIdx);
   for (auto& pcInfo : playerInfos) {
@@ -307,13 +307,13 @@ void Inis::SetArmorStatus(const RE::TESObjectARMO* armor, const Common::eKeyword
   }
   auto revIdx = std::ranges::find(statusKeys, revMode);
   if (revIdx == statusKeys.end()) {
-    runTimeArmorStatus[armoLoc] = GetDefault<int>();
+    userArmorStatus[armoLoc] = GetDefault<int>();
   } else {
-    runTimeArmorStatus[armoLoc] = static_cast<int>(std::distance(statusKeys.begin(), revIdx));
+    userArmorStatus[armoLoc] = static_cast<int>(std::distance(statusKeys.begin(), revIdx));
   }
 }
 
-void Inis::LoadPlayerInfos(const std::string& saveName) {
+void Inis::LoadPlayerInfo(const std::string& saveName) {
   playerInfos.clear();
   std::string playerStr = "";
   if (const auto save = ut->Split(saveName, "_"); save.size() == 9) playerStr = save[1];
@@ -336,8 +336,6 @@ void Inis::LoadPlayerInfos(const std::string& saveName) {
     }
   }
 }
-
-bool Inis::Slot52ModBehavior(const std::string& modName) const { return slot52Mods.find(modName) != slot52Mods.end() && slot52Mods.at(modName); }
 
 bool Inis::Slot52ModBehavior(const std::string& modName, const int behavior) {
   if (behavior >= 0) slot52Mods[modName] = behavior == 1;
@@ -377,10 +375,10 @@ Common::PlayerInfo* Inis::GetPlayerInfo(const RE::Actor* actor, const bool allow
 void Inis::SetPlayerInfo(const RE::Actor* actor, const RE::TESObjectARMO* addon, const int addonChoice, const int sizeChoice) {
   auto pcInfo = GetPlayerInfo(actor, true);
   if (!pcInfo) return;
-  if (addonChoice == Common::nan && sizeChoice == Common::nan) return;
+  if (addonChoice == Common::errInt && sizeChoice == Common::errInt) return;
   SEFormLoc addonLoc{0, Common::defStr};
   switch (addonChoice) {
-    case Common::nan:
+    case Common::errInt:
       addonLoc = pcInfo->addon;
       break;
     case Common::nul:
@@ -395,7 +393,7 @@ void Inis::SetPlayerInfo(const RE::Actor* actor, const RE::TESObjectARMO* addon,
   if (addonLoc.second.empty()) {
     return;
   }
-  int sizeCat = sizeChoice == Common::nan ? pcInfo->sizeCat : sizeChoice;
+  int sizeCat = sizeChoice == Common::errInt ? pcInfo->sizeCat : sizeChoice;
   if (addonLoc != pcInfo->addon || sizeCat != pcInfo->sizeCat) {
     pcInfo->addon = addonLoc;
     pcInfo->sizeCat = sizeCat;
@@ -468,7 +466,7 @@ bool Inis::IsSkin(const RE::TESObjectARMO* armor, const std::string& modName) {
 Common::eKeyword Inis::HasStatus(const RE::TESObjectARMO* armor) const {
   auto armorLoc = ut->FormToLoc(armor);
   if (armorLoc.second.empty()) return Common::keywordsCount;
-  if (runTimeArmorStatus.find(armorLoc) != runTimeArmorStatus.end()) return statusKeys[static_cast<size_t>(runTimeArmorStatus.at(armorLoc))];
+  if (userArmorStatus.find(armorLoc) != userArmorStatus.end()) return statusKeys[static_cast<size_t>(userArmorStatus.at(armorLoc))];
   if (coveringRecords.find(armorLoc) != coveringRecords.end()) return Common::kyCovering;
   if (!armor->HasPartOf(Common::bodySlot)) return Common::keywordsCount;
   if (revealingRecords.find(armorLoc) != revealingRecords.end()) return Common::kyRevealing;
@@ -487,7 +485,7 @@ void Inis::ClearInis() {
   userFemAddons.clear();
   userRacialAddons.clear();
   userRacialSizes.clear();
-  runTimeArmorStatus.clear();
+  userArmorStatus.clear();
   // npcAddons|actorAddons|npcSizeCats|actorSizeCats|slot52Mods|extraRevealingMods should not be cleared during lifetime of the game
 
   excludedRaceMods.clear();

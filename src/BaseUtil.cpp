@@ -68,8 +68,6 @@ SEFormLoc Common::BaseUtil::StrToLoc(const std::string& locStr) const {
   }
 }
 
-std::string Common::BaseUtil::Join(const std::vector<std::string>& strings, const std::string_view delimiter) const { return fmt::format("{}", fmt::join(strings, delimiter)); }
-
 std::vector<std::string> Common::BaseUtil::Split(const std::string& str, const std::string_view delimiter) const {
   std::vector<std::string> tokens;
   for (auto part : std::views::split(str, delimiter)) {

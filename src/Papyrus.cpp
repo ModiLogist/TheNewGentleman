@@ -65,7 +65,7 @@ void Papyrus::SetBoolValue(RE::StaticFunctionTag*, int settingID, bool value) {
 
 int Papyrus::GetIntValue(RE::StaticFunctionTag*, int settingID) {
   if (0 <= settingID && settingID < Common::intSettingCount) return core->intSettings.Get(static_cast<Common::eIntSetting>(settingID));
-  return Common::nan;
+  return Common::errInt;
 }
 
 void Papyrus::SetIntValue(RE::StaticFunctionTag*, int settingID, int value) {
@@ -150,7 +150,7 @@ void Papyrus::SetRgAddon(RE::StaticFunctionTag*, int rgIdx, int choice) {
 }
 
 float Papyrus::GetRgMult(RE::StaticFunctionTag*, int rgIdx) {
-  if (rgIdx < 0) return -1.0f;
+  if (rgIdx < 0) return Common::errFlt;
   return core->GetRgMult(Core::RgKey(rgIdx, true));
 }
 
@@ -201,7 +201,7 @@ RE::TESObjectARMO* Papyrus::GetActorAddon(RE::StaticFunctionTag*, RE::Actor* act
 int Papyrus::SetActorAddon(RE::StaticFunctionTag*, RE::Actor* actor, int choice) { return core->SetActorAddon(actor, choice, true, true); }
 
 int Papyrus::GetActorSize(RE::StaticFunctionTag*, RE::Actor* actor) {
-  int sizeCat = Common::nan;
+  int sizeCat = Common::errInt;
   return core->GetActorSize(actor, sizeCat) < 0 ? Common::nul : sizeCat;
 }
 

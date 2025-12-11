@@ -5,19 +5,20 @@
 namespace Common {
 
   inline static constexpr std::string_view mainFile{"TheNewGentleman.esp"};
-  inline static constexpr std::string_view sosRevealing{"SOS_Revealing"};
 
   inline static constexpr RE::BGSBipedObjectForm::BipedObjectSlot bodySlot{RE::BGSBipedObjectForm::BipedObjectSlot::kBody};
   inline static constexpr RE::BGSBipedObjectForm::BipedObjectSlot genitalSlot{RE::BGSBipedObjectForm::BipedObjectSlot::kModPelvisSecondary};
 
-  inline static const char* cNPCAutoAddon{"TNG_ActorAddnAuto:"};
-  inline static const char* cNPCUserAddon{"TNG_ActorAddnUser:"};
+  inline static constexpr std::string_view cNPCAutoAddon{"TNG_ActorAddnAuto:"};
+  inline static constexpr std::string_view cNPCUserAddon{"TNG_ActorAddnUser:"};
+  inline static constexpr std::string_view sosRevealing{"SOS_Revealing"};
 
   inline static constexpr std::tuple<const char*, const char*, bool, RE::FormID> cVanillaDefaults[14]{
       {"default", "nord", false, 0xA01},        {"redguard", "yokudan", false, 0xA02}, {"breton", "reachmen", false, 0xA03}, {"cyrodi", "imperial", false, 0xA04},
       {"altmer", "highelf", false, 0xA03},      {"bosmer", "woodelf", false, 0xA01},   {"dunmer", "darkelf", false, 0xA04},  {"orsimer", "orc", false, 0xA02},
       {"saxhleel", "argonian", true, 0xA01},    {"khajiit", "rhat", true, 0xA05},      {"dremora", "dremora", false, 0xA04}, {"elder", "old", false, 0xA05},
       {"afflicted", "afflicted", false, 0xA03}, {"snowelf", "falmer", false, 0xA05}};
+
   enum eGenBones { egbBase, egbScrot, egbScrotL, egbScrotR, egbGen01, egbGen02, egbGen03, egbGen04, egbGen05, egbGen06, GenBonesCount };
   inline static const char* genBoneNames[GenBonesCount]{"NPC GenitalsBase [GenBase]",
                                                         "NPC GenitalsScrotum [GenScrot]",
@@ -30,11 +31,8 @@ namespace Common {
                                                         "NPC Genitals05 [Gen05]",
                                                         "NPC Genitals06 [Gen06]"};
 
-  inline static constexpr float fEpsilon{0.0001f};
-  inline static constexpr float fErr{-1.0f};
-
   enum eRes {
-    err40 = nan,
+    err40 = errInt,
     errRaceBase = -9,
     errRg = -8,
     errSkeleton = -7,
@@ -84,17 +82,7 @@ namespace Common {
 
   enum eTngFormLists { flmGentleWomen, flmNonGentleMen, flCount };
 
-  enum eBoolSetting {
-    bsExcludePlayerSize,
-
-    bsRevealSlot52Mods,
-    bsAllowMixSlot52Mods,
-    bsRandomizeMaleAddon,
-
-    bsShowAllRaces,
-    bsDAK,
-    boolSettingCount
-  };
+  enum eBoolSetting { bsExcludePlayerSize, bsRevealSlot52Mods, bsAllowMixSlot52Mods, bsRandomizeMaleAddon, bsShowAllRaces, bsDAK, boolSettingCount };
   enum eIntSetting { isSetupNPC, isRiseGen, isFallGen, isSwapRevealing, isWhyProblem, intSettingCount };
   enum eFloatSetting { fsXS, fsS, fsM, fsL, fsXL, fsMalRndChance, fsFemRndChance, floatSettingCount };
   inline static constexpr int sizeCatCount{fsXL + 1};
@@ -114,8 +102,8 @@ namespace Common {
       std::vector<RE::TESRace*> races{};
       bool noMCM{false};
       float mult = {1.0f};
-      int defAddonIdx{nan};
-      int addonIdx{nan};
+      int defAddonIdx{errInt};
+      int addonIdx{errInt};
       std::map<size_t, RE::TESObjectARMO*> malAddons{};
       std::map<size_t, RE::TESObjectARMO*> femAddons{};
   };
@@ -145,6 +133,7 @@ namespace Common {
       bool IsCovering(const RE::Actor* const actor, const RE::TESObjectARMO* const armor);
       std::vector<RE::TESObjectARMO*> GetWornAmor(RE::Actor* const actor) const;
       bool HasCovering(RE::Actor* const actor, RE::TESObjectARMO* const exception);
+      // TODO: Clean up if it ends up not being used.
       const bool InInventory(RE::Actor* const actor, RE::TESBoundObject* const object) const;
 
     private:

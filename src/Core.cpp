@@ -68,7 +68,7 @@ void Core::SetRgAddon(RgKey rgChoice, const int addonIdx) {
 
 float Core::GetRgMult(RgKey rgChoice) const {
   auto rg = Rg(rgChoice);
-  return rg ? rg->mult : Common::fErr;
+  return rg ? rg->mult : Common::errFlt;
 }
 
 void Core::SetRgMult(RgKey rgChoice, const float mult) {
@@ -206,11 +206,11 @@ Common::eRes Core::GetActorAddon(RE::Actor* actor, int& addonIdx, bool& isAuto) 
     const std::string kwStr(kw->GetFormEditorID());
     std::string str = "";
     if (kwStr.starts_with(Common::cNPCAutoAddon)) {
-      addonIdx = std::stoi(kwStr.substr(strlen(Common::cNPCAutoAddon), 2));
+      addonIdx = std::stoi(kwStr.substr(size(Common::cNPCAutoAddon), 2));
       return RE::BSContainer::ForEachResult::kStop;
     } else if (kwStr.starts_with(Common::cNPCUserAddon)) {
       isAuto = false;
-      addonIdx = std::stoi(kwStr.substr(strlen(Common::cNPCUserAddon), 2));
+      addonIdx = std::stoi(kwStr.substr(size(Common::cNPCUserAddon), 2));
       return RE::BSContainer::ForEachResult::kStop;
     }
     return RE::BSContainer::ForEachResult::kContinue;
@@ -249,7 +249,7 @@ Common::eRes Core::SetActorAddon(RE::Actor* const actor, const int choice, const
 }
 
 Common::eRes Core::GetActorSize(RE::Actor* const actor, int& sizeCat) const {
-  sizeCat = Common::nan;
+  sizeCat = Common::errInt;
   if (auto res = CanModifyActor(actor); res < 0) return res;
   const auto npc = actor->GetActorBase();
   if (npc->IsPlayer() && boolSettings.Get(Common::bsExcludePlayerSize)) return Common::errPlayer;
@@ -266,7 +266,7 @@ Common::eRes Core::SetActorSize(RE::Actor* const actor, int sizeCat, const bool 
   }
   const auto npc = actor->GetActorBase();
   if (!actor->IsPlayerRef() && npc->IsPlayer()) return Common::resOkFixed;  // Don't change the size for copies of player actor
-  int currCat = Common::nan;
+  int currCat = Common::errInt;
   if (sizeCat == Common::def) npc->RemoveKeywords(ut->SizeKeys());
   auto res = GetActorSize(actor, currCat);
   if (res != Common::resOkSizable) return res;
@@ -299,7 +299,7 @@ Common::eRes Core::SetActorSize(RE::Actor* const actor, int sizeCat, const bool 
         },
         [actor]() -> bool { return actor && actor->Is3DLoaded() && actor->GetNodeByName(Common::genBoneNames[Common::egbBase]); }, 0, true, failMessage);
   }
-  if (actor->IsPlayerRef() && sizeCat != Common::nul && shouldSave) SetPlayerInfo(actor, nullptr, Common::nan, sizeCat);
+  if (actor->IsPlayerRef() && sizeCat != Common::nul && shouldSave) SetPlayerInfo(actor, nullptr, Common::errInt, sizeCat);
   if (!actor->IsPlayerRef() && shouldSave) Inis::SetActorSize(actor, actor->GetActorBase(), sizeCat);
   return res;
 }
@@ -403,14 +403,14 @@ void Core::LoadAddons() {
 }
 
 int Core::AddonIdxByLoc(const bool isFemale, const SEFormLocView addonLoc) const {
-  if (addonLoc.second.empty()) return Common::nan;
+  if (addonLoc.second.empty()) return Common::errInt;
   if (addonLoc.second == Common::nulStr) return Common::nul;
   if (addonLoc.second == Common::defStr) return Common::def;
   auto& list = isFemale ? femAddons : malAddons;
   for (int i = 0; i < list.size(); i++) {
     if (ut->FormToLoc(list[i].first) == addonLoc) return i;
   }
-  return Common::nan;
+  return Common::errInt;
 }
 
 void Core::ProcessRaces() {
@@ -555,7 +555,7 @@ Common::RaceGroupInfo* Core::AddRace(RE::TESRace* const race, const bool isProce
 }
 
 int Core::GetRgDefAddon(Common::RaceGroupInfo& rg) {
-  if (rg.defAddonIdx != Common::nan) return rg.defAddonIdx;
+  if (rg.defAddonIdx != Common::errInt) return rg.defAddonIdx;
   SEFormLoc defAddon;
   bool defAddonSet = false;
   auto raceStr = std::string(rg.armorRace->GetFormEditorID()) + std::string(rg.armorRace->GetName());
@@ -798,7 +798,7 @@ void Core::OrganizeNPCKeywords(RE::TESNPC* const npc, int addonIdx, const bool i
   if (addonIdx == Common::nul) {
     npc->AddKeyword(ut->Key(Common::kyExcluded));
   } else if (addonIdx >= 0) {
-    const std::string reqKw = (isUser ? Common::cNPCUserAddon : Common::cNPCAutoAddon) + (addonIdx < 10 ? "0" + std::to_string(addonIdx) : std::to_string(addonIdx));
+    const std::string reqKw = std::string(isUser ? Common::cNPCUserAddon : Common::cNPCAutoAddon) + (addonIdx < 10 ? "0" + std::to_string(addonIdx) : std::to_string(addonIdx));
     auto kw = ut->ProduceOrGetKw(reqKw);
     if (!kw) SKSE::log::critical("Keyword generation routine failed with keyword {}", reqKw);
     npc->AddKeyword(kw);
