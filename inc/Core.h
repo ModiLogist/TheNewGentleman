@@ -36,35 +36,37 @@ namespace TNG {
     public:
       void Process();
 
-      std::vector<AddonInfo>& GenderAddons(const bool isFemale) { return isFemale ? allFemAddons : allMalAddons; };
+      std::vector<AddonInfo>& GenderAddons(bool isFemale) { return isFemale ? allFemAddons : allMalAddons; };
 
-      RaceGroupInfo* Rg(const RgKey& ky);
-      const RaceGroupInfo* Rg(const RgKey& ky) const;
-      bool RgIsMain(RgKey rgChoice) const {
-        auto rg = Rg(rgChoice);
-        return rg && rg->isMain;
-      };
-      int GetRgAddon(RgKey rgChoice) const;
+      RaceGroupInfo* const Rg(const RgKey& ky);
+      const RaceGroupInfo* const Rg(const RgKey& ky) const;
+      const bool RgIsMain(RgKey rgChoice) const;
+      const int GetRgAddon(RgKey rgChoice) const;
       void SetRgAddon(RgKey rgChoice, const int addonIdx);
-      float GetRgMult(RgKey rgChoice) const;
+      const float GetRgMult(RgKey rgChoice) const;
       void SetRgMult(RgKey rgChoice, const float mult);
       const std::string GetRgInfo(RgKey rgChoice) const;
-      std::vector<size_t> GetRgAddons(RgKey rgChoice) const;
-      bool ReevaluateRace(RE::TESRace* const race, RE::Actor* const actor);
+      const std::vector<size_t> GetRgAddons(RgKey rgChoice) const;
+      const eRes ReevaluateRace(RE::TESRace* const race, RE::Actor* const actor);
 
-      eRes CanModifyActor(RE::Actor* const actor) const;
+      const eRes CanModifyActor(RE::Actor* const actor) const;
       void UpdateActor(RE::Actor* const actor, RE::TESObjectARMO* const armor = nullptr, const bool isEquipped = false);
-      std::vector<size_t> GetActorAddons(RE::Actor* const actor, const bool onlyActive) const;
-      eRes GetActorAddon(RE::Actor* actor, int& addon, bool& isAuto) const;
-      eRes SetActorAddon(RE::Actor* const actor, const int choice, const bool isUser, const bool shouldSave);
-      eRes GetActorSize(RE::Actor* const actor, int& sizeCat) const;
-      eRes SetActorSize(RE::Actor* const actor, int sizeCat, const bool shouldSave);
-      void UpdatePlayerAfterLoad();
+      const std::vector<size_t> GetActorAddons(RE::Actor* const actor, const bool onlyActive) const;
+      const eRes GetActorAddon(RE::Actor* actor, int& addon, bool& isAuto) const;
+      const eRes SetActorAddon(RE::Actor* const actor, const int choice, const bool isUser, const bool shouldSave);
+      const eRes GetActorSize(RE::Actor* const actor, int& sizeCat) const;
+      const eRes SetActorSize(RE::Actor* const actor, int sizeCat, const bool shouldSave);
 
-      bool SwapRevealing(RE::Actor* const actor, RE::TESObjectARMO* const armor);
+      const bool SwapRevealing(RE::Actor* const actor, RE::TESObjectARMO* const armor);
       void RevisitRevealingArmor() const;
 
     private:
+      std::mutex rgMutex;
+      std::unordered_map<RE::Actor*, bool> actorProcessing;
+      std::unordered_map<RE::Actor*, std::mutex> actorLock;
+      std::condition_variable actorCv;
+      std::unordered_map<RE::TESObjectARMO*, std::mutex> armorLock;
+
       inline static constexpr size_t hardCodedCoveringCount{1};
       inline static constexpr SEFormLocView hardCodedCovering[hardCodedCoveringCount]{{0x3D306, "Dragonborn.esm"}};
       inline static constexpr size_t hardCodedRacesCount{1};
@@ -77,17 +79,19 @@ namespace TNG {
       int AddonIdxByLoc(const bool isFemale, const SEFormLocView addonLoc) const;
 
       void ProcessRaces();
-      void IgnoreRace(RE::TESRace* const race, const bool ready);
       RaceGroupInfo* const ProcessRace(RE::TESRace* const race);
       eRes CheckRace(RE::TESRace* const race) const;
-      RaceGroupInfo* AddRace(RE::TESRace* const race, const bool isProcessed);
+      RaceGroupInfo* AddRace(RE::TESRace* const race, const bool isValidSkeleton);
+      void IgnoreRace(RE::TESRace* const race, const bool ready);
       int GetRgDefAddon(RaceGroupInfo& rg);
-      void ProcessRgAddons(RaceGroupInfo& rg, const std::vector<std::pair<RE::TESObjectARMO*, bool>>& addons, const bool isFemale);
+      void ProcessRgAddons(RaceGroupInfo& rg, const bool isFemale);
       void ApplyUserSettings(RaceGroupInfo& rg);
+      
       void ProcessNPCs();
-      std::pair<int, bool> GetApplicableAddon(RE::Actor* const actor) const;
+      void ExcludeNPC(RE::TESNPC* const npc);
       eRes SetNPCAddon(RE::TESNPC* const npc, const int addonIdx, const bool isUser);
       void OrganizeNPCKeywords(RE::TESNPC* const npc, int addonIdx, const bool isUser) const;
+      void DoUpdateActor(RE::Actor* const actor, RE::TESObjectARMO* const armor, const bool isEquipped);
       void UpdateAddon(RE::Actor* const actor, const bool isRRace);
       eRes UpdatePlayer(RE::Actor* const actor, const bool isRRace);
       void UpdateFormLists(RE::Actor* const actor) const;

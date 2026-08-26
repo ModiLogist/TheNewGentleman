@@ -12,7 +12,7 @@ void Core::Process() {
   CheckArmorPieces();
 }
 
-RaceGroupInfo* Core::Rg(const RgKey& ky) {
+RaceGroupInfo* const Core::Rg(const RgKey& ky) {
   if (ky.race) {
     for (auto& rg : rgInfoList)
       if (std::find(rg.races.begin(), rg.races.end(), ky.race) != rg.races.end()) {
@@ -33,7 +33,7 @@ RaceGroupInfo* Core::Rg(const RgKey& ky) {
   return nullptr;
 }
 
-const RaceGroupInfo* Core::Rg(const RgKey& ky) const {
+const RaceGroupInfo* const Core::Rg(const RgKey& ky) const {
   if (ky.race) {
     for (auto& rg : rgInfoList)
       if (std::find(rg.races.begin(), rg.races.end(), ky.race) != rg.races.end()) {
@@ -54,23 +54,19 @@ const RaceGroupInfo* Core::Rg(const RgKey& ky) const {
   return nullptr;
 }
 
-int Core::GetRgAddon(RgKey rgChoice) const {
-  auto rg = Rg(rgChoice);
-  return rg ? rg->addonIdx : err40;
-}
+const bool TNG::Core::RgIsMain(RgKey rgChoice) const { return Rg(rgChoice) && Rg(rgChoice)->isMain; }
+
+const int TNG::Core::GetRgAddon(RgKey rgChoice) const { return Rg(rgChoice) ? Rg(rgChoice)->addonIdx : err40; }
 
 void Core::SetRgAddon(RgKey rgChoice, const int addonIdx) {
   auto rg = Rg(rgChoice);
   if (!rg || addonIdx < def || (addonIdx >= 0 && rg->malAddons.find(addonIdx) == rg->malAddons.end())) return;
   rg->addonIdx = (addonIdx == def) ? rg->defAddonIdx : addonIdx;
   auto addon = addonIdx < 0 ? nullptr : rg->malAddons[static_cast<size_t>(addonIdx)];
-  Inis::SetRgAddon(rg->races[0], addon, addonIdx);
+  StoreRgAddon(rg->races[0], addon, addonIdx);
 }
 
-float Core::GetRgMult(RgKey rgChoice) const {
-  auto rg = Rg(rgChoice);
-  return rg ? rg->mult : errFlt;
-}
+const float Core::GetRgMult(RgKey rgChoice) const { return Rg(rgChoice) ? Rg(rgChoice)->mult : errFlt; }
 
 void Core::SetRgMult(RgKey rgChoice, const float mult) {
   auto rg = Rg(rgChoice);
@@ -79,7 +75,7 @@ void Core::SetRgMult(RgKey rgChoice, const float mult) {
     return;
   }
   rg->mult = mult;
-  Inis::SetRgMult(rg->races[0], mult);
+  StoreRgMult(rg->races[0], mult);
 }
 
 const std::string Core::GetRgInfo(RgKey rgChoice) const {
@@ -88,11 +84,11 @@ const std::string Core::GetRgInfo(RgKey rgChoice) const {
   if (!rg) return res;
   auto& list = rg->races;
   res = "Main race: [" + rg->file + " : " + rg->name + "]; ";
-  res = res + "Armor race: [" + rg->armorRace->GetFormEditorID() + "]; ";
+  res = res + "Armor race: [" + EI(rg->armorRace) + "]; ";
   res = res + "Additional races: [";
   for (auto race : list) {
     if (race == list.front()) continue;
-    res = res + std::string(race->GetFile(0) ? race->GetFile(0)->GetFilename() : "(Unknown)") + " : " + race->GetFormEditorID();
+    res = res + F0(race) + " : " + EI(race);
     if (race != list.back()) {
       res = res + ", ";
     }
@@ -101,7 +97,7 @@ const std::string Core::GetRgInfo(RgKey rgChoice) const {
   return res;
 }
 
-std::vector<size_t> Core::GetRgAddons(RgKey rgChoice) const {
+const std::vector<size_t> Core::GetRgAddons(RgKey rgChoice) const {
   std::vector<size_t> res{};
   auto rg = Rg(rgChoice);
   if (!rg) return res;
@@ -109,27 +105,26 @@ std::vector<size_t> Core::GetRgAddons(RgKey rgChoice) const {
   return res;
 }
 
-bool Core::ReevaluateRace(RE::TESRace* const race, RE::Actor* const actor) {
-  if (!actor || !race || !Rg(RgKey(race))) return false;
-  SKSE::log::debug("Re-evaluating race [0x{:x}:{}] ...", race->GetFormID(), race->GetFormEditorID());
-  if (!actor->Is3DLoaded()) return false;
+const eRes Core::ReevaluateRace(RE::TESRace* const race, RE::Actor* const actor) {
+  if (!actor || !actor->Is3DLoaded() || !race || !Rg(RgKey(race))) return resOkRacePP;
   auto rg = Rg(RgKey(race));
   bool isValid = true;
   for (auto& boneName : genBoneNames)
     if (!actor->GetNodeByName(boneName)) {
       isValid = false;
-      SKSE::log::info("\tTNG would neglect the race [0x{:x}:{}] since its skeleton is missing the bone [{}]", race->GetFormID(), race->GetFormEditorID(), boneName);
+      SKSE::log::info("\tTNG would neglect the race [0x{:x}:{}] since its skeleton is missing the bone [{}]", IG(race), EI(race), boneName);
+      break;
     }
   if (isValid) {
     if (race->skeletonModels[0].model.empty() || race->skeletonModels[1].model.empty()) {
-      SKSE::log::info("\tTNG would neglect the race [0x{:x}:{}] since its skeleton could not be recognized.", race->GetFormID(), race->GetFormEditorID());
+      SKSE::log::info("\tTNG would neglect the race [0x{:x}:{}] since its skeleton could not be recognized.", IG(race), EI(race));
       isValid = false;
     }
   }
   if (isValid) {
-    SetValidSkeleton(race->skeletonModels[0].model.data());
-    SetValidSkeleton(race->skeletonModels[1].model.data());
-    SKSE::log::debug("\tThe race [0x{:x}:{}] was evaluated to be supported by TNG!", race->GetFormID(), race->GetFormEditorID());
+    StoreSkeleton(race->skeletonModels[0].model.data());
+    StoreSkeleton(race->skeletonModels[1].model.data());
+    SKSE::log::debug("\tThe race [0x{:x}:{}] can have TNG addons!", IG(race), EI(race));
     race->RemoveKeyword(ut->Key(kyPreProcessed));
     race->AddKeyword(ut->Key(kyProcessed));
   } else {
@@ -141,40 +136,41 @@ bool Core::ReevaluateRace(RE::TESRace* const race, RE::Actor* const actor) {
     auto rgIt = std::ranges::find_if(rgInfoList, [&](const auto& item) { return &item == rg; });
     if (rgIt != rgInfoList.end() && rg->races.empty()) rgInfoList.erase(rgIt);
   }
-  return isValid;
+  return isValid ? resOkRaceP : errRace;
 }
 
-eRes Core::CanModifyActor(RE::Actor* const actor) const {
+const eRes Core::CanModifyActor(RE::Actor* const actor) const {
   auto npc = actor ? actor->GetActorBase() : nullptr;
   if (!npc) return errNPC;
+  if (npc->HasKeyword(ut->Key(kyExcluded))) return errNPC;
   if (!npc->race) return errRace;
-  if (IsNPCExcluded(npc)) return errNPC;
   if (auto skin = npc->skin; skin && skin->HasPartOf(genitalSlot)) {
     for (auto& aa : skin->armorAddons)
       if (aa && aa->HasPartOf(genitalSlot)) return resOkRaceR;
     return errSkin;
   }
   if (npc->race->HasKeyword(ut->Key(kyReady))) return resOkRaceR;
-  if (auto rg = Rg(RgKey(npc->race)); !rg || rg->malAddons.size() == 0) return errRace;
+  if (auto rg = Rg(RgKey(npc->race)); !rg || (npc->IsFemale() ? rg->femAddons.size() == 0 : rg->malAddons.size() == 0)) return errRace;
   if (npc->race->HasKeyword(ut->Key(kyProcessed))) return resOkRaceP;
   if (npc->race->HasKeyword(ut->Key(kyPreProcessed))) return resOkRacePP;
   return errRace;
 }
 
 void Core::UpdateActor(RE::Actor* const actor, RE::TESObjectARMO* const armor, const bool isEquipped) {
-  auto npc = actor ? actor->GetActorBase() : nullptr;
-  if (!npc || actor->IsDisabled() || !npc->race || !npc->race->skin) return;
-  auto canModify = CanModifyActor(actor);
-  if (canModify < resOkRaceP || (canModify == resOkRacePP && !ReevaluateRace(actor->GetRace(), actor))) ExcludeActor(actor);
-  // TODO: Really necessary to separate player and other actors in new way?
-  if (actor->IsPlayerRef()) {
-    UpdatePlayer(actor, canModify == resOkRaceR);
-  } else {
-    UpdateAddon(actor, canModify == resOkRaceR);
+  std::unique_lock<std::mutex> lock(actorLock[actor]);
+  if (actorProcessing.find(actor) == actorProcessing.end()) actorProcessing[actor] = false;
+  actorCv.wait(lock, [this, actor]() { return !actorProcessing[actor]; });
+  actorProcessing[actor] = true;
+  try {
+    DoUpdateActor(actor, armor, isEquipped);
+  } catch (...) {
+    SKSE::log::error("Exception caught in Core::UpdateActor for actor [0x{:x}:{}]!", IG(actor), EI(actor));
   }
+  actorProcessing[actor] = false;
+  actorCv.notify_all();
 }
 
-std::vector<size_t> Core::GetActorAddons(RE::Actor* const actor, const bool onlyActive) const {
+const std::vector<size_t> Core::GetActorAddons(RE::Actor* const actor, const bool onlyActive) const {
   std::vector<size_t> res{};
   auto npc = actor ? actor->GetActorBase() : nullptr;
   if (!npc || !npc->race) return res;
@@ -188,162 +184,166 @@ std::vector<size_t> Core::GetActorAddons(RE::Actor* const actor, const bool only
   return res;
 }
 
-eRes Core::GetActorAddon(RE::Actor* actor, int& addonIdx, bool& isAuto) const {
+const eRes Core::GetActorAddon(RE::Actor* actor, int& addonIdx, bool& isAuto) const {
   isAuto = true;
   addonIdx = nul;
   auto npc = actor ? actor->GetActorBase() : nullptr;
   if (!npc) return errNPC;
-  if (IsNPCExcluded(npc) || npc->HasKeyword(ut->Key(kyExcluded))) {
+  if (IsNPCExcluded(npc) || npc->HasKeyword(ut->Key(kyExcluded)) || npc->HasKeyword(ut->Key(kyIgnored))) {
     isAuto = false;
     return resOkNoAddon;
   }
   auto rg = Rg(RgKey(npc->race));
   if (!rg) return errRace;
-  if (!npc->IsFemale()) addonIdx = rg->addonIdx;
-  if (!npc->skin) return (addonIdx > nul) ? resOkHasAddon : resOkNoAddon;
-  if (!npc->skin->HasKeyword(ut->Key(kyTngSkin))) return (addonIdx > nul) ? err40 : resOkNoAddon;
   npc->ForEachKeyword([&](RE::BGSKeyword* kw) {
     if (!kw || kw->GetFormEditorID() == NULL) return RE::BSContainer::ForEachResult::kContinue;
-    const std::string kwStr(kw->GetFormEditorID());
+    const std::string kwStr{EI(kw)};
     std::string str = "";
-    if (kwStr.starts_with(cNPCAutoAddon)) {
-      addonIdx = std::stoi(kwStr.substr(size(cNPCAutoAddon), 2));
-      return RE::BSContainer::ForEachResult::kStop;
-    } else if (kwStr.starts_with(cNPCUserAddon)) {
+    if (kwStr.starts_with(cNPCUserAddon)) {
       isAuto = false;
       addonIdx = std::stoi(kwStr.substr(size(cNPCUserAddon), 2));
       return RE::BSContainer::ForEachResult::kStop;
     }
     return RE::BSContainer::ForEachResult::kContinue;
   });
+  if (!isAuto) return resOkHasAddon;
+  auto savedAddon = ActorSavedAddon(actor, npc);
+  auto list = GetActorAddons(actor, true);
+  if (!savedAddon.second.empty()) {
+    addonIdx = savedAddon.second == nulStr ? nul : AddonIdxByLoc(npc->IsFemale(), savedAddon);
+    if (addonIdx >= 0 && std::find(list.begin(), list.end(), static_cast<size_t>(addonIdx)) != list.end()) {
+      isAuto = false;
+      return resOkHasAddon;
+    } else if (addonIdx == nul) {
+      isAuto = false;
+      return resOkNoAddon;
+    }
+  }
+  addonIdx = npc->IsFemale() ? nul : rg->defAddonIdx;
+  const auto count = list.size();
+  const auto malChance = static_cast<size_t>(std::floor(boolSettings.Get(bsRandomizeMaleAddon) * floatSettings.Get(fsMalRndChance) + 0.1f));
+  const auto femChance = static_cast<size_t>(std::floor(floatSettings.Get(fsFemRndChance) + 0.1f));
+  const size_t chance = static_cast<size_t>(npc->IsFemale() ? femChance : malChance);
+  if (count > 0 && chance > 0 && (IG(npc) % 100 < chance)) addonIdx = static_cast<int>(list[IG(npc) % count]);
   return (addonIdx >= 0) ? resOkHasAddon : resOkNoAddon;
 }
 
-eRes Core::SetActorAddon(RE::Actor* const actor, const int choice, const bool isUser, const bool shouldSave) {
-  if (shouldSave) {
-    if (CanModifyActor(actor) == resOkRacePP) ReevaluateRace(actor->GetRace(), actor);
-    if (auto res = CanModifyActor(actor); res != resOkRaceP) {
-      if (res >= 0) res = errRace;
-      return res;
-    }
-  }
-  if (actor->IsPlayerRef() && choice == defPlayer) return UpdatePlayer(actor, false);
-  const auto npc = actor->GetActorBase();
-  auto list = GetActorAddons(actor, !isUser);
-  if (shouldSave) {
-    if (choice >= static_cast<int>(list.size())) return errAddon;
-    SKSE::log::debug("Setting addon [{}] for actor [0x{:x}:{}].", choice, actor->GetFormID(), npc->GetName());
-  }
-  auto addonIdx = choice < 0 ? choice : shouldSave ? static_cast<int>(list[choice].first) : choice;
-  auto oldSkin = npc->skin;
-  auto res = SetNPCAddon(npc, addonIdx, isUser);
-  if (res < 0) return res;
-  auto addon = addonIdx < 0 ? nullptr : (npc->IsFemale() ? femAddons[addonIdx].first : malAddons[addonIdx].first);
-  if (actor->IsPlayerRef() && shouldSave)
-    SetPlayerInfo(actor, addon, addonIdx);
-  else if (!npc->IsPlayer() && shouldSave)
-    Inis::SaveActorAddon(actor, npc, addon, addonIdx);
-  if (shouldSave || (!isUser && npc->skin != oldSkin)) {
-    UpdateFormLists(actor);
-  }
-  return res;
+const eRes Core::SetActorAddon(RE::Actor* const actor, const int choice, const bool isUser, const bool shouldSave) {
+  std::lock_guard<std::mutex> lock(actorLock[actor]);
+  // TODO: Revise
+  //  if (shouldSave) {
+  //    if (CanModifyActor(actor) == resOkRacePP) ReevaluateRace(actor->GetRace(), actor);
+  //    if (auto res = CanModifyActor(actor); res != resOkRaceP) {
+  //      if (res >= 0) res = errRace;
+  //      return res;
+  //    }
+  //  }
+  //  const auto npc = actor->GetActorBase();
+  //  auto list = GetActorAddons(actor, !isUser);
+  //  if (shouldSave) {
+  //    if (choice >= static_cast<int>(list.size())) return errAddon;
+  //    SKSE::log::debug("Setting addon [{}] for actor [0x{:x}:{}].", choice, IG(actor), npc->GetName());
+  //  }
+  //  auto addonIdx = choice < 0 ? choice : shouldSave ? static_cast<int>(list[choice].first) : choice;
+  //  auto oldSkin = npc->skin;
+  //  auto res = SetNPCAddon(npc, addonIdx, isUser);
+  //  if (res < 0) return res;
+  //  auto addon = addonIdx < 0 ? nullptr : (npc->IsFemale() ? femAddons[addonIdx].first : malAddons[addonIdx].first);
+  //  if (actor->IsPlayerRef() && shouldSave)
+  //    StorePlayerInfo(actor, addon, addonIdx);
+  //  else if (!npc->IsPlayer() && shouldSave)
+  //    Inis::StoreActorAddon(actor, npc, addon, addonIdx);
+  //  if (shouldSave || (!isUser && npc->skin != oldSkin)) {
+  //    UpdateFormLists(actor);
+  //  }
+  //  return res;
 }
 
-eRes Core::GetActorSize(RE::Actor* const actor, int& sizeCat) const {
+const eRes Core::GetActorSize(RE::Actor* const actor, int& sizeCat) const {
   sizeCat = errInt;
   if (auto res = CanModifyActor(actor); res < 0) return res;
   const auto npc = actor->GetActorBase();
-  if (npc->IsPlayer() && boolSettings.Get(bsExcludePlayerSize)) return errPlayer;
+  if (npc->IsPlayer()) {
+    if (boolSettings.Get(bsExcludePlayerSize)) return errPlayer;
+    auto pcInfo = PlayerInfo(actor);
+    if (pcInfo) {
+      sizeCat = pcInfo->sizeCat;
+      return resOkSizable;
+    } else {
+      sizeCat = nul;
+      return resOkSizable;
+    }
+  }
   if (sizeCat = Inis::ActorSavedSize(actor, npc); sizeCat >= 0) return resOkSizable;
-  sizeCat = ut->HasKeywordInList(npc, ut->SizeKeys());
+  sizeCat = HasKeywordInList(npc, ut->SizeKeys());
   if (sizeCat < 0) sizeCat = npc->formID % sizeCatCount;
   return resOkSizable;
 }
 
-eRes Core::SetActorSize(RE::Actor* const actor, int sizeCat, const bool shouldSave) {
+const eRes Core::SetActorSize(RE::Actor* const actor, int sizeCat, const bool shouldSave) {
+  std::lock_guard<std::mutex> lock(actorLock[actor]);
   if (shouldSave) {
     if (CanModifyActor(actor) == resOkRacePP) ReevaluateRace(actor->GetRace(), actor);
     if (auto res = CanModifyActor(actor); res < 0) return res;
   }
   const auto npc = actor->GetActorBase();
   if (!actor->IsPlayerRef() && npc->IsPlayer()) return resOkFixed;  // Don't change the size for copies of player actor
-  int currCat = errInt;
   if (sizeCat == def) npc->RemoveKeywords(ut->SizeKeys());
+  int currCat = errInt;
   auto res = GetActorSize(actor, currCat);
-  if (res != resOkSizable) return res;
+  if (res != resOkSizable || currCat < 0) return res;
   auto cat = (sizeCat < 0) ? currCat : sizeCat;
   if (cat != currCat) {
     npc->RemoveKeywords(ut->SizeKeys());
     npc->AddKeyword(ut->SizeKey(cat));
   }
-  if (auto rg = Rg(RgKey(npc->race)); rg) {
-    auto mult = rg->mult;
-    if (mult < 0.0f) return errRg;
-    auto scale = mult * floatSettings.Get(static_cast<eFloatSetting>(cat));
-    if (scale < 0.1) scale = 1;
-    const auto isPlayer = actor->IsPlayerRef();
-    const std::string failMessage = fmt::format("Failed to scale actor [0x{:x}] genitalia to [{}] since they are not loaded after standard delay.", actor->GetFormID(), scale);
-    ut->DoDelayed(
-        [actor, isPlayer, scale, shouldSave, sizeCat]() {
-          auto ac = isPlayer ? RE::PlayerCharacter::GetSingleton() : actor;
-          if (!ac) return;
-          RE::NiAVObject* baseNode = ac->GetNodeByName(genBoneNames[egbBase]);
-          RE::NiAVObject* scrotNode = ac->GetNodeByName(genBoneNames[egbScrot]);
-          if (baseNode && scrotNode) {
-            if (baseNode->local.scale == scale) return;
-            baseNode->local.scale = scale;
-            scrotNode->local.scale = 1.0f / sqrt(scale);
-            if (sizeCat != nul) SKSE::log::debug("Actor [0x{:x}] genitalia {} to [{}].", ac->GetFormID(), shouldSave ? "scaled" : "restored", scale);
-          } else {
-            SKSE::log::debug("Failed to scale actor [0x{:x}] genitalia to [{}] since their skeleton does not seem to be compatible.", ac->GetFormID(), scale);
-          }
-        },
-        [actor]() -> bool { return actor && actor->Is3DLoaded() && actor->GetNodeByName(genBoneNames[egbBase]); }, 0, true, failMessage);
-  }
-  if (actor->IsPlayerRef() && sizeCat != nul && shouldSave) SetPlayerInfo(actor, nullptr, errInt, sizeCat);
-  if (!actor->IsPlayerRef() && shouldSave) Inis::SaveActorSize(actor, actor->GetActorBase(), sizeCat);
+  auto rg = Rg(RgKey(npc->race));
+  if (!rg) return errRg;
+  auto mult = rg->mult;
+  if (mult < 0.0f) return errRg;
+  auto scale = mult * floatSettings.Get(static_cast<eFloatSetting>(cat));
+  if (scale < 0.1) scale = 1;
+  const auto isPlayer = actor->IsPlayerRef();
+  const std::string failMessage = fmt::format("Failed to scale actor [0x{:x}] genitalia to [{}].", IG(actor), scale);
+  DoDelayed(
+      [actor, isPlayer, scale, shouldSave, sizeCat, failMessage]() {
+        auto ac = isPlayer ? RE::PlayerCharacter::GetSingleton() : actor;
+        if (!ac) return;
+        RE::NiAVObject* baseNode = ac->GetNodeByName(genBoneNames[egbBase]);
+        RE::NiAVObject* scrotNode = ac->GetNodeByName(genBoneNames[egbScrot]);
+        if (baseNode && scrotNode) {
+          if (baseNode->local.scale == scale) return;
+          baseNode->local.scale = scale;
+          scrotNode->local.scale = 1.0f / sqrt(scale);
+          if (sizeCat != nul) SKSE::log::debug("Actor [0x{:x}] genitalia {} to [{}].", IG(ac), shouldSave ? "scaled" : "restored", scale);
+        } else {
+          SKSE::log::debug(failMessage);
+        }
+      },
+      [actor]() -> bool { return actor && actor->Is3DLoaded() && actor->GetNodeByName(genBoneNames[egbBase]); }, 0, true, failMessage);
+  if (shouldSave && sizeCat != nul) actor->IsPlayerRef() ? StorePlayerInfo(actor, nullptr, errInt, sizeCat) : StoreActorSize(actor, npc, sizeCat);
   return res;
 }
 
-void Core::UpdatePlayerAfterLoad() {
-  SKSE::log::debug("TNG would keep an eye on the player skin for a while...");
-  if (!core) return;
-  auto player = RE::PlayerCharacter::GetSingleton();
-  if (!player) return;
-  core->UpdateActor(player);
-  auto LoadPC = []() {};
-  auto LoadCond = []() {
-    auto player = RE::PlayerCharacter::GetSingleton();
-    if (!player) return true;
-    auto pc = player->GetActorBase();
-    if (!pc || !player->Is3DLoaded()) return false;
-    auto skin = pc->skin;
-    if (skin && !skin->HasKeyword(ut->Key(kyTngSkin))) {
-      core->UpdateActor(player);
-    }
-    return false;
-  };
-  ut->DoDelayed(LoadPC, LoadCond, 0, true, "Finished checking the player skin.");
-}
-
-bool Core::SwapRevealing(RE::Actor* const actor, RE::TESObjectARMO* const armor) {
+const bool Core::SwapRevealing(RE::Actor* const actor, RE::TESObjectARMO* const armor) {
+  std::lock_guard<std::mutex> lock(armorLock[armor]);
   auto npc = actor ? actor->GetActorBase() : nullptr;
   if (!npc || !armor) return false;
   if (armor->HasKeyword(ut->Key(kyUnderwear))) return false;
   std::vector<RE::BGSKeyword*> rcKeys = {ut->Key(statusKeys[0]), ut->Key(statusKeys[1]), ut->Key(statusKeys[2]), ut->Key(statusKeys[3])};
-  auto kb = ut->HasKeywordInList(armor, rcKeys);
+  auto kb = HasKeywordInList(armor, rcKeys);
   int mask = npc->IsFemale() ? 2 : 1;
   if (kb < 0) {
     armor->RemoveKeyword(ut->Key(kyIgnored));
     armor->AddKeyword(ut->Key(kyCovering));
-    SetArmorStatus(armor, kyCovering);
+    StoreArmorStatus(armor, kyCovering);
   } else {
     armor->RemoveKeyword(rcKeys[kb]);
     if (armor->HasPartOf(bodySlot)) {
       armor->AddKeyword(rcKeys[kb ^ mask]);
-      SetArmorStatus(armor, statusKeys[kb ^ mask]);
+      StoreArmorStatus(armor, statusKeys[kb ^ mask]);
     } else {
-      SetArmorStatus(armor, keywordsCount);
+      StoreArmorStatus(armor, keywordsCount);
     }
   }
   return true;
@@ -352,12 +352,12 @@ bool Core::SwapRevealing(RE::Actor* const actor, RE::TESObjectARMO* const armor)
 void Core::RevisitRevealingArmor() const {
   auto s52 = Slot52Mods();
   if (s52.size() == 0) return;
-  auto& armorList = ut->SEDH()->GetFormArray<RE::TESObjectARMO>();
+  auto& armorList = SEDH()->GetFormArray<RE::TESObjectARMO>();
   std::set<std::pair<std::string, RE::TESObjectARMO*>> potentialArmor = {};
   std::vector<RE::BGSKeyword*> rc = {ut->Key(kyCovering), ut->Key(kyRevealing)};
   for (const auto& armor : armorList) {
     if (!armor || !armor->HasPartOf(bodySlot) || !armor->HasKeywordInArray(rc, false)) continue;
-    auto modName = armor->GetFile(0) ? std::string(armor->GetFile(0)->GetFilename()) : "";
+    auto modName = F0(armor, false);
     if (modName.empty() || std::ranges::find(s52, modName) == s52.end()) continue;
     if (auto b = Slot52ModBehavior(modName); b != armor->HasKeyword(ut->Key(kyRevealing))) {
       armor->RemoveKeywords(rc);
@@ -370,33 +370,33 @@ void Core::LoadAddons() {
   SKSE::log::info("Loading the addons...");
   allMalAddons.clear();
   allFemAddons.clear();
-  const auto& armorList = ut->SEDH()->GetFormArray<RE::TESObjectARMO>();
+  const auto& armorList = SEDH()->GetFormArray<RE::TESObjectARMO>();
   for (const auto& armor : armorList) {
     if (!armor || !armor->GetName()) continue;
     if (armor->HasKeyword(ut->Key(kyAddonM))) {
       if (!armor->HasKeyword(ut->Key(kyIgnored))) armor->AddKeyword(ut->Key(kyIgnored));
-      auto addonLoc = ut->FormToLoc(armor);
+      auto addonLoc = FormToLoc(armor);
       if (auto it = std::ranges::find_if(allMalAddons, [&](const auto& item) { return item.name == armor->GetName(); }); it == allMalAddons.end()) {
-        allMalAddons.push_back({armor->GetName(), {armor}, userMalAddons.find(addonLoc) == userMalAddons.end(), armor->HasKeyword(ut->Key(kySkinWOP))});
+        allMalAddons.push_back({armor->GetName(), {armor}, userMalAddons.find(addonLoc) == userMalAddons.end(), armor->HasKeyword(ut->Key(kyGenderChanger))});
       } else {
         it->records.push_back(armor);
         it->isActive = it->isActive && (userMalAddons.find(addonLoc) == userMalAddons.end());
-        if (armor->HasKeyword(ut->Key(kySkinWOP)) != it->isGenderChanger)
+        if (armor->HasKeyword(ut->Key(kyGenderChanger)) != it->isGenderChanger)
           SKSE::log::error("Inconsistent keywords were found in addon [{}] between [0x{:x}] and [0x{:x}] regarding gender specification. This would cause problems in animations!",
-                           it->name, it->records[0]->GetFormID(), armor->GetFormID());
+                           it->name, IG(it->records[0]), IG(armor));
       }
     }
     if (armor->HasKeyword(ut->Key(kyAddonF))) {
       if (!armor->HasKeyword(ut->Key(kyIgnored))) armor->AddKeyword(ut->Key(kyIgnored));
-      auto addonLoc = ut->FormToLoc(armor);
+      auto addonLoc = FormToLoc(armor);
       if (auto it = std::ranges::find_if(allFemAddons, [&](const auto& item) { return item.name == armor->GetName(); }); it == allFemAddons.end()) {
-        allFemAddons.push_back({armor->GetName(), {armor}, userFemAddons.find(addonLoc) != userFemAddons.end(), armor->HasKeyword(ut->Key(kySkinWP))});
+        allFemAddons.push_back({armor->GetName(), {armor}, userFemAddons.find(addonLoc) != userFemAddons.end(), armor->HasKeyword(ut->Key(kyGenderChanger))});
       } else {
         it->records.push_back(armor);
         it->isActive = it->isActive && (userFemAddons.find(addonLoc) != userFemAddons.end());
-        if (armor->HasKeyword(ut->Key(kySkinWP)) != it->isGenderChanger)
+        if (armor->HasKeyword(ut->Key(kyGenderChanger)) != it->isGenderChanger)
           SKSE::log::error("Inconsistent keywords were found in addon [{}] between [0x{:x}] and [0x{:x}] regarding gender specification. This would cause problems in animations!",
-                           it->name, it->records[0]->GetFormID(), armor->GetFormID());
+                           it->name, IG(it->records[0]), IG(armor));
       }
     }
   }
@@ -407,47 +407,43 @@ int Core::AddonIdxByLoc(const bool isFemale, const SEFormLocView addonLoc) const
   if (addonLoc.second.empty()) return errInt;
   if (addonLoc.second == nulStr) return nul;
   if (addonLoc.second == defStr) return def;
-  auto& list = isFemale ? femAddons : malAddons;
+  auto& list = isFemale ? allFemAddons : allMalAddons;
   for (int i = 0; i < list.size(); i++) {
-    if (ut->FormToLoc(list[i].first) == addonLoc) return i;
+    for (auto record : list[i].records) {
+      if (FormToLoc(record) == addonLoc) return i;
+    }
   }
   return errInt;
 }
 
 void Core::ProcessRaces() {
   SKSE::log::info("Processing races...");
-  const auto& allRaces = ut->SEDH()->GetFormArray<RE::TESRace>();
+  const auto& allRaces = SEDH()->GetFormArray<RE::TESRace>();
   int logInfo[4] = {0, 0, 0, 0};
   std::vector<RE::BGSKeyword*> keywords = {ut->Key(kyIgnored), ut->Key(kyReady), ut->Key(kyProcessed), ut->Key(kyPreProcessed)};
-  SetValidSkeleton(ut->Race(raceDefault)->skeletonModels[0].model.data());
-  SetValidSkeleton(ut->Race(raceDefault)->skeletonModels[1].model.data());
-  SetValidSkeleton(ut->Race(raceDefBeast)->skeletonModels[0].model.data());
-  SetValidSkeleton(ut->Race(raceDefBeast)->skeletonModels[1].model.data());
+  StoreSkeleton(ut->Race(raceDefault)->skeletonModels[0].model.data());
+  StoreSkeleton(ut->Race(raceDefault)->skeletonModels[1].model.data());
+  StoreSkeleton(ut->Race(raceDefBeast)->skeletonModels[0].model.data());
+  StoreSkeleton(ut->Race(raceDefBeast)->skeletonModels[1].model.data());
   for (const auto& race : allRaces) {
     if (!race) continue;
     if (!race->HasKeywordInArray(keywords, false)) ProcessRace(race);
-    auto k = ut->HasKeywordInList(race, keywords);
+    auto k = HasKeywordInList(race, keywords);
     k >= 0 ? logInfo[k]++ : logInfo[0]++;
   }
   for (auto& rg : rgInfoList) {
-    ProcessRgAddons(rg, malAddons, false);
-    ProcessRgAddons(rg, femAddons, true);
+    ProcessRgAddons(rg, false);
+    ProcessRgAddons(rg, true);
     ApplyUserSettings(rg);
   }
   SKSE::log::info("Processed [{}] races: assigned genitalia to [{}] races, preprocessed [{}] races, found [{}] races to be ready and ignored [{}] races.", allRaces.size(),
                   logInfo[2], logInfo[3], logInfo[1], logInfo[0]);
 }
 
-void Core::IgnoreRace(RE::TESRace* const race, const bool ready) {
-  if (!race) return;
-  race->RemoveKeywords(ut->Keys(kyProcessed, kyExcluded));
-  race->AddKeyword(ut->Key(ready ? kyReady : kyIgnored));
-}
-
 RaceGroupInfo* const Core::ProcessRace(RE::TESRace* const race) {
   if (auto rg = Rg(RgKey(race)); rg) return rg;
   RaceGroupInfo* res = nullptr;
-  SKSE::log::debug("\tProcessing race [0x{:x}: {}] ...", race->GetFormID(), race->GetFormEditorID());
+  SKSE::log::debug("\tProcessing race [0x{:x}: {}] ...", IG(race), EI(race));
   switch (CheckRace(race)) {
     case resOkRacePP:
       res = AddRace(race, false);
@@ -464,26 +460,28 @@ RaceGroupInfo* const Core::ProcessRace(RE::TESRace* const race) {
     default:
       break;
   }
-  if (res) SKSE::log::info("\tRace [0x{:x}: {}]: member of {} group {}.", race->GetFormID(), race->GetFormEditorID(), res->isMain ? "primary" : "secondary", res->name);
+  if (res) SKSE::log::info("\tRace [0x{:x}: {}]: member of {} group {}.", IG(race), EI(race), res->isMain ? "primary" : "secondary", res->name);
   return res;
 }
 
 eRes Core::CheckRace(RE::TESRace* const race) const {
   try {
     for (auto raceInfo : hardCodedRaces)
-      if (ut->FormToLoc(race) == raceInfo) return resOkRaceP;
-    if (race->HasKeyword(ut->Key(kyCreature)) || race->IsChildRace() || !race->HasKeyword(ut->Key(kyManMer))) return errRaceBase;
-    auto raceID = std::string(race->formEditorID.c_str());
+      if (FormToLoc(race) == raceInfo) return resOkRaceP;
+    if (race->HasKeyword(ut->Key(kyCreature)) || race->IsChildRace() || !race->HasKeyword(ut->Key(kyManMer))) return errRace;
+    auto raceID = EI(race);
     std::transform(raceID.begin(), raceID.end(), raceID.begin(), ::tolower);
-    if (raceID.contains("child")) return errRaceBase;
+    if (raceID.contains("child")) {
+      SKSE::log::info("\tThe race [{}: xx{:x}: {}] was ignored because its editorID contains 'child'!", F0(race), I0(race), EI(race));
+      return errRace;
+    }
     if (IsRaceExcluded(race)) {
-      SKSE::log::info("\tThe race [{}: xx{:x}: {}] was ignored because an ini excludes it!", race->GetFile(0)->GetFilename(), race->GetLocalFormID(), race->GetFormEditorID());
-      return errRaceBase;
+      SKSE::log::info("\tThe race [{}: xx{:x}: {}] was ignored because an ini excludes it!", F0(race), I0(race), EI(race));
+      return errRace;
     }
     if (!race->skin) {
-      SKSE::log::warn("\tThe race [0x{:x}: {}] cannot have any genitals since they do not have a skin! It was last modified by [{}].", race->GetFormID(), race->GetFormEditorID(),
-                      race->GetFile() ? race->GetFile()->GetFilename() : "Unrecognized File");
-      return errRaceBase;
+      SKSE::log::warn("\tThe race [0x{:x}: {}] cannot have any genitals since they do not have a skin! It was last modified by [{}].", IG(race), EI(race), FL(race));
+      return errRace;
     }
     bool skinFound = false;
     for (const auto& aa : race->skin->armorAddons) {
@@ -493,23 +491,19 @@ eRes Core::CheckRace(RE::TESRace* const race) const {
       }
     }
     if (!skinFound) {
-      SKSE::log::warn("\tThe race [0x{:x}: {}] cannot have any genitals since their skin cannot be recognized!  It was last modified by [{}].", race->GetFormID(),
-                      race->GetFormEditorID(), race->GetFile() ? race->GetFile()->GetFilename() : "Unrecognized File");
+      SKSE::log::warn("\tThe race [0x{:x}: {}] cannot have any genitals since their skin cannot be recognized!  It was last modified by [{}].", IG(race), EI(race), FL(race));
       return errRace;
     }
-    bool isVanilla = race->GetFile(0) && race->GetFile(0)->GetFilename() == skyrimFile;
+    bool isVanilla = F0(race) == skyrimFile;
     if (race->HasPartOf(genitalSlot) && !isVanilla) {
       auto ready = race->skin->HasPartOf(genitalSlot);
-      SKSE::log::info("\tThe race [{}] is designed to be {} TNG. It was not modified.", race->GetFormEditorID(), ready ? "ready for" : "ignored by");
+      SKSE::log::info("\tThe race [{}] is designed to be {} TNG. It was not modified.", EI(race), ready ? "ready for" : "ignored by");
       return ready ? resOkRaceR : errRace;
     }
   } catch (const std::exception& er) {
-    SKSE::log::warn("\tThe race [0x{:x}: {}] caused an error [{}] in the process. TNG tries to ignore it but it might not work properly!", race->GetFormID(),
-                    race->GetFormEditorID(), er.what());
-    const char* message = fmt::format("TheNewGentleman: The race [0x{:x}: {}] caused an error [{}]. TNG tries to ignore it but it might cause other problems!", race->GetFormID(),
-                                      race->GetFormEditorID(), er.what())
-                              .c_str();
-    ut->ShowSkyrimMessage(message);
+    auto msg = fmt::format("The race [0x{:x}: {}] caused an error [{}]. TNG tries to ignore it but it might cause other problems!", IG(race), EI(race), er.what());
+    SKSE::log::warn("\t{}", msg);
+    ShowSkyrimMessage(msg.c_str());
     return errRace;
   }
   bool isValidSk =
@@ -517,8 +511,8 @@ eRes Core::CheckRace(RE::TESRace* const race) const {
   return isValidSk ? resOkRaceP : resOkRacePP;
 }
 
-RaceGroupInfo* Core::AddRace(RE::TESRace* const race, const bool isProcessed) {
-  race->AddKeyword(ut->Key(isProcessed ? kyProcessed : kyPreProcessed));
+RaceGroupInfo* Core::AddRace(RE::TESRace* const race, const bool isValidSkeleton) {
+  race->AddKeyword(ut->Key(isValidSkeleton ? kyProcessed : kyPreProcessed));
   race->AddSlotToMask(genitalSlot);
   race->skin->AddKeyword(ut->Key(kyIgnored));
   auto pRace = race;
@@ -538,14 +532,13 @@ RaceGroupInfo* Core::AddRace(RE::TESRace* const race, const bool isProcessed) {
         parentRg->races.push_back(race);
         return parentRg;
       }
-      SKSE::log::debug("\t\t...parent race [0x{:x}: {}] is not a valid race.", pRace->GetFormID(), pRace->GetFormEditorID());
+      SKSE::log::debug("\t\t...parent race [0x{:x}: {}] is not a valid race.", IG(pRace), EI(pRace));
     }
   }
-  auto filename = race->GetFile(0) ? race->GetFile(0)->GetFilename() : "Unknown";
   rgInfoList.push_back({});
   auto& rg = rgInfoList.back();
-  rg.name = race->GetFormEditorID();
-  rg.file = filename;
+  rg.name = EI(race);
+  rg.file = F0(race);
   rg.armorRace = pRace;
   rg.isMain = pRace == race;
   rg.races.push_back(race);
@@ -555,11 +548,17 @@ RaceGroupInfo* Core::AddRace(RE::TESRace* const race, const bool isProcessed) {
   return &rg;
 }
 
+void Core::IgnoreRace(RE::TESRace* const race, const bool ready) {
+  if (!race) return;
+  race->RemoveKeywords(ut->Keys(kyProcessed, kyExcluded));
+  race->AddKeyword(ut->Key(ready ? kyReady : kyIgnored));
+}
+
 int Core::GetRgDefAddon(RaceGroupInfo& rg) {
   if (rg.defAddonIdx != errInt) return rg.defAddonIdx;
   SEFormLoc defAddon;
   bool defAddonSet = false;
-  auto raceStr = std::string(rg.armorRace->GetFormEditorID()) + std::string(rg.armorRace->GetName());
+  auto raceStr = EI(rg.armorRace) + std::string(rg.armorRace->GetName());
   std::transform(raceStr.begin(), raceStr.end(), raceStr.begin(), [](uint8_t c) { return static_cast<char>(std::tolower(c)); });
   auto rgIsBeast = rg.armorRace->HasKeyword(ut->Key(kyBeast));
   std::ranges::for_each(cVanillaDefaults, [&](const auto& tup) {
@@ -577,63 +576,53 @@ int Core::GetRgDefAddon(RaceGroupInfo& rg) {
   return nul;
 }
 
-void Core::ProcessRgAddons(RaceGroupInfo& rg, const std::vector<std::pair<RE::TESObjectARMO*, bool>>& addons, const bool isFemale) {
+void Core::ProcessRgAddons(RaceGroupInfo& rg, const bool isFemale) {
   auto& rgAddons = isFemale ? rg.femAddons : rg.malAddons;
-  std::map<const char*, std::vector<size_t>> nameToIdxs;
+  auto& addons = isFemale ? allFemAddons : allMalAddons;
+  bool fullySupports = false;
   for (size_t i = 0; i < addons.size(); i++) {
-    for (const auto& aa : addons[i].first->armorAddons) {
-      if (aa && aa->IsValidRace(rg.armorRace)) {
-        rgAddons.insert_or_assign(i, addons[i].first);
-        nameToIdxs[addons[i].first->GetName()].push_back(i);
-        SKSE::log::debug("\t\tThe addon [0x{:x}] from file [{}] can support {} in the race group [{}]!", addons[i].first->GetFormID(), addons[i].first->GetFile(0)->GetFilename(),
-                         isFemale ? "women" : "men", rg.name);
-        break;
+    for (const auto& record : addons[i].records) {
+      if (rgAddons.contains(i) && fullySupports) break;
+      if (rg.isMain && record->HasKeyword(ut->Key(kyAddonSec))) continue;
+      if (rg.isMain) {
+        for (const auto& aa : record->armorAddons) {
+          if (aa && aa->IsValidRace(rg.armorRace)) {
+            rgAddons.insert_or_assign(i, record);
+            fullySupports = true;
+            break;
+          }
+        }
+        continue;
       }
-    }
-  }
-  for (auto& nameInstances : nameToIdxs) {
-    if (nameInstances.second.size() <= 1) continue;
-    std::vector<size_t> toRemove{};
-    for (auto idx : nameInstances.second) {
-      if (rg.isMain && rgAddons[idx]->HasKeyword(ut->Key(kyAddonSec))) toRemove.push_back(idx);
-      if (!rg.isMain && !rgAddons[idx]->HasKeyword(ut->Key(kyAddonSec))) toRemove.push_back(idx);
-      if (!rg.isMain && rgAddons[idx]->HasKeyword(ut->Key(kyAddonSec))) {
+      if (record->HasKeyword(ut->Key(kyAddonSec))) {
         std::set<RE::TESRace*> addonRaces;
-        for (const auto& aa : rgAddons[idx]->armorAddons) {
+        for (const auto& aa : record->armorAddons) {
           addonRaces.insert(aa->race);
           addonRaces.insert(aa->additionalRaces.begin(), aa->additionalRaces.end());
         }
-        bool supports = false;
-        for (const auto& race : rg.races) supports = supports || addonRaces.contains(race);
-        if (!supports) toRemove.push_back(idx);
+        for (const auto& race : rg.races) {
+          if (addonRaces.contains(race)) {
+            rgAddons.insert_or_assign(i, record);
+            fullySupports = true;
+            break;
+          }
+        }
+        continue;
       }
-    }
-    if (toRemove.size() < nameInstances.second.size() - 1) {
-      SKSE::log::warn("\t\tThe addon [{}] has multiple versions supporting the race group [{}]. TNG will pick one of them arbitrarily.", nameInstances.first, rg.name);
-      std::vector<size_t> toRemoveExtra{};
-      for (auto idx : nameInstances.second) {
-        if (std::find(toRemove.begin(), toRemove.end(), idx) == toRemove.end()) {
-          toRemoveExtra.push_back(idx);
+      for (const auto& aa : record->armorAddons) {
+        if (aa && aa->IsValidRace(rg.armorRace)) {
+          rgAddons.insert_or_assign(i, record);
+          break;
         }
       }
-      toRemoveExtra.pop_back();
-      toRemove.insert(toRemove.end(), toRemoveExtra.begin(), toRemoveExtra.end());
-    }
-    if (toRemove.size() == nameInstances.second.size()) {
-      SKSE::log::warn("\t\tNone of the variations from the addon [{}] fits the race group [{}]. TNG will pick one of them arbitrarily.", nameInstances.first, rg.name);
-      toRemove.pop_back();
-    }
-    for (auto idx : toRemove) {
-      rgAddons.erase(idx);
     }
   }
-  SKSE::log::info("\t\t[{}] addons support [{}] from the race group [{}]!", rgAddons.size(), isFemale ? "women" : "men", rg.name);
   if (isFemale) return;
   if (rg.defAddonIdx < 0 || !rgAddons.contains(rg.defAddonIdx)) rg.defAddonIdx = rgAddons.empty() ? nul : static_cast<int>(rgAddons.begin()->first);
 }
 
 void Core::ApplyUserSettings(RaceGroupInfo& rg) {
-  if (auto rgLoc = ut->FormToLoc(rg.races[0]); !rgLoc.second.empty()) {
+  if (auto rgLoc = FormToLoc(rg.races[0]); !rgLoc.second.empty()) {
     if (userRacialAddons.find(rgLoc) != userRacialAddons.end()) {
       auto& addonLoc = userRacialAddons[rgLoc];
       auto index = AddonIdxByLoc(false, addonLoc);
@@ -665,17 +654,17 @@ void Core::ProcessNPCs() {
   //  std::map<std::pair<RE::TESObjectARMO*, RE::TESRace*>, std::set<RE::TESNPC*>> skinsToPatch{};
   //  std::map<std::string_view, size_t> customSkinMods{};
   //  std::map<RE::TESRace*, size_t> raceNPCCount;
-  //  auto& allNPCs = ut->SEDH()->GetFormArray<RE::TESNPC>();
+  //  auto& allNPCs = SEDH()->GetFormArray<RE::TESNPC>();
   //  size_t sizeCount[sizeCatCount]{0};
   //  for (const auto& npc : allNPCs) {
   //    if (!npc) continue;
   //    if (IsNPCExcluded(npc)) {
-  //      npc->AddKeyword(ut->Key(kyExcluded));
+  //      ExcludeNPC(npc);
   //      continue;
   //    }
   //    const auto race = npc->race;
   //    if (!race) {
-  //      SKSE::log::warn("\tThe NPC [0x{:x}: {}] does not have a race! They cannot be modified by TNG.", npc->GetFormID(), npc->GetFormEditorID());
+  //      SKSE::log::warn("\tThe NPC [0x{:x}: {}] does not have a race! They cannot be modified by TNG.", IG(npc), EI(npc));
   //      continue;
   //    }
   //    if (!race->HasKeyword(ut->Key(kyProcessed)) && !race->HasKeyword(ut->Key(kyPreProcessed))) continue;
@@ -696,8 +685,7 @@ void Core::ProcessNPCs() {
   //    auto& race = skinPair.first.second;
   //    auto newSkin = FixSkin(oldSkin, race, nullptr);
   //    if (!newSkin) continue;
-  //    auto modName = oldSkin->GetFile(0) ? oldSkin->GetFile(0)->GetFilename() : "(no mod name)";
-  //    customSkinMods[modName]++;
+  //    customSkinMods[F0(oldSkin)]++;
   //    for (auto& npc : skinPair.second) npc->skin = newSkin;
   //  }
   //  if (skinsToPatch.size() > 0) {
@@ -716,32 +704,7 @@ void Core::ProcessNPCs() {
   //    if (rgInfoList[i].noMCM) SKSE::log::info("\tRace group [{}] with the following information: {}.", rgInfoList[i].name, GetRgInfo(RgKey(i, false)));
 }
 
-std::pair<int, bool> Core::GetApplicableAddon(RE::Actor* const actor) const {
-  int addonIdx{def};
-  auto npc = actor ? actor->GetActorBase() : nullptr;
-  if (!npc) return {addonIdx, false};
-  auto savedAddon = ActorSavedAddon(actor, npc);
-  auto list = GetActorAddons(actor, true);
-  if (!savedAddon.second.empty()) {
-    addonIdx = savedAddon.second == nulStr ? nul : AddonIdxByLoc(npc->IsFemale(), savedAddon);
-    if (addonIdx >= 0 && std::ranges::find_if(list, [&](const auto& pair) { return pair.first == static_cast<size_t>(addonIdx); }) != list.end()) {
-      SKSE::log::debug("The addon [0x{:x}] from file [{}] was restored for actor [0x{:x}: {}]", savedAddon.first, savedAddon.second, actor->GetFormID(), npc->GetName());
-      return {addonIdx, true};
-    } else if (addonIdx == nul) {
-      SKSE::log::debug("The actor [0x{:x}: {}] was restored to have no addon", actor->GetFormID(), npc->GetName());
-      return {nul, true};
-    } else {
-      SKSE::log::error("The addon [0x{:x}] from file [{}] could not be reused for actor [0x{:x}: {}]", savedAddon.first, savedAddon.second, actor->GetFormID(), npc->GetName());
-    }
-  }
-  const auto count = list.size();
-  const auto malChance = static_cast<size_t>(std::floor(boolSettings.Get(bsRandomizeMaleAddon) * floatSettings.Get(fsMalRndChance) + 0.1f));
-  const auto femChance = static_cast<size_t>(std::floor(floatSettings.Get(fsFemRndChance) + 0.1f));
-  const size_t chance = static_cast<size_t>(npc->IsFemale() ? femChance : malChance);
-  if (count == 0 || chance == 0) return {addonIdx, false};
-  if (npc->GetFormID() % 100 < chance) addonIdx = static_cast<int>(list[npc->GetFormID() % count].first);
-  return {addonIdx, false};
-}
+void TNG::Core::ExcludeNPC(RE::TESNPC* const npc) { npc->AddKeyword(ut->Key(kyExcluded)); }
 
 eRes Core::SetNPCAddon(RE::TESNPC* const npc, const int addonIdx, const bool isUser) {
   // TODO: Re-implement
@@ -751,7 +714,7 @@ eRes Core::SetNPCAddon(RE::TESNPC* const npc, const int addonIdx, const bool isU
   //     return errNPC;
   //   }
   //   auto res = (npc->IsPlayer() && boolSettings.Get(bsExcludePlayerSize)) || addonIdx == nul ? resOkFixed : resOkSizable;
-  //   npc->RemoveKeyword(ut->Key(kyExcluded));
+  //   npc->RemoveKeyword(ut->Key(kyIgnored));
   //   if (addonIdx == def && !npc->skin) return !npc->IsFemale() ? res : resOkFixed;
   //   auto& npcSkin = npc->skin;
   //   auto& raceSkin = npc->race->skin;
@@ -797,66 +760,61 @@ void Core::OrganizeNPCKeywords(RE::TESNPC* const npc, int addonIdx, const bool i
     return RE::BSContainer::ForEachResult::kContinue;
   });
   if (addonIdx == nul) {
-    npc->AddKeyword(ut->Key(kyExcluded));
-  } else if (addonIdx >= 0) {
-    const std::string reqKw = std::string(isUser ? cNPCUserAddon : cNPCAutoAddon) + (addonIdx < 10 ? "0" + std::to_string(addonIdx) : std::to_string(addonIdx));
-    auto kw = ut->ProduceOrGetKw(reqKw);
+    npc->AddKeyword(ut->Key(kyIgnored));
+  } else if (addonIdx >= 0 && isUser) {
+    const std::string reqKw = std::string(cNPCUserAddon) + fmt::format("{:02}", addonIdx);
+    auto kw = ProduceOrGetKw(reqKw);
     if (!kw) SKSE::log::critical("Keyword generation routine failed with keyword {}", reqKw);
     npc->AddKeyword(kw);
   }
-  if (npc->IsFemale()) {
-    if (addonIdx >= 0 && femAddons[addonIdx].first->HasKeyword(ut->Key(kySkinWP))) {
-      npc->AddKeyword(ut->Key(kyGentlewoman));
-    } else {
-      npc->RemoveKeyword(ut->Key(kyGentlewoman));
-    }
-  }
-}
-
-void Core::UpdateAddon(RE::Actor* const actor, const bool isRRace) {
-  SetActorSize(actor, nul, false);
-  if (isRRace) return;
-  int currIdx;
-  bool isAuto = true;
-  auto addonRes = GetActorAddon(actor, currIdx, isAuto);
-  if (addonRes < 0 && addonRes != err40) return;
-  if (!isAuto) {
-    if (addonRes == err40) SetActorAddon(actor, currIdx, true, false);
-    return;
-  }
-  auto [autoIdx, isSaved] = GetApplicableAddon(actor);
-  if (autoIdx == def) {
-    if (addonRes == err40) SetActorAddon(actor, currIdx, false, false);
-    return;
-  }
-  if (addonRes == err40 || currIdx != autoIdx) SetActorAddon(actor, autoIdx, isSaved, false);
-}
-
-eRes Core::UpdatePlayer(RE::Actor* const actor, const bool isRRace) {
-  if (auto pcInfo = GetPlayerInfo(actor, false); pcInfo) {
-    SetActorSize(actor, pcInfo->sizeCat, false);
-    if (isRRace) return resOkFixed;
-    auto addonIdx = AddonIdxByLoc(pcInfo->isFemale, pcInfo->addon);
-    return SetActorAddon(actor, addonIdx, true, false);
+  if ((npc->IsFemale() ? allFemAddons : allMalAddons)[addonIdx].isGenderChanger) {
+    npc->AddKeyword(ut->Key(kyGenderSwapped));
   } else {
-    return SetActorAddon(actor, def, false, false);
+    npc->RemoveKeyword(ut->Key(kyGenderSwapped));
+  }
+}
+
+void TNG::Core::DoUpdateActor(RE::Actor* const actor, RE::TESObjectARMO* const armor, const bool isEquipped) {
+  auto npc = actor ? actor->GetActorBase() : nullptr;
+  if (!npc || actor->IsDisabled() || !npc->race || !npc->race->skin) return;
+  auto canModify = CanModifyActor(actor);
+  if (canModify == resOkRacePP) canModify = ReevaluateRace(npc->race, actor);
+  if (canModify < resOkRaceR) {
+    if (canModify < resOkRacePP) ExcludeNPC(npc);
+    UnequipActorAddon(actor);
+    return;
+  }
+  SetActorSize(actor, nul, false);
+  if (canModify == resOkRaceR) return;
+  if (actor->IsPlayerRef()) {
+    if (pcInfo) {
+      auto addonIdx = AddonIdxByLoc(pcInfo->isFemale, pcInfo->addon);
+      SetActorAddon(actor, addonIdx, true, false);
+    } else {
+      SetActorAddon(actor, def, false, false);
+    }
+  } else {
+    int currIdx;
+    bool isAuto = true;
+    auto addonRes = GetActorAddon(actor, currIdx, isAuto);
+    if (addonRes < 0 || !isAuto) return;
   }
 }
 
 void Core::UpdateFormLists(RE::Actor* const actor) const {
   auto npc = actor ? actor->GetActorBase() : nullptr;
   if (!npc) return;
-  auto key = ut->Key(npc->IsFemale() ? kyGentlewoman : kyExcluded);
+  auto key = ut->Key(kyGenderSwapped);
   if (!key) {
     SKSE::log::critical("TNG faced an error when trying to update the form lists. The keyword is not available.");
     return;
   }
-  ut->UpdateFormList(ut->FormList(flmGentleWomen), actor, npc->HasKeyword(key));
+  UpdateFormList(ut->FormList(npc->IsFemale() ? flmGentleWomen : flmGentlerMen), actor, npc->HasKeyword(key));
 }
 
 void Core::CheckArmorPieces() {
   SKSE::log::info("Checking ARMO records...");
-  auto& armorList = ut->SEDH()->GetFormArray<RE::TESObjectARMO>();
+  auto& armorList = SEDH()->GetFormArray<RE::TESObjectARMO>();
   auto defRace = ut->Race(raceDefault);
   int logInfo[7]{0};
   std::map<RE::TESObjectARMO*, std::string> potentialArmor = {};
@@ -866,7 +824,7 @@ void Core::CheckArmorPieces() {
   armorKeys.push_back(ut->Key(kyIgnored));
   std::vector<RE::BGSKeyword*> relRaceKeys{ut->Key(kyProcessed), ut->Key(kyPreProcessed), ut->Key(kyReady)};
   for (auto covRec : hardCodedCovering) {
-    auto armor = ut->SEDH()->LookupForm<RE::TESObjectARMO>(covRec.first, covRec.second);
+    auto armor = SEDH()->LookupForm<RE::TESObjectARMO>(covRec.first, covRec.second);
     if (!armor) continue;
     armor->RemoveKeywords(armorKeys);
     armor->AddKeyword(ut->Key(kyCovering));
@@ -885,8 +843,8 @@ void Core::CheckArmorPieces() {
       logInfo[6]++;
       continue;
     }
-    const auto armorID = (std::string(armor->GetName()).empty()) ? armor->GetFormEditorID() : armor->GetName();
-    std::string modName = armor->GetFile(0) ? std::string(armor->GetFile(0)->GetFilename()) : "";
+    const auto armorID = (std::string(armor->GetName()).empty()) ? EI(armor) : armor->GetName();
+    std::string modName = F0(armor, false);
     if (!armor->race) {
       armor->AddKeyword(ut->Key(kyIgnored));
       logInfo[6]++;
@@ -896,8 +854,8 @@ void Core::CheckArmorPieces() {
       logInfo[6]++;
       continue;
     }
-    if (IsSkin(armor, modName)) {
-      SKSE::log::info("\t\tThe record [0x{:x}: {}] was marked as a skin.", armor->GetFormID(), armorID);
+    if (IsSkin(I0(armor), modName)) {
+      SKSE::log::info("\t\tThe record [0x{:x}: {}] was marked as a skin.", IG(armor), armorID);
       armor->AddKeyword(ut->Key(kyIgnored));
       logInfo[6]++;
       continue;
@@ -912,7 +870,7 @@ void Core::CheckArmorPieces() {
           continue;
         }
         armor->AddKeyword(ut->Key(status));
-        SKSE::log::info("\t\tThe armor [0x{:x}: {}] was marked with [{}] keyword.", armor->GetFormID(), armorID, ut->Key(status)->GetFormEditorID());
+        SKSE::log::info("\t\tThe armor [0x{:x}: {}] was marked with [{}] keyword.", IG(armor), armorID, EI(ut->Key(status)));
         (status == kyCovering) ? logInfo[2]++ : logInfo[3]++;
         continue;
       }
@@ -921,12 +879,12 @@ void Core::CheckArmorPieces() {
       armor->AddKeyword(ut->Key(kyIgnored));
       logInfo[2]++;
       if (armor->HasPartOf(bodySlot)) continue;
-      if (modName != "") potentialSlot52Mods.insert(modName);
-      SKSE::log::info("\t\tThe armor [0x{:x}] would cover genitals!", armor->GetFormID());
+      if (!modName.empty()) potentialSlot52Mods.insert(modName);
+      SKSE::log::info("\t\tThe armor [0x{:x}] would cover genitals!", IG(armor));
       continue;
     }
     if (armor->HasPartOf(bodySlot)) {
-      if (modName != "") potentialMods.insert(std::string{modName});
+      if (!modName.empty()) potentialMods.insert(std::string{modName});
       potentialArmor.insert({armor, modName});
     } else {
       logInfo[6]++;

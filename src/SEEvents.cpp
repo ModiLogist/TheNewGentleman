@@ -34,7 +34,7 @@ RE::BSEventNotifyControl SEEvents::ProcessEvent(const RE::TESObjectLoadedEvent* 
 RE::BSEventNotifyControl SEEvents::ProcessEvent(const RE::TESSwitchRaceCompleteEvent* event, RE::BSTEventSource<RE::TESSwitchRaceCompleteEvent>*) {
   auto actor = event->subject.get()->As<RE::Actor>();
   bool isPlayer = actor->IsPlayerRef();
-  ut->DoDelayed(
+  DoDelayed(
       [actor, isPlayer]() {
         auto ac = isPlayer ? RE::PlayerCharacter::GetSingleton() : actor;
         if (!ac) return;

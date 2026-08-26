@@ -3,38 +3,36 @@
 #include <BaseUtil.h>
 
 namespace TNG {
-  using namespace Common;
+  using namespace BaseUtil;
 
-  inline static constexpr std::string_view mainFile{"TheNewGentleman.esp"};
+  constexpr std::string_view mainFile{"TheNewGentleman.esp"};
 
-  inline static constexpr RE::BGSBipedObjectForm::BipedObjectSlot bodySlot{RE::BGSBipedObjectForm::BipedObjectSlot::kBody};
-  inline static constexpr RE::BGSBipedObjectForm::BipedObjectSlot genitalSlot{RE::BGSBipedObjectForm::BipedObjectSlot::kModPelvisSecondary};
+  constexpr RE::BGSBipedObjectForm::BipedObjectSlot bodySlot{RE::BGSBipedObjectForm::BipedObjectSlot::kBody};
+  constexpr RE::BGSBipedObjectForm::BipedObjectSlot genitalSlot{RE::BGSBipedObjectForm::BipedObjectSlot::kModPelvisSecondary};
 
-  inline static constexpr std::string_view cNPCAutoAddon{"TNG_ActorAddnAuto:"};
-  inline static constexpr std::string_view cNPCUserAddon{"TNG_ActorAddnUser:"};
-  inline static constexpr std::string_view sosRevealing{"SOS_Revealing"};
+  constexpr std::string_view cNPCUserAddon{"TNG_ActorAddnUser:"};
+  constexpr std::string_view sosRevealing{"SOS_Revealing"};
 
-  inline static constexpr std::tuple<const char*, const char*, bool, RE::FormID> cVanillaDefaults[14]{
+  constexpr std::tuple<const char*, const char*, bool, RE::FormID> cVanillaDefaults[14]{
       {"default", "nord", false, 0xA01},        {"redguard", "yokudan", false, 0xA02}, {"breton", "reachmen", false, 0xA03}, {"cyrodi", "imperial", false, 0xA04},
       {"altmer", "highelf", false, 0xA03},      {"bosmer", "woodelf", false, 0xA01},   {"dunmer", "darkelf", false, 0xA04},  {"orsimer", "orc", false, 0xA02},
       {"saxhleel", "argonian", true, 0xA01},    {"khajiit", "rhat", true, 0xA05},      {"dremora", "dremora", false, 0xA04}, {"elder", "old", false, 0xA05},
       {"afflicted", "afflicted", false, 0xA03}, {"snowelf", "falmer", false, 0xA05}};
 
   enum eGenBones { egbBase, egbScrot, egbScrotL, egbScrotR, egbGen01, egbGen02, egbGen03, egbGen04, egbGen05, egbGen06, GenBonesCount };
-  inline static const char* genBoneNames[GenBonesCount]{"NPC GenitalsBase [GenBase]",
-                                                        "NPC GenitalsScrotum [GenScrot]",
-                                                        "NPC L GenitalsScrotum [LGenScrot]",
-                                                        "NPC R GenitalsScrotum [RGenScrot]",
-                                                        "NPC Genitals01 [Gen01]",
-                                                        "NPC Genitals02 [Gen02]",
-                                                        "NPC Genitals03 [Gen03]",
-                                                        "NPC Genitals04 [Gen04]",
-                                                        "NPC Genitals05 [Gen05]",
-                                                        "NPC Genitals06 [Gen06]"};
+  constexpr const char* genBoneNames[GenBonesCount]{"NPC GenitalsBase [GenBase]",
+                                                    "NPC GenitalsScrotum [GenScrot]",
+                                                    "NPC L GenitalsScrotum [LGenScrot]",
+                                                    "NPC R GenitalsScrotum [RGenScrot]",
+                                                    "NPC Genitals01 [Gen01]",
+                                                    "NPC Genitals02 [Gen02]",
+                                                    "NPC Genitals03 [Gen03]",
+                                                    "NPC Genitals04 [Gen04]",
+                                                    "NPC Genitals05 [Gen05]",
+                                                    "NPC Genitals06 [Gen06]"};
 
   enum eRes {
     err40 = errInt,
-    errRaceBase = -9,
     errRg = -8,
     errSkeleton = -7,
     errPlayer = -6,
@@ -47,9 +45,9 @@ namespace TNG {
     resOkSizable = 1,
     resOkNoAddon = 2,
     resOkHasAddon = 3,
-    resOkRaceP = 10,
-    resOkRaceR = 11,
-    resOkRacePP = 12,
+    resOkRacePP = 10,
+    resOkRaceR = 14,
+    resOkRaceP = 15,
     resOkMain = 20,
     resOkDedicated = 21,
     resOkSupported = 22,
@@ -63,9 +61,8 @@ namespace TNG {
     kyPreProcessed,
     kyIgnored,
     kyExcluded,
-    kySkinWP,
-    kySkinWOP,
-    kyGentlewoman,
+    kyGenderChanger,
+    kyGenderSwapped,
     kyAddonM,
     kyAddonF,
     kyAddonSec,
@@ -81,14 +78,14 @@ namespace TNG {
     keywordsCount
   };
 
-  enum eTngFormLists { flmGentleWomen, flmNonGentleMen, flCount };
+  enum eTngFormLists { flmGentleWomen, flmGentlerMen, flCount };
 
   enum eBoolSetting { bsExcludePlayerSize, bsRevealSlot52Mods, bsAllowMixSlot52Mods, bsRandomizeMaleAddon, bsShowAllRaces, bsDAK, boolSettingCount };
   enum eIntSetting { isSetupNPC, isRiseGen, isFallGen, isSwapRevealing, isWhyProblem, intSettingCount };
   enum eFloatSetting { fsXS, fsS, fsM, fsL, fsXL, fsMalRndChance, fsFemRndChance, floatSettingCount };
   inline static constexpr int sizeCatCount{fsXL + 1};
 
-  class TNGUtil : public Singleton<TNGUtil>, public BaseUtil {
+  class TNGUtil : public Singleton<TNGUtil> {
     public:
       RE::TESRace* Race(const size_t idx);
       RE::BGSKeyword* Key(const size_t idx);

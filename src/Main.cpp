@@ -5,13 +5,13 @@
 #include <TNGUtil.h>
 
 bool CheckRequirements() {
-  if (!ut->SEDH()->LookupModByName(TNG::mainFile)) {
+  if (!SEDH()->LookupModByName(TNG::mainFile)) {
     const char* err = fmt::format("Mod [{}] was not found! Make sure that the mod is active in your plugin load order!", TNG::mainFile).c_str();
-    ut->ShowSkyrimMessage(err);
+    ShowSkyrimMessage(err);
     return false;
   }
   if (GetModuleHandleW(L"Data\\SKSE\\Plugins\\acon.dll")) {
-    ut->ShowSkyrimMessage("Warning: TNG is not compatible with acon.dll. Please don't use TNG with mods from that website!");
+    ShowSkyrimMessage("Warning: TNG is not compatible with acon.dll. Please don't use TNG with mods from that website!");
     return false;
   }
   return true;
@@ -47,7 +47,7 @@ void EventListener(SKSE::MessagingInterface::Message* message) {
     } break;
 
     case SKSE::MessagingInterface::kNewGame: {
-      core->UpdatePlayerAfterLoad();
+      core->UpdateActor(RE::PlayerCharacter::GetSingleton());
     } break;
 
     case SKSE::MessagingInterface::kPreLoadGame: {
@@ -56,7 +56,7 @@ void EventListener(SKSE::MessagingInterface::Message* message) {
     } break;
 
     case SKSE::MessagingInterface::kPostLoadGame: {
-      core->UpdatePlayerAfterLoad();
+      core->UpdateActor(RE::PlayerCharacter::GetSingleton());
     } break;
 
     case SKSE::MessagingInterface::kSaveGame: {

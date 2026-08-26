@@ -4,7 +4,7 @@
 
 namespace TNG {
 
-  struct PlayerInfo {
+  struct PCInfo {
       std::string name;
       SEFormLoc race;
       bool isFemale;
@@ -82,17 +82,17 @@ namespace TNG {
       void SetAddonStatus(const bool isFemale, const RE::TESObjectARMO* addon, const bool status);
 
     protected:
-      void SetValidSkeleton(const std::string& skeletonModel);
-      void SetRgAddon(const RE::TESRace* rgRace, const RE::TESObjectARMO* addon, const int choice);
-      void SetRgMult(const RE::TESRace* rgRace, const float mult);
+      void StoreSkeleton(const std::string& skeletonModel);
+      void StoreRgAddon(const RE::TESRace* rgRace, const RE::TESObjectARMO* addon, const int choice);
+      void StoreRgMult(const RE::TESRace* rgRace, const float mult);
 
       SEFormLoc ActorSavedAddon(const RE::Actor* actor, const RE::TESNPC* npc) const;
-      void SaveActorAddon(const RE::Actor* actor, const RE::TESNPC* npc, const RE::TESObjectARMO* addon, const int choice);
+      void StoreActorAddon(const RE::Actor* actor, const RE::TESNPC* npc, const RE::TESObjectARMO* addon, const int choice);
 
       int ActorSavedSize(const RE::Actor* actor, const RE::TESNPC* npc) const;
-      void SaveActorSize(const RE::Actor* actor, const RE::TESNPC* npc, const int genSize);
+      void StoreActorSize(const RE::Actor* actor, const RE::TESNPC* npc, const int genSize);
 
-      void SetArmorStatus(const RE::TESObjectARMO* armor, const eKeyword revMode);
+      void StoreArmorStatus(const RE::TESObjectARMO* armor, const eKeyword revMode);
 
     private:
       std::map<SEFormLoc, SEFormLoc> userNpcAddons;
@@ -107,17 +107,19 @@ namespace TNG {
       const std::vector<std::string> Slot52Mods() const;
 
     protected:
-      PlayerInfo* GetPlayerInfo(const RE::Actor* actor, const bool allowAdd);
-      void SetPlayerInfo(const RE::Actor* actor, const RE::TESObjectARMO* addon, const int choice = errInt, const int sizeCatInp = errInt);
+      const PCInfo* PlayerInfo(const RE::Actor* actor) const;
+      PCInfo* PlayerInfo(const RE::Actor* actor, const bool allowAdd);
+      void StorePlayerInfo(const RE::Actor* actor, const RE::TESObjectARMO* addon, const int choice = errInt, const int sizeCatInp = errInt);
 
     private:
-      inline static constexpr const char* cPlayerSection{"PlayerInfo"};
+      inline static constexpr const char* cPlayerSection{"PCInfo"};
       inline static constexpr const char* cPlayerName{"Name"};
       inline static constexpr const char* cPlayerGender{"Gender"};
       inline static constexpr const char* cPlayerRace{"Race"};
       inline static constexpr const char* cPlayerAddon{"Addon"};
       inline static constexpr const char* cPlayerSize{"Size"};
-      std::vector<PlayerInfo> playerInfos;
+      std::vector<PCInfo> playerInfos;
+      const int PlayerInfoIndex(const RE::Actor* actor, std::tuple<std::string, SEFormLoc, bool>& pcId) const;
 
     public:
       void LoadTngInis();
@@ -156,7 +158,7 @@ namespace TNG {
       std::set<SEFormLoc> malRevRecords;
       bool IsRaceExcluded(const RE::TESRace* race) const;
       bool IsNPCExcluded(const RE::TESNPC* npc) const;
-      bool IsSkin(const RE::TESObjectARMO* armor, const std::string& modName);
+      bool IsSkin(const RE::FormID& armorLocalFormID, const std::string& modName);
       eKeyword HasStatus(const RE::TESObjectARMO* armor) const;
 
     private:
@@ -198,7 +200,7 @@ namespace TNG {
           for (const auto& entry : keys) {
             T value = defValue;
             auto key = entry.pItem;
-            const auto keyLoc = ut->StrToLoc(std::string(key));
+            const auto keyLoc = StrToLoc(std::string(key));
             if (keyLoc.second.empty()) continue;
             if constexpr (std::is_same_v<T, int>) {
               value = settingIni.GetLongValue(section, key, defValue);
@@ -209,7 +211,7 @@ namespace TNG {
             } else if constexpr (std::is_same_v<T, std::string>) {
               value = settingIni.GetValue(section, key, defValue);
             } else if constexpr (std::is_same_v<T, SEFormLoc>) {
-              value = ut->StrToLoc(std::string(settingIni.GetValue(section, key)));
+              value = StrToLoc(std::string(settingIni.GetValue(section, key)));
             } else {
               static_assert(false, "Unsupported type for LoadIniPairs");
             }
@@ -226,7 +228,7 @@ namespace TNG {
       template <typename T>
       void SaveIniPairs(CSimpleIniA& settingIni, const char* section, const std::map<SEFormLoc, T>& fieldToSave, const T defValue) {
         for (const auto& [keyLoc, value] : fieldToSave) {
-          const auto keyStr = ut->LocToStr(keyLoc);
+          const auto keyStr = LocToStr(keyLoc);
           if (keyStr.empty()) continue;
           if (value == defValue) {
             settingIni.Delete(section, keyStr.c_str(), true);
@@ -240,7 +242,7 @@ namespace TNG {
             } else if constexpr (std::is_same_v<T, std::string>) {
               settingIni.SetValue(section, keyStr.c_str(), value.c_str());
             } else if constexpr (std::is_same_v<T, SEFormLoc>) {
-              settingIni.SetValue(section, keyStr.c_str(), ut->LocToStr(value).c_str());
+              settingIni.SetValue(section, keyStr.c_str(), LocToStr(value).c_str());
             } else {
               static_assert(false, "Unsupported type for SaveIniPairs");
             }

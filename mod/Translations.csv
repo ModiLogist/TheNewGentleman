@@ -147,7 +147,7 @@ $TNG_PD9,The current actor cannot be evaluated!,C++
 ,,
 $TNG_PA1,"The current actor is not wearing any covering items!",C++
 $TNG_PA2,"The current actor is equipping an item on slot 52 which covers genital.!",C++
-$TNG_PA3,"The current actor is excluded! Use NPC customization key to reset their addon, and it should re-appear!",C++
+$TNG_PA3,"The current actor is excluded, either because of an ini, or because they cannot have addons!",C++
 $TNG_PA4,"The current actor is a woman and you didn't set women chance to 100!",C++
 $TNG_PA5,"The current actor's race is set to have no addons in the MCM menu!",C++
 $TNG_PA6,"The current actor is wearing a piece of covering items!",C++

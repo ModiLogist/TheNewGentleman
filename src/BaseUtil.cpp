@@ -1,5 +1,4 @@
 #include <BaseUtil.h>
-using namespace Common;
 
 RE::BGSKeyword* BaseUtil::ProduceOrGetKw(const std::string& keyword) {
   auto& allKeywords = SEDH()->GetFormArray<RE::BGSKeyword>();
@@ -17,29 +16,26 @@ RE::BGSKeyword* BaseUtil::ProduceOrGetKw(const std::string& keyword) {
   return res;
 }
 
-int BaseUtil::HasKeywordInList(const RE::BGSKeywordForm* form, const std::vector<RE::BGSKeyword*>& keywords) const {
+int BaseUtil::HasKeywordInList(const RE::BGSKeywordForm* form, const std::vector<RE::BGSKeyword*>& keywords) {
   for (int i = 0; i < keywords.size(); i++) {
     if (keywords[i] && form->HasKeyword(keywords[i])) return i;
   }
   return -1;
 }
 
-SEFormLoc BaseUtil::FormToLoc(const RE::TESForm* form, const int choice) const {
+SEFormLoc BaseUtil::FormToLoc(const RE::TESForm* form, int choice) {
   switch (choice) {
     case def:
       return {0, defStr};
     case nul:
       return {0, nulStr};
     default: {
-      if (!form || !form->GetFile(0)) return {0, ""};
-      std::string filename = std::string(form->GetFile(0)->GetFilename());
-      auto formID = form->GetFormID() < 0xFF000000 ? form->GetLocalFormID() : form->GetFormID();
-      return {formID, filename};
+      return {I0(form), F0(form, false)};
     }
   }
 }
 
-std::string BaseUtil::LocToStr(const SEFormLoc& loc) const {
+std::string BaseUtil::LocToStr(const SEFormLoc& loc) {
   if (loc.first == 0 && loc.second == nulStr) return nulStr;
   if (loc.first == 0 && loc.second == defStr) return defStr;
   if (loc.first == 0 || loc.second.empty()) return "";
@@ -48,7 +44,7 @@ std::string BaseUtil::LocToStr(const SEFormLoc& loc) const {
   return "0x" + oss.str() + delim + NameToStr(loc.second);
 }
 
-SEFormLoc BaseUtil::StrToLoc(const std::string& locStr) const {
+SEFormLoc BaseUtil::StrToLoc(const std::string& locStr) {
   if (locStr.empty()) return {0, ""};
   if (locStr == nulStr) return {0, nulStr};
   if (locStr == defStr) return {0, defStr};
@@ -69,7 +65,7 @@ SEFormLoc BaseUtil::StrToLoc(const std::string& locStr) const {
   }
 }
 
-std::vector<std::string> BaseUtil::Split(const std::string& str, const std::string_view delimiter) const {
+std::vector<std::string> BaseUtil::Split(const std::string& str, const std::string_view delimiter) {
   std::vector<std::string> tokens;
   for (auto part : std::views::split(str, delimiter)) {
     auto token = std::string(part.begin(), part.end());
@@ -78,21 +74,21 @@ std::vector<std::string> BaseUtil::Split(const std::string& str, const std::stri
   return tokens;
 }
 
-std::string BaseUtil::NameToStr(std::string name) const {
+std::string BaseUtil::NameToStr(std::string name) {
   if (name.empty()) return name;
   if (name.length() > 2 && name.front() == '\"' && name.back() == '\"') return name;
   if (name.find_first_of(iniChars) != std::string::npos) return "\"" + name + "\"";
   return name;
 }
 
-std::string BaseUtil::StrToName(std::string name) const {
+std::string BaseUtil::StrToName(std::string name) {
   auto res = name;
   if (name.length() < 2) return res;
   if (name.front() == '\"' && name.back() == '\"') res = name.substr(1, name.length() - 2);
   return res;
 }
 
-void BaseUtil::UpdateFormList(RE::BGSListForm* formList, RE::TESForm* form, const bool addRemove) const {
+void BaseUtil::UpdateFormList(RE::BGSListForm* formList, RE::TESForm* form, const bool addRemove) {
   if (!formList || !form) {
     SKSE::log::critical("UpdateFormList failed: formList is {} and form is {}.", formList ? "valid" : "invalid", form ? "valid" : "invalid");
     return;
@@ -110,7 +106,7 @@ void BaseUtil::UpdateFormList(RE::BGSListForm* formList, RE::TESForm* form, cons
   }
 }
 
-void BaseUtil::DoDelayed(std::function<void()> func, std::function<bool()> condition, const int fixedDelay, const bool enforceCond, const std::string fmsg) const {
+void BaseUtil::DoDelayed(std::function<void()> func, std::function<bool()> condition, int fixedDelay, bool enforceCond, const std::string fmsg) {
   if (fixedDelay == 0 && condition()) {
     func();
     return;
@@ -143,7 +139,7 @@ void BaseUtil::DoDelayed(std::function<void()> func, std::function<bool()> condi
   }).detach();
 }
 
-const bool BaseUtil::InInventory(RE::Actor* const actor, RE::TESBoundObject* const object) const {
+const bool BaseUtil::InInventory(RE::Actor* const actor, RE::TESBoundObject* const object) {
   auto invChanges = actor->GetInventoryChanges(true);
   if (invChanges && invChanges->entryList) {
     for (auto& entry : *invChanges->entryList) {
@@ -167,7 +163,7 @@ const bool BaseUtil::InInventory(RE::Actor* const actor, RE::TESBoundObject* con
   return res;
 }
 
-const std::vector<RE::TESObjectARMO*> BaseUtil::InvItemsWithKey(RE::Actor* const actor, RE::BGSKeyword* const key) const {
+const std::vector<RE::TESObjectARMO*> BaseUtil::InvItemsWithKey(RE::Actor* const actor, RE::BGSKeyword* const key) {
   auto container = actor->GetContainer();
   std::vector<RE::TESObjectARMO*> res = {};
   if (container) {
@@ -182,7 +178,7 @@ const std::vector<RE::TESObjectARMO*> BaseUtil::InvItemsWithKey(RE::Actor* const
   return res;
 }
 
-const bool BaseUtil::try_strtoul(const std::string& str, std::uint32_t& result, int base) const {
+const bool BaseUtil::try_strtoul(const std::string& str, std::uint32_t& result, int base) {
   char* end;
   errno = 0;
   unsigned long value = std::strtoul(str.c_str(), &end, base);

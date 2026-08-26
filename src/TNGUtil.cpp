@@ -5,13 +5,13 @@ TNGUtil* ut = TNGUtil::GetSingleton();
 
 RE::TESRace* TNGUtil::Race(const size_t idx) {
   if (idx >= racesCount) return nullptr;
-  if (!races[idx]) races[idx] = ut->SEDH()->LookupForm<RE::TESRace>(raceIDs[idx].first, raceIDs[idx].second);
+  if (!races[idx]) races[idx] = SEDH()->LookupForm<RE::TESRace>(raceIDs[idx].first, raceIDs[idx].second);
   return races[idx];
 }
 
 RE::BGSKeyword* TNGUtil::Key(const size_t idx) {
   if (idx >= keywordsCount) return nullptr;
-  if (!keywords[idx]) keywords[idx] = ut->SEDH()->LookupForm<RE::BGSKeyword>(keyIDs[idx].first, keyIDs[idx].second);
+  if (!keywords[idx]) keywords[idx] = SEDH()->LookupForm<RE::BGSKeyword>(keyIDs[idx].first, keyIDs[idx].second);
   return keywords[idx];
 }
 
@@ -23,7 +23,7 @@ std::vector<RE::BGSKeyword*> TNGUtil::Keys(const size_t first, const size_t last
 }
 
 RE::BGSKeyword* TNGUtil::SizeKey(const size_t idx) {
-  if (!sizeKey[idx]) sizeKey[idx] = ut->SEDH()->LookupForm<RE::BGSKeyword>(sizeKeyIDs[idx], mainFile);
+  if (!sizeKey[idx]) sizeKey[idx] = SEDH()->LookupForm<RE::BGSKeyword>(sizeKeyIDs[idx], mainFile);
   return sizeKey[idx];
 }
 
@@ -33,7 +33,7 @@ std::vector<RE::BGSKeyword*> TNGUtil::SizeKeys(const size_t last) {
   return res;
 }
 
-RE::BGSListForm* TNGUtil::FormList(const size_t idx) { return ut->SEDH()->LookupForm<RE::BGSListForm>(formListIDs[idx].first, formListIDs[idx].second); }
+RE::BGSListForm* TNGUtil::FormList(const size_t idx) { return SEDH()->LookupForm<RE::BGSListForm>(formListIDs[idx].first, formListIDs[idx].second); }
 
 bool TNGUtil::IsCovering(const RE::Actor* const actor, const RE::TESObjectARMO* const armor) {
   auto npc = actor ? actor->GetActorBase() : nullptr;
