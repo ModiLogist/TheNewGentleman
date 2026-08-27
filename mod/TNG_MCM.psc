@@ -151,7 +151,7 @@ EndEvent
 
 Event OnGameReload()
   Parent.OnGameReload()
-  If Game.GetModByName("Dynamic Activation Key.esp")
+  If Game.GetModByName("Dynamic Activation Key.esp") != 255
     fkDAK = Game.GetFormFromFile(0x801, "Dynamic Activation Key.esp") As GlobalVariable
   EndIf
   Int liKey = 5
@@ -179,7 +179,7 @@ Event OnPageReset(String asPage)
     AddHeaderOption("$TNG_KyH")
     AddHeaderOption("")
     fkDAK = None
-    If Game.GetModByName("Dynamic Activation Key.esp")
+    If Game.GetModByName("Dynamic Activation Key.esp") != 255
       fkDAK = Game.GetFormFromFile(0x801, "Dynamic Activation Key.esp") As GlobalVariable
       If fkDAK
         fiDAKHdl = AddToggleOption("$TNG_DAK", TNG_PapyrusUtil.GetBoolValue(cbDAK))

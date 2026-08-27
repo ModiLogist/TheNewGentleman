@@ -1,5 +1,8 @@
 #pragma once
 
+#include <mutex>
+#include <unordered_set>
+
 #include <Inis.h>
 #include <Util.h>
 
@@ -51,6 +54,8 @@ class Core : public Singleton<Core>, public Inis {
     std::vector<std::pair<RE::TESObjectARMO*, bool>> malAddons;
     std::vector<std::pair<RE::TESObjectARMO*, bool>> femAddons;
     std::set<RE::TESObjectARMO*, Common::FormComparator> preSkins;
+    mutable std::mutex blockUpdateMutex;
+    mutable std::unordered_set<RE::FormID> blockUpdatesInProgress;
 
     void LoadAddons();
     int AddonIdxByLoc(const bool isFemale, const SEFormLocView addonLoc) const;

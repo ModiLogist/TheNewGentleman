@@ -170,6 +170,11 @@ Common::eRes Core::CanModifyActor(RE::Actor* const actor) const {
 }
 
 void Core::UpdateActor(RE::Actor* const actor, RE::TESObjectARMO* const armor, const bool isEquipped) {
+  if (!actor) return;
+  {
+    std::lock_guard<std::mutex> lock(blockUpdateMutex);
+    if (blockUpdatesInProgress.contains(actor->GetFormID())) return;
+  }
   auto npc = actor ? actor->GetActorBase() : nullptr;
   if (!npc || actor->IsDisabled() || !npc->race || !npc->race->skin) return;
   auto canModify = CanModifyActor(actor);
@@ -676,7 +681,7 @@ RE::TESObjectARMO* Core::GetSkinWithAddonForRg(Common::RaceGroupInfo* const rg, 
       resSkin = *preSkins.begin();
       preSkins.erase(preSkins.begin());
     } else {
-      resSkin = ogSkin->CreateDuplicateForm(true, (void*)resSkin)->As<RE::TESObjectARMO>();
+      resSkin = ogSkin->CreateDuplicateForm(true, nullptr)->As<RE::TESObjectARMO>();
     }
     if (!resSkin) {
       SKSE::log::critical("Failed to create a new skin");
@@ -964,6 +969,20 @@ inline bool InInventory(RE::Actor* const actor, RE::TESBoundObject* const object
 
 void Core::UpdateBlock(RE::Actor* const actor, RE::TESObjectARMO* const armor, const bool isEquipped) const {
   if (!actor) return;
+  const auto actorId = actor->GetFormID();
+  {
+    std::lock_guard<std::mutex> lock(blockUpdateMutex);
+    if (!blockUpdatesInProgress.insert(actorId).second) return;
+  }
+  struct BlockUpdateGuard {
+    const Core* core;
+    RE::FormID actorId;
+
+    ~BlockUpdateGuard() {
+      std::lock_guard<std::mutex> lock(core->blockUpdateMutex);
+      core->blockUpdatesInProgress.erase(actorId);
+    }
+  } guard{this, actorId};
   static bool showErrMessage = true;
   auto down = armor && isEquipped && armor->HasPartOf(Common::genitalSlot) ? armor : actor->GetWornArmor(Common::genitalSlot);
   if (down && down == armor && !isEquipped) down = nullptr;
