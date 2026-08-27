@@ -676,7 +676,7 @@ RE::TESObjectARMO* Core::GetSkinWithAddonForRg(Common::RaceGroupInfo* const rg, 
       resSkin = *preSkins.begin();
       preSkins.erase(preSkins.begin());
     } else {
-      resSkin = ogSkin->CreateDuplicateForm(true, (void*)resSkin)->As<RE::TESObjectARMO>();
+      resSkin = ogSkin->CreateDuplicateForm(true, nullptr)->As<RE::TESObjectARMO>();
     }
     if (!resSkin) {
       SKSE::log::critical("Failed to create a new skin");
