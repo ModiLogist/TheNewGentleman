@@ -163,6 +163,10 @@ Event OnGameReload()
   EndWhile
 EndEvent
 
+Event OnConfigClose()
+  TNG_PapyrusUtil.FlushMainIni()
+EndEvent
+
 Event OnUpdate()
   fkLastActor = None
   If fiLastActor > 0
