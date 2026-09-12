@@ -155,17 +155,18 @@ bool Core::ReevaluateRace(RE::TESRace* const race, RE::Actor* const actor) {
 Common::eRes Core::CanModifyActor(RE::Actor* const actor) const {
   auto npc = actor ? actor->GetActorBase() : nullptr;
   if (!npc) return Common::errNPC;
-  if (!npc->race) return Common::errRace;
+  auto race = actor->GetRace();
+  if (!race) return Common::errRace;
   if (IsNPCExcluded(npc)) return Common::errNPC;
   if (auto skin = npc->skin; skin && skin->HasPartOf(Common::genitalSlot) && !npc->skin->HasKeyword(ut->Key(Common::kyTngSkin))) {
     for (auto& aa : skin->armorAddons)
       if (aa && aa->HasPartOf(Common::genitalSlot)) return Common::resOkRaceR;
     return Common::errSkin;
   }
-  if (npc->race->HasKeyword(ut->Key(Common::kyReady))) return Common::resOkRaceR;
-  if (auto rg = Rg(RgKey(npc->race)); !rg || rg->malAddons.size() == 0) return Common::errRace;
-  if (npc->race->HasKeyword(ut->Key(Common::kyProcessed))) return Common::resOkRaceP;
-  if (npc->race->HasKeyword(ut->Key(Common::kyPreProcessed))) return Common::resOkRacePP;
+  if (race->HasKeyword(ut->Key(Common::kyReady))) return Common::resOkRaceR;
+  if (auto rg = Rg(RgKey(race)); !rg || rg->malAddons.size() == 0) return Common::errRace;
+  if (race->HasKeyword(ut->Key(Common::kyProcessed))) return Common::resOkRaceP;
+  if (race->HasKeyword(ut->Key(Common::kyPreProcessed))) return Common::resOkRacePP;
   return Common::errRace;
 }
 
@@ -176,16 +177,17 @@ void Core::UpdateActor(RE::Actor* const actor, RE::TESObjectARMO* const armor, c
     if (blockUpdatesInProgress.contains(actor->GetFormID())) return;
   }
   auto npc = actor ? actor->GetActorBase() : nullptr;
-  if (!npc || actor->IsDisabled() || !npc->race || !npc->race->skin) return;
+  auto race = actor ? actor->GetRace() : nullptr;
+  if (!npc || actor->IsDisabled() || !race || !race->skin) return;
   auto canModify = CanModifyActor(actor);
   auto skin = npc->skin;
-  if (canModify == Common::resOkRacePP) ReevaluateRace(actor->GetRace(), actor);
+  if (canModify == Common::resOkRacePP) ReevaluateRace(race, actor);
   if (canModify < 0 || canModify == Common::resOkRacePP) {
     if (skin && skin->HasKeyword(ut->Key(Common::kyTngSkin))) npc->skin = nullptr;
     return;
   }
   if (skin && skin->HasKeyword(ut->Key(Common::kyTngSkin)) &&
-      std::ranges::find_if(skin->armorAddons, [&](const auto& aa) { return aa->IsValidRace(npc->race); }) == skin->armorAddons.end())
+      std::ranges::find_if(skin->armorAddons, [&](const auto& aa) { return aa->IsValidRace(race); }) == skin->armorAddons.end())
     npc->skin = nullptr;
   if (canModify == Common::resOkRaceP || canModify == Common::resOkRaceR) {
     if (actor->IsPlayerRef()) {
@@ -201,8 +203,9 @@ void Core::UpdateActor(RE::Actor* const actor, RE::TESObjectARMO* const armor, c
 std::vector<std::pair<size_t, bool>> Core::GetActorAddons(RE::Actor* const actor, const bool onlyActive) const {
   std::vector<std::pair<size_t, bool>> res{};
   auto npc = actor ? actor->GetActorBase() : nullptr;
-  if (!npc || !npc->race) return res;
-  if (auto rg = Rg(RgKey(npc->race)); rg) {
+  auto race = actor ? actor->GetRace() : nullptr;
+  if (!npc || !race) return res;
+  if (auto rg = Rg(RgKey(race)); rg) {
     auto& list = npc->IsFemale() ? rg->femAddons : rg->malAddons;
     auto& master = npc->IsFemale() ? femAddons : malAddons;
     for (auto& addonPair : list) {
@@ -222,7 +225,7 @@ Common::eRes Core::GetActorAddon(RE::Actor* actor, int& addonIdx, bool& isAuto) 
     if (npc->skin && npc->skin->HasKeyword(ut->Key(Common::kyTngSkin))) return Common::err40;
     return Common::resOkNoAddon;
   }
-  auto rg = Rg(RgKey(npc->race));
+  auto rg = Rg(RgKey(actor->GetRace()));
   if (!rg) return Common::errRace;
   if (!npc->IsFemale()) addonIdx = rg->addonIdx;
   if (!npc->skin) return (addonIdx > Common::nul) ? Common::resOkHasAddon : Common::resOkNoAddon;
@@ -302,7 +305,7 @@ Common::eRes Core::SetActorSize(RE::Actor* const actor, int sizeCat, const bool 
     npc->RemoveKeywords(ut->SizeKeys());
     npc->AddKeyword(ut->SizeKey(cat));
   }
-  if (auto rg = Rg(RgKey(npc->race)); rg) {
+  if (auto rg = Rg(RgKey(actor->GetRace())); rg) {
     auto mult = rg->mult;
     if (mult < 0.0f) return Common::errRg;
     auto scale = mult * floatSettings.Get(static_cast<Common::eFloatSetting>(cat));
