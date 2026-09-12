@@ -1191,6 +1191,10 @@ EndFunction
 
 Int Function TNGSetAddon(Actor akActor, Int aiAddon)
   Int liRes = TNG_PapyrusUtil.SetActorAddon(akActor, aiAddon)
+  If liRes < 0 && aiAddon < 0
+    ShowNotification("$TNG_WN2")
+    Return liRes
+  EndIf
   If liRes >= 0
     If !akActor.IsOnMount()
       akActor.QueueNiNodeUpdate()
