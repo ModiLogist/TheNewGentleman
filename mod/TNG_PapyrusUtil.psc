@@ -29,6 +29,7 @@ Function SetIntValue(Int aiID, Int aiValue) Global Native
 ; 5: Chance of women to have an addon
 Float Function GetFloatValue(Int aiID) Global Native
 Function SetFloatValue(Int aiID, Float afValue) Global Native
+Function FlushMainIni() Global Native
 
 Int Function GetAllAddonsCount(Bool abIsFemale) Global Native
 String[] Function GetAllPossibleAddons(Bool abIsFemale) Global Native

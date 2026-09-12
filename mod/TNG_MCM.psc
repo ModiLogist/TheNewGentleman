@@ -143,7 +143,7 @@ EndEvent
 
 Event OnGameReload()
   Parent.OnGameReload()
-  If Game.GetModByName("Dynamic Activation Key.esp")
+  If Game.GetModByName("Dynamic Activation Key.esp") != 255
     fkDAK = Game.GetFormFromFile(0x801, "Dynamic Activation Key.esp") As GlobalVariable
   EndIf
   Int liKey = 5
@@ -153,6 +153,10 @@ Event OnGameReload()
       RegisterForKey(TNG_PapyrusUtil.GetIntValue(liKey))
     EndIf
   EndWhile
+EndEvent
+
+Event OnConfigClose()
+  TNG_PapyrusUtil.FlushMainIni()
 EndEvent
 
 Event OnUpdate()
@@ -171,7 +175,7 @@ Event OnPageReset(String asPage)
     AddHeaderOption("$TNG_KyH")
     AddHeaderOption("")
     fkDAK = None
-    If Game.GetModByName("Dynamic Activation Key.esp")
+    If Game.GetModByName("Dynamic Activation Key.esp") != 255
       fkDAK = Game.GetFormFromFile(0x801, "Dynamic Activation Key.esp") As GlobalVariable
       If fkDAK
         fiDAKHdl = AddToggleOption("$TNG_DAK", TNG_PapyrusUtil.GetBoolValue(cbDAK))
@@ -1147,6 +1151,10 @@ EndFunction
 
 Int Function TNGSetAddon(Actor akActor, Int aiAddon)
   Int liRes = TNG_PapyrusUtil.SetActorAddon(akActor, aiAddon)
+  If liRes < 0 && aiAddon < 0
+    ShowNotification("$TNG_WN2")
+    Return liRes
+  EndIf
   If liRes >= 0
     If !akActor.IsOnMount()
       akActor.QueueNiNodeUpdate()

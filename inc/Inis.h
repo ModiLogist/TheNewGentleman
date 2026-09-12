@@ -17,11 +17,12 @@ namespace TNG {
       bool FromStr(const std::string& IdStr, const std::string& InfoStr);
   };
 
-  class Inis {
-    public:
-      void LoadMainIni();
-      void SaveMainIni();
-      virtual ~Inis() = default;
+class Inis {
+  public:
+    void LoadMainIni();
+    void SaveMainIni();
+    void FlushMainIni();
+    virtual ~Inis() = default;
 
       TypedSetting<bool, eBoolSetting, boolSettingCount> boolSettings{
           std::array<bool, boolSettingCount>{false, false, false, false, false, false},
@@ -78,8 +79,9 @@ namespace TNG {
       std::map<SEFormLoc, int> userArmorStatus;
       std::map<std::string, bool> slot52Mods;
 
-    public:
-      void SetAddonStatus(const bool isFemale, const RE::TESObjectARMO* addon, const bool status);
+  public:
+    void SetAddonStatus(const bool isFemale, const RE::TESObjectARMO* addon, const bool status);
+    void MarkIniDirty();
 
     protected:
       void StoreSkeleton(const std::string& skeletonModel);
@@ -120,6 +122,7 @@ namespace TNG {
       inline static constexpr const char* cPlayerSize{"Size"};
       std::vector<PCInfo> playerInfos;
       const int PlayerInfoIndex(const RE::Actor* actor, std::tuple<std::string, SEFormLoc, bool>& pcId) const;
+      bool iniDirty = false;
 
     public:
       void LoadTngInis();

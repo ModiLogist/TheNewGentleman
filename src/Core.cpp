@@ -143,16 +143,17 @@ const eRes Core::CanModifyActor(RE::Actor* const actor) const {
   auto npc = actor ? actor->GetActorBase() : nullptr;
   if (!npc) return errNPC;
   if (npc->HasKeyword(ut->Key(kyExcluded))) return errNPC;
-  if (!npc->race) return errRace;
+  auto race = actor->GetRace();
+  if (!race) return errRace;
   if (auto skin = npc->skin; skin && skin->HasPartOf(genitalSlot)) {
     for (auto& aa : skin->armorAddons)
       if (aa && aa->HasPartOf(genitalSlot)) return resOkRaceR;
     return errSkin;
   }
-  if (npc->race->HasKeyword(ut->Key(kyReady))) return resOkRaceR;
-  if (auto rg = Rg(RgKey(npc->race)); !rg || (npc->IsFemale() ? rg->femAddons.size() == 0 : rg->malAddons.size() == 0)) return errRace;
-  if (npc->race->HasKeyword(ut->Key(kyProcessed))) return resOkRaceP;
-  if (npc->race->HasKeyword(ut->Key(kyPreProcessed))) return resOkRacePP;
+  if (race->HasKeyword(ut->Key(kyReady))) return resOkRaceR;
+  if (auto rg = Rg(RgKey(race)); !rg || (npc->IsFemale() ? rg->femAddons.size() == 0 : rg->malAddons.size() == 0)) return errRace;
+  if (race->HasKeyword(ut->Key(kyProcessed))) return resOkRaceP;
+  if (race->HasKeyword(ut->Key(kyPreProcessed))) return resOkRacePP;
   return errRace;
 }
 
@@ -173,8 +174,9 @@ void Core::UpdateActor(RE::Actor* const actor, RE::TESObjectARMO* const armor, c
 const std::vector<size_t> Core::GetActorAddons(RE::Actor* const actor, const bool onlyActive) const {
   std::vector<size_t> res{};
   auto npc = actor ? actor->GetActorBase() : nullptr;
-  if (!npc || !npc->race) return res;
-  if (auto rg = Rg(RgKey(npc->race)); rg) {
+  auto race = actor ? actor->GetRace() : nullptr;
+  if (!npc || !race) return res;
+  if (auto rg = Rg(RgKey(race)); rg) {
     auto& list = npc->IsFemale() ? rg->femAddons : rg->malAddons;
     auto& master = npc->IsFemale() ? allFemAddons : allMalAddons;
     for (auto& addonPair : list) {
@@ -193,7 +195,7 @@ const eRes Core::GetActorAddon(RE::Actor* actor, int& addonIdx, bool& isAuto) co
     isAuto = false;
     return resOkNoAddon;
   }
-  auto rg = Rg(RgKey(npc->race));
+  auto rg = Rg(RgKey(actor->GetRace()));
   if (!rg) return errRace;
   npc->ForEachKeyword([&](RE::BGSKeyword* kw) {
     if (!kw || kw->GetFormEditorID() == NULL) return RE::BSContainer::ForEachResult::kContinue;
@@ -297,7 +299,7 @@ const eRes Core::SetActorSize(RE::Actor* const actor, int sizeCat, const bool sh
     npc->RemoveKeywords(ut->SizeKeys());
     npc->AddKeyword(ut->SizeKey(cat));
   }
-  auto rg = Rg(RgKey(npc->race));
+  auto rg = Rg(RgKey(actor->GetRace()));
   if (!rg) return errRg;
   auto mult = rg->mult;
   if (mult < 0.0f) return errRg;

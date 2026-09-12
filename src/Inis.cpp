@@ -38,7 +38,12 @@ void Inis::LoadMainIni() {
     auto status = settingIni.GetBoolValue(cRevealingModSection, key.pItem, false);
     if (!modName.empty()) slot52Mods.emplace(modName, status);
   }
+  iniDirty = false;
   SKSE::log::info("TNG settings loaded.");
+}
+
+void Inis::FlushMainIni() {
+  if (iniDirty) SaveMainIni();
 }
 
 void Inis::SaveMainIni() {
@@ -73,6 +78,7 @@ void Inis::SaveMainIni() {
     if (!pair.first.empty()) settingIni.SetBoolValue(cRevealingModSection, NameToStr(pair.first).c_str(), pair.second);
   }
   settingIni.SaveFile(SettingFile());
+  iniDirty = false;
 }
 
 spdlog::level::level_enum Inis::GetLogLvl() const {
@@ -187,9 +193,12 @@ void Inis::SetAddonStatus(const bool isFemale, const RE::TESObjectARMO* addon, c
     return;
   }
   status == isFemale ? userFemAddons[addonLoc] = status : userMalAddons[addonLoc] = status;
+  MarkIniDirty();
 }
 
-void Inis::StoreSkeleton(const std::string& skeletonModel) { validSkeletons.emplace(skeletonModel); }
+void Inis::StoreSkeleton(const std::string& skeletonModel) {
+  if (validSkeletons.emplace(skeletonModel).second) MarkIniDirty();
+}
 
 void Inis::StoreRgAddon(const RE::TESRace* rgRace, const RE::TESObjectARMO* addon, const int choice) {
   auto raceLoc = FormToLoc(rgRace);
@@ -221,6 +230,7 @@ void Inis::StoreRgAddon(const RE::TESRace* rgRace, const RE::TESObjectARMO* addo
       userRacialAddons[raceLoc] = addonLoc;
     } break;
   }
+  MarkIniDirty();
 }
 
 void Inis::StoreRgMult(const RE::TESRace* rgRace, const float mult) {
@@ -238,6 +248,7 @@ void Inis::StoreRgMult(const RE::TESRace* rgRace, const float mult) {
   } else {
     userRacialSizes[raceLoc] = mult;
   }
+  MarkIniDirty();
 }
 
 SEFormLoc Inis::ActorSavedAddon(const RE::Actor* actor, const RE::TESNPC* npc) const {
@@ -266,6 +277,7 @@ void Inis::StoreActorAddon(const RE::Actor* actor, const RE::TESNPC* npc, const 
     return;
   }
   saveAsActor ? userActorAddons[charLoc] = addonLoc : userNpcAddons[charLoc] = addonLoc;
+  MarkIniDirty();
 }
 
 int Inis::ActorSavedSize(const RE::Actor* actor, const RE::TESNPC* npc) const {
@@ -290,6 +302,7 @@ void Inis::StoreActorSize(const RE::Actor* actor, const RE::TESNPC* npc, const i
     return;
   }
   (saveAsActor ? userActorSizeCats[charLoc] : userNpcSizeCats[charLoc]) = genSize == def ? GetDefault<int>() : genSize;
+  MarkIniDirty();
 }
 
 void Inis::StoreArmorStatus(const RE::TESObjectARMO* armor, const eKeyword revMode) {
@@ -308,6 +321,7 @@ void Inis::StoreArmorStatus(const RE::TESObjectARMO* armor, const eKeyword revMo
   } else {
     userArmorStatus[armoLoc] = static_cast<int>(std::distance(statusKeys.begin(), revIdx));
   }
+  MarkIniDirty();
 }
 
 void Inis::LoadPlayerInfo(const std::string& saveName) {
@@ -336,7 +350,10 @@ void Inis::LoadPlayerInfo(const std::string& saveName) {
 const bool Inis::Slot52ModBehavior(const std::string& modName) const { return slot52Mods.find(modName) != slot52Mods.end() && slot52Mods.at(modName); }
 
 bool Inis::Slot52ModBehavior(const std::string& modName, const int behavior) {
-  if (behavior >= 0) slot52Mods[modName] = behavior == 1;
+  if (behavior >= 0) {
+    slot52Mods[modName] = behavior == 1;
+    MarkIniDirty();
+  }
   return slot52Mods.find(modName) != slot52Mods.end() && slot52Mods[modName];
 }
 
@@ -416,8 +433,11 @@ void Inis::StorePlayerInfo(const RE::Actor* actor, const RE::TESObjectARMO* addo
   if (addonLoc != pcInfo->addon || sizeCat != pcInfo->sizeCat) {
     pcInfo->addon = addonLoc;
     pcInfo->sizeCat = sizeCat;
+    MarkIniDirty();
   }
 }
+
+void Inis::MarkIniDirty() { iniDirty = true; }
 
 void Inis::LoadTngInis() {
   SKSE::log::info("Loading ini files...");

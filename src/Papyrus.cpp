@@ -12,6 +12,7 @@ bool Papyrus::BindPapyrus(RE::BSScript::IVirtualMachine* vm) {
   vm->RegisterFunction("SetIntValue", "TNG_PapyrusUtil", SetIntValue);
   vm->RegisterFunction("GetFloatValue", "TNG_PapyrusUtil", GetFloatValue);
   vm->RegisterFunction("SetFloatValue", "TNG_PapyrusUtil", SetFloatValue);
+  vm->RegisterFunction("FlushMainIni", "TNG_PapyrusUtil", FlushMainIni);
 
   vm->RegisterFunction("GetAllPossibleAddons", "TNG_PapyrusUtil", GetAllPossibleAddons);
   vm->RegisterFunction("GetAddonStatus", "TNG_PapyrusUtil", GetAddonStatus);
@@ -60,7 +61,8 @@ void Papyrus::SetBoolValue(RE::StaticFunctionTag*, int settingID, bool value) {
       default:
         break;
     }
-    core->boolSettings.Set(static_cast<eBoolSetting>(settingID), value);
+    core->boolSettings.Set(static_cast<Common::eBoolSetting>(settingID), value);
+    core->MarkIniDirty();
   }
 }
 
@@ -70,7 +72,10 @@ int Papyrus::GetIntValue(RE::StaticFunctionTag*, int settingID) {
 }
 
 void Papyrus::SetIntValue(RE::StaticFunctionTag*, int settingID, int value) {
-  if (0 <= settingID && settingID < intSettingCount) core->intSettings.Set(static_cast<eIntSetting>(settingID), value);
+  if (0 <= settingID && settingID < Common::intSettingCount) {
+    core->intSettings.Set(static_cast<Common::eIntSetting>(settingID), value);
+    core->MarkIniDirty();
+  }
 }
 
 float Papyrus::GetFloatValue(RE::StaticFunctionTag*, int settingID) {
@@ -79,8 +84,13 @@ float Papyrus::GetFloatValue(RE::StaticFunctionTag*, int settingID) {
 }
 
 void Papyrus::SetFloatValue(RE::StaticFunctionTag*, int settingID, float value) {
-  if (0 <= settingID && settingID < floatSettingCount) core->floatSettings.Set(static_cast<eFloatSetting>(settingID), value);
+  if (0 <= settingID && settingID < Common::floatSettingCount) {
+    core->floatSettings.Set(static_cast<Common::eFloatSetting>(settingID), value);
+    core->MarkIniDirty();
+  }
 }
+
+void Papyrus::FlushMainIni(RE::StaticFunctionTag*) { core->FlushMainIni(); }
 
 std::vector<std::string> Papyrus::GetAllPossibleAddons(RE::StaticFunctionTag*, bool isFemale) {
   std::vector<std::string> res{};

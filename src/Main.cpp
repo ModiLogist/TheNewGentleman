@@ -51,6 +51,7 @@ void EventListener(SKSE::MessagingInterface::Message* message) {
     } break;
 
     case SKSE::MessagingInterface::kPreLoadGame: {
+      core->FlushMainIni();
       const std::string savePath{static_cast<char*>(message->data), message->dataLen};
       core->LoadPlayerInfo(savePath);
     } break;

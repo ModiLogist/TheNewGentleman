@@ -1,5 +1,8 @@
 #pragma once
 
+#include <mutex>
+#include <unordered_set>
+
 #include <Inis.h>
 #include <TNGUtil.h>
 namespace TNG {
