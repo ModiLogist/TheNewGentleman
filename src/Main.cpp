@@ -80,7 +80,7 @@ extern "C" __declspec(dllexport) constinit auto SKSEPlugin_Version = []() {
   return v;
 }();
 
-extern "C" __declspec(dllexport) bool SKSEAPI SKSEPlugin_Query(const SKSE::QueryInterface*, SKSE::PluginInfo* info) {
+extern "C" __declspec(dllexport) bool SKSEPlugin_Query(const SKSE::QueryInterface*, SKSE::PluginInfo* info) {
   info->infoVersion = SKSE::PluginInfo::kVersion;
   info->name = Version::PROJECT.data();
   info->version = Version::MAJOR;
