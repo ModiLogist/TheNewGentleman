@@ -11,6 +11,7 @@ class Papyrus : public Singleton<Papyrus> {
     static void SetIntValue(RE::StaticFunctionTag*, int settingID, int value);
     static float GetFloatValue(RE::StaticFunctionTag*, int settingID);
     static void SetFloatValue(RE::StaticFunctionTag*, int settingID, float value);
+    static void FlushMainIni(RE::StaticFunctionTag*);
 
     static std::vector<std::string> GetAllPossibleAddons(RE::StaticFunctionTag*, bool isFemale);
     static bool GetAddonStatus(RE::StaticFunctionTag*, bool isFemale, int addonIdx);
