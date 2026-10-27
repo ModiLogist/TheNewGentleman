@@ -1,5 +1,8 @@
 #pragma once
 
+#include <functional>
+#include <thread>
+
 namespace Common {
   inline static constexpr std::string_view skyrimFile{"Skyrim.esm"};
   inline static constexpr int nan{-99};
@@ -89,12 +92,17 @@ namespace Common {
       void QueueNiNodeUpdate(const RE::Actor* actor) const;
       void UpdateFormList(RE::BGSListForm* formList, RE::TESForm* form, const bool addRemove) const;  // Add: true, Remove: false
       void DoDelayed(std::function<void()> func, std::function<bool()> condition, const int fixedDelay, const bool enforceCond, const std::string fmsg = "") const;
+      // Game data (keyword arrays, skins, nodes) must only be modified from the main thread.
+      void SetMainThread() const { mainThreadId = std::this_thread::get_id(); }
+      bool IsMainThread() const { return std::this_thread::get_id() == mainThreadId; }
+      void RunOnMain(const std::function<void()>& func) const;  // runs now if on the main thread, otherwise queues an SKSE task
 
     private:
       inline static constexpr size_t fixedDelayTime{5000};
       inline static constexpr size_t delayTime{500};
       inline static constexpr size_t maxDelayCount{20};
       inline static constexpr size_t newGameDelayMult{2};
+      inline static std::thread::id mainThreadId{};
       inline static constexpr std::string iniChars{"[=:]"};
       const bool try_strtoul(const std::string& str, std::uint32_t& result, int base = 0) const;
   };

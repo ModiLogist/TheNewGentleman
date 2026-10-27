@@ -23,13 +23,13 @@ RE::BSEventNotifyControl SEEvents::ProcessEvent(const RE::TESEquipEvent* event, 
     }
     return RE::BSEventNotifyControl::kContinue;
   }
-  core->UpdateActor(actor, armor, event->equipped);
+  core->UpdateActorOnMain(actor, armor, event->equipped);
   return RE::BSEventNotifyControl::kContinue;
 }
 
 RE::BSEventNotifyControl SEEvents::ProcessEvent(const RE::TESObjectLoadedEvent* event, RE::BSTEventSource<RE::TESObjectLoadedEvent>*) {
   if (!event || !event->loaded) return RE::BSEventNotifyControl::kContinue;
-  if (const auto actor = RE::TESForm::LookupByID<RE::Actor>(event->formID); actor) core->UpdateActor(actor);
+  if (const auto actor = RE::TESForm::LookupByID<RE::Actor>(event->formID); actor) core->UpdateActorOnMain(actor);
   return RE::BSEventNotifyControl::kContinue;
 }
 

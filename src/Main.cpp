@@ -38,6 +38,7 @@ void EventListener(SKSE::MessagingInterface::Message* message) {
   if (!isOk) return;
   switch (message->type) {
     case SKSE::MessagingInterface::kDataLoaded: {
+      SKSE::GetTaskInterface()->AddTask([]() { ut->SetMainThread(); });
       isOk = CheckRequirements();
       if (!isOk) return;
       core->Process();

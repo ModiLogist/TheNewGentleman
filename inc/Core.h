@@ -34,6 +34,8 @@ class Core : public Singleton<Core>, public Inis {
 
     Common::eRes CanModifyActor(RE::Actor* const actor) const;
     void UpdateActor(RE::Actor* const actor, RE::TESObjectARMO* const armor = nullptr, const bool isEquipped = false);
+    // Same as UpdateActor, but marshals the call to the main thread when called from anywhere else.
+    void UpdateActorOnMain(RE::Actor* const actor, RE::TESObjectARMO* const armor = nullptr, const bool isEquipped = false);
     std::vector<std::pair<size_t, bool>> GetActorAddons(RE::Actor* const actor, const bool onlyActive) const;
     Common::eRes GetActorAddon(RE::Actor* actor, int& addon, bool& isAuto) const;
     Common::eRes SetActorAddon(RE::Actor* const actor, const int choice, const bool isUser, const bool shouldSave);

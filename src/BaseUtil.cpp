@@ -125,6 +125,18 @@ void Common::BaseUtil::UpdateFormList(RE::BGSListForm* formList, RE::TESForm* fo
   }
 }
 
+void Common::BaseUtil::RunOnMain(const std::function<void()>& func) const {
+  if (IsMainThread()) {
+    func();
+    return;
+  }
+  if (const auto task = SKSE::GetTaskInterface(); task) {
+    task->AddTask(func);
+  } else {
+    func();
+  }
+}
+
 void Common::BaseUtil::DoDelayed(std::function<void()> func, std::function<bool()> condition, const int fixedDelay, const bool enforceCond, const std::string fmsg) const {
   if (fixedDelay == 0 && condition()) {
     func();
@@ -151,7 +163,7 @@ void Common::BaseUtil::DoDelayed(std::function<void()> func, std::function<bool(
         if (!fmsg.empty()) SKSE::log::debug("{}", fmsg.c_str());
         return;
       }
-      func();
+      RunOnMain(func);  // was func(): this runs on a detached worker thread
     } __except (EXCEPTION_EXECUTE_HANDLER) {
       SKSE::log::debug("Hardware exception occurred in parallel processes. If the issue is causing you a problem, please report this issue.");
     }
