@@ -176,9 +176,17 @@ void Core::UpdateActorOnMain(RE::Actor* const actor, RE::TESObjectARMO* const ar
     UpdateActor(actor, armor, isEquipped);
     return;
   }
+  // armor/isEquipped describe the change being reported *right now*: UpdateBlock uses them to
+  // predict the outfit while the inventory may not reflect the change yet. By the time the task
+  // runs the change has been applied, and further equips/unequips may have followed (OStim
+  // undresses several pieces in a row). Replaying the old hint then overrides the real state,
+  // e.g. a stale "cuirass equipped" makes UpdateBlock equip the block on a naked actor.
+  // So the deferred update re-reads the current outfit instead.
+  (void)armor;
+  (void)isEquipped;
   const auto handle = actor->GetHandle();
-  ut->RunOnMain([handle, armor, isEquipped]() {
-    if (const auto ptr = handle.get(); ptr) core->UpdateActor(ptr.get(), armor, isEquipped);
+  ut->RunOnMain([handle]() {
+    if (const auto ptr = handle.get(); ptr) core->UpdateActor(ptr.get(), nullptr, false);
   });
 }
 
@@ -1002,6 +1010,8 @@ void Core::UpdateBlock(RE::Actor* const actor, RE::TESObjectARMO* const armor, c
   auto down = armor && isEquipped && armor->HasPartOf(Common::genitalSlot) ? armor : actor->GetWornArmor(Common::genitalSlot);
   if (down && down == armor && !isEquipped) down = nullptr;
   auto hasCover = armor && isEquipped && !armor->HasPartOf(Common::genitalSlot) ? true : ut->HasCovering(actor, isEquipped ? nullptr : armor);
+  SKSE::log::debug("UpdateBlock [0x{:x}]: armor [0x{:x}] equipped [{}] down [0x{:x}] hasCover [{}] main [{}]", actorId, armor ? armor->GetFormID() : 0,
+                   isEquipped, down ? down->GetFormID() : 0, hasCover, ut->IsMainThread());
   if (!NeedsBlock(actor) || (down && (!ut->IsBlock(down) || !hasCover))) {
     actor->RemoveItem(ut->Block(), 1000, RE::ITEM_REMOVE_REASON::kRemove, nullptr, nullptr);
     return;
