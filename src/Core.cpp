@@ -170,7 +170,7 @@ Common::eRes Core::CanModifyActor(RE::Actor* const actor) const {
   return Common::errRace;
 }
 
-void Core::UpdateActorOnMain(RE::Actor* const actor, RE::TESObjectARMO* const armor, const bool isEquipped) {
+void Core::UpdateActorOrQueue(RE::Actor* const actor, RE::TESObjectARMO* const armor, const bool isEquipped) {
   if (!actor) return;
   if (ut->IsMainThread()) {
     UpdateActor(actor, armor, isEquipped);
@@ -185,7 +185,7 @@ void Core::UpdateActorOnMain(RE::Actor* const actor, RE::TESObjectARMO* const ar
   (void)armor;
   (void)isEquipped;
   const auto handle = actor->GetHandle();
-  ut->RunOnMain([handle]() {
+  ut->RunOrQueueTask([handle]() {
     if (const auto ptr = handle.get(); ptr) core->UpdateActor(ptr.get(), nullptr, false);
   });
 }
@@ -369,7 +369,7 @@ void Core::UpdatePlayerAfterLoad() {
     if (!pc || !player->Is3DLoaded()) return false;
     auto skin = pc->skin;
     if (skin && !skin->HasKeyword(ut->Key(Common::kyTngSkin))) {
-      core->UpdateActorOnMain(player);  // this condition is polled on a worker thread
+      core->UpdateActorOrQueue(player);  // this condition is polled on a worker thread
     }
     return false;
   };

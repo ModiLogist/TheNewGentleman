@@ -92,10 +92,15 @@ namespace Common {
       void QueueNiNodeUpdate(const RE::Actor* actor) const;
       void UpdateFormList(RE::BGSListForm* formList, RE::TESForm* form, const bool addRemove) const;  // Add: true, Remove: false
       void DoDelayed(std::function<void()> func, std::function<bool()> condition, const int fixedDelay, const bool enforceCond, const std::string fmsg = "") const;
-      // Game data (keyword arrays, skins, nodes) must only be modified from the main thread.
       void SetMainThread() const { mainThreadId = std::this_thread::get_id(); }
       bool IsMainThread() const { return std::this_thread::get_id() == mainThreadId; }
-      void RunOnMain(const std::function<void()>& func) const;  // runs now if on the main thread, otherwise queues an SKSE task
+      // Runs func now on the main thread, otherwise queues it as an SKSE task.
+      // SKSE tasks are run from the game's task pool processing: on the main thread while a save
+      // loads, but on game worker threads in game (observed on 1.6.1170). So a queued task is
+      // not guaranteed to run on the main thread, nor alone: SKSE locks only the queue, so two
+      // threads may run tasks at the same time. In practice queued tasks mostly run one after
+      // another, which keeps TNG's own updates from overlapping each other.
+      void RunOrQueueTask(const std::function<void()>& func) const;
 
     private:
       inline static constexpr size_t fixedDelayTime{5000};
