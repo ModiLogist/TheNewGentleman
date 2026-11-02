@@ -19,7 +19,11 @@ RE::BSEventNotifyControl SEEvents::ProcessEvent(const RE::TESEquipEvent* event, 
   if (!actor || !armor || (!ut->IsCovering(actor, armor) && !armor->HasPartOf(Common::genitalSlot))) return RE::BSEventNotifyControl::kContinue;
   if (ut->IsBlock(armor)) {
     if (!event->equipped && core->boolSettings.Get(Common::bsGoToBed)) {
-      ut->DoDelayed([actor]() { core->UpdateActor(actor, nullptr, false); }, []() { return true; }, 100, false);
+      ut->DoDelayed(
+          [handle = actor->GetHandle()]() {
+            if (const auto ac = handle.get(); ac) core->UpdateActor(ac.get(), nullptr, false);
+          },
+          []() { return true; }, 100, false);
     }
     return RE::BSEventNotifyControl::kContinue;
   }
@@ -37,8 +41,9 @@ RE::BSEventNotifyControl SEEvents::ProcessEvent(const RE::TESSwitchRaceCompleteE
   auto actor = event->subject.get()->As<RE::Actor>();
   bool isPlayer = actor->IsPlayerRef();
   ut->DoDelayed(
-      [actor, isPlayer]() {
-        auto ac = isPlayer ? RE::PlayerCharacter::GetSingleton() : actor;
+      [handle = actor->GetHandle(), isPlayer]() {
+        const auto ptr = handle.get();
+        auto ac = isPlayer ? RE::PlayerCharacter::GetSingleton() : ptr.get();
         if (!ac) return;
         core->UpdateActor(ac);
       },
