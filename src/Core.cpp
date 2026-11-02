@@ -990,6 +990,12 @@ inline bool InInventory(RE::Actor* const actor, RE::TESBoundObject* const object
   return found;
 }
 
+// After a worn block is removed, a 3D update is queued. Outside scenes the game redraws the genital
+// slot by itself, but actors locked in a scene (OStim: player AI-driven, NPCs restrained) only show
+// equipment changes after a QueueNiNodeUpdate. OStim queues one after its own undressing, which TNG's
+// block removal usually misses: genitals stay hidden until the scene ends.
+// Equipping the block queues none: it is only equipped under covering armor, which hides the genital
+// slot anyway, and a 3D update per actor there caused stutter when redressing and loading areas.
 void Core::UpdateBlock(RE::Actor* const actor, RE::TESObjectARMO* const armor, const bool isEquipped) const {
   if (!actor) return;
   const auto actorId = actor->GetFormID();
@@ -1013,7 +1019,11 @@ void Core::UpdateBlock(RE::Actor* const actor, RE::TESObjectARMO* const armor, c
   SKSE::log::debug("UpdateBlock [0x{:x}]: armor [0x{:x}] equipped [{}] down [0x{:x}] hasCover [{}] main [{}]", actorId, armor ? armor->GetFormID() : 0,
                    isEquipped, down ? down->GetFormID() : 0, hasCover, ut->IsMainThread());
   if (!NeedsBlock(actor) || (down && (!ut->IsBlock(down) || !hasCover))) {
+    // This path runs on most updates, also when the block is not there (e.g. for every female actor),
+    // so only a block that is actually worn counts as a visible change.
+    const auto wasWorn = ut->IsBlock(actor->GetWornArmor(Common::genitalSlot));
     actor->RemoveItem(ut->Block(), 1000, RE::ITEM_REMOVE_REASON::kRemove, nullptr, nullptr);
+    if (wasWorn) ut->QueueNiNodeUpdate(actor);
     return;
   }
   if ((hasCover && down) || (!hasCover && !down)) return;
