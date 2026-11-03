@@ -6,6 +6,7 @@ class Inis {
   public:
     void LoadMainIni();
     void SaveMainIni();
+    void FlushMainIni();
     virtual ~Inis() = default;
 
     Common::TypedSetting<bool, Common::eBoolSetting, Common::boolSettingCount> boolSettings{
@@ -67,6 +68,7 @@ class Inis {
 
   public:
     void SetAddonStatus(const bool isFemale, const RE::TESObjectARMO* addon, const bool status);
+    void MarkIniDirty();
 
   protected:
     void SetValidSkeleton(const std::string& skeletonModel);
@@ -106,6 +108,7 @@ class Inis {
     inline static constexpr const char* cPlayerSkin{"Skin"};
     inline static constexpr const char* cPlayerSize{"Size"};
     std::vector<Common::PlayerInfo> playerInfos;
+    bool iniDirty = false;
 
   public:
     void LoadTngInis();

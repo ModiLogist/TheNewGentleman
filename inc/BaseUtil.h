@@ -1,5 +1,8 @@
 #pragma once
 
+#include <functional>
+#include <thread>
+
 namespace Common {
   inline static constexpr std::string_view skyrimFile{"Skyrim.esm"};
   inline static constexpr int nan{-99};
@@ -89,12 +92,22 @@ namespace Common {
       void QueueNiNodeUpdate(const RE::Actor* actor) const;
       void UpdateFormList(RE::BGSListForm* formList, RE::TESForm* form, const bool addRemove) const;  // Add: true, Remove: false
       void DoDelayed(std::function<void()> func, std::function<bool()> condition, const int fixedDelay, const bool enforceCond, const std::string fmsg = "") const;
+      void SetMainThread() const { mainThreadId = std::this_thread::get_id(); }
+      bool IsMainThread() const { return std::this_thread::get_id() == mainThreadId; }
+      // Runs func now on the main thread, otherwise queues it as an SKSE task.
+      // SKSE tasks are run from the game's task pool processing: on the main thread while a save
+      // loads, but on game worker threads in game (observed on 1.6.1170). So a queued task is
+      // not guaranteed to run on the main thread, nor alone: SKSE locks only the queue, so two
+      // threads may run tasks at the same time. In practice queued tasks mostly run one after
+      // another, which keeps TNG's own updates from overlapping each other.
+      void RunOrQueueTask(const std::function<void()>& func) const;
 
     private:
       inline static constexpr size_t fixedDelayTime{5000};
       inline static constexpr size_t delayTime{500};
       inline static constexpr size_t maxDelayCount{20};
       inline static constexpr size_t newGameDelayMult{2};
+      inline static std::thread::id mainThreadId{};
       inline static constexpr std::string iniChars{"[=:]"};
       const bool try_strtoul(const std::string& str, std::uint32_t& result, int base = 0) const;
   };
